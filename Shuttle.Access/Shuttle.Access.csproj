@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1E27569E-559A-4CAD-880B-F7E336B27FDA}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Shuttle.Access</RootNamespace>
+    <AssemblyName>Shuttle.Access</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Framework Condition=" '$(Framework)' == '' ">net45-full</Framework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Shuttle.Core.Infrastructure, Version=8.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Core.Infrastructure.8.0.3\lib\net45-full\Shuttle.Core.Infrastructure.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AuthenticationResult.cs" />
+    <Compile Include="IAnonymousPermissions.cs" />
+    <Compile Include="IAuthenticationService.cs" />
+    <Compile Include="IAuthorizationService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".build\package.msbuild" />
+    <None Include=".build\package.nuspec" />
+    <None Include=".build\Shuttle.Core.MSBuild.targets" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".build\Shuttle.Core.MSBuild.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
