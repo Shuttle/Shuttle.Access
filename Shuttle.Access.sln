@@ -5,6 +5,10 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access", "Shuttle.Access\Shuttle.Access.csproj", "{1E27569E-559A-4CAD-880B-F7E336B27FDA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Messages", "Shuttle.Access.Messages\Shuttle.Access.Messages.csproj", "{287E6619-30CF-4747-8450-B4DA65B20560}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Server", "Shuttle.Access.Server\Shuttle.Access.Server.csproj", "{31969271-DC56-40C3-BC60-AB4936E1C0E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{1E27569E-559A-4CAD-880B-F7E336B27FDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E27569E-559A-4CAD-880B-F7E336B27FDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E27569E-559A-4CAD-880B-F7E336B27FDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{287E6619-30CF-4747-8450-B4DA65B20560}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{287E6619-30CF-4747-8450-B4DA65B20560}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{287E6619-30CF-4747-8450-B4DA65B20560}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{287E6619-30CF-4747-8450-B4DA65B20560}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31969271-DC56-40C3-BC60-AB4936E1C0E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31969271-DC56-40C3-BC60-AB4936E1C0E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31969271-DC56-40C3-BC60-AB4936E1C0E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31969271-DC56-40C3-BC60-AB4936E1C0E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
