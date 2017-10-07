@@ -29,6 +29,78 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
+    <Framework Condition=" '$(Framework)' == '' ">net40-full</Framework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
+    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
+    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
+    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
+    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
+    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
+    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
+    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Framework Condition=" '$(Framework)' == '' ">net45-full</Framework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
+    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
+    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
+    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
+    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
+    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
+    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
+    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Framework Condition=" '$(Framework)' == '' ">net45-full</Framework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
+    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
+    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
+    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
+    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
+    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
+    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
+    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
     <Framework Condition=" '$(Framework)' == '' ">net45-full</Framework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
@@ -92,13 +164,28 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccessResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AccessResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="AuthenticationResult.cs" />
+    <Compile Include="Domain\Events\Role.v1\Added.cs" />
+    <Compile Include="Domain\Events\Role.v1\PermissionAdded.cs" />
+    <Compile Include="Domain\Events\Role.v1\PermissionRemoved.cs" />
+    <Compile Include="Domain\Events\Role.v1\Removed.cs" />
+    <Compile Include="Domain\Events\User.v1\Registered.cs" />
+    <Compile Include="Domain\Events\User.v1\Removed.cs" />
+    <Compile Include="Domain\Events\User.v1\RoleAdded.cs" />
+    <Compile Include="Domain\Events\User.v1\RoleRemoved.cs" />
+    <Compile Include="Domain\Role.cs" />
+    <Compile Include="Domain\User.cs" />
+    <Compile Include="HashingService.cs" />
     <Compile Include="IAnonymousPermissions.cs" />
     <Compile Include="IAuthenticationService.cs" />
     <Compile Include="IAuthorizationService.cs" />
+    <Compile Include="IHashingService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Role.cs" />
-    <Compile Include="User.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".build\package.msbuild" />
@@ -110,7 +197,10 @@
     <Content Include=".build\Shuttle.Core.MSBuild.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="DomainEvents\" />
+    <EmbeddedResource Include="AccessResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AccessResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

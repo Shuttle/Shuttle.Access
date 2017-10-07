@@ -2,12 +2,12 @@
 using Shuttle.Core.Data;
 using Shuttle.Core.Infrastructure;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql.Permission
 {
     public class PermissionQuery : IPermissionQuery
     {
-        private readonly IQueryMapper _queryMapper;
         private readonly IPermissionQueryFactory _queryFactory;
+        private readonly IQueryMapper _queryMapper;
 
         public PermissionQuery(IQueryMapper queryMapper, IPermissionQueryFactory queryFactory)
         {

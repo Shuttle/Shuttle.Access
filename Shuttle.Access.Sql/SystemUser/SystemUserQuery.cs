@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using Shuttle.Access.Events.User.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.Infrastructure;
+using Shuttle.Recall;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql.SystemUser
 {
     public class SystemUserQuery : ISystemUserQuery
     {
@@ -12,7 +14,8 @@ namespace Shuttle.Access.Sql
         private readonly ISystemUserQueryFactory _queryFactory;
         private readonly IQueryMapper _queryMapper;
 
-        public SystemUserQuery(IDatabaseGateway databaseGateway, ISystemUserQueryFactory queryFactory, IQueryMapper queryMapper)
+        public SystemUserQuery(IDatabaseGateway databaseGateway, ISystemUserQueryFactory queryFactory,
+            IQueryMapper queryMapper)
         {
             Guard.AgainstNull(databaseGateway, "databaseGateway");
             Guard.AgainstNull(queryFactory, "queryFactory");

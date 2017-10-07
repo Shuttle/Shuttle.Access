@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shuttle.Sentinel.DomainEvents.Role.v1
+namespace Shuttle.Access.Events.Role.v1
 {
     public class Removed
     {

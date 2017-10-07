@@ -1,7 +1,8 @@
 ﻿using System;
+using Shuttle.Access.Events.User.v1;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql.SystemUser
 {
     public class SystemUserQueryFactory : ISystemUserQueryFactory
     {
@@ -102,7 +103,8 @@ and
 
         public IQuery RemoveRoles(Guid id, Removed domainEvent)
         {
-            return RawQuery.Create("delete from SystemUserRole where UserId = @UserId").AddParameterValue(SystemUserRoleColumns.UserId, id);
+            return RawQuery.Create("delete from SystemUserRole where UserId = @UserId")
+                .AddParameterValue(SystemUserRoleColumns.UserId, id);
         }
 
         public IQuery Remove(Guid id, Removed domainEvent)

@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Shuttle.Access.Events.User.v1;
 using Shuttle.Core.Infrastructure;
-using Shuttle.Sentinel.DomainEvents.User.v1;
 
-namespace Shuttle.Sentinel
+namespace Shuttle.Access
 {
     public class User
     {
         private readonly Guid _id;
-        private DateTime? _dateActivated;
-        private DateTime _dateRegistered;
         private byte[] _passwordHash;
-        private string _registeredBy;
         private readonly List<string> _roles = new List<string>();
         private string _username;
 
@@ -38,8 +35,6 @@ namespace Shuttle.Sentinel
 
             _username = registered.Username;
             _passwordHash = registered.PasswordHash;
-            _registeredBy = registered.RegisteredBy;
-            _dateRegistered = registered.DateRegistered;
 
             return registered;
         }
@@ -81,7 +76,7 @@ namespace Shuttle.Sentinel
 
             if (!IsInRole(role))
             {
-                throw new InvalidOperationException(string.Format(SentinelResources.RoleNotFoundException, role, _username));
+                throw new InvalidOperationException(string.Format(AccessResources.RoleNotFoundException, role, _username));
             }
 
             return On(new RoleRemoved { Role = role });
@@ -105,7 +100,10 @@ namespace Shuttle.Sentinel
 
         public Removed Remove()
         {
-            return On(new Removed());
+            return On(new Removed
+            {
+                Id = _id
+            });
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Infrastructure;
-using Shuttle.Sentinel.DomainEvents.Role.v1;
 
-namespace Shuttle.Sentinel
+namespace Shuttle.Access
 {
     public class Role
     {
@@ -44,7 +44,7 @@ namespace Shuttle.Sentinel
 
             if (HasPermission(permission))
             {
-                throw new InvalidOperationException(string.Format(SentinelResources.DuplicatePermissionException, permission, _name));
+                throw new InvalidOperationException(string.Format(AccessResources.DuplicatePermissionException, permission, _name));
             }
 
             return On(new PermissionAdded {Permission = permission});
@@ -70,7 +70,7 @@ namespace Shuttle.Sentinel
 
             if (!HasPermission(permission))
             {
-                throw new InvalidOperationException(string.Format(SentinelResources.PermissionNotFoundException, permission, _name));
+                throw new InvalidOperationException(string.Format(AccessResources.PermissionNotFoundException, permission, _name));
             }
 
             return On(new PermissionRemoved { Permission = permission });

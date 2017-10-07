@@ -1,4 +1,4 @@
-﻿namespace Shuttle.Sentinel.DomainEvents.User.v1
+﻿namespace Shuttle.Access.Events.User.v1
 {
     public class RoleRemoved
     {
