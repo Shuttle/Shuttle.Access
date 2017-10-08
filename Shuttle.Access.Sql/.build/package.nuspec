@@ -9,9 +9,13 @@
 		<projectUrl>https://github.com/shuttle/Shuttle.Access.Sql</projectUrl>
 		<iconUrl>https://raw.githubusercontent.com/Shuttle/Shuttle.Access.Sql/master/.media/logo.png</iconUrl>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<description></description>
+		<description>Sql-based implementation of the Shuttle.Access interfaces.</description>
 		<releaseNotes/>
 		<copyright>Copyright (c) {year}, Eben Roux</copyright>
-		<tags>shuttle</tags>
+	  <tags>shuttle shuttle-access access identity access-control</tags>
+	  <dependencies>
+	    <dependency id="Shuttle.Access" version="{Shuttle.Access-version}" />
+	    <dependency id="Shuttle.Recall.Sql.Storage" version="{Shuttle.Recall.Sql.Storage-version}" />
+	  </dependencies>
 	</metadata>
 </package>

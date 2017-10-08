@@ -4,15 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{31969271-DC56-40C3-BC60-AB4936E1C0E6}</ProjectGuid>
+    <ProjectGuid>{4060E27B-27DC-46EA-9C14-E82DF4398EC0}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Shuttle.Access.Server</RootNamespace>
-    <AssemblyName>Shuttle.Access.Server</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <RootNamespace>Shuttle.Access.Server.Projection</RootNamespace>
+    <AssemblyName>Shuttle.Access.Server.Projection</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -42,48 +41,32 @@
       <HintPath>..\packages\Castle.Windsor.3.4.0\lib\net45\Castle.Windsor.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Microsoft.Diagnostics.Tracing.EventSource, Version=1.1.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Diagnostics.Tracing.EventSource.Redist.1.1.28\lib\net46\Microsoft.Diagnostics.Tracing.EventSource.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RabbitMQ.Client, Version=5.0.0.0, Culture=neutral, PublicKeyToken=89e7d7c5feba84ce, processorArchitecture=MSIL">
-      <HintPath>..\packages\RabbitMQ.Client.5.0.1\lib\net451\RabbitMQ.Client.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Shuttle.Access.Messages, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Access.Messages.1.0.0\lib\net462-full\Shuttle.Access.Messages.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Shuttle.Core.Castle, Version=8.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.Castle.8.0.1\lib\net462-full\Shuttle.Core.Castle.dll</HintPath>
+      <HintPath>..\packages\Shuttle.Core.Castle.8.0.1\lib\net452-full\Shuttle.Core.Castle.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Shuttle.Core.Data, Version=8.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.Data.8.0.1\lib\net462-full\Shuttle.Core.Data.dll</HintPath>
+      <HintPath>..\packages\Shuttle.Core.Data.8.0.1\lib\net452-full\Shuttle.Core.Data.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Shuttle.Core.Infrastructure, Version=8.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.Infrastructure.8.0.3\lib\net462-full\Shuttle.Core.Infrastructure.dll</HintPath>
+      <HintPath>..\packages\Shuttle.Core.Infrastructure.8.0.3\lib\net452-full\Shuttle.Core.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Shuttle.Core.ServiceHost, Version=1.0.14.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.ServiceHost.1.0.14\lib\net462-full\Shuttle.Core.ServiceHost.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Shuttle.Esb, Version=9.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Esb.9.0.3\lib\net462-full\Shuttle.Esb.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Shuttle.Esb.RabbitMQ, Version=9.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Esb.RabbitMQ.9.0.1\lib\net462-full\Shuttle.Esb.RabbitMQ.dll</HintPath>
+      <HintPath>..\packages\Shuttle.Core.ServiceHost.1.0.14\lib\net452-full\Shuttle.Core.ServiceHost.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Shuttle.Recall, Version=8.2.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Recall.8.2.2\lib\net462-full\Shuttle.Recall.dll</HintPath>
+      <HintPath>..\packages\Shuttle.Recall.8.2.2\lib\net452-full\Shuttle.Recall.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Shuttle.Recall.Sql.EventProcessing, Version=8.0.10.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Recall.Sql.EventProcessing.8.0.10\lib\net452-full\Shuttle.Recall.Sql.EventProcessing.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Shuttle.Recall.Sql.Storage, Version=8.0.10.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Recall.Sql.Storage.8.0.10\lib\net462-full\Shuttle.Recall.Sql.Storage.dll</HintPath>
+      <HintPath>..\packages\Shuttle.Recall.Sql.Storage.8.0.10\lib\net452-full\Shuttle.Recall.Sql.Storage.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

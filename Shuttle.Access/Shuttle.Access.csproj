@@ -78,6 +78,7 @@
     <Compile Include="Domain\ISessionRepository.cs" />
     <Compile Include="Domain\Role.cs" />
     <Compile Include="Domain\Session.cs" />
+    <Compile Include="Domain\SystemPermissions.cs" />
     <Compile Include="Domain\User.cs" />
     <Compile Include="HashingService.cs" />
     <Compile Include="IAnonymousPermissions.cs" />
