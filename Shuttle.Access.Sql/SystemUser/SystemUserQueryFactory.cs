@@ -2,7 +2,7 @@
 using Shuttle.Access.Events.User.v1;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql.SystemUser
+namespace Shuttle.Access.Sql
 {
     public class SystemUserQueryFactory : ISystemUserQueryFactory
     {

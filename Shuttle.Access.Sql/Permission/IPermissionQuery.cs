@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Shuttle.Access.Sql.Permission
+namespace Shuttle.Access.Sql
 {
     public interface IPermissionQuery
     {

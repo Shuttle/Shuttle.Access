@@ -7,7 +7,7 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Infrastructure;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Sql.SystemRole
+namespace Shuttle.Access.Sql
 {
     public class SystemRoleQuery : ISystemRoleQuery
     {

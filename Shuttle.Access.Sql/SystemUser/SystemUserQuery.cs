@@ -6,7 +6,7 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Infrastructure;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Sql.SystemUser
+namespace Shuttle.Access.Sql
 {
     public class SystemUserQuery : ISystemUserQuery
     {

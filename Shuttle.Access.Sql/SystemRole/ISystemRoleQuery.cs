@@ -4,7 +4,7 @@ using System.Data;
 using Shuttle.Access.Events.Role.v1;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Sql.SystemRole
+namespace Shuttle.Access.Sql
 {
     public interface ISystemRoleQuery
     {

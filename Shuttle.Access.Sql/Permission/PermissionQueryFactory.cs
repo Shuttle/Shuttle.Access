@@ -1,6 +1,6 @@
 ﻿using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql.Permission
+namespace Shuttle.Access.Sql
 {
     public class PermissionQueryFactory : IPermissionQueryFactory
     {

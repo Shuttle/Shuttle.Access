@@ -2,7 +2,7 @@ using System;
 using System.Data;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql.SystemRole
+namespace Shuttle.Access.Sql
 {
     public class SystemRolePermissionColumns
     {

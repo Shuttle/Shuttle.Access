@@ -149,6 +149,14 @@
     <Compile Include="Query\Role.cs" />
     <Compile Include="Query\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Session\ISessionQuery.cs" />
+    <Compile Include="Session\ISessionQueryFactory.cs" />
+    <Compile Include="Session\SessionColumns.cs" />
+    <Compile Include="Session\SessionMapper.cs" />
+    <Compile Include="Session\SessionPermissionColumns.cs" />
+    <Compile Include="Session\SessionQuery.cs" />
+    <Compile Include="Session\SessionQueryFactory.cs" />
+    <Compile Include="Session\SessionRepository.cs" />
     <Compile Include="SystemRole\ISystemRoleQuery.cs" />
     <Compile Include="SystemRole\ISystemRoleQueryFactory.cs" />
     <Compile Include="SystemRole\SystemRoleColumns.cs" />

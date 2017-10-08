@@ -4,7 +4,7 @@ using System.Data;
 using Shuttle.Access.Events.User.v1;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Sql.SystemUser
+namespace Shuttle.Access.Sql
 {
     public interface ISystemUserQuery
     {

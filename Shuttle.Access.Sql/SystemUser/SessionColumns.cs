@@ -2,7 +2,7 @@ using System;
 using System.Data;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql.SystemUser
+namespace Shuttle.Access.Sql
 {
     public class SystemUserColumns
     {

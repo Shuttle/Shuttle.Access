@@ -2,7 +2,7 @@
 using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql.SystemRole
+namespace Shuttle.Access.Sql
 {
     public class SystemRoleQueryFactory : ISystemRoleQueryFactory
     {

@@ -52,109 +52,6 @@
   <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
     <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup>
-    <Framework Condition=" '$(Framework)' == '' ">net45-full</Framework>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
-    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
-    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
-    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
-    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
-    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
-    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
-    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Framework Condition=" '$(Framework)' == '' ">net45-full</Framework>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
-    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
-    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
-    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
-    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
-    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
-    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
-    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Framework Condition=" '$(Framework)' == '' ">net45-full</Framework>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
-    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
-    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
-    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
-    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
-    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
-    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
-    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Framework Condition=" '$(Framework)' == '' ">net45-full</Framework>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net40-full'">
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET40FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net45-full'">
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET45FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net451-full'">
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET451FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net452-full'">
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET452FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net46-full'">
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET46FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net461-full'">
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET461FULL</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Framework)' == 'net462-full'">
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
-  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Shuttle.Core.Infrastructure, Version=8.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Shuttle.Core.Infrastructure.8.0.3\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
@@ -178,7 +75,9 @@
     <Compile Include="Domain\Events\User.v1\Removed.cs" />
     <Compile Include="Domain\Events\User.v1\RoleAdded.cs" />
     <Compile Include="Domain\Events\User.v1\RoleRemoved.cs" />
+    <Compile Include="Domain\ISessionRepository.cs" />
     <Compile Include="Domain\Role.cs" />
+    <Compile Include="Domain\Session.cs" />
     <Compile Include="Domain\User.cs" />
     <Compile Include="HashingService.cs" />
     <Compile Include="IAnonymousPermissions.cs" />

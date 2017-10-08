@@ -2,7 +2,7 @@
 using Shuttle.Core.Data;
 using Shuttle.Core.Infrastructure;
 
-namespace Shuttle.Access.Sql.Permission
+namespace Shuttle.Access.Sql
 {
     public class PermissionQuery : IPermissionQuery
     {
