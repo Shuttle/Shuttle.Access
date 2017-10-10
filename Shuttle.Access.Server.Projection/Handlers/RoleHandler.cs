@@ -1,8 +1,8 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Access.Events.Role.v1;
+using Shuttle.Core.Infrastructure;
 using Shuttle.Recall;
-using Shuttle.Sentinel.DomainEvents.Role.v1;
 
-namespace Shuttle.Sentinel.Server.Projection
+namespace Shuttle.Access.Server.Projection.Handlers
 {
     public class RoleHandler :
         IEventHandler<Added>,

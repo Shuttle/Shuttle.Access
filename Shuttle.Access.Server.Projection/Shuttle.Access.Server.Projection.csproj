@@ -41,6 +41,14 @@
       <HintPath>..\packages\Castle.Windsor.3.4.0\lib\net45\Castle.Windsor.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Shuttle.Access, Version=1.0.5.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Access.1.0.5\lib\net452-full\Shuttle.Access.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Shuttle.Access.Sql, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Access.Sql.1.0.1\lib\net452-full\Shuttle.Access.Sql.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Shuttle.Core.Castle, Version=8.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Shuttle.Core.Castle.8.0.1\lib\net452-full\Shuttle.Core.Castle.dll</HintPath>
       <Private>True</Private>
@@ -80,6 +88,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handlers\RoleHandler.cs" />
+    <Compile Include="Handlers\UserHandler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

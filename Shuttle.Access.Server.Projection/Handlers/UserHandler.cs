@@ -1,8 +1,8 @@
-﻿using Shuttle.Core.Infrastructure;
+﻿using Shuttle.Access.Events.User.v1;
+using Shuttle.Core.Infrastructure;
 using Shuttle.Recall;
-using Shuttle.Sentinel.DomainEvents.User.v1;
 
-namespace Shuttle.Sentinel.Server.Projection
+namespace Shuttle.Access.Server.Projection.Handlers
 {
     public class UserHandler :
         IEventHandler<Registered>,
