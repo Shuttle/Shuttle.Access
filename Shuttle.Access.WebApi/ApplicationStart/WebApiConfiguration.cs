@@ -1,4 +1,5 @@
 using System.Web.Http;
+using System.Web.Http.Cors;
 
 namespace Shuttle.Access.WebApi.ApplicationStart
 {

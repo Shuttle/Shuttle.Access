@@ -46,13 +46,13 @@ namespace Shuttle.Access.WebApi
                 return Ok(new
                 {
                     Data = from row in _systemUserQuery.Search()
-                        select new
-                        {
-                            Id = SystemUserColumns.Id.MapFrom(row),
-                            Username = SystemUserColumns.Username.MapFrom(row),
-                            DateRegistered = SystemUserColumns.DateRegistered.MapFrom(row),
-                            RegisteredBy = SystemUserColumns.RegisteredBy.MapFrom(row)
-                        }
+                    select new
+                    {
+                        Id = SystemUserColumns.Id.MapFrom(row),
+                        Username = SystemUserColumns.Username.MapFrom(row),
+                        DateRegistered = SystemUserColumns.DateRegistered.MapFrom(row),
+                        RegisteredBy = SystemUserColumns.RegisteredBy.MapFrom(row)
+                    }
                 });
             }
         }
@@ -60,7 +60,7 @@ namespace Shuttle.Access.WebApi
         [RequiresPermission(SystemPermissions.Manage.Users)]
         public IHttpActionResult Get(Guid id)
         {
-             using (_databaseContextFactory.Create())
+            using (_databaseContextFactory.Create())
             {
                 return Ok(new
                 {
@@ -78,10 +78,10 @@ namespace Shuttle.Access.WebApi
                 return Ok(new
                 {
                     Data = (from role in _systemUserQuery.Roles(id)
-                           select new
-                           {
-                               roleName = role
-                           }).ToList()
+                        select new
+                        {
+                            roleName = role
+                        }).ToList()
                 });
             }
         }
@@ -154,11 +154,11 @@ namespace Shuttle.Access.WebApi
                 new
                 {
                     Data = from role in model.Roles
-                           select new
-                           {
-                               RoleName = role,
-                               Active = roles.Find(item => item.Equals(role)) != null
-                           }
+                    select new
+                    {
+                        RoleName = role,
+                        Active = roles.Find(item => item.Equals(role)) != null
+                    }
                 });
         }
 
@@ -196,7 +196,8 @@ namespace Shuttle.Access.WebApi
 
                     if (anonymousPermissions != null)
                     {
-                        ok = anonymousPermissions.HasPermission(SystemPermissions.Manage.Users);
+                        ok = anonymousPermissions.AnonymousPermissions()
+                            .Any(item => item.Equals(SystemPermissions.Manage.Users));
                     }
                 }
             }

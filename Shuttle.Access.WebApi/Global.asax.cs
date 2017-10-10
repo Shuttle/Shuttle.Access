@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Http;
 using System.Web.Http.Dispatcher;
-using System.Web.Mvc;
-using System.Web.Optimization;
-using System.Web.Routing;
 using Castle.MicroKernel.Registration;
 using Castle.Windsor;
+using log4net;
 using Newtonsoft.Json.Serialization;
 using Shuttle.Access.WebApi.ApplicationStart;
 using Shuttle.Core.Castle;
@@ -22,7 +18,7 @@ using Shuttle.Core.Infrastructure;
 using Shuttle.Core.Log4Net;
 using Shuttle.Esb;
 using Shuttle.Recall;
-using WebGrease;
+using ILog = Shuttle.Core.Infrastructure.ILog;
 
 namespace Shuttle.Access.WebApi
 {
@@ -198,19 +194,10 @@ namespace Shuttle.Access.WebApi
         {
             _container = new WindsorContainer();
 
-            _container.RegisterDataAccessCore();
             _container.RegisterDataAccess("Shuttle.Access");
-
             _container.Register(Component.For<IDatabaseContextCache>().ImplementedBy<ContextDatabaseContextCache>());
-
-            var configuration = SentinelSection.Configuration();
-
-            _container.RegisterConfiguration(configuration);
-
-            _container.Register(Component.For<ISerializer>().ImplementedBy(configuration.SerializerType));
-
             _container.Register("Shuttle.Access.WebApi", typeof(ApiController), "Controller");
-            _container.Register("Shuttle.Access", "Service");
+            _container.Register("Shuttle.Access.Sql", "Service");
         }
     }
 }

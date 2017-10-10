@@ -261,6 +261,7 @@
     <Compile Include="Infrastructure\RequiresSessionAttribute.cs" />
     <Compile Include="Infrastructure\SentinelApiController.cs" />
     <Compile Include="Infrastructure\SessionTokenResult.cs" />
+    <Compile Include="Infrastructure\WindsorContainerExtensions.cs" />
     <Compile Include="Models\AddRoleModel.cs" />
     <Compile Include="Models\RegisterUserModel.cs" />
     <Compile Include="Models\RolePermissionStatusModel.cs" />
