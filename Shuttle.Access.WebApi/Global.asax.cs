@@ -12,6 +12,7 @@ using log4net;
 using Newtonsoft.Json.Serialization;
 using Shuttle.Access.WebApi.ApplicationStart;
 using Shuttle.Core.Castle;
+using Shuttle.Core.Castle.Extensions;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Http;
 using Shuttle.Core.Infrastructure;

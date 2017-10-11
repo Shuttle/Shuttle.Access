@@ -1,8 +1,9 @@
 ﻿using Shuttle.Access.Events.Role.v1;
+using Shuttle.Access.Sql;
 using Shuttle.Core.Infrastructure;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Server.Projection.Handlers
+namespace Shuttle.Access.Server.Projection
 {
     public class RoleHandler :
         IEventHandler<Added>,
