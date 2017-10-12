@@ -67,6 +67,8 @@ namespace Shuttle.Access.WebApi
 
                 GlobalConfiguration.Configuration.EnsureInitialized();
 
+                container.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
+
                 _log.Information("[started]");
             }
             catch (Exception ex)
@@ -85,7 +87,7 @@ namespace Shuttle.Access.WebApi
 
             var html = new StringBuilder();
 
-            html.Append("<html><head><title>Shuttle Sentinel Web-Api Startup Exception</title><style>");
+            html.Append("<html><head><title>Shuttle Access Web-Api Startup Exception</title><style>");
 
             html.Append(
                 "body { background: none repeat scroll 0 0 #CBE1EF; font-family: 'MS Tresbuchet',Verdana,Arial,Helvetica,sans-serif; font-size: 0.7em; margin: 0; }");
@@ -97,7 +99,7 @@ namespace Shuttle.Access.WebApi
                 "div.information { border: solid 1px #5a7fa5; background-color: #ffffff; color: #555555; padding: 1em; font-size: 1em; width: 96%; margin: 1em auto; }");
 
             html.Append("</style></head><body>");
-            html.Append("<div class='header'>Shuttle Sentinel Web-Api Startup Exception</div>");
+            html.Append("<div class='header'>Shuttle Access Web-Api Startup Exception</div>");
             html.AppendFormat("<div class='error'><b>source</b>:<br>{0}</div>", _startupException.Source);
             html.AppendFormat("<div class='information'><b>message</b>:<br>{0}</div>", _startupException);
 
@@ -195,7 +197,8 @@ namespace Shuttle.Access.WebApi
         {
             _container = new WindsorContainer();
 
-            _container.RegisterDataAccess("Shuttle.Access");
+            _container.RegisterDataAccess("Shuttle.Access.Sql");
+
             _container.Register(Component.For<IDatabaseContextCache>().ImplementedBy<ContextDatabaseContextCache>());
             _container.Register("Shuttle.Access.WebApi", typeof(ApiController), "Controller");
             _container.Register("Shuttle.Access.Sql", "Service");

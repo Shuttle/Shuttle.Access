@@ -31,7 +31,7 @@ namespace Shuttle.Access.WebApi
             base.OnActionExecuting(actionContext);
 
             var headers = actionContext.Request.Headers;
-            var sessionTokenValue = GetHeaderValue(headers, "sentinel-sessiontoken");
+            var sessionTokenValue = GetHeaderValue(headers, "access-sessiontoken");
 
             if (string.IsNullOrEmpty(sessionTokenValue))
             {
