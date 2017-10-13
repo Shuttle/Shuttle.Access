@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Castle.Windsor;
+﻿using Castle.Windsor;
+using log4net;
 using Shuttle.Core.Castle;
+using Shuttle.Core.Castle.Extensions;
 using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Log4Net;
 using Shuttle.Core.ServiceHost;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Server.Projection
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
+            ServiceHost.Run<Host>();
         }
     }
 
