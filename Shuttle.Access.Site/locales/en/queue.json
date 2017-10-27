@@ -1,0 +1,10 @@
+﻿{
+  "title": "Queue",
+  "add": {
+    "title": "Add a queue"
+  },
+  "list": {
+    "title": "Queues"
+  },
+  "queue-uri": "Queue uri"
+}

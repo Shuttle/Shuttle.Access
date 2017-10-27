@@ -1,0 +1,9 @@
+<sentinel-form title="datastore:add.title">
+  <fieldset class="form-group">
+    <sentinel-text focus="true" label="name" {(value)}="name" required="true" {errors}="errors" error-attribute="name"/>
+    <sentinel-text focus="true" label="datastore:connection-string" {(value)}="connectionString" required="true" {errors}="errors" error-attribute="connectionString"/>
+    <sentinel-text focus="true" label="datastore:provider-name" {(value)}="providerName" required="true" {errors}="errors" error-attribute="providerName"/>
+    <sentinel-submit-button {click}="@add" text="add" />
+    <sentinel-button {click}="@close" text="close" />
+  </fieldset>
+</sentinel-form>

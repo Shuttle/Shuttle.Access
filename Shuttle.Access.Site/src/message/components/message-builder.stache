@@ -1,0 +1,2 @@
+﻿<sentinel-text {focus}="focus" label="message:message-type" {(value)}="messageType" required="true" {errors}="errors" error-attribute="messageType"/>
+<sentinel-textarea label="message:message" {(value)}="message" {errors}="errors" error-attribute="message" required="true" rows="10" />

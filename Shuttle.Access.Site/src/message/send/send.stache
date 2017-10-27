@@ -1,0 +1,5 @@
+﻿<fieldset class="form-group">
+  <sentinel-queue {(uri)}="destinationQueueUri" label="message:destination-queue-uri" required="true" />
+  <sentinel-message-builder {(message)}="message" {(message-type)}="messageType" />
+  <sentinel-button {click}="@send" text="message:send" />
+</fieldset>

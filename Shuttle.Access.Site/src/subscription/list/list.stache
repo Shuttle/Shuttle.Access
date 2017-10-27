@@ -1,0 +1,8 @@
+<sentinel-select label="subscription:data-store" {options}="dataStores" {(value)}="dataStoreId" />
+<div class="{{#unless dataStoreId}}hidden{{/if}}">
+  {{#if subscriptions.isResolved}}
+  <sentinel-table {columns}="columns" {rows}="subscriptions.value" />
+  {{else}}
+  <sentinel-fetching title="subscription:list.title" />
+  {{/if}}
+</div>

@@ -1,0 +1,53 @@
+{
+  "name": "access",
+  "version": "1.0.0",
+  "description": "A management and monitoring solution for Shuttle.Esb implementations.",
+  "steal": {
+    "main": "main.js",
+    "directories": {
+      "lib": "src"
+    },
+    "npmAlgorithm": "flat",
+    "plugins": [
+      "steal-stache",
+      "steal-css"
+    ],
+    "serviceBaseURL": "http://localhost:4040/api/",
+    "debug": true,
+    "localeVersion": "1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shuttle/Shuttle.Sentinel.git"
+  },
+  "author": "Eben Roux",
+  "bugs": {
+    "url": "https://github.com/Shuttle/Shuttle.Sentinel/issues"
+  },
+  "homepage": "https://github.com/Shuttle/Shuttle.Sentinel#readme",
+  "dependencies": {
+    "bootstrap": "^3.3.7",
+    "can-component": "^3.0.7",
+    "can-compute": "^3.0.8",
+    "can-connect": "^1.3.10",
+    "can-define": "^1.0.17",
+    "can-define-validate-validatejs": "0.0.5",
+    "can-route": "^3.0.8",
+    "can-route-pushstate": "^3.0.3",
+    "can-set": "^1.2.0",
+    "can-stache": "^3.0.22",
+    "can-stache-bindings": "^3.0.14",
+    "can-util": "^3.3.6",
+    "can-validate-validatejs": "0.0.6",
+    "i18next": "^7.2.3",
+    "i18next-xhr-backend": "^1.4.1",
+    "popper.js": "^1.12.5",
+    "shuttle-can": "^1.0.2",
+    "steal": "^1.4.2",
+    "steal-css": "^1.2.3",
+    "steal-stache": "^3.0.5"
+  }
+}

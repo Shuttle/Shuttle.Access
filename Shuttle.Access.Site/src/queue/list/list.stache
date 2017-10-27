@@ -1,0 +1,5 @@
+{{#if queuesPromise.isResolved}}
+<sentinel-table {columns}="columns" {rows}="queuesPromise.value" />
+{{else}}
+<sentinel-fetching title="queue:list.title" />
+{{/if}}

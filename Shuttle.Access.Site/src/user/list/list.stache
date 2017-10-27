@@ -1,0 +1,5 @@
+{{#if usersPromise.isResolved}}
+<sentinel-table {columns}="columns" {rows}="usersPromise.value" />
+{{else}}
+<sentinel-fetching title="user:list.title" />
+{{/if}}
