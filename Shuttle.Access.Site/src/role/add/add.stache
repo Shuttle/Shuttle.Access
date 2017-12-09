@@ -1,7 +1,7 @@
-<sentinel-form title="role:add.title">
+<access-form title="role:add.title">
   <fieldset class="form-group">
-    <sentinel-text focus="true" label="name" {(value)}="name" required="true" {errors}="errors" error-attribute="name"/>
-    <sentinel-submit-button {click}="@add" text="add" />
-    <sentinel-button {click}="@close" text="close" />
+    <access-text focus="true" label="name" {(value)}="name" required="true" {errors}="errors" error-attribute="name"/>
+    <access-submit-button {click}="@add" text="add" />
+    <access-button {click}="@close" text="close" />
   </fieldset>
-</sentinel-form>
+</access-form>

@@ -1,8 +1,8 @@
-<sentinel-form {title}="title">
+<access-form {title}="title">
 	<fieldset class="form-group">
-		<sentinel-text focus="true" label="user:username" {(value)}="username" {errors}="errors" error-attribute="username" />
-		<sentinel-text label="user:register.password" {(value)}="password" type="password" {errors}="errors" error-attribute="password" />
-		<sentinel-submit-button type="submit" {click}="@register" text="register" />
-		<sentinel-button {click}="@close" text="close" {visible}="showClose" />
+		<access-text focus="true" label="user:username" {(value)}="username" {errors}="errors" error-attribute="username" />
+		<access-text label="user:register.password" {(value)}="password" type="password" {errors}="errors" error-attribute="password" />
+		<access-submit-button type="submit" {click}="@register" text="register" />
+		<access-button {click}="@close" text="close" {visible}="showClose" />
 	</fieldset>
-</sentinel-form>
+</access-form>

@@ -156,7 +156,7 @@ var security = new Security();
 $.ajaxPrefilter(function(options, originalOptions) {
     options.beforeSend = function(xhr) {
         if (security.token) {
-            xhr.setRequestHeader('sentinel-sessiontoken', security.token);
+            xhr.setRequestHeader('access-sessiontoken', security.token);
         }
 
         if (originalOptions.beforeSend) {

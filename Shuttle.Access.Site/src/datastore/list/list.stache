@@ -1,5 +1,0 @@
-{{#if list.isResolved}}
-<sentinel-table {columns}="columns" {rows}="list.value" />
-{{else}}
-<sentinel-fetching title="datastore:list.title" />
-{{/if}}

@@ -125,7 +125,7 @@ export const ViewModel = DefineMap.extend(
 );
 
 export default Component.extend({
-    tag: 'sentinel-user-list',
+    tag: 'access-user-list',
     ViewModel,
     view
 });

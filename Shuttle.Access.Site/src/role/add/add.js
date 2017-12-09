@@ -61,7 +61,7 @@ export const ViewModel = DefineMap.extend(
 validator(ViewModel);
 
 export default Component.extend({
-    tag: 'sentinel-role-add',
+    tag: 'access-role-add',
     ViewModel,
     view
 });

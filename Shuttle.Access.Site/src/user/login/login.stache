@@ -1,7 +1,7 @@
-<sentinel-form title="user:login.title">
+<cs-form title="user:login.title">
 <fieldset class="form-group">
-  <sentinel-text focus="true" label="user:username" {(value)}="username" {errors}="errors" error-attribute="username" />
-  <sentinel-text label="user:register.password" {(value)}="password" type="password" {errors}="errors" error-attribute="password" />
-  <sentinel-submit-button {click}="@login" text="sign-in" />
+  <cs-text focus="true" label="user:username" {(value)}="username" {errors}="errors" error-attribute="username" />
+  <cs-text label="user:register.password" {(value)}="password" type="password" {errors}="errors" error-attribute="password" />
+  <cs-button-submit {click}="@login" text="sign-in" />
 </fieldset>
-</sentinel-form>
+</cs-form>

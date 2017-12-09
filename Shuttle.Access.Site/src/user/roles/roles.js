@@ -235,7 +235,7 @@ export const ViewModel = DefineMap.extend(
     });
 
 export default Component.extend({
-    tag: 'sentinel-user-roles',
+    tag: 'access-user-roles',
     ViewModel,
     view
 });

@@ -1,7 +1,7 @@
 {
   "name": "access",
   "version": "1.0.0",
-  "description": "A management and monitoring solution for Shuttle.Esb implementations.",
+  "description": "Identity and access control.",
   "steal": {
     "main": "main.js",
     "directories": {
@@ -12,7 +12,25 @@
       "steal-stache",
       "steal-css"
     ],
-    "serviceBaseURL": "http://localhost:4040/api/",
+    "meta": {
+      "popper.js": {
+        "format": "global",
+        "deps": [
+          "jquery"
+        ]
+      },
+      "bootstrap": {
+        "deps": [
+          "jquery",
+          "popper.js"
+        ]
+      }
+    },
+    "map": {
+      "popper.js": "popper.js/dist/umd/popper",
+      "bootstrap": "bootstrap/dist/js/bootstrap"
+    },
+    "serviceBaseURL": "http://localhost:5599/api/",
     "debug": true,
     "localeVersion": "1"
   },
@@ -21,33 +39,33 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Shuttle/Shuttle.Sentinel.git"
+    "url": "git+https://github.com/Shuttle/Shuttle.Access.git"
   },
   "author": "Eben Roux",
+  "license": "BSD-3-Clause",
   "bugs": {
-    "url": "https://github.com/Shuttle/Shuttle.Sentinel/issues"
+    "url": "https://github.com/Shuttle/Shuttle.Access/issues"
   },
-  "homepage": "https://github.com/Shuttle/Shuttle.Sentinel#readme",
+  "homepage": "https://github.com/Shuttle/Shuttle.Access#readme",
   "dependencies": {
-    "bootstrap": "^3.3.7",
-    "can-component": "^3.0.7",
-    "can-compute": "^3.0.8",
-    "can-connect": "^1.3.10",
-    "can-define": "^1.0.17",
-    "can-define-validate-validatejs": "0.0.5",
-    "can-route": "^3.0.8",
-    "can-route-pushstate": "^3.0.3",
-    "can-set": "^1.2.0",
-    "can-stache": "^3.0.22",
-    "can-stache-bindings": "^3.0.14",
-    "can-util": "^3.3.6",
-    "can-validate-validatejs": "0.0.6",
+    "bootstrap": "^4.0.0-beta.2",
+    "can-component": "^3.3.7",
+    "can-compute": "^3.3.10",
+    "can-connect": "^1.5.12",
+    "can-define": "^1.5.4",
+    "can-define-validate-validatejs": "^0.1.3",
+    "can-route": "^3.2.4",
+    "can-route-pushstate": "^3.2.1",
+    "can-set": "^1.3.3",
+    "can-stache": "^3.14.4",
+    "can-stache-bindings": "^3.11.5",
+    "font-awesome": "^4.7.0",
     "i18next": "^7.2.3",
     "i18next-xhr-backend": "^1.4.1",
-    "popper.js": "^1.12.5",
-    "shuttle-can": "^1.0.2",
-    "steal": "^1.4.2",
-    "steal-css": "^1.2.3",
-    "steal-stache": "^3.0.5"
+    "popper.js": "^1.13.0",
+    "shuttle-canstrap": "^1.0.9",
+    "steal": "^1.6.2",
+    "steal-css": "^1.3.1",
+    "steal-stache": "^3.1.3"
   }
 }

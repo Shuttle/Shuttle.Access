@@ -15,12 +15,12 @@ export const ViewModel = DefineMap.extend({
         state.title = localisation.value('dashboard:title');
     },
     message: {
-        value: 'This is the sentinel-dashboard component'
+        value: 'This is the access-dashboard component'
     }
 });
 
 export default Component.extend({
-    tag: 'sentinel-dashboard',
+    tag: 'access-dashboard',
     view: view,
     viewModel: ViewModel
 });

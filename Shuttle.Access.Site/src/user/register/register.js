@@ -84,7 +84,7 @@ export const ViewModel = DefineMap.extend(
 validator(ViewModel);
 
 export default Component.extend({
-    tag: 'sentinel-user-register',
+    tag: 'access-user-register',
     ViewModel,
     view,
     events: {

@@ -1,14 +1,10 @@
 var Permissions = {
     Manage: {
-        DataStores: 'sentinel://data-stores/manage',
-        Roles: 'sentinel://roles/manage',
-        Users: 'sentinel://users/manage',
-        Messages: 'sentinel://messages/manage',
-        Subscriptions: 'sentinel://subscriptions/manage'
+        Roles: 'access://roles/manage',
+        Users: 'access://users/manage'
 },
     View: {
         Dashboard: 'sentinel://dashboard/view',
-        Queues: 'sentinel://queues/view',
         Roles: 'sentinel://roles/view',
         Users: 'sentinel://users/view'
     }

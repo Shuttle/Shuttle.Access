@@ -1,4 +1,12 @@
 ﻿import $ from 'jquery';
+import 'popper.js';
+import 'bootstrap';
+import 'can-stache/helpers/route';
+
+import 'bootstrap/dist/css/bootstrap.css!';
+import 'font-awesome/css/font-awesome.css';
+import './styles.css!';
+
 import stache from '~/main.stache!';
 import localisation from '~/localisation';
 import security from '~/security';
@@ -6,39 +14,11 @@ import state from '~/state';
 import router from '~/router';
 import route from 'can-route';
 
-import 'bootstrap/dist/js/bootstrap'
+import 'shuttle-canstrap';
 
-import '~/components/alerts';
-import '~/components/back-button';
-import '~/components/button';
-import '~/components/buttons';
-import '~/components/checkbox';
-import '~/components/fetching';
-import '~/components/form';
-import '~/components/form-group';
-import '~/components/input';
-import '~/components/label';
-import '~/components/modal';
-import '~/components/navigation';
-import '~/components/page-title';
-import '~/components/queue-input';
-import '~/components/queue';
-import '~/components/refresh-button';
-import '~/components/remove-button';
-import '~/components/select-input';
-import '~/components/select';
-import '~/components/submit-button';
-import '~/components/table';
-import '~/components/text';
-import '~/components/textarea';
-import '~/components/validation';
-
+import '~/navigation/';
 import '~/dashboard/';
-import '~/datastore/';
-import '~/message/';
-import '~/queue/';
 import '~/role/';
-import '~/subscription/';
 import '~/user/';
 
 localisation.start(function(error) {

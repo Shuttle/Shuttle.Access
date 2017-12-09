@@ -1,9 +1,0 @@
-<sentinel-form title="subscription:add.title">
-  <fieldset class="form-group">
-    <sentinel-select label="subscription:data-store" {options}="dataStores" {(value)}="dataStoreId" />
-    <sentinel-text focus="true" label="subscription:message-type" {(value)}="messageType" required="true" {errors}="errors" error-attribute="messageType"/>
-    <sentinel-text focus="true" label="subscription:inbox-work-queue-uri" {(value)}="inboxWorkQueueUri" required="true" {errors}="errors" error-attribute="inboxWorkQueueUri"/>
-    <sentinel-submit-button {click}="@add" text="add" />
-    <sentinel-button {click}="@close" text="close" />
-  </fieldset>
-</sentinel-form>

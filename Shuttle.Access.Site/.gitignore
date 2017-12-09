@@ -32,3 +32,6 @@ docs/
 build/
 dist/
 cache/
+
+# WebStorm
+.idea

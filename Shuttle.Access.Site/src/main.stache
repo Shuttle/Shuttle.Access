@@ -1,13 +1,14 @@
-﻿<can-import from='bootstrap/dist/css/bootstrap.css!' />
-<can-import from='./styles.css!' />
+﻿<access-navigation/>
+<main id="application-container" class="col-12 col-md-9 col-xl-8 py-md-3 pl-md-5 csd-content" role="main">
+    <cs-alerts/>
+    <cs-modal modalId:from="'modal-confirmation'" primaryText:from="'yes'" dismissText:from="'no'"
+              title:from="'confirmation'" message:from="'modal.confirmation.message'"
+              primaryClick:from='modal@confirmation@primaryClick'/>
+    <div id="application-content"></div>
+    {{#if debug}}
+        <footer class="footer">
+            <p class="text-muted">route: {{route.data.full}}</p>
+        </footer>
+    {{/if}}
+</main>
 
-<sentinel-navigation {title}='title' {controls}='controls' />
-<sentinel-alerts />
-<sentinel-modal modal-id='modal-confirmation' has-primary='true' primary-text='yes' dismiss-text='no' title='confirmation' {message}='modal.confirmation.message' {primary-click}='modal@confirmation@primaryClick'/>
-
-<div id='application-content' class='container-fluid'></div>
-{{#if debug}}
-<footer class="footer">
-    <p class="text-muted">route: {{route.data.full}}</p>
-</footer>
-{{/if}}

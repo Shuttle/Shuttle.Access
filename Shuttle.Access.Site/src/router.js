@@ -76,7 +76,7 @@ var Router = DefineMap.extend({
         state.controls.splice(0, state.controls.length);
         state.title = '';
 
-        var componentName = resource.componentName || 'sentinel-' + resource.name + (isActionRoute ? `-${actionName}` : '');
+        var componentName = resource.componentName || 'access-' + resource.name + (isActionRoute ? `-${actionName}` : '');
 
         $('#application-content').html(stache('<' + componentName + '></' + componentName + '>')());
     },
