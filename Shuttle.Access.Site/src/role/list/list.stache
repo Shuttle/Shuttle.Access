@@ -1,5 +1,5 @@
 {{#if rolesPromise.isResolved}}
-<access-table {columns}="columns" {rows}="rolesPromise.value" />
+<access-table vm:columns:from="columns" vm:rows:from="rolesPromise.value" />
 {{else}}
 <access-fetching title="role:list.title" />
 {{/if}}

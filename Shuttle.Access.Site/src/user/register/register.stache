@@ -1,8 +1,8 @@
-<access-form {title}="title">
+<access-form vm:title:from="title">
 	<fieldset class="form-group">
-		<access-text focus="true" label="user:username" {(value)}="username" {errors}="errors" error-attribute="username" />
-		<access-text label="user:register.password" {(value)}="password" type="password" {errors}="errors" error-attribute="password" />
-		<access-submit-button type="submit" {click}="@register" text="register" />
-		<access-button {click}="@close" text="close" {visible}="showClose" />
+		<access-text focus:from="'true'" label:from="'user:username'" vm:value:bind="username" vm:errors:from="errors" errorAttribute:from="'username'" />
+		<access-text label:from="'user:register.password'" vm:value:bind="password" type="password" vm:errors:from="errors" errorAttribute:from="'password'" />
+		<access-submit-button type="submit" vm:click:from="@register" text="register" />
+		<access-button vm:click:from="@close" text="close" vm:visible:from="showClose" />
 	</fieldset>
 </access-form>

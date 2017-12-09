@@ -1,7 +1,7 @@
-<cs-form title="user:login.title">
-<fieldset class="form-group">
-  <cs-text focus="true" label="user:username" {(value)}="username" {errors}="errors" error-attribute="username" />
-  <cs-text label="user:register.password" {(value)}="password" type="password" {errors}="errors" error-attribute="password" />
-  <cs-button-submit {click}="@login" text="sign-in" />
-</fieldset>
+<cs-form title:from="'user:login.title'">
+    <fieldset class="form-group">
+                       errorAttribute:from="'username'"/>
+                       errorAttribute:from="'password'"/>
+        <cs-button-submit vm:click:from="@login" text:from="'sign-in'"/>
+    </fieldset>
 </cs-form>

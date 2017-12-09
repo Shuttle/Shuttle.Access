@@ -1,7 +1,7 @@
 <access-form title="role:add.title">
   <fieldset class="form-group">
-    <access-text focus="true" label="name" {(value)}="name" required="true" {errors}="errors" error-attribute="name"/>
-    <access-submit-button {click}="@add" text="add" />
-    <access-button {click}="@close" text="close" />
+    <access-text focus:from="'true'" label:from="'name'" vm:value:bind="name" required="true" vm:errors:from="errors" errorAttribute:from="'name'"/>
+    <access-submit-button vm:click:from="@add" text="add" />
+    <access-button vm:click:from="@close" text="close" />
   </fieldset>
 </access-form>

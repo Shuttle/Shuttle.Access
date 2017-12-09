@@ -33,7 +33,7 @@
                             <a href="/users/id" title="Profile">Profile</a>
                         </li>
                         <li>
-                            <a href='#!user/login' ($click)='security.logout()'>{{i18n "sign-out"}}</a>
+                            <a href='#!user/login' on:el:click='security.logout()'>{{i18n "sign-out"}}</a>
                         </li>
                     </ul>
                 </li>

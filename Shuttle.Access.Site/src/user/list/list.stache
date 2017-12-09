@@ -1,5 +1,5 @@
 {{#if usersPromise.isResolved}}
-<access-table {columns}="columns" {rows}="usersPromise.value" />
+<access-table vm:columns:from="columns" vm:rows:from="usersPromise.value" />
 {{else}}
 <access-fetching title="user:list.title" />
 {{/if}}
