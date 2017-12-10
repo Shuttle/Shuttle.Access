@@ -3,7 +3,7 @@ import DefineMap from 'can-define/map/';
 import view from './login.stache!';
 import resources from '~/resources';
 import security from '~/security';
-import validator from 'can-define-validate-validatejs';
+import validate from 'can-define-validate-validatejs';
 
 resources.add('user', { action: 'login' });
 
@@ -30,9 +30,6 @@ export const ViewModel = DefineMap.extend(
             get: function() {
                 return this.working ? 'glyphicon-hourglass' : '';
             }
-        },
-        hasErrors: function() {
-            return !!this.errors();
         },
         login: function() {
             var self = this;
@@ -62,7 +59,7 @@ export const ViewModel = DefineMap.extend(
     }
 );
 
-validator(ViewModel);
+validate(ViewModel);
 
 export default Component.extend({
     tag: 'access-user-login',
