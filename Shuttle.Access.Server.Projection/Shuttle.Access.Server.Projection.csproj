@@ -49,8 +49,8 @@
       <HintPath>..\packages\Shuttle.Access.1.0.6\lib\net452-full\Shuttle.Access.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Shuttle.Access.Sql, Version=1.0.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Access.Sql.1.0.2\lib\net452-full\Shuttle.Access.Sql.dll</HintPath>
+    <Reference Include="Shuttle.Access.Sql, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Access.Sql.1.0.3\lib\net452-full\Shuttle.Access.Sql.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Shuttle.Core.Castle, Version=8.0.7.0, Culture=neutral, processorArchitecture=MSIL">

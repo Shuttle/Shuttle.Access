@@ -86,10 +86,5 @@ validator(ViewModel);
 export default Component.extend({
     tag: 'access-user-register',
     ViewModel,
-    view,
-    events: {
-        'inserted': function() {
-            $('#username').focus();
-        }
-    }
+    view
 });

@@ -1,8 +1,10 @@
-<access-form vm:title:from="title">
+<cs-form vm:title:from="title">
 	<fieldset class="form-group">
-		<access-text focus:from="'true'" label:from="'user:username'" vm:value:bind="username" vm:errors:from="errors" errorAttribute:from="'username'" />
-		<access-text label:from="'user:register.password'" vm:value:bind="password" type="password" vm:errors:from="errors" errorAttribute:from="'password'" />
-		<access-submit-button type="submit" vm:click:from="@register" text="register" />
-		<access-button vm:click:from="@close" text="close" vm:visible:from="showClose" />
+        <cs-form-input focus:from="'true'" label:from="'user:username'" vm:value:bind="username" vm:errors:from="errors()"
+                       errorAttribute:from="'username'"/>
+        <cs-form-input label:from="'user:register.password'" vm:value:bind="password" type:from="'password'" vm:errors:from="errors()"
+                       errorAttribute:from="'password'"/>
+        <cs-button-submit vm:click:from="@login" text:from="'register'"/>
+		<cs-button vm:click:from="@close" text:from="'close'" vm:visible:from="showClose" />
 	</fieldset>
-</access-form>
+</cs-form>

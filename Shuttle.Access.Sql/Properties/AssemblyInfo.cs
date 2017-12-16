@@ -29,10 +29,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Shuttle.Access.Sql for .NET Framework 4.6.2")]
 #endif
 
-[assembly: AssemblyVersion("1.0.2.0")]
+[assembly: AssemblyVersion("1.0.3.0")]
 [assembly: AssemblyCopyright("Copyright © Eben Roux 2017")]
 [assembly: AssemblyProduct("Shuttle")]
 [assembly: AssemblyCompany("Shuttle")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyInformationalVersion("1.0.2")]
+[assembly: AssemblyInformationalVersion("1.0.3")]
 [assembly: ComVisible(false)]
