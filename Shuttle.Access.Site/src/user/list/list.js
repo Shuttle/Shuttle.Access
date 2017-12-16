@@ -5,8 +5,7 @@ import view from './list.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
 import router from '~/router';
-import Api from '~/api';
-import alerts from '~/alerts';
+import Api from 'shuttle-can-api';
 import localisation from '~/localisation';
 import state from '~/state';
 
@@ -90,7 +89,7 @@ export const ViewModel = DefineMap.extend(
                 click: 'add',
                 elementClass: 'btn-primary',
                 context: this,
-                permission: 'sentinel://user/register'
+                permission: 'access://user/register'
             });
 
             state.controls.push({
@@ -111,7 +110,7 @@ export const ViewModel = DefineMap.extend(
         remove: function(user) {
             users.delete({ id: user.id })
                 .then(function() {
-                    alerts.show({
+                    state.alerts.show({
                         message: localisation.value('itemRemovalRequested',
                             { itemName: localisation.value('user:title') })
                     });

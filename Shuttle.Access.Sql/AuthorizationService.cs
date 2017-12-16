@@ -8,17 +8,14 @@ namespace Shuttle.Access.Sql
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly ISystemRoleQuery _systemRoleQuery;
-        private readonly ISystemUserQuery _systemUserQuery;
 
-        public AuthorizationService(IDatabaseContextFactory databaseContextFactory, ISystemUserQuery systemUserQuery,
+        public AuthorizationService(IDatabaseContextFactory databaseContextFactory,
             ISystemRoleQuery systemRoleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, "databaseContextFactory");
-            Guard.AgainstNull(systemUserQuery, "systemUserQuery");
             Guard.AgainstNull(systemRoleQuery, "systemRoleQuery");
 
             _databaseContextFactory = databaseContextFactory;
-            _systemUserQuery = systemUserQuery;
             _systemRoleQuery = systemRoleQuery;
         }
 

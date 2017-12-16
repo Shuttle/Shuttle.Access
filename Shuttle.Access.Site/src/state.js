@@ -1,15 +1,29 @@
 import DefineMap from 'can-define/map/';
 import DefineList from 'can-define/list/';
-import guard from '~/guard';
+import guard from 'shuttle-guard';
 import route from 'can-route';
+import { alerts } from 'shuttle-canstrap/alerts/';
 import loader from '@loader';
 
 var State = DefineMap.extend({
     route: route,
-    debug: { type: 'boolean', value: loader.debug },
-    data: { Value: DefineList },
-    controls: { Value: DefineList },
-    title: { type: 'string', value: 'Page Title' },
+    alerts: {
+        value: alerts
+    },
+    debug: {
+        type: 'boolean',
+        value: loader.debug
+    },
+    data: {
+        Value: DefineList
+    },
+    controls: {
+        Value: DefineList
+    },
+    title: {
+        type: 'string',
+        value: 'Page Title'
+    },
 
     modal: {
         Value: DefineMap.extend({
@@ -22,19 +36,19 @@ var State = DefineMap.extend({
         })
     },
 
-    push: function(name, value) {
+    push: function (name, value) {
         guard.againstUndefined(name, 'name');
 
         this.data.push({name: name, value: value});
     },
 
-    pop: function(name) {
+    pop: function (name) {
         guard.againstUndefined(name, 'name');
-        
+
         let result;
         let removeIndex = -1;
 
-        this.data.forEach(function(item, index) {
+        this.data.forEach(function (item, index) {
             if (item.name === name) {
                 result = item.value;
                 removeIndex = index;

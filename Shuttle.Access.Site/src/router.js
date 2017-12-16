@@ -1,6 +1,5 @@
 ﻿import DefineMap from 'can-define/map/';
 import resources from '~/resources';
-import alerts from '~/alerts';
 import localisation from '~/localisation';
 import security from '~/security';
 import stache from 'can-stache';
@@ -61,18 +60,18 @@ var Router = DefineMap.extend({
         this.previousHash = window.location.hash;
 
         if (!resource) {
-            alerts.show({ message: localisation.value('exceptions.resource-not-found', { hash: window.location.hash, interpolation: { escape: false } }), type: 'warning', name: 'route-error' });
+            state.alerts.show({ message: localisation.value('exceptions.resource-not-found', { hash: window.location.hash, interpolation: { escape: false } }), type: 'warning', name: 'route-error' });
 
             return;
         }
 
         if (resource.permission && !security.hasPermission(resource.permission)) {
-            alerts.show({ message: localisation.value('security.access-denied', { name: resource.name || window.location.hash, permission: resource.permission, interpolation: { escape: false } }), type: 'danger', name: 'route-error' });
+            state.alerts.show({ message: localisation.value('security.access-denied', { name: resource.name || window.location.hash, permission: resource.permission, interpolation: { escape: false } }), type: 'danger', name: 'route-error' });
 	    
             return;
         }
 
-        alerts.clear();
+        state.alerts.clear();
         state.controls.splice(0, state.controls.length);
         state.title = '';
 

@@ -3,11 +3,12 @@ import DefineMap from 'can-define/map/';
 import view from './login.stache!';
 import resources from '~/resources';
 import security from '~/security';
+import ValidationViewModel from 'shuttle-canstrap/infrastructure/validation-view-model';
 import validate from 'can-define-validate-validatejs';
 
 resources.add('user', { action: 'login' });
 
-export const ViewModel = DefineMap.extend(
+export const ViewModel = ValidationViewModel.extend(
     'UserLogin',
     {
         username: {

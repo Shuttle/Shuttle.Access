@@ -4,7 +4,7 @@ import view from './add.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
 import router from '~/router';
-import Api from '~/api';
+import Api from 'shuttle-can-api';
 import validator from 'can-define-validate-validatejs';
 import localisation from '~/localisation';
 import state from '~/state';

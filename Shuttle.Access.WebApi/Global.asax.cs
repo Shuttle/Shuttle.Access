@@ -200,6 +200,7 @@ namespace Shuttle.Access.WebApi
             _container.RegisterDataAccess("Shuttle.Access.Sql");
 
             _container.Register(Component.For<IDatabaseContextCache>().ImplementedBy<ContextDatabaseContextCache>());
+            _container.Register(Component.For<IHashingService>().ImplementedBy<HashingService>());
             _container.Register("Shuttle.Access.WebApi", typeof(ApiController), "Controller");
             _container.Register("Shuttle.Access.Sql", "Service");
         }

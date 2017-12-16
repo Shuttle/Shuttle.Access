@@ -4,9 +4,9 @@ var Permissions = {
         Users: 'access://users/manage'
 },
     View: {
-        Dashboard: 'sentinel://dashboard/view',
-        Roles: 'sentinel://roles/view',
-        Users: 'sentinel://users/view'
+        Dashboard: 'access://dashboard/view',
+        Roles: 'access://roles/view',
+        Users: 'access://users/view'
     }
 };
 

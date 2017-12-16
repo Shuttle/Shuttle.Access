@@ -4,12 +4,11 @@ import DefineMap from 'can-define/map/';
 import view from './roles.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
-import Api from '~/api';
+import Api from 'shuttle-can-api';
 import each from 'can-util/js/each/';
 import makeArray from 'can-util/js/make-array/';
 import router from '~/router';
 import localisation from '~/localisation';
-import alerts from '~/alerts';
 import state from '~/state';
 
 resources.add('user', { action: 'roles', permission: Permissions.Manage.Users });
@@ -27,7 +26,7 @@ const UserRole = DefineMap.extend(
             var self = this;
 
             if (this.working) {
-                alerts.show({ message: localisation.value('workingMessage'), name: 'working-message' });
+                state.alerts.show({ message: localisation.value('workingMessage'), name: 'working-message' });
                 return;
             }
 
@@ -52,7 +51,7 @@ const UserRole = DefineMap.extend(
                         self.active = true;
                         self.working = false;
 
-                        alerts.show({
+                        state.alerts.show({
                             message: localisation.value('user:exceptions.last-administrator'),
                             name: 'last-administrator',
                             type: 'danger'

@@ -5,8 +5,7 @@ import view from './list.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
 import router from '~/router';
-import Api from '~/api';
-import alerts from '~/alerts';
+import Api from 'shuttle-can-api';
 import localisation from '~/localisation';
 import state from '~/state';
 
@@ -60,7 +59,7 @@ export const ViewModel = DefineMap.extend(
                 click: 'add',
                 elementClass: 'btn-primary',
                 context: this,
-                permission: 'sentinel://role/add'
+                permission: 'access://role/add'
             });
 
             state.controls.push({
@@ -81,7 +80,7 @@ export const ViewModel = DefineMap.extend(
         remove: function(row) {
             roles.delete({ id: row.id })
                 .then(function() {
-                    alerts.show({ message: localisation.value('itemRemovalRequested', { itemName: localisation.value('role:role') }) });
+                    state.alerts.show({ message: localisation.value('itemRemovalRequested', { itemName: localisation.value('role:role') }) });
                 });
         },
 

@@ -53,8 +53,8 @@
     <DefineConstants>$(DefineConstants);NET462FULL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Shuttle.Core.Infrastructure, Version=8.0.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Shuttle.Core.Infrastructure.8.0.3\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
+    <Reference Include="Shuttle.Core.Infrastructure, Version=8.0.6.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Shuttle.Core.Infrastructure.8.0.6\lib\net40-full\Shuttle.Core.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -85,7 +85,9 @@
     <Compile Include="IAuthenticationService.cs" />
     <Compile Include="IAuthorizationService.cs" />
     <Compile Include="IHashingService.cs" />
+    <Compile Include="ISessionService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RegisterSessionResult.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".build\package.msbuild" />

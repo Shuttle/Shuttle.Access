@@ -21,6 +21,20 @@ import '~/dashboard/';
 import '~/role/';
 import '~/user/';
 
+$.ajaxPrefilter(function(options, originalOptions) {
+    options.error = function(xhr) {
+        if (xhr.responseJSON) {
+            state.alerts.show({ message: xhr.responseJSON.message, type: 'danger', name: 'ajax-prefilter-error' });
+        } else {
+            state.alerts.show({ message: xhr.status + ' / ' + xhr.statusText, type: 'danger', name: 'ajax-prefilter-error' });
+        }
+
+        if (originalOptions.error) {
+            originalOptions.error(xhr);
+        }
+    };
+});
+
 localisation.start(function(error) {
     if (error) {
         throw new Error(error);

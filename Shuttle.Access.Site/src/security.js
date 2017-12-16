@@ -1,9 +1,9 @@
 import $ from 'jquery';
 import DefineMap from 'can-define/map/';
 import DefineList from 'can-define/list/';
-import Api from '~/api';
+import Api from 'shuttle-can-api';
 import localisation from '~/localisation';
-import alerts from '~/alerts';
+import state from '~/state';
 import each from 'can-util/js/each/';
 
 var anonymous = new Api('anonymouspermissions');
@@ -68,7 +68,7 @@ var Security = DefineMap.extend({
                 return data;
             })
             .catch(function() {
-                alerts.show({ message: localisation.value('exceptions.anonymous-permissions'), type: 'danger' });
+                state.alerts.show({ message: localisation.value('exceptions.anonymous-permissions'), type: 'danger' });
             });
     },
 
@@ -99,7 +99,7 @@ var Security = DefineMap.extend({
                     self.token = response.token;
                     self.isUserRequired = false;
 
-                    alerts.remove({ name: 'login-failure' });
+                    state.alerts.remove({ name: 'login-failure' });
 
                     self.removeUserPermissions();
 
@@ -115,7 +115,7 @@ var Security = DefineMap.extend({
                         localStorage.removeItem('username');
                         localStorage.removeItem('token');
                     } else {
-                        alerts.show({
+                        state.alerts.show({
                             message: localisation.value('exceptions.login', { username: options.username }),
                             type: 'danger',
                             name: 'login-failure'
@@ -124,7 +124,7 @@ var Security = DefineMap.extend({
                 }
             })
             .catch(function(error) {
-                alerts.show(error, 'danger');
+                state.alerts.show(error, 'danger');
             });
     },
 

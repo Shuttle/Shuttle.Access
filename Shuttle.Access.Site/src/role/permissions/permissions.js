@@ -4,11 +4,10 @@ import DefineMap from 'can-define/map/';
 import view from './permissions.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
-import Api from '~/api';
+import Api from 'shuttle-can-api';
 import each from 'can-util/js/each/';
 import makeArray from 'can-util/js/make-array/';
 import router from '~/router';
-import alerts from '~/alerts';
 import localisation from '~/localisation';
 import state from '~/state';
 
@@ -32,7 +31,7 @@ const RolePermission = DefineMap.extend(
             var self = this;
 
             if (this.working) {
-                alerts.show({ message: localisation.value('workingMessage'), name: 'working-message' });
+                state.alerts.show({ message: localisation.value('workingMessage'), name: 'working-message' });
                 return;
             }
 

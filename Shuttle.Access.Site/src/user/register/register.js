@@ -3,7 +3,7 @@ import DefineMap from 'can-define/map/';
 import view from './register.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
-import Api from '~/api';
+import Api from 'shuttle-can-api';
 import router from '~/router';
 import security from '~/security';
 import validator from 'can-define-validate-validatejs';
