@@ -1,6 +1,5 @@
 import Component from 'can-component/';
 import DefineMap from 'can-define/map/';
-import DefineList from 'can-define/list/';
 import view from './list.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
@@ -8,8 +7,9 @@ import router from '~/router';
 import Api from 'shuttle-can-api';
 import localisation from '~/localisation';
 import state from '~/state';
+import {ColumnList} from 'shuttle-canstrap/table/';
 
-resources.add('user', { action: 'list', permission: Permissions.View.Users });
+resources.add('user', {action: 'list', permission: Permissions.View.Users});
 
 const Map = DefineMap.extend(
     'user',
@@ -28,100 +28,91 @@ var users = new Api({
     Map: Map
 });
 
-export const ViewModel = DefineMap.extend(
-    'user-list',
-    {
-        columns: {
-            Value: DefineList
-        },
+export const ViewModel = DefineMap.extend({
+    columns: {
+        Type: ColumnList,
+        value: []
+    },
 
-        refreshTimestamp: {
-            type: 'string'
-        },
+    refreshTimestamp: {
+        type: 'string'
+    },
 
-        get usersPromise() {
-            const refreshTimestamp = this.refreshTimestamp;
-            return users.list();
-        },
+    get usersPromise() {
+        const refreshTimestamp = this.refreshTimestamp;
+        return users.list();
+    },
 
-        init: function() {
-            const columns = this.columns;
+    init: function () {
+        const columns = this.columns;
 
-            if (!columns.length) {
-                columns.push({
-                    columnTitle: 'user:list.roles',
-                    columnClass: 'col-md-1',
-                    columnType: 'button',
-                    buttonTitle: 'user:list.roles',
-                    buttonClick: 'roles',
-                    buttonContext: this
-                });
-
-                columns.push({
-                    columnTitle: 'user:username',
-                    attributeName: 'username'
-                });
-
-                columns.push({
-                    columnTitle: 'user:dateRegistered',
-                    attributeName: 'dateRegistered'
-                });
-
-                columns.push({
-                    columnTitle: 'user:registeredBy',
-                    attributeName: 'registeredBy'
-                });
-
-                columns.push({
-                    columnTitle: 'remove',
-                    columnClass: 'col-md-1',
-                    columnType: 'remove-button',
-                    buttonContext: this,
-                    buttonClick: 'remove'
-                });
-            }
-
-            state.title = localisation.value('user:list.title');
-
-            state.controls.push({
-                type: 'button',
-                title: 'add',
-                click: 'add',
-                elementClass: 'btn-primary',
-                context: this,
-                permission: 'access://user/register'
+        if (!columns.length) {
+            columns.push({
+                columnTitle: 'user:list.roles',
+                view: '<cs-button click:from="@roles" />'
             });
 
-            state.controls.push({
-                type: 'refresh-button',
-                click: 'refresh',
-                context: this
+            columns.push({
+                columnTitle: 'user:username',
+                attributeName: 'username'
             });
-        },
 
-        add: function() {
-            router.goto('user/register');
-        },
+            columns.push({
+                columnTitle: 'user:dateRegistered',
+                attributeName: 'dateRegistered'
+            });
 
-        refresh: function() {
-            this.refreshTimestamp = Date.now();
-        },
+            columns.push({
+                columnTitle: 'user:registeredBy',
+                attributeName: 'registeredBy'
+            });
 
-        remove: function(user) {
-            users.delete({ id: user.id })
-                .then(function() {
-                    state.alerts.show({
-                        message: localisation.value('itemRemovalRequested',
-                            { itemName: localisation.value('user:title') })
-                    });
-                });
-        },
-
-        roles: function(user) {
-            router.goto(`user/${user.id}/roles`);
+            columns.push({
+                columnTitle: 'remove',
+                columnClass: 'col-md-1',
+                view: '<cs-button-remove click:from="@remove" />'
+            });
         }
+
+        state.title = localisation.value('user:list.title');
+
+        state.navbarControls.push({
+            context: this,
+            view: '<cs-button permission:from="\'access://user/register\'" click:from="@add" text:from="\'add\'" elementClass:from="\'btn-primary\'"/>'
+        });
+
+        state.navbarControls.push({
+            context: this,
+            view: '<cs-button-refresh click:from="@refresh" />'
+        });
+    },
+
+    add: function () {
+        router.goto('user/register');
+    },
+
+    refresh: function () {
+        this.refreshTimestamp = Date.now();
+    },
+
+    remove: function (user) {
+        users.delete({id: user.id})
+            .then(function () {
+                state.alerts.show({
+                    message: localisation.value('itemRemovalRequested',
+                        {itemName: localisation.value('user:title')})
+                });
+            });
+    },
+
+    roles: function (user) {
+        router.goto({
+            resource: 'user',
+            ation: 'roles',
+            id: user.id
+        });
     }
-);
+});
 
 export default Component.extend({
     tag: 'access-user-list',
