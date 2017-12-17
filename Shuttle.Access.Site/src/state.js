@@ -17,7 +17,7 @@ var State = DefineMap.extend({
     data: {
         Value: DefineList
     },
-    controls: {
+    navbarControls: {
         Value: DefineList
     },
     title: {

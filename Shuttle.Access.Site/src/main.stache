@@ -1,5 +1,5 @@
 ﻿<access-navigation/>
-<main id="application-container" class="col-12" role="main">
+<main id="application-container" class="col-12 mt-3" role="main">
     <cs-alerts/>
     <cs-modal modalId:from="'modal-confirmation'" primaryText:from="'yes'" dismissText:from="'no'"
               title:from="'confirmation'" message:from="'modal.confirmation.message'"

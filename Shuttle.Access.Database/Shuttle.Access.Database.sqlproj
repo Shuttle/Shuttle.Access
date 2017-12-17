@@ -65,5 +65,7 @@
     <Build Include="Tables\SystemRolePermission.sql" />
     <Build Include="Tables\SystemUser.sql" />
     <Build Include="Tables\SystemUserRole.sql" />
+    <Build Include="Tables\Session.sql" />
+    <Build Include="Tables\SessionPermission.sql" />
   </ItemGroup>
 </Project>
