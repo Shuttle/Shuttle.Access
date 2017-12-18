@@ -8,7 +8,7 @@ import router from '~/router';
 import security from '~/security';
 import validator from 'can-define-validate-validatejs';
 
-resources.add('user', { action: 'register', permission: Permissions.Manage.Users });
+resources.add('user', {action: 'register', permission: Permissions.Manage.Users});
 
 var users = new Api('users');
 
@@ -32,21 +32,21 @@ export const ViewModel = DefineMap.extend(
             value: false
         },
         title: {
-            get: function() {
+            get: function () {
                 return security.isUserRequired ? 'user:register.user-required' : 'user:register.title';
             }
         },
         showClose: {
-            get: function() {
+            get: function () {
                 return !security.isUserRequired;
             }
         },
 
-        hasErrors: function() {
+        hasErrors: function () {
             return !!this.errors();
         },
 
-        register: function() {
+        register: function () {
             var self = this;
 
             if (this.hasErrors()) {
@@ -59,24 +59,32 @@ export const ViewModel = DefineMap.extend(
                 username: this.username,
                 password: this.password
             })
-                .then(function() {
+                .then(function () {
                     if (security.isUserRequired) {
                         security.isUserRequired = false;
 
-                        router.goto('dashboard');
+                        router.goto({
+                            resource: 'dashboard'
+                        });
                     } else {
-                        router.goto('user/list');
+                        router.goto({
+                            resource: 'user',
+                            action: 'list'
+                        });
                     }
                 })
-                .then(function() {
+                .then(function () {
                     self.working = false;
                 });
 
             return false;
         },
 
-        close: function() {
-            router.goto('user/list');
+        close: function () {
+            router.goto({
+                resource: 'user',
+                action: 'list'
+            });
         }
     }
 );

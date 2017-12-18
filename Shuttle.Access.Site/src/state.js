@@ -22,9 +22,8 @@ var State = DefineMap.extend({
     },
     title: {
         type: 'string',
-        value: 'Page Title'
+        value: '(title)'
     },
-
     modal: {
         Value: DefineMap.extend({
             confirmation: {

@@ -49,7 +49,7 @@ export const ViewModel = DefineMap.extend({
         if (!columns.length) {
             columns.push({
                 columnTitle: 'user:list.roles',
-                view: '<cs-button click:from="@roles" />'
+                view: '<cs-button text:from="\'user:list.roles\'" click:from="@roles" elementClass:from="\'btn-sm\'"/>'
             });
 
             columns.push({
@@ -69,8 +69,7 @@ export const ViewModel = DefineMap.extend({
 
             columns.push({
                 columnTitle: 'remove',
-                columnClass: 'col-md-1',
-                view: '<cs-button-remove click:from="@remove" />'
+                view: '<cs-button-remove click:from="@remove" elementClass:from="\'btn-sm\'"/>'
             });
         }
 
@@ -78,17 +77,20 @@ export const ViewModel = DefineMap.extend({
 
         state.navbarControls.push({
             context: this,
-            view: '<cs-button permission:from="\'access://user/register\'" click:from="@add" text:from="\'add\'" elementClass:from="\'btn-primary\'"/>'
+            view: '<cs-button permission:from="\'access://user/register\'" click:from="@add" text:from="\'add\'" elementClass:from="\'btn-primary btn-sm mr-2\'"/>'
         });
 
         state.navbarControls.push({
             context: this,
-            view: '<cs-button-refresh click:from="@refresh" />'
+            view: '<cs-button-refresh click:from="@refresh" elementClass:from="\'btn-sm mr-2\'"/>'
         });
     },
 
     add: function () {
-        router.goto('user/register');
+        router.goto({
+            resource: 'user',
+            action: 'register'
+        });
     },
 
     refresh: function () {

@@ -8,10 +8,16 @@ import map from './navigation-map';
 import security from '~/security';
 import state from '~/state';
 import guard from 'shuttle-guard';
+import stache from 'can-stache';
 
 var ViewModel = DefineMap.extend({
     security: {
         value: security
+    },
+    title:{
+        get() {
+            return state.title;
+        }
     },
     navbarControls: {
         value: state.navbarControls

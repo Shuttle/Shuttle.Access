@@ -136,10 +136,6 @@ var Router = DefineMap.extend({
             throw new Error('The \'data\' argument does not contain a \'resource\' value.')
         }
 
-        if (!data.action) {
-            throw new Error('The \'data\' argument does not contain an \'action\' value.')
-        }
-
         route.data.update(data, true);
     }
 });
