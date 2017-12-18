@@ -13,7 +13,7 @@ import security from '~/security';
 import state from '~/state';
 import router from '~/router';
 
-import 'shuttle-canstrap';
+import canstrap from 'shuttle-canstrap';
 
 import '~/navigation/';
 import '~/dashboard/';
@@ -37,6 +37,10 @@ $.ajaxPrefilter(function (options, originalOptions) {
         }
     };
 });
+
+canstrap.button.remove.confirmation = function (options) {
+    state.modal.confirmation.show(options);
+}
 
 localisation.start(function (error) {
     if (error) {
