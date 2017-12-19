@@ -7,31 +7,20 @@ import {DropdownMap, DropdownList} from 'shuttle-canstrap/nav-dropdown/';
 import map from './navigation-map';
 import security from '~/security';
 import state from '~/state';
-import guard from 'shuttle-guard';
 import stache from 'can-stache';
+import guard from 'shuttle-guard';
 
 var ViewModel = DefineMap.extend({
     security: {
         value: security
     },
-    title:{
+    title: {
         get() {
             return state.title;
         }
     },
-    navbarControls: {
-        value: state.navbarControls
-    },
-    getNavbarControlView(control) {
-        guard.againstUndefined(control, 'control');
-
-        let stacheTemplate = control.view;
-
-        if (!stacheTemplate) {
-            throw new Error('Specify a \'view\' for the control.');
-        }
-
-        return stache(stacheTemplate)(control.context);
+    navbar: {
+        value: state.navbar
     },
     resources: {
         get: function (value) {

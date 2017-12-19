@@ -99,15 +99,10 @@ export const ViewModel = DefineMap.extend(
                 });
 
             state.title = localisation.value('user:list.roles');
-
-            state.controls.push({
-                type: 'back-button'
-            });
-
-            state.controls.push({
-                type: 'refresh-button',
+            state.navbar.addBackButton();
+            state.navbar.addRefreshButton({
                 click: 'refresh',
-                context: this
+                viewModel: this
             });
         },
 
@@ -149,13 +144,12 @@ export const ViewModel = DefineMap.extend(
             value: [
                 {
                     columnTitle: 'active',
-                    columnClass: 'col-md-1',
-                    columnType: 'view',
-                    view:
-                        '<span ($click)="toggle()" class="glyphicon {{#if active}}glyphicon-check{{else}}glyphicon-unchecked{{/if}}" /><span class="glyphicon {{#if working}}glyphicon-hourglass{{/if}}" />'
+                    columnClass: 'col-1',
+                    stache: '<cs-checkbox checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
                 },
                 {
                     columnTitle: 'user:roleName',
+                    columnClass: 'col',
                     attributeName: 'roleName'
                 }
             ]

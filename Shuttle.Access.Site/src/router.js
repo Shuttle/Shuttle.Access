@@ -6,18 +6,19 @@ import stache from 'can-stache';
 import route from 'can-route';
 import state from '~/state';
 import guard from 'shuttle-guard';
+import each from 'can-util/js/each/';
 
 var RouteData = DefineMap.extend({
     resource: {
-        type:'string',
+        type: 'string',
         value: ''
     },
     action: {
-        type:'string',
+        type: 'string',
         value: ''
     },
     id: {
-        type:'string',
+        type: 'string',
         value: ''
     },
     full: {
@@ -29,7 +30,7 @@ var RouteData = DefineMap.extend({
 
 var routeData = new RouteData();
 
-routeData.on('full', function(ev, newVal, oldVal){
+routeData.on('full', function (ev, newVal, oldVal) {
     if (!security.isUserRequired || (this.resource === 'user' && this.action === 'register')) {
         return;
     }
@@ -67,7 +68,6 @@ var Router = DefineMap.extend({
         var resourceName = this.data.resource;
         var actionName = this.data.action;
         var isActionRoute = !!actionName;
-        var previousHash = this.previousHash;
 
         if ($('#application-content').length === 0) {
             return;
@@ -86,12 +86,6 @@ var Router = DefineMap.extend({
         } else {
             resource = resources.find(resourceName);
         }
-
-        if (previousHash && previousHash === window.location.hash) {
-            return;
-        }
-
-        this.previousHash = window.location.hash;
 
         if (!resource) {
             state.alerts.show({
@@ -117,7 +111,7 @@ var Router = DefineMap.extend({
         }
 
         state.alerts.clear();
-        state.navbarControls.splice(0, state.navbarControls.length);
+        state.navbar.controls.clear();
         state.title = '';
 
         var componentName = resource.componentName || 'access-' + resource.name + (isActionRoute ? `-${actionName}` : '');
@@ -135,6 +129,19 @@ var Router = DefineMap.extend({
         if (!data.resource) {
             throw new Error('The \'data\' argument does not contain a \'resource\' value.')
         }
+
+        each(Object.getOwnPropertyNames(data), function (propertyName) {
+                if (
+                    propertyName !== 'resource'
+                    &&
+                    propertyName !== 'action'
+                    &&
+                    propertyName !== 'id'
+                ) {
+                    throw new Error('The route data contains an unknown attribute \'' + propertyName + '\'.');
+                }
+            }
+        );
 
         route.data.update(data, true);
     }

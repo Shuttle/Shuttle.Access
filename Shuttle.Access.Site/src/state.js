@@ -4,6 +4,72 @@ import guard from 'shuttle-guard';
 import route from 'can-route';
 import {alerts} from 'shuttle-canstrap/alerts/';
 import loader from '@loader';
+import stache from "can-stache";
+
+export const NavbarControlMap = DefineMap.extend({
+    stache: {
+        type: 'string',
+        get: function (value) {
+            if (!value) {
+                throw new Error('The \'NavbarControlMap\' does not have a \'view\' specified.')
+            }
+
+            return value;
+        }
+    },
+    view: {
+        type: 'string',
+        get() {
+            return stache(this.stache)(this.viewModel);
+        }
+    },
+    viewModel: {
+        type: '*'
+    }
+});
+
+export const NavbarControlList = DefineList.extend({
+    '#': NavbarControlMap,
+    clear() {
+        this.replace([]);
+    }
+});
+
+export const Navbar = DefineMap.extend({
+    controls: {
+        Type: NavbarControlList,
+        value: []
+    },
+    addBackButton() {
+        this.controls.push({
+            stache: '<cs-button-back text:from="\'back\'" elementClass:from="\'btn-sm mr-2\'"/>'
+        })
+    },
+    addRemoveButton(options) {
+        guard.againstUndefined(options, 'options')
+
+        if (!options.click) {
+            throw new Error('No \'click\' method name has been specified.')
+        }
+
+        this.controls.push({
+            viewModel: options.viewModel,
+            stache: `<cs-button-remove click:from="@${options.click}" elementClass:from="\'btn-sm mr-2\'"/>`
+        })
+    },
+    addRefreshButton(options) {
+        guard.againstUndefined(options, 'options')
+
+        if (!options.click) {
+            throw new Error('No \'click\' method name has been specified.')
+        }
+
+        this.controls.push({
+            viewModel: options.viewModel,
+            stache: `<cs-button-refresh click:from="@${options.click}" elementClass:from="'btn-sm mr-2'"/>`
+        })
+    }
+});
 
 var State = DefineMap.extend({
     route: route,
@@ -17,12 +83,13 @@ var State = DefineMap.extend({
     data: {
         Value: DefineList
     },
-    navbarControls: {
-        Value: DefineList
+    navbar: {
+        Type: Navbar,
+        value: {}
     },
     title: {
         type: 'string',
-        value: '(title)'
+        value: ''
     },
     modal: {
         Type: DefineMap.extend({

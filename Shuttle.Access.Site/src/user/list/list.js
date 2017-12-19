@@ -20,7 +20,25 @@ const Map = DefineMap.extend(
         id: 'string',
         username: 'string',
         dateRegistered: 'date',
-        registeredBy: 'string'
+        registeredBy: 'string',
+
+        remove: function () {
+            users.delete({id: this.id})
+                .then(function () {
+                    state.alerts.show({
+                        message: localisation.value('itemRemovalRequested',
+                            {itemName: localisation.value('user:title')})
+                    });
+                });
+        },
+
+        roles: function () {
+            router.goto({
+                resource: 'user',
+                action: 'roles',
+                id: this.id
+            });
+        }
     });
 
 var users = new Api({
@@ -49,40 +67,45 @@ export const ViewModel = DefineMap.extend({
         if (!columns.length) {
             columns.push({
                 columnTitle: 'user:list.roles',
-                view: '<cs-button text:from="\'user:list.roles\'" click:from="@roles" elementClass:from="\'btn-sm\'"/>'
+                columnClass: 'col-1',
+                stache: '<cs-button text:from="\'user:list.roles\'" click:from="@roles" elementClass:from="\'btn-sm\'"/>'
             });
 
             columns.push({
                 columnTitle: 'user:username',
+                columnClass: 'col',
                 attributeName: 'username'
             });
 
             columns.push({
                 columnTitle: 'user:dateRegistered',
+                columnClass: 'col-3',
                 attributeName: 'dateRegistered'
             });
 
             columns.push({
                 columnTitle: 'user:registeredBy',
+                columnClass: 'col',
                 attributeName: 'registeredBy'
             });
 
             columns.push({
                 columnTitle: 'remove',
-                view: '<cs-button-remove click:from="@remove" elementClass:from="\'btn-sm\'"/>'
+                columnClass: 'col-1',
+                stache: '<cs-button-remove click:from="@remove" elementClass:from="\'btn-sm\'"/>'
             });
         }
 
         state.title = localisation.value('user:list.title');
 
-        state.navbarControls.push({
-            context: this,
-            view: '<cs-button permission:from="\'access://user/register\'" click:from="@add" text:from="\'add\'" elementClass:from="\'btn-primary btn-sm mr-2\'"/>'
+        state.navbar.controls.push({
+            viewModel: this,
+            stache: '<cs-button permission:from="\'access://user/register\'" click:from="@add" text:from="\'add\'" elementClass:from="\'btn-primary btn-sm mr-2\'"/>'
         });
 
-        state.navbarControls.push({
-            context: this,
-            view: '<cs-button-refresh click:from="@refresh" elementClass:from="\'btn-sm mr-2\'"/>'
+        state.navbar.addRefreshButton({
+            viewModel: this,
+            click: 'refresh'
         });
     },
 
@@ -95,24 +118,6 @@ export const ViewModel = DefineMap.extend({
 
     refresh: function () {
         this.refreshTimestamp = Date.now();
-    },
-
-    remove: function (user) {
-        users.delete({id: user.id})
-            .then(function () {
-                state.alerts.show({
-                    message: localisation.value('itemRemovalRequested',
-                        {itemName: localisation.value('user:title')})
-                });
-            });
-    },
-
-    roles: function (user) {
-        router.goto({
-            resource: 'user',
-            ation: 'roles',
-            id: user.id
-        });
     }
 });
 
