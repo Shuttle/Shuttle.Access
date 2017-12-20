@@ -145,7 +145,7 @@ export const ViewModel = DefineMap.extend(
                 {
                     columnTitle: 'active',
                     columnClass: 'col-1',
-                    stache: '<cs-checkbox checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
+                    stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
                 },
                 {
                     columnTitle: 'user:roleName',
