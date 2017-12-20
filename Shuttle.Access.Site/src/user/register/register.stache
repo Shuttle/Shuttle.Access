@@ -4,7 +4,7 @@
                        errorAttribute:from="'username'"/>
         <cs-form-input label:from="'user:register.password'" vm:value:bind="password" type:from="'password'" vm:errors:from="errors()"
                        errorAttribute:from="'password'"/>
-        <cs-button-submit vm:click:from="@register" text:from="'register'"/>
+        <cs-button vm:click:from="@register" text:from="'register'"/>
 		<cs-button vm:click:from="@close" text:from="'close'" vm:visible:from="showClose" />
 	</fieldset>
 </cs-form>
