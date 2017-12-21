@@ -18,7 +18,6 @@ var roles = new Api({
     Map: UserRole
 });
 
-//var userRoles = new Api('users/{id}/roles');
 var api = {
     user: new Api('users/{id}'),
     setRole: new Api('users/setrole'),
@@ -82,8 +81,8 @@ const UserRole = DefineMap.extend({
 });
 
 export const ViewModel = DefineMap.extend({
-    username(){
-        return state.get('user').username;
+    user: {
+        Type: DefineMap
     },
     isResolved: {type: 'boolean', value: false},
 
@@ -119,18 +118,19 @@ export const ViewModel = DefineMap.extend({
                 availableRoles = makeArray(availableRoles);
                 availableRoles.push({id: '', roleName: 'administrator'});
 
-                api.user.list({id: router.data.id})
-                    .then(function (user) {
+                api.user.item({id: router.data.id})
+                    .then(function (repsonse) {
+                        self.user = repsonse.data;
+
                         each(availableRoles,
                             function (availableRole) {
-                                const active = user.roles.filter(function (item) {
-                                        return item.roleName === availableRole.roleName;
-                                    }).length >
-                                    0;
-                                const roleName = availableRole.roleName;
+                                const roleName = availableRole.roleName.toLowerCase();
+                                const active = self.user.roles.filter(function (role) {
+                                    return role.toLowerCase() === roleName;
+                                }).length > 0;
 
                                 self.roles.push(new UserRole({
-                                    roleName: roleName,
+                                    roleName: availableRole.roleName,
                                     active: active
                                 }));
                             });

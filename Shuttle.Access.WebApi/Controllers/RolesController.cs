@@ -85,7 +85,7 @@ namespace Shuttle.Access.WebApi
             }
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Roles)]
+        [Route("api/roles/{id}")]
         public IHttpActionResult Get(Guid id)
         {
             using (_databaseContextFactory.Create())
@@ -119,19 +119,6 @@ namespace Shuttle.Access.WebApi
             });
 
             return Ok();
-        }
-
-        [RequiresPermission(SystemPermissions.Manage.Roles)]
-        [Route("api/roles/{id}/permissions")]
-        public IHttpActionResult GetRoles(Guid id)
-        {
-            using (_databaseContextFactory.Create())
-            {
-                return Ok(new
-                {
-                    Data = _systemRoleQuery.Get(id)
-                });
-            }
         }
     }
 }

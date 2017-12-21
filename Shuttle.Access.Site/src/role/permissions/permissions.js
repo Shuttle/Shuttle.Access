@@ -11,62 +11,54 @@ import router from '~/router';
 import localisation from '~/localisation';
 import state from '~/state';
 
-var setPermission = new Api('roles/setpermission');
-var permissions = new Api('permissions');
-var permissionStatus = new Api('roles/permissionstatus');
+var api = {
+    role: new Api('roles/{id}'),
+    setPermission: new Api('roles/setpermission'),
+    permissions: new Api('permissions'),
+    permissionStatus: new Api('roles/permissionstatus')
+}
 
 resources.add('role', {action: 'permissions', permission: Permissions.Manage.RolePermissions});
 
-const RolePermission = DefineMap.extend(
-    'role-permission',
-    {
-        seal: false
-    },
-    {
-        permission: 'string',
-        active: 'boolean',
-        working: 'boolean',
+const RolePermission = DefineMap.extend({
+    permission: 'string',
+    active: 'boolean',
+    working: 'boolean',
 
-        toggle: function () {
-            var self = this;
+    toggle: function () {
+        var self = this;
 
-            if (this.working) {
-                state.alerts.show({message: localisation.value('workingMessage'), name: 'working-message'});
-                return;
-            }
+        if (this.working) {
+            state.alerts.show({message: localisation.value('workingMessage'), name: 'working-message'});
+            return;
+        }
 
-            this.active = !this.active;
-            this.working = true;
+        this.active = !this.active;
+        this.working = true;
 
-            setPermission.post({
-                roleId: router.data.id,
-                permission: this.permission,
-                active: this.active
+        api.setPermission.post({
+            roleId: router.data.id,
+            permission: this.permission,
+            active: this.active
+        })
+            .then(function () {
+                self.working = false;
             })
-                .then(function () {
-                    self.working = false;
-                })
-                .catch(function () {
-                    self.working = false;
-                });
-        },
+            .catch(function () {
+                self.working = false;
+            });
+    },
 
-        rowClass: {
-            get: function () {
-                return this.active ? 'text-success success' : 'text-muted';
-            }
+    rowClass: {
+        get: function () {
+            return this.active ? 'text-success success' : 'text-muted';
         }
     }
-);
-
-var rolePermissions = new Api({
-    endpoint: 'roles/{id}/permissions',
-    Map: RolePermission
 });
 
 export const ViewModel = DefineMap.extend({
-    roleName(){
-        return state.get('role').roleName;
+    role: {
+        Type: DefineMap
     },
 
     isResolved: {type: 'boolean', value: false},
@@ -118,16 +110,18 @@ export const ViewModel = DefineMap.extend({
 
         self.permissions.replace(new DefineList());
 
-        permissions.list()
+        api.permissions.list()
             .then(function (availablePermissionsResponse) {
                 var availablePermissions = makeArray(availablePermissionsResponse);
 
-                rolePermissions.list({id: router.data.id})
-                    .then(function (rolePermissions) {
+                api.role.item({id: router.data.id})
+                    .then(function (response) {
+                        self.role = response.data;
+
                         each(availablePermissions,
                             function (availablePermission) {
                                 const permission = availablePermission.permission;
-                                const active = rolePermissions.filter(function (item) {
+                                const active = self.role.permissions.filter(function (item) {
                                         return item.permission === permission;
                                     }).length >
                                     0;
@@ -193,7 +187,7 @@ export const ViewModel = DefineMap.extend({
                 data.permissions.push(item.permission);
             });
 
-        permissionStatus.post(data)
+        api.permissionStatus.post(data)
             .then(function (response) {
                 each(response.data,
                     function (item) {

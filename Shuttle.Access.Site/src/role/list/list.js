@@ -26,8 +26,6 @@ const Map = DefineMap.extend({
     },
 
     permissions: function () {
-        state.data.put('role', this);
-
         router.goto({
             resource: 'role',
             action: 'permissions',

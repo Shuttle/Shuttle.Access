@@ -98,78 +98,6 @@ export const Navbar = DefineMap.extend({
     }
 });
 
-var Data = DefineMap.extend({
-    items: {
-        Type: DefineList,
-        value: []
-    },
-    put: function (name, value) {
-        guard.againstUndefined(name, 'name');
-
-        this.remove(name);
-        this.items.push({name: name, value: value});
-    },
-    pop: function (name) {
-        guard.againstUndefined(name, 'name');
-
-        let result;
-        let removeIndex = -1;
-
-        this.items.forEach(function (item, index) {
-            if (item.name === name) {
-                result = item.value;
-                removeIndex = index;
-
-                return false;
-            }
-
-            return true;
-        });
-
-        if (removeIndex > -1) {
-            this.splice(removeIndex, 1);
-        }
-
-        return result;
-    },
-    get: function (name) {
-        guard.againstUndefined(name, 'name');
-
-        let result;
-
-        this.items.forEach(function (item, index) {
-            if (item.name === name) {
-                result = item.value;
-
-                return false;
-            }
-
-            return true;
-        });
-
-        return result;
-    },
-    remove: function (name) {
-        guard.againstUndefined(name, 'name');
-
-        let removeIndex = -1;
-
-        this.items.forEach(function (item, index) {
-            if (item.name === name) {
-                removeIndex = index;
-
-                return false;
-            }
-
-            return true;
-        });
-
-        if (removeIndex > -1) {
-            this.splice(removeIndex, 1);
-        }
-    }
-});
-
 var State = DefineMap.extend({
     route: route,
     alerts: {
@@ -178,10 +106,6 @@ var State = DefineMap.extend({
     debug: {
         type: 'boolean',
         value: loader.debug
-    },
-    data: {
-        Type: Data,
-        value: {}
     },
     navbar: {
         Type: Navbar,

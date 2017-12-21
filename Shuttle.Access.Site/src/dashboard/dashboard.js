@@ -19,6 +19,6 @@ export const ViewModel = DefineMap.extend({
 export default Component.extend({
     tag: 'access-dashboard',
     view: view,
-    viewModel: ViewModel
+    ViewModel
 });
 
