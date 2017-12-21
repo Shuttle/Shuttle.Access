@@ -12,7 +12,7 @@ resources.add('dashboard', { permission: Permissions.View.Dashboard });
 
 export const ViewModel = DefineMap.extend({
     init () {
-        state.title = localisation.value('dashboard:title');
+        state.title = 'dashboard:title';
     }
 });
 

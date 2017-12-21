@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
+using Newtonsoft.Json;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Data;
@@ -106,7 +107,6 @@ namespace Shuttle.Access.WebApi
         public IHttpActionResult SetRole([FromBody] SetUserRoleModel model)
         {
             Guard.AgainstNull(model, "model");
-
 
             using (_databaseContextFactory.Create())
             {

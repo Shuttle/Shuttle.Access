@@ -11,43 +11,47 @@ import router from '~/router';
 import localisation from '~/localisation';
 import state from '~/state';
 
-resources.add('user', { action: 'roles', permission: Permissions.Manage.Users });
+resources.add('user', {action: 'roles', permission: Permissions.Manage.Users});
 
-const UserRole = DefineMap.extend(
-    'user-role',
-    {
-        seal: false
-    },
-    {
-        roleName: 'string',
-        active: 'boolean',
+var roles = new Api({
+    endpoint: 'roles',
+    Map: UserRole
+});
 
-        toggle: function() {
-            var self = this;
+var userRoles = new Api('users/{id}/roles');
+var setRole = new Api('users/setrole');
+var roleStatus = new Api('users/roleStatus');
 
-            if (this.working) {
-                state.alerts.show({ message: localisation.value('workingMessage'), name: 'working-message' });
-                return;
-            }
+const UserRole = DefineMap.extend({
+    roleName: 'string',
+    active: 'boolean',
+    working: 'boolean',
 
-            this.active = !this.active;
-            this.working = true;
+    toggle: function () {
+        var self = this;
 
-            setRole.post({
-                    userId: router.data.id,
-                    roleName: this.roleName,
-                    active: this.active
-                })
-                .then(function(response) {
-                    self.working = false;
+        if (this.working) {
+            state.alerts.show({message: localisation.value('workingMessage'), name: 'working-message'});
+            return;
+        }
 
-                    if (response.success) {
-                        return;
-                    }
+        this.active = !this.active;
+        this.working = true;
 
-                    switch (response.failureReason.toLowerCase()) {
-                    case 'lastadministrator':
-                    {
+        setRole.post({
+            userId: router.data.id,
+            roleName: this.roleName,
+            active: this.active
+        })
+            .then(function (response) {
+                self.working = false;
+
+                if (response.success) {
+                    return;
+                }
+
+                switch (response.failureReason.toLowerCase()) {
+                    case 'lastadministrator': {
                         self.active = true;
                         self.working = false;
 
@@ -59,173 +63,164 @@ const UserRole = DefineMap.extend(
 
                         break;
                     }
-                    }
-                })
-                .catch(function() {
-                    self.working = false;
-                });
+                }
+            })
+            .catch(function () {
+                self.working = false;
+            });
 
-        },
+    },
 
-        rowClass: {
-            get: function() {
-                return this.active ? 'text-success success' : 'text-muted';
-            }
+    rowClass: {
+        get: function () {
+            return this.active ? 'text-success success' : 'text-muted';
         }
     }
-);
-
-var roles = new Api({
-    endpoint: 'roles',
-    Map: UserRole
 });
 
-var userRoles = new Api('users/{id}/roles');
-var setRole = new Api('users/setrole');
+export const ViewModel = DefineMap.extend({
+    isResolved: {type: 'boolean', value: false},
 
-export const ViewModel = DefineMap.extend(
-    'user-role',
-    {
-        isResolved: { type: 'boolean', value: false },
+    init: function () {
+        var self = this;
 
-        init: function() {
-            var self = this;
+        this.refresh();
 
-            this.refresh();
-
-            this.on('workingCount',
-                function() {
-                    self.getRoleStatus();
-                });
-
-            state.title = localisation.value('user:list.roles');
-            state.navbar.addBackButton();
-            state.navbar.addRefreshButton({
-                click: 'refresh',
-                viewModel: this
+        this.on('workingCount',
+            function () {
+                self.getRoleStatus();
             });
-        },
 
-        refresh() {
-            const self = this;
+        state.title = 'user:list.roles';
+        state.navbar.addButton({
+            type: 'back'
+        });
+        state.navbar.addButton({
+            type: 'refresh',
+            viewModel: this
+        });
+    },
 
-            this.isResolved = false;
+    refresh() {
+        const self = this;
 
-            self.roles.replace(new DefineList());
+        this.isResolved = false;
 
-            roles.list()
-                .then(function(availableRoles) {
-                    availableRoles = makeArray(availableRoles);
-                    availableRoles.push({ id: '', roleName: 'administrator' });
+        self.roles.replace(new DefineList());
 
-                    userRoles.list({ id: router.data.id })
-                        .then(function(userRoles) {
-                            each(availableRoles,
-                                function(availableRole) {
-                                    const active = userRoles.filter(function(item) {
-                                            return item.roleName === availableRole.roleName;
-                                        }).length >
-                                        0;
-                                    const roleName = availableRole.roleName;
+        roles.list()
+            .then(function (availableRoles) {
+                availableRoles = makeArray(availableRoles);
+                availableRoles.push({id: '', roleName: 'administrator'});
 
-                                    self.roles.push(new UserRole({
-                                        roleName: roleName,
-                                        active: active
-                                    }));
-                                });
-                        })
-                        .then(function() {
-                            self.isResolved = true;
-                        });
-                });
-        },
+                userRoles.list({id: router.data.id})
+                    .then(function (userRoles) {
+                        each(availableRoles,
+                            function (availableRole) {
+                                const active = userRoles.filter(function (item) {
+                                        return item.roleName === availableRole.roleName;
+                                    }).length >
+                                    0;
+                                const roleName = availableRole.roleName;
 
-        columns: {
-            value: [
-                {
-                    columnTitle: 'active',
-                    columnClass: 'col-1',
-                    stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
-                },
-                {
-                    columnTitle: 'user:roleName',
-                    columnClass: 'col',
-                    attributeName: 'roleName'
+                                self.roles.push(new UserRole({
+                                    roleName: roleName,
+                                    active: active
+                                }));
+                            });
+                    })
+                    .then(function () {
+                        self.isResolved = true;
+                    });
+            });
+    },
+
+    columns: {
+        value: [
+            {
+                columnTitle: 'active',
+                columnClass: 'col-1',
+                stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
+            },
+            {
+                columnTitle: 'user:roleName',
+                columnClass: 'col',
+                attributeName: 'roleName'
+            }
+        ]
+    },
+
+    roles: {
+        value: new DefineList()
+    },
+
+    getRoleItem: function (roleName) {
+        var result;
+
+        each(this.roles,
+            function (item) {
+                if (result) {
+                    return;
                 }
-            ]
-        },
 
-        roles: {
-            value: new DefineList()
-        },
+                if (item.roleName === roleName) {
+                    result = item;
+                }
+            });
 
-        getRoleItem: function(roleName) {
-            var result;
+        return result;
+    },
 
-            each(this.roles,
-                function(item) {
-                    if (result) {
-                        return;
-                    }
-
-                    if (item.roleName === roleName) {
-                        result = item;
-                    }
-                });
-
-            return result;
-        },
-
-        workingItems: {
-            get() {
-                return this.roles.filter(function(item) {
-                    return item.working;
-                });
-            }
-        },
-
-        workingCount: {
-            type: 'number',
-            get() {
-                return this.workingItems.length;
-            }
-        },
-
-        getRoleStatus: function() {
-            var self = this;
-
-            if (this.workingCount === 0) {
-                return;
-            }
-
-            var data = {
-                userId: router.data.id,
-                roles: []
-            };
-
-            each(this.workingItems,
-                function(item) {
-                    data.roles.push(item.roleName);
-                });
-
-            api.post('users/rolestatus', { data: data })
-                .done(function(response) {
-                    each(response.data,
-                        function(item) {
-                            const roleItem = self.getRoleItem(item.roleName);
-
-                            if (!roleItem) {
-                                return;
-                            }
-
-                            roleItem.working = !(roleItem.active === item.active);
-                        });
-                })
-                .always(function() {
-                    setTimeout(self.getRoleStatus(), 1000);
-                });
+    workingItems: {
+        get() {
+            return this.roles.filter(function (item) {
+                return item.working;
+            });
         }
-    });
+    },
+
+    workingCount: {
+        type: 'number',
+        get() {
+            return this.workingItems.length;
+        }
+    },
+
+    getRoleStatus: function () {
+        var self = this;
+
+        if (this.workingCount === 0) {
+            return;
+        }
+
+        var data = {
+            userId: router.data.id,
+            roles: []
+        };
+
+        each(this.workingItems,
+            function (item) {
+                data.roles.push(item.roleName);
+            });
+
+        roleStatus.post(data)
+            .then(function (response) {
+                each(response.data,
+                    function (item) {
+                        const roleItem = self.getRoleItem(item.roleName);
+
+                        if (!roleItem) {
+                            return;
+                        }
+
+                        roleItem.working = !(roleItem.active === item.active);
+                    });
+            })
+            .then(function () {
+                setTimeout(self.getRoleStatus(), 1000);
+            });
+    }
+});
 
 export default Component.extend({
     tag: 'access-user-roles',

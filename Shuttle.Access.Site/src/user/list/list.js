@@ -11,39 +11,34 @@ import {ColumnList} from 'shuttle-canstrap/table/';
 
 resources.add('user', {action: 'list', permission: Permissions.View.Users});
 
-const Map = DefineMap.extend(
-    'user',
-    {
-        seal: false
-    },
-    {
-        id: 'string',
-        username: 'string',
-        dateRegistered: 'date',
-        registeredBy: 'string',
+const Map = DefineMap.extend({
+    id: 'string',
+    username: 'string',
+    dateRegistered: 'date',
+    registeredBy: 'string',
 
-        remove: function () {
-            users.delete({id: this.id})
-                .then(function () {
-                    state.alerts.show({
-                        message: localisation.value('itemRemovalRequested',
-                            {itemName: localisation.value('user:title')})
-                    });
+    remove: function () {
+        users.delete({id: this.id})
+            .then(function () {
+                state.alerts.show({
+                    message: localisation.value('itemRemovalRequested',
+                        {itemName: localisation.value('user:title')})
                 });
-        },
-
-        roles: function () {
-            router.goto({
-                resource: 'user',
-                action: 'roles',
-                id: this.id
             });
-        }
-    });
+    },
+
+    roles: function () {
+        router.goto({
+            resource: 'user',
+            action: 'roles',
+            id: this.id
+        });
+    }
+});
 
 var users = new Api({
     endpoint: 'users/{id}',
-    Map: Map
+    Map
 });
 
 export const ViewModel = DefineMap.extend({
@@ -96,14 +91,17 @@ export const ViewModel = DefineMap.extend({
             });
         }
 
-        state.title = localisation.value('user:list.title');
+        state.title = 'user:list.title';
 
-        state.navbar.controls.push({
+        state.navbar.addButton({
+            type: 'add',
             viewModel: this,
-            stache: '<cs-button permission:from="\'access://user/register\'" click:from="@add" text:from="\'add\'" elementClass:from="\'btn-primary btn-sm mr-2\'"/>'
+            permission: 'access://user/register',
+            click: 'add'
         });
 
-        state.navbar.addRefreshButton({
+        state.navbar.addButton({
+            type: 'refresh',
             viewModel: this,
             click: 'refresh'
         });

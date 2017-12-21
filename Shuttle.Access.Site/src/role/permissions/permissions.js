@@ -73,13 +73,12 @@ export const ViewModel = DefineMap.extend(
             value: [
                 {
                     columnTitle: 'active',
-                    columnClass: 'col-md-1',
-                    columnType: 'view',
-                    view:
-                        '<span ($click)="toggle()" class="glyphicon {{#if active}}glyphicon-check{{else}}glyphicon-unchecked{{/if}}" /><span class="glyphicon {{#if working}}glyphicon-hourglass{{/if}}" />'
+                    columnClass: 'col-1',
+                    stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
                 },
                 {
                     columnTitle: 'role:permission',
+                    columnClass: 'col',
                     attributeName: 'permission'
                 }
             ]
@@ -99,20 +98,14 @@ export const ViewModel = DefineMap.extend(
                     self.getPermissionStatus();
                 });
 
-            state.title = localisation.value('role:permissions.title');
-
-            state.controls.push({
-                type: 'back-button'
+            state.title = 'role:permissions.title';
+            state.navbar.addButton({
+                type: 'back'
             });
-
-            state.controls.push({
-                type: 'refresh-button',
-                click: 'refresh',
-                context: this
+            state.navbar.addButton({
+                type: 'refresh',
+                viewModel: this
             });
-        },
-
-        add: function() {
         },
 
         refresh: function() {

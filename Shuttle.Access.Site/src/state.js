@@ -4,7 +4,8 @@ import guard from 'shuttle-guard';
 import route from 'can-route';
 import {alerts} from 'shuttle-canstrap/alerts/';
 import loader from '@loader';
-import stache from "can-stache";
+import stache from 'can-stache';
+import localisation from '~/localisation';
 
 export const NavbarControlMap = DefineMap.extend({
     stache: {
@@ -40,34 +41,60 @@ export const Navbar = DefineMap.extend({
         Type: NavbarControlList,
         value: []
     },
-    addBackButton() {
-        this.controls.push({
-            stache: '<cs-button-back text:from="\'back\'" elementClass:from="\'btn-sm mr-2\'"/>'
-        })
-    },
-    addRemoveButton(options) {
+    addButton(options) {
         guard.againstUndefined(options, 'options')
+        guard.againstUndefined(options.type, 'options.type')
 
-        if (!options.click) {
-            throw new Error('No \'click\' method name has been specified.')
+        var permission = options.permission || '';
+        var type = options.type.toLowerCase();
+        var click = options.click;
+
+        if (options.type !== 'back' && !click) {
+            switch (type)            {
+                case 'add':
+                case 'refresh':
+                case 'remove':                    {
+                    click = type;
+                    break;
+                }
+                default: {
+                    throw new Error('No \'click\' method name has been specified.')
+                }
+            }
         }
 
-        this.controls.push({
-            viewModel: options.viewModel,
-            stache: `<cs-button-remove click:from="@${options.click}" elementClass:from="\'btn-sm mr-2\'"/>`
-        })
-    },
-    addRefreshButton(options) {
-        guard.againstUndefined(options, 'options')
-
-        if (!options.click) {
-            throw new Error('No \'click\' method name has been specified.')
+        switch (type) {
+            case 'back': {
+                this.controls.push({
+                    stache: '<cs-button-back text:from="\'back\'" elementClass:from="\'btn-sm mr-2\'"/>'
+                });
+                break;
+            }
+            case 'refresh': {
+                this.controls.push({
+                    viewModel: options.viewModel,
+                    stache: `<cs-button-refresh click:from="@${click}" elementClass:from="'btn-sm mr-2'"/>`
+                });
+                break;
+            }
+            case 'add': {
+                this.controls.push({
+                    viewModel: options.viewModel,
+                    stache: `<cs-button click:from="@${click}" elementClass:from="\'btn-sm mr-2\'" permission:from="\'${permission}\'" text:from="\'${options.text || 'add'}\'"/>`
+                });
+                break;
+            }
+            case 'remove': {
+                this.controls.push({
+                    viewModel: options.viewModel,
+                    stache: `<cs-button-remove click:from="@${click}" elementClass:from="\'btn-sm mr-2\'" permission:from="\'${permission}\'"/>`
+                });
+                break;
+            }
+            default: {
+                throw new Error(`Unhandled button type '${options.type}'.`);
+            }
         }
-
-        this.controls.push({
-            viewModel: options.viewModel,
-            stache: `<cs-button-refresh click:from="@${options.click}" elementClass:from="'btn-sm mr-2'"/>`
-        })
     }
 });
 
@@ -89,7 +116,10 @@ var State = DefineMap.extend({
     },
     title: {
         type: 'string',
-        value: ''
+        value: '',
+        get(value) {
+            return localisation.value(value);
+        }
     },
     modal: {
         Type: DefineMap.extend({

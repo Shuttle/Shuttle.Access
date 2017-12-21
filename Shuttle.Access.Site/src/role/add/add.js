@@ -9,7 +9,7 @@ import validator from 'can-define-validate-validatejs';
 import localisation from '~/localisation';
 import state from '~/state';
 
-resources.add('role', { action: 'add', permission: Permissions.Manage.Roles });
+resources.add('role', {action: 'add', permission: Permissions.Manage.Roles});
 
 var roles = new Api('roles');
 
@@ -25,12 +25,12 @@ export const ViewModel = DefineMap.extend(
         },
 
         init() {
-            state.title = localisation.value('role:list.title');
+            state.title = 'role:list.title';
         },
 
-        add: function() {
+        add: function () {
             var self = this;
-            
+
             if (!!this.errors()) {
                 return false;
             }
@@ -38,12 +38,12 @@ export const ViewModel = DefineMap.extend(
             this.working = true;
 
             roles.post({
-                    name: this.name
-                })
-                .then(function() {
+                name: this.name
+            })
+                .then(function () {
                     self.working = false;
                 })
-                .catch(function() {
+                .catch(function () {
                     self.working = false;
                 });
 
@@ -52,8 +52,11 @@ export const ViewModel = DefineMap.extend(
             return false;
         },
 
-        close: function() {
-            router.goto('role/list');
+        close: function () {
+            router.goto({
+                resource: 'role',
+                action: 'list'
+            });
         }
     }
 );

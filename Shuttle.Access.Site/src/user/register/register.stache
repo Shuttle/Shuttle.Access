@@ -1,4 +1,4 @@
-<cs-form vm:title:from="title">
+<cs-form vm:title:from="title" elementClass:from="'w-50 mx-auto'">
 	<fieldset class="form-group">
         <cs-form-input focus:from="'true'" label:from="'user:username'" vm:value:bind="username" vm:errors:from="errors()"
                        errorAttribute:from="'username'"/>

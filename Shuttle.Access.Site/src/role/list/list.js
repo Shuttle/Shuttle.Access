@@ -9,83 +9,93 @@ import Api from 'shuttle-can-api';
 import localisation from '~/localisation';
 import state from '~/state';
 
-resources.add('role', { action: 'list', permission: Permissions.Manage.Roles });
+resources.add('role', {action: 'list', permission: Permissions.Manage.Roles});
 
-var roles = new Api('roles/{id}');
+const Map = DefineMap.extend({
+    id: 'string',
+    rolwName: 'string',
+
+    remove: function () {
+        users.delete({id: this.id})
+            .then(function () {
+                state.alerts.show({
+                    message: localisation.value('itemRemovalRequested',
+                        {itemName: localisation.value('role:role')})
+                });
+            });
+    },
+
+    permissions: function () {
+        router.goto({
+            resource: 'role',
+            action: 'permissions',
+            id: this.id
+        });
+    }
+});
+
+var roles = new Api({
+    endpoint: 'roles/{id}',
+    Map
+});
 
 export const ViewModel = DefineMap.extend(
     'role-list',
     {
-        columns: { Value: DefineList },
-        refreshTimestamp: { type: 'string' },
+        columns: {Value: DefineList},
+        refreshTimestamp: {type: 'string'},
 
         get rolesPromise() {
             const refreshTimestamp = this.refreshTimestamp;
             return roles.list();
         },
 
-        init: function() {
+        init: function () {
             const columns = this.columns;
 
             if (!columns.length) {
-                columns.push( {
+                columns.push({
                     columnTitle: 'role:permissions.title',
-                    columnClass: 'col-md-1',
-                    columnType: 'button',
-                    buttonTitle: 'role:permissions.title',
-                    buttonClick: 'permissions',
-                    buttonContext: this
+                    columnClass: 'col-1',
+                    stache: '<cs-button text:from="\'role:permissions.title\'" click:from="@permissions" elementClass:from="\'btn-sm\'"/>'
                 });
 
                 columns.push({
-                    columnTitle: 'role:name', 
+                    columnTitle: 'role:name',
+                    columnClass: 'col',
                     attributeName: 'roleName'
                 });
 
                 columns.push({
-                    columnTitle: 'remove', 
-                    columnClass: 'col-md-1',
-                    columnType: 'remove-button',
-                    buttonContext: this,
-                    buttonClick: 'remove'
+                    columnTitle: 'remove',
+                    columnClass: 'col-1',
+                    stache: '<cs-button-remove click:from="@remove" elementClass:from="\'btn-sm\'"/>'
                 });
             }
 
-            state.title = localisation.value('role:list.title');
+            state.title = 'role:list.title';
 
-            state.controls.push({
-                type: 'button',
-                title: 'add',
-                click: 'add',
-                elementClass: 'btn-primary',
-                context: this,
-                permission: 'access://role/add'
+            state.navbar.addButton({
+                type: 'add',
+                viewModel: this,
+                permission: 'access://user/register'
             });
 
-            state.controls.push({
-                type: 'refresh-button',
-                click: 'refresh',
-                context: this
+            state.navbar.addButton({
+                type: 'refresh',
+                viewModel: this
             });
         },
 
-        add: function() {
-            router.goto('role/add');
+        add: function () {
+            router.goto({
+                resource: 'role',
+                action: 'add'
+            });
         },
 
-        refresh: function() {
+        refresh: function () {
             this.refreshTimestamp = Date.now();
-        },
-
-        remove: function(row) {
-            roles.delete({ id: row.id })
-                .then(function() {
-                    state.alerts.show({ message: localisation.value('itemRemovalRequested', { itemName: localisation.value('role:role') }) });
-                });
-        },
-
-        permissions: function(row) {
-            router.goto('role/' + row.id + '/permissions');
         }
     });
 

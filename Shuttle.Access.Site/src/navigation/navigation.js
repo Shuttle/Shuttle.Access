@@ -11,6 +11,9 @@ import stache from 'can-stache';
 import guard from 'shuttle-guard';
 
 var ViewModel = DefineMap.extend({
+    hasSecondary(){
+        return !!this.title || this.navbar.controls.length > 0;
+    },
     security: {
         value: security
     },
