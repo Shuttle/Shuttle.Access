@@ -50,10 +50,10 @@ export const Navbar = DefineMap.extend({
         var click = options.click;
 
         if (options.type !== 'back' && !click) {
-            switch (type)            {
+            switch (type) {
                 case 'add':
                 case 'refresh':
-                case 'remove':                    {
+                case 'remove': {
                     click = type;
                     break;
                 }
@@ -98,6 +98,78 @@ export const Navbar = DefineMap.extend({
     }
 });
 
+var Data = DefineMap.extend({
+    items: {
+        Type: DefineList,
+        value: []
+    },
+    put: function (name, value) {
+        guard.againstUndefined(name, 'name');
+
+        this.remove(name);
+        this.items.push({name: name, value: value});
+    },
+    pop: function (name) {
+        guard.againstUndefined(name, 'name');
+
+        let result;
+        let removeIndex = -1;
+
+        this.items.forEach(function (item, index) {
+            if (item.name === name) {
+                result = item.value;
+                removeIndex = index;
+
+                return false;
+            }
+
+            return true;
+        });
+
+        if (removeIndex > -1) {
+            this.splice(removeIndex, 1);
+        }
+
+        return result;
+    },
+    get: function (name) {
+        guard.againstUndefined(name, 'name');
+
+        let result;
+
+        this.items.forEach(function (item, index) {
+            if (item.name === name) {
+                result = item.value;
+
+                return false;
+            }
+
+            return true;
+        });
+
+        return result;
+    },
+    remove: function (name) {
+        guard.againstUndefined(name, 'name');
+
+        let removeIndex = -1;
+
+        this.items.forEach(function (item, index) {
+            if (item.name === name) {
+                removeIndex = index;
+
+                return false;
+            }
+
+            return true;
+        });
+
+        if (removeIndex > -1) {
+            this.splice(removeIndex, 1);
+        }
+    }
+});
+
 var State = DefineMap.extend({
     route: route,
     alerts: {
@@ -108,7 +180,8 @@ var State = DefineMap.extend({
         value: loader.debug
     },
     data: {
-        Value: DefineList
+        Type: Data,
+        value: {}
     },
     navbar: {
         Type: Navbar,
@@ -146,35 +219,6 @@ var State = DefineMap.extend({
         }),
         value: {}
     },
-    push: function (name, value) {
-        guard.againstUndefined(name, 'name');
-
-        this.data.push({name: name, value: value});
-    },
-
-    pop: function (name) {
-        guard.againstUndefined(name, 'name');
-
-        let result;
-        let removeIndex = -1;
-
-        this.data.forEach(function (item, index) {
-            if (item.name === name) {
-                result = item.value;
-                removeIndex = index;
-
-                return false;
-            } else {
-                return true;
-            }
-        });
-
-        if (removeIndex > -1) {
-            this.data.splice(removeIndex, 1);
-        }
-
-        return result;
-    }
 });
 
 export default new State();

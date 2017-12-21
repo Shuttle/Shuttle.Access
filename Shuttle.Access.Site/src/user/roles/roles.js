@@ -18,9 +18,12 @@ var roles = new Api({
     Map: UserRole
 });
 
-var userRoles = new Api('users/{id}/roles');
-var setRole = new Api('users/setrole');
-var roleStatus = new Api('users/roleStatus');
+//var userRoles = new Api('users/{id}/roles');
+var api = {
+    user: new Api('users/{id}'),
+    setRole: new Api('users/setrole'),
+    roleStatus: new Api('users/roleStatus')
+}
 
 const UserRole = DefineMap.extend({
     roleName: 'string',
@@ -38,7 +41,7 @@ const UserRole = DefineMap.extend({
         this.active = !this.active;
         this.working = true;
 
-        setRole.post({
+        api.setRole.post({
             userId: router.data.id,
             roleName: this.roleName,
             active: this.active
@@ -79,6 +82,9 @@ const UserRole = DefineMap.extend({
 });
 
 export const ViewModel = DefineMap.extend({
+    username(){
+        return state.get('user').username;
+    },
     isResolved: {type: 'boolean', value: false},
 
     init: function () {
@@ -113,11 +119,11 @@ export const ViewModel = DefineMap.extend({
                 availableRoles = makeArray(availableRoles);
                 availableRoles.push({id: '', roleName: 'administrator'});
 
-                userRoles.list({id: router.data.id})
-                    .then(function (userRoles) {
+                api.user.list({id: router.data.id})
+                    .then(function (user) {
                         each(availableRoles,
                             function (availableRole) {
-                                const active = userRoles.filter(function (item) {
+                                const active = user.roles.filter(function (item) {
                                         return item.roleName === availableRole.roleName;
                                     }).length >
                                     0;
@@ -203,7 +209,7 @@ export const ViewModel = DefineMap.extend({
                 data.roles.push(item.roleName);
             });
 
-        roleStatus.post(data)
+        api.roleStatus.post(data)
             .then(function (response) {
                 each(response.data,
                     function (item) {

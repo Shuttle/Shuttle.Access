@@ -129,11 +129,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Data = (from permission in _systemRoleQuery.Permissions(id)
-                            select new
-                            {
-                                permission
-                            }).ToList()
+                    Data = _systemRoleQuery.Get(id)
                 });
             }
         }

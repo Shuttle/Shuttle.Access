@@ -1,5 +1,6 @@
+<cs-page-title title:from="roleName()"/>
 {{#if isResolved}}
-<cs-table vm:columns:from="columns" vm:rows:from="permissions" />
+    <cs-table vm:columns:from="columns" vm:rows:from="permissions"/>
 {{else}}
-<cs-fetching title="role:permissions.title" />
+    <cs-fetching title="role:permissions.title"/>
 {{/if}}

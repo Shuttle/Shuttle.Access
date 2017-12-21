@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Http;
-using Newtonsoft.Json;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Data;
@@ -78,11 +77,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Data = (from role in _systemUserQuery.Roles(id)
-                        select new
-                        {
-                            roleName = role
-                        }).ToList()
+                    Data = _systemUserQuery.Get(id)
                 });
             }
         }

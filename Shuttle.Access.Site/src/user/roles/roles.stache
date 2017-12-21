@@ -1,3 +1,4 @@
+<cs-page-title title:from="username()"/>
 {{#if isResolved}}
 <cs-table vm:columns:from="columns" vm:rows:from="roles" />
 {{else}}
