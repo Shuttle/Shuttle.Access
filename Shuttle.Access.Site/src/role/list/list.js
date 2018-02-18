@@ -94,9 +94,9 @@ export const ViewModel = DefineMap.extend(
             });
         },
 
-        refresh: function () {
-            this.refreshTimestamp = Date.now();
-        }
+            refresh: function () {
+                this.refreshTimestamp = Date.now();
+            }
     });
 
 
