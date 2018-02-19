@@ -1,6 +1,7 @@
 using System;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Logging;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Sql
@@ -16,10 +17,10 @@ namespace Shuttle.Access.Sql
         public AuthenticationService(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore,
             IKeyStore keyStore, IHashingService hashingService)
         {
-            Guard.AgainstNull(databaseContextFactory, "databaseContextFactory");
-            Guard.AgainstNull(eventStore, "eventStore");
-            Guard.AgainstNull(keyStore, "keyStore");
-            Guard.AgainstNull(hashingService, "hashingService");
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            Guard.AgainstNull(eventStore, nameof(eventStore));
+            Guard.AgainstNull(keyStore, nameof(keyStore));
+            Guard.AgainstNull(hashingService, nameof(hashingService));
 
             _databaseContextFactory = databaseContextFactory;
             _eventStore = eventStore;

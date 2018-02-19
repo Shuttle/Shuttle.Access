@@ -1,26 +1,27 @@
 using System.Linq;
-using System.Web.Http;
+using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.Sql;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Access.WebApi
 {
-    public class PermissionsController : AccessApiController
+    public class PermissionsController : AccessController
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IPermissionQuery _permissionQuery;
 
         public PermissionsController(IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery)
         {
-            Guard.AgainstNull(databaseContextFactory, "databaseContextFactory");
-            Guard.AgainstNull(permissionQuery, "permissionQuery");
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            Guard.AgainstNull(permissionQuery, nameof(permissionQuery));
 
             _databaseContextFactory = databaseContextFactory;
             _permissionQuery = permissionQuery;
         }
 
-        public IHttpActionResult Get()
+        [HttpGet]
+        public IActionResult Get()
         {
             using (_databaseContextFactory.Create())
             {

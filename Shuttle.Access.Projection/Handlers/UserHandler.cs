@@ -1,6 +1,6 @@
 ﻿using Shuttle.Access.Events.User.v1;
 using Shuttle.Access.Sql;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Server.Projection
@@ -15,7 +15,7 @@ namespace Shuttle.Access.Server.Projection
 
         public UserHandler(ISystemUserQuery query)
         {
-            Guard.AgainstNull(query, "query");
+            Guard.AgainstNull(query, nameof(query));
 
             _query = query;
         }

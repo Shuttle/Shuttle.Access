@@ -1,6 +1,6 @@
 ﻿using System;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Access.Sql
 {
@@ -11,8 +11,8 @@ namespace Shuttle.Access.Sql
 
         public SessionQuery(IDatabaseGateway databaseGateway, ISessionQueryFactory sessionQueryFactory)
         {
-            Guard.AgainstNull(databaseGateway, "databaseGateway");
-            Guard.AgainstNull(sessionQueryFactory, "sessionQueryFactory");
+            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
+            Guard.AgainstNull(sessionQueryFactory, nameof(sessionQueryFactory));
 
             _databaseGateway = databaseGateway;
             _sessionQueryFactory = sessionQueryFactory;

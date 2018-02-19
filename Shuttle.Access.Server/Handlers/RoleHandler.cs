@@ -1,7 +1,7 @@
 ﻿using System;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 using Shuttle.Esb;
 using Shuttle.Recall;
 
@@ -18,9 +18,9 @@ namespace Shuttle.Access.Server
 
         public RoleHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore)
         {
-            Guard.AgainstNull(databaseContextFactory, "databaseContextFactory");
-            Guard.AgainstNull(eventStore, "eventStore");
-            Guard.AgainstNull(keyStore, "keyStore");
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            Guard.AgainstNull(eventStore, nameof(eventStore));
+            Guard.AgainstNull(keyStore, nameof(keyStore));
 
             _databaseContextFactory = databaseContextFactory;
             _eventStore = eventStore;

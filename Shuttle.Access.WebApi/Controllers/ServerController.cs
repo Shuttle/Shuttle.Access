@@ -1,13 +1,12 @@
 ﻿using System.Reflection;
-using System.Web.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Shuttle.Access.WebApi
 {
-    public class ServerController : ApiController
+    public class ServerController : Controller
     {
-        [HttpGet]
-        [Route("api/server/configuration")]
-        public IHttpActionResult GetServerConfiguration()
+        [HttpGet("api/server/configuration")]
+        public IActionResult GetServerConfiguration()
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
 

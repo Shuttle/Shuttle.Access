@@ -1,23 +1,24 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Http;
-using Shuttle.Core.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.WebApi
 {
-    public class AnonymousPermissionsController : AccessApiController
+    public class AnonymousPermissionsController : AccessController
     {
         private readonly IAuthorizationService _authorizationService;
         private readonly List<string> _emptyAnonymousPermissions = new List<string>();
 
         public AnonymousPermissionsController(IAuthorizationService authorizationService)
         {
-            Guard.AgainstNull(authorizationService, "authorizationService");
+            Guard.AgainstNull(authorizationService, nameof(authorizationService));
 
             _authorizationService = authorizationService;
         }
 
-        public IHttpActionResult Get()
+        [HttpGet]
+        public IActionResult Get()
         {
             var anonymousPermissions = _authorizationService as IAnonymousPermissions;
 
@@ -29,11 +30,11 @@ namespace Shuttle.Access.WebApi
             {
                 IsUserRequired = permissions.Contains(SystemPermissions.Register.UserRequired),
                 Permissions =
-                    from permission in permissions
-                    select new
-                    {
-                        Permission = permission
-                    }
+                from permission in permissions
+                select new
+                {
+                    Permission = permission
+                }
             });
         }
     }

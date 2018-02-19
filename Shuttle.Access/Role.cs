@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Shuttle.Access.Events.Role.v1;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access
 {
@@ -26,7 +26,7 @@ namespace Shuttle.Access
 
         private Added On(Added added)
         {
-            Guard.AgainstNull(added, "added");
+            Guard.AgainstNull(added, nameof(added));
 
             _name = added.Name;
 
@@ -52,7 +52,7 @@ namespace Shuttle.Access
 
         private PermissionAdded On(PermissionAdded permissionAdded)
         {
-            Guard.AgainstNull(permissionAdded, "permissionAdded");
+            Guard.AgainstNull(permissionAdded, nameof(permissionAdded));
 
             _permissions.Add(permissionAdded.Permission);
 
@@ -78,7 +78,7 @@ namespace Shuttle.Access
 
         private PermissionRemoved On(PermissionRemoved permissionRemoved)
         {
-            Guard.AgainstNull(permissionRemoved, "permissionRemoved");
+            Guard.AgainstNull(permissionRemoved, nameof(permissionRemoved));
 
             _permissions.Remove(permissionRemoved.Permission);
 
@@ -95,7 +95,7 @@ namespace Shuttle.Access
 
         private Removed On(Removed removed)
         {
-            Guard.AgainstNull(removed, "removed");
+            Guard.AgainstNull(removed, nameof(removed));
 
             return removed;
         }

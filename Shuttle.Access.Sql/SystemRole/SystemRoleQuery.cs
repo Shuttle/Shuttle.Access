@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Shuttle.Access.Events.Role.v1;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Sql
@@ -18,9 +18,9 @@ namespace Shuttle.Access.Sql
         public SystemRoleQuery(IDatabaseGateway databaseGateway, ISystemRoleQueryFactory queryFactory,
             IQueryMapper queryMapper)
         {
-            Guard.AgainstNull(databaseGateway, "databaseGateway");
-            Guard.AgainstNull(queryFactory, "queryFactory");
-            Guard.AgainstNull(queryMapper, "queryMapper");
+            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
+            Guard.AgainstNull(queryFactory, nameof(queryFactory));
+            Guard.AgainstNull(queryMapper, nameof(queryMapper));
 
             _databaseGateway = databaseGateway;
             _queryFactory = queryFactory;

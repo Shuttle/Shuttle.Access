@@ -1,24 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Shuttle.Access.WebApi
 {
-    public class AccessApiController : ApiController
+    [Route("api/[controller]")]
+    public class AccessController : Controller
     {
         protected SessionTokenResult GetSessionToken()
         {
             try
             {
-                IEnumerable<string> values;
+                var requestHeaders = Request.Headers["access-sessiontoken"];
 
-                if (Request.Headers.TryGetValues("access-sessiontoken", out values) && values.Count() == 1)
+                if (requestHeaders.Count == 1)
                 {
-                    var sessionTokenValue = values.ElementAt(0);
-                    Guid sessionToken;
+                    var sessionTokenValue = requestHeaders[0];
 
-                    return !Guid.TryParse(sessionTokenValue, out sessionToken)
+                    return !Guid.TryParse(sessionTokenValue, out var sessionToken)
                         ? SessionTokenResult.Failure(Unauthorized())
                         : SessionTokenResult.Success(sessionToken);
                 }

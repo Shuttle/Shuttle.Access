@@ -1,27 +1,34 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Web.Http.Controllers;
-using System.Web.Http.Filters;
-using Castle.Windsor;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Shuttle.Access.Sql;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Access.WebApi
 {
     public class RequiresSessionAttribute : ActionFilterAttribute
     {
-        private static IDatabaseContextFactory _databaseContextFactory;
-        private static ISessionQuery _sessionQuery;
+        private readonly IDatabaseContextFactory _databaseContextFactory;
+        private readonly ISessionQuery _sessionQuery;
 
-        public override void OnActionExecuting(HttpActionContext actionContext)
+        public RequiresSessionAttribute(IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery)
+        {
+            Guard.AgainstNull(databaseContextFactory,nameof(databaseContextFactory));
+            Guard.AgainstNull(sessionQuery, nameof(sessionQuery));
+
+            _databaseContextFactory = databaseContextFactory;
+            _sessionQuery = sessionQuery;
+        }
+
+        public override void OnActionExecuting(ActionExecutingContext actionContext)
         {
             base.OnActionExecuting(actionContext);
 
-            var headers = actionContext.Request.Headers;
+            var headers = actionContext.HttpContext.Request.Headers;
             var sessionTokenValue = GetHeaderValue(headers, "access-sessiontoken");
 
             if (string.IsNullOrEmpty(sessionTokenValue))
@@ -30,60 +37,36 @@ namespace Shuttle.Access.WebApi
                 return;
             }
 
-            Guid sessionToken;
-
-            if (!Guid.TryParse(sessionTokenValue, out sessionToken))
+            if (!Guid.TryParse(sessionTokenValue, out var sessionToken))
             {
                 SetUnauthorized(actionContext);
                 return;
             }
 
-            using (GuardedDatabaseConnectionFactory().Create())
+            using (_databaseContextFactory.Create())
             {
-                if (!GuardedQuery().Contains(sessionToken))
+                if (!_sessionQuery.Contains(sessionToken))
                 {
                     SetUnauthorized(actionContext);
                 }
             }
         }
 
-        private static ISessionQuery GuardedQuery()
+        private static void SetUnauthorized(ActionContext actionContext)
         {
-            Guard.AgainstNull(_sessionQuery, "_sessionQuery");
-
-            return _sessionQuery;
+            actionContext.HttpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
         }
 
-        private static IDatabaseContextFactory GuardedDatabaseConnectionFactory()
+        private static string GetHeaderValue(IHeaderDictionary headers, string name)
         {
-            Guard.AgainstNull(_databaseContextFactory, "_databaseContextFactory");
-
-            return _databaseContextFactory;
-        }
-
-        private static void SetUnauthorized(HttpActionContext actionContext)
-        {
-            actionContext.Response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
-        }
-
-        private static string GetHeaderValue(HttpHeaders headers, string name)
-        {
-            if (!headers.Contains(name))
+            if (!headers.ContainsKey(name))
             {
                 return null;
             }
 
-            var tokens = headers.GetValues(name).ToList();
+            var tokens = headers[name].ToList();
 
             return tokens.Count != 1 ? null : tokens[0];
-        }
-
-        public static void Assign(IWindsorContainer container)
-        {
-            Guard.AgainstNull(container, "container");
-
-            _databaseContextFactory = container.Resolve<IDatabaseContextFactory>();
-            _sessionQuery = container.Resolve<ISessionQuery>();
         }
     }
 }

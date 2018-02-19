@@ -1,98 +1,86 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Web.Http.Controllers;
-using System.Web.Http.Filters;
-using Castle.Windsor;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Shuttle.Access.Sql;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Access.WebApi
 {
-    public class RequiresPermissionAttribute : ActionFilterAttribute
+    public class RequiresPermissionAttribute : TypeFilterAttribute
     {
-        public string Permission { get; private set; }
-
-        public RequiresPermissionAttribute(string permission)
+        public RequiresPermissionAttribute(string permission) : base(typeof(RequiresPermission))
         {
-            Guard.AgainstNullOrEmptyString(permission, "permission");
-
-            Permission = permission;
+            Arguments = new object[] {permission};
         }
 
-        private static IDatabaseContextFactory _databaseContextFactory;
-        private static ISessionQuery _sessionQuery;
-
-        public override void OnActionExecuting(HttpActionContext actionContext)
+        private class RequiresPermission : IActionFilter
         {
-            base.OnActionExecuting(actionContext);
+            private readonly IDatabaseContextFactory _databaseContextFactory;
+            private readonly string _permission;
+            private readonly ISessionQuery _sessionQuery;
 
-            var headers = actionContext.Request.Headers;
-            var sessionTokenValue = GetHeaderValue(headers, "access-sessiontoken");
-
-            if (string.IsNullOrEmpty(sessionTokenValue))
+            public RequiresPermission(IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery,
+                string permission)
             {
-                SetUnauthorized(actionContext);
-                return;
+                Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+                Guard.AgainstNull(sessionQuery, nameof(sessionQuery));
+                Guard.AgainstNullOrEmptyString(permission, "permission");
+
+                _databaseContextFactory = databaseContextFactory;
+                _sessionQuery = sessionQuery;
+                _permission = permission;
             }
 
-            Guid sessionToken;
-
-            if (!Guid.TryParse(sessionTokenValue, out sessionToken))
+            public void OnActionExecuting(ActionExecutingContext actionContext)
             {
-                SetUnauthorized(actionContext);
-                return;
-            }
+                var headers = actionContext.HttpContext.Request.Headers;
+                var sessionTokenValue = GetHeaderValue(headers, "access-sessiontoken");
 
-            using (GuardedDatabaseConnectionFactory().Create())
-            {
-                if (!(GuardedQuery().Contains(sessionToken, Permission) || GuardedQuery().Contains(sessionToken, "*")))
+                if (string.IsNullOrEmpty(sessionTokenValue))
                 {
                     SetUnauthorized(actionContext);
+                    return;
+                }
+
+                if (!Guid.TryParse(sessionTokenValue, out var sessionToken))
+                {
+                    SetUnauthorized(actionContext);
+                    return;
+                }
+
+                using (_databaseContextFactory.Create())
+                {
+                    if (!_sessionQuery.Contains(sessionToken, _permission) || _sessionQuery.Contains(sessionToken, "*"))
+                    {
+                        SetUnauthorized(actionContext);
+                    }
                 }
             }
-        }
 
-        private static ISessionQuery GuardedQuery()
-        {
-            Guard.AgainstNull(_sessionQuery, "_sessionQuery");
-
-            return _sessionQuery;
-        }
-
-        private static IDatabaseContextFactory GuardedDatabaseConnectionFactory()
-        {
-            Guard.AgainstNull(_databaseContextFactory, "_databaseContextFactory");
-
-            return _databaseContextFactory;
-        }
-
-        private static void SetUnauthorized(HttpActionContext actionContext)
-        {
-            actionContext.Response = new HttpResponseMessage(HttpStatusCode.Unauthorized);
-        }
-
-        private static string GetHeaderValue(HttpHeaders headers, string name)
-        {
-            if (!headers.Contains(name))
+            public void OnActionExecuted(ActionExecutedContext context)
             {
-                return null;
             }
 
-            var tokens = headers.GetValues(name).ToList();
+            private static void SetUnauthorized(ActionContext actionContext)
+            {
+                actionContext.HttpContext.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
+            }
 
-            return tokens.Count != 1 ? null : tokens[0];
-        }
+            private static string GetHeaderValue(IHeaderDictionary headers, string name)
+            {
+                if (!headers.ContainsKey(name))
+                {
+                    return null;
+                }
 
-        public static void Assign(IWindsorContainer container)
-        {
-            Guard.AgainstNull(container, "container");
+                var tokens = headers[name].ToList();
 
-            _databaseContextFactory = container.Resolve<IDatabaseContextFactory>();
-            _sessionQuery = container.Resolve<ISessionQuery>();
+                return tokens.Count != 1 ? null : tokens[0];
+            }
         }
     }
 }

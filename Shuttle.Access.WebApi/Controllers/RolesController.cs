@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Http;
+using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 using Shuttle.Esb;
 
 namespace Shuttle.Access.WebApi
 {
-    public class RolesController : AccessApiController
+    public class RolesController : AccessController
     {
         private readonly IServiceBus _bus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
@@ -19,9 +19,9 @@ namespace Shuttle.Access.WebApi
         public RolesController(IServiceBus bus, IDatabaseContextFactory databaseContextFactory,
             ISystemRoleQuery systemRoleQuery)
         {
-            Guard.AgainstNull(databaseContextFactory, "databaseContextFactory");
-            Guard.AgainstNull(bus, "bus");
-            Guard.AgainstNull(systemRoleQuery, "systemRoleQuery");
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            Guard.AgainstNull(bus, nameof(bus));
+            Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
 
             _databaseContextFactory = databaseContextFactory;
             _bus = bus;
@@ -29,10 +29,10 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Roles)]
-        [Route("api/roles/setpermission")]
-        public IHttpActionResult SetPermission([FromBody] SetRolePermissionModel model)
+        [HttpPost("setpermission")]
+        public IActionResult SetPermission([FromBody] SetRolePermissionModel model)
         {
-            Guard.AgainstNull(model, "model");
+            Guard.AgainstNull(model, nameof(model));
 
             _bus.Send(new SetRolePermissionCommand
             {
@@ -45,10 +45,10 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Roles)]
-        [Route("api/roles/permissionstatus")]
-        public IHttpActionResult PermissionStatus([FromBody] RolePermissionStatusModel model)
+        [HttpPost("permissionstatus")]
+        public IActionResult PermissionStatus([FromBody] RolePermissionStatusModel model)
         {
-            Guard.AgainstNull(model, "model");
+            Guard.AgainstNull(model, nameof(model));
 
             List<string> permissions;
 
@@ -61,32 +61,33 @@ namespace Shuttle.Access.WebApi
                 new
                 {
                     Data = from permission in model.Permissions
-                        select new
-                        {
-                            Permission = permission,
-                            Active = permissions.Find(item => item.Equals(permission)) != null
-                        }
+                    select new
+                    {
+                        Permission = permission,
+                        Active = permissions.Find(item => item.Equals(permission)) != null
+                    }
                 });
         }
 
-        public IHttpActionResult Get()
+        [HttpGet]
+        public IActionResult Get()
         {
             using (_databaseContextFactory.Create())
             {
                 return Ok(new
                 {
                     Data = from row in _systemRoleQuery.Search()
-                        select new
-                        {
-                            Id = SystemRoleColumns.Id.MapFrom(row),
-                            RoleName = SystemRoleColumns.RoleName.MapFrom(row)
-                        }
+                    select new
+                    {
+                        Id = SystemRoleColumns.Id.MapFrom(row),
+                        RoleName = SystemRoleColumns.RoleName.MapFrom(row)
+                    }
                 });
             }
         }
 
-        [Route("api/roles/{id}")]
-        public IHttpActionResult Get(Guid id)
+        [HttpGet("{id}")]
+        public IActionResult Get(Guid id)
         {
             using (_databaseContextFactory.Create())
             {
@@ -98,7 +99,8 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Roles)]
-        public IHttpActionResult Delete(Guid id)
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Guid id)
         {
             _bus.Send(new RemoveRoleCommand
             {
@@ -109,9 +111,10 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Roles)]
-        public IHttpActionResult Post([FromBody] AddRoleModel model)
+        [HttpPost]
+        public IActionResult Post([FromBody] AddRoleModel model)
         {
-            Guard.AgainstNull(model, "model");
+            Guard.AgainstNull(model, nameof(model));
 
             _bus.Send(new AddRoleCommand
             {

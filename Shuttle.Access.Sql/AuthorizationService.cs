@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Access.Sql
 {
@@ -12,9 +12,9 @@ namespace Shuttle.Access.Sql
 
         public AuthorizationService(IDatabaseContextFactory databaseContextFactory, ISystemRoleQuery systemRoleQuery, ISystemUserQuery systemUserQuery)
         {
-            Guard.AgainstNull(databaseContextFactory, "databaseContextFactory");
-            Guard.AgainstNull(systemRoleQuery, "systemRoleQuery");
-            Guard.AgainstNull(systemUserQuery, "systemUserQuery");
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
+            Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
 
             _databaseContextFactory = databaseContextFactory;
             _systemRoleQuery = systemRoleQuery;

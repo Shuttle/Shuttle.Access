@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Http;
+using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 using Shuttle.Esb;
 
 namespace Shuttle.Access.WebApi
 {
-    public class UsersController : AccessApiController
+    public class UsersController : AccessController
     {
         private readonly IAuthorizationService _authorizationService;
         private readonly IServiceBus _bus;
@@ -23,12 +23,12 @@ namespace Shuttle.Access.WebApi
             IHashingService hashingService, ISessionRepository sessionRepository,
             IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery)
         {
-            Guard.AgainstNull(databaseContextFactory, "databaseContextFactory");
-            Guard.AgainstNull(bus, "bus");
-            Guard.AgainstNull(hashingService, "hashingService");
-            Guard.AgainstNull(sessionRepository, "sessionRepository");
-            Guard.AgainstNull(authorizationService, "authorizationService");
-            Guard.AgainstNull(systemUserQuery, "systemUserQuery");
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            Guard.AgainstNull(bus, nameof(bus));
+            Guard.AgainstNull(hashingService, nameof(hashingService));
+            Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
+            Guard.AgainstNull(authorizationService, nameof(authorizationService));
+            Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
 
             _databaseContextFactory = databaseContextFactory;
             _bus = bus;
@@ -39,7 +39,8 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Users)]
-        public IHttpActionResult Get()
+        [HttpGet]
+        public IActionResult Get()
         {
             using (_databaseContextFactory.Create())
             {
@@ -58,8 +59,8 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Users)]
-        [Route("api/users/{id}")]
-        public IHttpActionResult Get(Guid id)
+        [HttpGet("{id}")]
+        public IActionResult Get(Guid id)
         {
             using (_databaseContextFactory.Create())
             {
@@ -71,8 +72,8 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Users)]
-        [Route("api/users/{id}")]
-        public IHttpActionResult Delete(Guid id)
+        [HttpDelete("{id}")]
+        public IActionResult Delete(Guid id)
         {
             _bus.Send(new RemoveUserCommand
             {
@@ -86,10 +87,10 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Roles)]
-        [Route("api/users/setrole")]
-        public IHttpActionResult SetRole([FromBody] SetUserRoleModel model)
+        [HttpPost("setrole")]
+        public IActionResult SetRole([FromBody] SetUserRoleModel model)
         {
-            Guard.AgainstNull(model, "model");
+            Guard.AgainstNull(model, nameof(model));
 
             using (_databaseContextFactory.Create())
             {
@@ -121,10 +122,10 @@ namespace Shuttle.Access.WebApi
         }
 
         [RequiresPermission(SystemPermissions.Manage.Roles)]
-        [Route("api/users/rolestatus")]
-        public IHttpActionResult RoleStatus([FromBody] UserRoleStatusModel model)
+        [HttpPost("rolestatus")]
+        public IActionResult RoleStatus([FromBody] UserRoleStatusModel model)
         {
-            Guard.AgainstNull(model, "model");
+            Guard.AgainstNull(model, nameof(model));
 
             List<string> roles;
 
@@ -145,15 +146,16 @@ namespace Shuttle.Access.WebApi
                 });
         }
 
-        public IHttpActionResult Post([FromBody] RegisterUserModel model)
+        [HttpPost]
+        public IActionResult Post([FromBody] RegisterUserModel model)
         {
-            Guard.AgainstNull(model, "model");
+            Guard.AgainstNull(model, nameof(model));
 
             var registeredBy = "system";
             var result = GetSessionToken();
             var ok = false;
 
-            if (result.OK)
+            if (result.Ok)
             {
                 using (_databaseContextFactory.Create())
                 {

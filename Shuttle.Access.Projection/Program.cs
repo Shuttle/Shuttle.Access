@@ -1,9 +1,10 @@
 ﻿using Castle.Windsor;
 using log4net;
+using Shuttle.Core.Container;
 using Shuttle.Core.Castle;
-using Shuttle.Core.Castle.Extensions;
-using Shuttle.Core.Infrastructure;
 using Shuttle.Core.Log4Net;
+using Shuttle.Core.Logging;
+using Shuttle.Core.Reflection;
 using Shuttle.Core.ServiceHost;
 using Shuttle.Recall;
 
@@ -29,9 +30,9 @@ namespace Shuttle.Access.Server.Projection
 
             _container = new WindsorContainer();
 
-            _container.RegisterDataAccess("Shuttle.Access.Sql");
-
             var container = new WindsorComponentContainer(_container);
+
+            container.RegisterSuffixed("Shuttle.Access.Sql");
 
             EventStore.Register(container);
 

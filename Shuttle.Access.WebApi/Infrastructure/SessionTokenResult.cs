@@ -1,6 +1,6 @@
 using System;
-using System.Web.Http;
-using Shuttle.Core.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.WebApi
 {
@@ -9,16 +9,13 @@ namespace Shuttle.Access.WebApi
         private SessionTokenResult()
         {
             SessionToken = Guid.Empty;
-            HttpActionResult = null;
+            ActionResult = null;
         }
 
         public Guid SessionToken { get; private set; }
-        public IHttpActionResult HttpActionResult { get; private set; }
+        public IActionResult ActionResult { get; private set; }
 
-        public bool OK
-        {
-            get { return HttpActionResult == null; }
-        }
+        public bool Ok => ActionResult == null;
 
         public static SessionTokenResult Success(Guid sessionToken)
         {
@@ -28,13 +25,13 @@ namespace Shuttle.Access.WebApi
             };
         }
 
-        public static SessionTokenResult Failure(IHttpActionResult httpActionResult)
+        public static SessionTokenResult Failure(IActionResult httpActionResult)
         {
-            Guard.AgainstNull(httpActionResult, "httpActionResult");
+            Guard.AgainstNull(httpActionResult, nameof(httpActionResult));
 
             return new SessionTokenResult
             {
-                HttpActionResult = httpActionResult
+                ActionResult = httpActionResult
             };
         }
     }

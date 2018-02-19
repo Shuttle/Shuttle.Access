@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Shuttle.Access.Events.User.v1;
-using Shuttle.Core.Infrastructure;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access
 {
@@ -31,7 +31,7 @@ namespace Shuttle.Access
 
         private Registered On(Registered registered)
         {
-            Guard.AgainstNull(registered, "registered");
+            Guard.AgainstNull(registered, nameof(registered));
 
             _username = registered.Username;
             _passwordHash = registered.PasswordHash;
@@ -46,7 +46,7 @@ namespace Shuttle.Access
 
         public bool PasswordMatches(byte[] hash)
         {
-            Guard.AgainstNull(hash, "hash");
+            Guard.AgainstNull(hash, nameof(hash));
 
             return _passwordHash.SequenceEqual(hash);
         }
@@ -58,7 +58,7 @@ namespace Shuttle.Access
 
         private RoleAdded On(RoleAdded roleAdded)
         {
-            Guard.AgainstNull(roleAdded, "roleAdded");
+            Guard.AgainstNull(roleAdded, nameof(roleAdded));
 
             _roles.Add(roleAdded.Role);
 
@@ -84,7 +84,7 @@ namespace Shuttle.Access
 
         private RoleRemoved On(RoleRemoved roleRemoved)
         {
-            Guard.AgainstNull(roleRemoved, "roleRemoved");
+            Guard.AgainstNull(roleRemoved, nameof(roleRemoved));
 
             _roles.Remove(roleRemoved.Role);
 
@@ -93,7 +93,7 @@ namespace Shuttle.Access
 
         private Removed On(Removed removed)
         {
-            Guard.AgainstNull(removed, "removed");
+            Guard.AgainstNull(removed, nameof(removed));
 
             return removed;
         }

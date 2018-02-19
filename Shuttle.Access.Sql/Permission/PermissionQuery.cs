@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Access.Sql
 {
@@ -11,8 +11,8 @@ namespace Shuttle.Access.Sql
 
         public PermissionQuery(IQueryMapper queryMapper, IPermissionQueryFactory queryFactory)
         {
-            Guard.AgainstNull(queryMapper, "queryMapper");
-            Guard.AgainstNull(queryFactory, "queryFactory");
+            Guard.AgainstNull(queryMapper, nameof(queryMapper));
+            Guard.AgainstNull(queryFactory, nameof(queryFactory));
 
             _queryMapper = queryMapper;
             _queryFactory = queryFactory;

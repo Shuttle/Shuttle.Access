@@ -1,6 +1,6 @@
 using System;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Core.Infrastructure;
 
 namespace Shuttle.Access.Sql
 {
@@ -13,10 +13,10 @@ namespace Shuttle.Access.Sql
 
         public SessionService(IDatabaseContextFactory databaseContextFactory, IAuthenticationService authenticationService, IAuthorizationService authorizationService, ISessionRepository sessionRepository)
         {
-            Guard.AgainstNull(databaseContextFactory, "databaseContextFactory");
-            Guard.AgainstNull(authenticationService, "authenticationService");
-            Guard.AgainstNull(authorizationService, "authorizationService");
-            Guard.AgainstNull(sessionRepository, "sessionRepository");
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            Guard.AgainstNull(authenticationService, nameof(authenticationService));
+            Guard.AgainstNull(authorizationService, nameof(authorizationService));
+            Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
 
             _databaseContextFactory = databaseContextFactory;
             _authenticationService = authenticationService;
