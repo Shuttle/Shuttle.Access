@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Castle.Windsor;
+using Castle.Windsor.MsDependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Shuttle.Core.Castle;
+using Shuttle.Core.Container;
+using Shuttle.Esb;
 
 namespace Shuttle.Access.WebApi
 {
-    public class Startup
+    public class Startup : IDisposable
     {
+        private IServiceBus _bus;
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -20,10 +22,27 @@ namespace Shuttle.Access.WebApi
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public void Dispose()
+        {
+            _bus?.Dispose();
+        }
+
+        public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
+            services.AddCors();
+
+            var container = new WindsorContainer();
+
+            var componentContainer = new WindsorComponentContainer(container);
+
+            componentContainer.RegisterSuffixed("Shuttle.Access.Sql");
+
+            ServiceBus.Register(componentContainer);
+
+            _bus = ServiceBus.Create(componentContainer).Start();
+
+            return WindsorRegistrationHelper.CreateServiceProvider(container, services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -33,6 +52,10 @@ namespace Shuttle.Access.WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCors(
+                options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
+            );
 
             app.UseMvc();
         }

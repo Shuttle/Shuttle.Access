@@ -5,14 +5,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="log4net.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="log4net.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Castle.Windsor.MsDependencyInjection" Version="3.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.4" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.4" />
+    <PackageReference Include="Shuttle.Core.Log4Net" Version="10.0.0" />
     <PackageReference Include="Shuttle.Esb" Version="10.0.3" />
+    <PackageReference Include="Shuttle.Esb.RabbitMQ" Version="10.0.3" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.4.1" />
   </ItemGroup>
 
   <ItemGroup>
