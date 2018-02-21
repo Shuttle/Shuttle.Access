@@ -1,9 +1,9 @@
 ﻿import $ from 'jquery';
 import 'popper.js';
 import 'bootstrap';
-import 'can-stache/helpers/route';
+import 'can-stache-route-helpers';
 
-import 'bootstrap/dist/css/bootstrap.css!';
+import 'bootstrap/dist/css/bootstrap.css';
 import 'font-awesome/css/font-awesome.css';
 import './styles.css!';
 

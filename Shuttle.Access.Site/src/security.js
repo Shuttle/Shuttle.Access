@@ -26,7 +26,7 @@ var Security = DefineMap.extend({
         var result = false;
         var permissionCompare = permission.toLowerCase();
 
-        this.permissions.each(function(item) {
+        this.permissions.forEach(function(item) {
             if (result) {
                 return;
             }
