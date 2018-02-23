@@ -54,9 +54,9 @@ var Router = DefineMap.extend({
     },
 
     start: function () {
-        route('{resource}');
-        route('{resource}/{action}');
-        route('{resource}/{id}/{action}');
+        route.register('{resource}');
+        route.register('{resource}/{action}');
+        route.register('{resource}/{id}/{action}');
 
         route.data = this.data;
 

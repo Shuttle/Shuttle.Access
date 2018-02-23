@@ -3,15 +3,19 @@ using Castle.Windsor;
 using Castle.Windsor.MsDependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Castle;
 using Shuttle.Core.Container;
+using Shuttle.Core.Data;
+using Shuttle.Core.Data.Http;
 using Shuttle.Esb;
+using Shuttle.Recall;
 
 namespace Shuttle.Access.WebApi
 {
-    public class Startup : IDisposable
+    public class Startup 
     {
         private IServiceBus _bus;
 
@@ -22,7 +26,7 @@ namespace Shuttle.Access.WebApi
 
         public IConfiguration Configuration { get; }
 
-        public void Dispose()
+        private void OnShutdown()
         {
             _bus?.Dispose();
         }
@@ -38,7 +42,14 @@ namespace Shuttle.Access.WebApi
 
             componentContainer.RegisterSuffixed("Shuttle.Access.Sql");
 
+            componentContainer.Register<IHttpContextAccessor, HttpContextAccessor>();
+            componentContainer.Register<IDatabaseContextCache, ContextDatabaseContextCache>();
+            componentContainer.Register<IHashingService, HashingService>();
+
             ServiceBus.Register(componentContainer);
+            EventStore.Register(componentContainer);
+
+            componentContainer.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 
             _bus = ServiceBus.Create(componentContainer).Start();
 
@@ -46,8 +57,10 @@ namespace Shuttle.Access.WebApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime)
         {
+            applicationLifetime.ApplicationStopping.Register(OnShutdown);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

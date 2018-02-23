@@ -20,6 +20,15 @@ import '~/dashboard/';
 import '~/role/';
 import '~/user/';
 
+import {options as apiOptions} from 'shuttle-can-api';
+import loader from '@loader';
+
+apiOptions.wire({
+    url: function(){
+        return loader.serviceBaseURL;
+    }
+});
+
 $.ajaxPrefilter(function (options, originalOptions) {
     options.error = function (xhr) {
         if (xhr.responseJSON) {
