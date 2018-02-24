@@ -51,6 +51,8 @@ namespace Shuttle.Access.WebApi
 
             componentContainer.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 
+            var serviceBusSection = ServiceBusSection.Get();
+
             _bus = ServiceBus.Create(componentContainer).Start();
 
             return WindsorRegistrationHelper.CreateServiceProvider(container, services);
