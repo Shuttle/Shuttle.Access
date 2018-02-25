@@ -3,19 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access", "Shuttle.Access\Shuttle.Access.csproj", "{199AE83F-04AB-4624-AF81-51D3173CBD14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access", "Shuttle.Access\Shuttle.Access.csproj", "{199AE83F-04AB-4624-AF81-51D3173CBD14}"
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Shuttle.Access.Database", "Shuttle.Access.Database\Shuttle.Access.Database.sqlproj", "{84C628EB-6DF0-4BD4-8832-F99B5D1C0AC1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Messages", "Shuttle.Access.Messages\Shuttle.Access.Messages.csproj", "{1B121ED0-866F-4371-A254-CE89CCA60D8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Messages", "Shuttle.Access.Messages\Shuttle.Access.Messages.csproj", "{1B121ED0-866F-4371-A254-CE89CCA60D8F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Server", "Shuttle.Access.Server\Shuttle.Access.Server.csproj", "{074BE481-D7B5-4BAE-9CCD-E2FC8F1A3258}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Server", "Shuttle.Access.Server\Shuttle.Access.Server.csproj", "{074BE481-D7B5-4BAE-9CCD-E2FC8F1A3258}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Projection", "Shuttle.Access.Projection\Shuttle.Access.Projection.csproj", "{62335534-8233-47B4-B184-D63ADF22BDFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Projection", "Shuttle.Access.Projection\Shuttle.Access.Projection.csproj", "{62335534-8233-47B4-B184-D63ADF22BDFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Sql", "Shuttle.Access.Sql\Shuttle.Access.Sql.csproj", "{C53CFA47-530C-4994-9530-6CA78FEB50C7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Sql", "Shuttle.Access.Sql\Shuttle.Access.Sql.csproj", "{C53CFA47-530C-4994-9530-6CA78FEB50C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.WebApi", "Shuttle.Access.WebApi\Shuttle.Access.WebApi.csproj", "{48AC876B-8F98-4FC0-87E3-134DD79D029D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.WebApi", "Shuttle.Access.WebApi\Shuttle.Access.WebApi.csproj", "{48AC876B-8F98-4FC0-87E3-134DD79D029D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Mvc", "Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj", "{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{48AC876B-8F98-4FC0-87E3-134DD79D029D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48AC876B-8F98-4FC0-87E3-134DD79D029D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48AC876B-8F98-4FC0-87E3-134DD79D029D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

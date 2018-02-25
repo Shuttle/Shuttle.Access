@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Shuttle.Access.Sql.Query
+namespace Shuttle.Access.Query
 {
     public class Role
     {

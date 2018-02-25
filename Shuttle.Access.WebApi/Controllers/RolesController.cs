@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Mvc;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -10,7 +11,8 @@ using Shuttle.Esb;
 
 namespace Shuttle.Access.WebApi
 {
-    public class RolesController : AccessController
+    [Route("api/[controller]")]
+    public class RolesController : Controller
     {
         private readonly IServiceBus _bus;
         private readonly IDatabaseContextFactory _databaseContextFactory;

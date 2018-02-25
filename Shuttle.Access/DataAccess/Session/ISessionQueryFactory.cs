@@ -1,7 +1,7 @@
 using System;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access
 {
 	public interface ISessionQueryFactory
 	{

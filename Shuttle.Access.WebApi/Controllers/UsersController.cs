@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Mvc;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -10,7 +11,8 @@ using Shuttle.Esb;
 
 namespace Shuttle.Access.WebApi
 {
-    public class UsersController : AccessController
+    [Route("api/[controller]")]
+    public class UsersController : Controller
     {
         private readonly IAuthorizationService _authorizationService;
         private readonly IServiceBus _bus;
@@ -152,7 +154,7 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNull(model, nameof(model));
 
             var registeredBy = "system";
-            var result = GetSessionToken();
+            var result = Request.GetSessionToken();
             var ok = false;
 
             if (result.Ok)
@@ -177,9 +179,7 @@ namespace Shuttle.Access.WebApi
 
                 if (count == 0)
                 {
-                    var anonymousPermissions = _authorizationService as IAnonymousPermissions;
-
-                    if (anonymousPermissions != null)
+                    if (_authorizationService is IAnonymousPermissions anonymousPermissions)
                     {
                         ok = anonymousPermissions.AnonymousPermissions()
                             .Any(item => item.Equals(SystemPermissions.Manage.Users));

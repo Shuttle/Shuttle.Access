@@ -76,7 +76,7 @@ namespace Shuttle.Access
 
             if (!IsInRole(role))
             {
-                throw new InvalidOperationException(string.Format(AccessResources.RoleNotFoundException, role, _username));
+                throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, role, _username));
             }
 
             return On(new RoleRemoved { Role = role });

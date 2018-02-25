@@ -4,7 +4,8 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.WebApi
 {
-	public class SessionsController : Controller
+    [Route("api/[controller]")]
+    public class SessionsController : Controller
 	{
 		private readonly ISessionService _sessionService;
 
@@ -15,7 +16,7 @@ namespace Shuttle.Access.WebApi
 			_sessionService = sessionService;
 		}
 
-	    [HttpPost("api/sessions/")]
+	    [HttpPost]
 		public IActionResult Post([FromBody] RegisterSessionModel model)
 		{
 			Guard.AgainstNull(model, nameof(model));
@@ -29,9 +30,7 @@ namespace Shuttle.Access.WebApi
                 });
             }
 
-		    Guid token;
-
-		    Guid.TryParse(model.Token, out token);
+		    Guid.TryParse(model.Token, out var token);
 
 			var registerSessionResult = _sessionService.Register(model.Username, model.Password, token);
 

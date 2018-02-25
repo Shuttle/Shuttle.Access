@@ -6,18 +6,23 @@ namespace Shuttle.Access.Sql
 {
     public class SessionService : ISessionService
     {
+        private readonly IAccessConfiguration _configuration;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IAuthenticationService _authenticationService;
         private readonly IAuthorizationService _authorizationService;
         private readonly ISessionRepository _sessionRepository;
 
-        public SessionService(IDatabaseContextFactory databaseContextFactory, IAuthenticationService authenticationService, IAuthorizationService authorizationService, ISessionRepository sessionRepository)
+        public SessionService(IAccessConfiguration configuration, IDatabaseContextFactory databaseContextFactory,
+            IAuthenticationService authenticationService, IAuthorizationService authorizationService,
+            ISessionRepository sessionRepository)
         {
+            Guard.AgainstNull(configuration, nameof(configuration));
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
 
+            _configuration = configuration;
             _databaseContextFactory = databaseContextFactory;
             _authenticationService = authenticationService;
             _authorizationService = authorizationService;
@@ -26,8 +31,6 @@ namespace Shuttle.Access.Sql
 
         public RegisterSessionResult Register(string username, string password, Guid token)
         {
-            AuthenticationResult authenticationResult;
-
             if (string.IsNullOrEmpty(username) || (string.IsNullOrEmpty(password) && token.Equals(Guid.Empty)))
             {
                 return RegisterSessionResult.Failure();
@@ -37,7 +40,7 @@ namespace Shuttle.Access.Sql
 
             if (!string.IsNullOrEmpty(password))
             {
-                authenticationResult = _authenticationService.Authenticate(username, password);
+                var authenticationResult = _authenticationService.Authenticate(username, password);
 
                 if (!authenticationResult.Authenticated)
                 {
@@ -51,14 +54,14 @@ namespace Shuttle.Access.Sql
                     session.AddPermission(permission);
                 }
 
-                using (_databaseContextFactory.Create())
+                using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
                 {
                     _sessionRepository.Save(session);
                 }
             }
             else
             {
-                using (_databaseContextFactory.Create())
+                using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
                 {
                     session = _sessionRepository.Get(token);
 

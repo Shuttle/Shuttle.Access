@@ -3,7 +3,7 @@ using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Server.Projection
+namespace Shuttle.Access.Projection
 {
     public class UserHandler :
         IEventHandler<Registered>,
@@ -11,9 +11,9 @@ namespace Shuttle.Access.Server.Projection
         IEventHandler<RoleRemoved>,
         IEventHandler<Removed>
     {
-        private readonly ISystemUserQuery _query;
+        private readonly ISystemUserProjectionQuery _query;
 
-        public UserHandler(ISystemUserQuery query)
+        public UserHandler(ISystemUserProjectionQuery query)
         {
             Guard.AgainstNull(query, nameof(query));
 

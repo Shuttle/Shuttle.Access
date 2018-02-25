@@ -1,14 +1,14 @@
 ﻿using Castle.Windsor;
 using log4net;
-using Shuttle.Core.Container;
 using Shuttle.Core.Castle;
+using Shuttle.Core.Container;
 using Shuttle.Core.Log4Net;
 using Shuttle.Core.Logging;
 using Shuttle.Core.Reflection;
 using Shuttle.Core.ServiceHost;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Server.Projection
+namespace Shuttle.Access.Projection
 {
     internal class Program
     {

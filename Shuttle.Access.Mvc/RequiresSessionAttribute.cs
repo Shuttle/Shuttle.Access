@@ -4,11 +4,10 @@ using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.WebApi
+namespace Shuttle.Access.Mvc
 {
     public class RequiresSessionAttribute : ActionFilterAttribute
     {

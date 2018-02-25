@@ -45,14 +45,14 @@ namespace Shuttle.Access.WebApi
             componentContainer.Register<IHttpContextAccessor, HttpContextAccessor>();
             componentContainer.Register<IDatabaseContextCache, ContextDatabaseContextCache>();
             componentContainer.Register<IHashingService, HashingService>();
+            componentContainer.RegisterInstance<IAccessConfiguration>(AccessSection.Configuration());
 
             ServiceBus.Register(componentContainer);
             EventStore.Register(componentContainer);
 
             componentContainer.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 
-            var serviceBusSection = ServiceBusSection.Get();
-
+            
             _bus = ServiceBus.Create(componentContainer).Start();
 
             return WindsorRegistrationHelper.CreateServiceProvider(container, services);

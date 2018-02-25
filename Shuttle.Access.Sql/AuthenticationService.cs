@@ -8,20 +8,23 @@ namespace Shuttle.Access.Sql
 {
     public class AuthenticationService : IAuthenticationService
     {
+        private readonly IAccessConfiguration _configuration;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
         private readonly IHashingService _hashingService;
         private readonly IKeyStore _keyStore;
         private readonly ILog _log;
 
-        public AuthenticationService(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore,
-            IKeyStore keyStore, IHashingService hashingService)
+        public AuthenticationService(IAccessConfiguration configuration, IDatabaseContextFactory databaseContextFactory,
+            IEventStore eventStore, IKeyStore keyStore, IHashingService hashingService)
         {
+            Guard.AgainstNull(configuration, nameof(configuration));
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(keyStore, nameof(keyStore));
             Guard.AgainstNull(hashingService, nameof(hashingService));
 
+            _configuration = configuration;
             _databaseContextFactory = databaseContextFactory;
             _eventStore = eventStore;
             _keyStore = keyStore;
@@ -35,7 +38,7 @@ namespace Shuttle.Access.Sql
             EventStream stream;
             Guid? userId;
 
-            using (_databaseContextFactory.Create())
+            using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
             {
                 userId = _keyStore.Get(User.Key(username));
 

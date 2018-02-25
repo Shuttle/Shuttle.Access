@@ -19,27 +19,27 @@ namespace Shuttle.Access {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class AccessResources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal AccessResources() {
+        internal Resources() {
         }
         
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Shuttle.Access.AccessResources", typeof(AccessResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Shuttle.Access.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace Shuttle.Access {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,9 +61,18 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find a connection string with name &apos;{0}&apos;..
+        /// </summary>
+        public static string ConnectionStringMissing {
+            get {
+                return ResourceManager.GetString("ConnectionStringMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Permission &apos;{0}&apos; already exists on role &apos;{1}&apos;..
         /// </summary>
-        internal static string DuplicatePermissionException {
+        public static string DuplicatePermissionException {
             get {
                 return ResourceManager.GetString("DuplicatePermissionException", resourceCulture);
             }
@@ -72,7 +81,7 @@ namespace Shuttle.Access {
         /// <summary>
         ///   Looks up a localized string similar to Permission &apos;{0}&apos; does not exist on role &apos;{1}&apos;..
         /// </summary>
-        internal static string PermissionNotFoundException {
+        public static string PermissionNotFoundException {
             get {
                 return ResourceManager.GetString("PermissionNotFoundException", resourceCulture);
             }
@@ -81,7 +90,7 @@ namespace Shuttle.Access {
         /// <summary>
         ///   Looks up a localized string similar to Role &apos;{0}&apos; does not exist on user &apos;{1}&apos;..
         /// </summary>
-        internal static string RoleNotFoundException {
+        public static string RoleNotFoundException {
             get {
                 return ResourceManager.GetString("RoleNotFoundException", resourceCulture);
             }

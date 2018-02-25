@@ -6,7 +6,7 @@ namespace Shuttle.Access.Sql
 {
     public class SystemUserQueryFactory : ISystemUserQueryFactory
     {
-        private const string selectClause = @"
+        private const string SelectClause = @"
 select
     Id,
     Username,
@@ -66,12 +66,12 @@ if not exists(select null from [dbo].[SystemUserRole] where UserId = @UserId and
 
         public IQuery Search()
         {
-            return RawQuery.Create(selectClause);
+            return RawQuery.Create(SelectClause);
         }
 
         public IQuery Get(Guid id)
         {
-            return RawQuery.Create(string.Concat(selectClause, " where Id = @Id"))
+            return RawQuery.Create(string.Concat(SelectClause, " where Id = @Id"))
                 .AddParameterValue(SystemUserColumns.Id, id);
         }
 

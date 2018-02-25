@@ -1,12 +1,12 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
 namespace Shuttle.Access.WebApi
 {
-    public class PermissionsController : AccessController
+    [Route("api/[controller]")]
+    public class PermissionsController : Controller
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IPermissionQuery _permissionQuery;

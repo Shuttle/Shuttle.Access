@@ -2,7 +2,7 @@ using System;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.WebApi
+namespace Shuttle.Access.Mvc
 {
     public class SessionTokenResult
     {

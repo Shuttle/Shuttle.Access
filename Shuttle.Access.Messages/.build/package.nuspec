@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package >
+	<metadata>
+		<id>Shuttle.Access.Messages</id>
+		<version>{semver}</version>
+		<authors>Eben Roux</authors>
+		<owners>Eben Roux</owners>
+		<licenseUrl>https://github.com/shuttle/Shuttle.Access/raw/master/LICENSE</licenseUrl>
+		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
+		<iconUrl>https://raw.githubusercontent.com/Shuttle/Shuttle.Access/master/.media/logo.png</iconUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+	  <description>Messages for use in Shuttle.Access implementations.</description>
+		<releaseNotes/>
+		<copyright>Copyright (c) {year}, Eben Roux</copyright>
+		<tags>shuttle shuttle-access</tags>
+	</metadata>
+</package>

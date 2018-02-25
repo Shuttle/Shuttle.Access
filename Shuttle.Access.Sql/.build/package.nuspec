@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+	<metadata>
+		<id>Shuttle.Access.Sql</id>
+		<version>{semver}</version>
+		<authors>Eben Roux</authors>
+		<owners>Eben Roux</owners>
+		<licenseUrl>https://github.com/shuttle/Shuttle.Access/raw/master/LICENSE</licenseUrl>
+		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
+		<iconUrl>https://raw.githubusercontent.com/Shuttle/Shuttle.Access/master/.media/logo.png</iconUrl>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Provides Sql-based implementation of data accesss components for use with Shuttle.Access implementations.</description>
+		<releaseNotes/>
+		<copyright>Copyright (c) {year}, Eben Roux</copyright>
+		<tags>shuttle shuttle-access</tags>
+	  <dependencies>
+	    <dependency id="Shuttle.Access" version="{Shuttle.Access-version}" />
+	  </dependencies>
+	</metadata>
+</package>

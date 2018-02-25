@@ -16,12 +16,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Infrastructure\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Castle.Windsor.MsDependencyInjection" Version="3.3.0" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
+    <PackageReference Include="Shuttle.Access.Messages" Version="1.0.0" />
+    <PackageReference Include="Shuttle.Access.Mvc" Version="1.0.0" />
+    <PackageReference Include="Shuttle.Access.Sql" Version="1.0.4" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.4" />
     <PackageReference Include="Shuttle.Core.Data.Http" Version="10.0.2" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.4" />
@@ -34,12 +38,6 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
-    <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
   </ItemGroup>
 
 </Project>

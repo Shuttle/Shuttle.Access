@@ -5,7 +5,8 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.WebApi
 {
-    public class AnonymousPermissionsController : AccessController
+    [Route("api/[controller]")]
+    public class AnonymousPermissionsController : Controller
     {
         private readonly IAuthorizationService _authorizationService;
         private readonly List<string> _emptyAnonymousPermissions = new List<string>();
