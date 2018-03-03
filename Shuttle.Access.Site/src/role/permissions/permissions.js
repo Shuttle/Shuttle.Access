@@ -12,10 +12,10 @@ import localisation from '~/localisation';
 import state from '~/state';
 
 var api = {
-    role: new Api('roles/{id}'),
-    setPermission: new Api('roles/setpermission'),
-    permissions: new Api('permissions'),
-    permissionStatus: new Api('roles/permissionstatus')
+    role: new Api({ endpoint: 'roles/{id}' }),
+    setPermission: new Api({ endpoint: 'roles/setpermission' }),
+    permissions: new Api({ endpoint: 'permissions' }),
+    permissionStatus: new Api({ endpoint: 'roles/permissionstatus' })
 }
 
 resources.add('role', {action: 'permissions', permission: Permissions.Manage.RolePermissions});

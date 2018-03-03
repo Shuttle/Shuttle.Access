@@ -19,9 +19,9 @@ var roles = new Api({
 });
 
 var api = {
-    user: new Api('users/{id}'),
-    setRole: new Api('users/setrole'),
-    roleStatus: new Api('users/roleStatus')
+    user: new Api({ endpoint: 'users/{id}' }),
+    setRole: new Api({ endpoint: 'users/setrole' }),
+    roleStatus: new Api({ endpoint: 'users/roleStatus' })
 }
 
 const UserRole = DefineMap.extend({

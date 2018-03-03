@@ -30,7 +30,7 @@
                         {{security.username}}
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href='#' on:el:click='security.logout()'>{{i18n "sign-out"}}</a>
+                        <a class="dropdown-item" href='#' on:el:click='logout()'>{{i18n "sign-out"}}</a>
                     </div>
                 </li>
             {{/case}}

@@ -7,6 +7,11 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'font-awesome/css/font-awesome.css';
 import './styles.css!';
 
+import {options as apiOptions} from 'shuttle-can-api';
+import loader from '@loader';
+
+apiOptions.url = loader.serviceBaseURL;
+
 import stache from '~/main.stache!';
 import localisation from '~/localisation';
 import security from '~/security';
@@ -19,15 +24,6 @@ import '~/navigation/';
 import '~/dashboard/';
 import '~/role/';
 import '~/user/';
-
-import {options as apiOptions} from 'shuttle-can-api';
-import loader from '@loader';
-
-apiOptions.wire({
-    url: function(){
-        return loader.serviceBaseURL;
-    }
-});
 
 $.ajaxPrefilter(function (options, originalOptions) {
     options.error = function (xhr) {

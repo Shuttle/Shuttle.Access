@@ -7,8 +7,7 @@ import {DropdownMap, DropdownList} from 'shuttle-canstrap/nav-dropdown/';
 import map from './navigation-map';
 import security from '~/security';
 import state from '~/state';
-import stache from 'can-stache';
-import guard from 'shuttle-guard';
+import router from '~/router';
 
 var ViewModel = DefineMap.extend({
     hasSecondary(){
@@ -61,6 +60,10 @@ var ViewModel = DefineMap.extend({
 
             return result;
         }
+    },
+    logout() {
+        this.security.logout();
+        router.goto({resource: 'dashboard'});
     }
 });
 

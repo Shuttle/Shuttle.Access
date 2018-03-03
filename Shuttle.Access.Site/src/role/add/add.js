@@ -11,7 +11,7 @@ import state from '~/state';
 
 resources.add('role', {action: 'add', permission: Permissions.Manage.Roles});
 
-var roles = new Api('roles');
+var roles = new Api({ endpoint: 'roles' });
 
 export const ViewModel = DefineMap.extend(
     'role-add',

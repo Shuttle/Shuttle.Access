@@ -10,7 +10,7 @@ import validator from 'can-define-validate-validatejs';
 
 resources.add('user', {action: 'register', permission: Permissions.Manage.Users});
 
-var users = new Api('users');
+var users = new Api({ endpoint: 'users' });
 
 export const ViewModel = DefineMap.extend(
     'user-register',

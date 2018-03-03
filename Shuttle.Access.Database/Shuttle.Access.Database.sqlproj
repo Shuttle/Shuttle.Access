@@ -8,14 +8,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{84c628eb-6df0-4bd4-8832-f99b5d1c0ac1}</ProjectGuid>
-    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
+    <DSP>Microsoft.Data.Tools.Schema.Sql.Sql120DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
     <RootNamespace>Shuttle.Access.Database</RootNamespace>
     <AssemblyName>Shuttle.Access.Database</AssemblyName>
-    <ModelCollation>1033, CI</ModelCollation>
-    <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
+    <ModelCollation>1033,CI</ModelCollation>
+    <DefaultFileStructure>BySchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetLanguage>CS</TargetLanguage>
@@ -23,6 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
+    <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
+    <DefaultFilegroup>PRIMARY</DefaultFilegroup>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <OutputPath>bin\Release\</OutputPath>
@@ -57,5 +59,24 @@
   <Import Condition="'$(SQLDBExtensionsRefPath)' == ''" Project="$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets" />
   <ItemGroup>
     <Folder Include="Properties" />
+    <Folder Include="Tables\" />
+    <Folder Include="Stored Procedures\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Build Include="Tables\AvailablePermission_1.sql" />
+    <Build Include="Tables\SystemRole_1.sql" />
+    <Build Include="Tables\SystemRolePermission_1.sql" />
+    <Build Include="Tables\SystemUser_1.sql" />
+    <Build Include="Tables\SystemUserRole_1.sql" />
+    <Build Include="Tables\ProjectionPosition.sql" />
+    <Build Include="Tables\EventStore.sql" />
+    <Build Include="Tables\KeyStore.sql" />
+    <Build Include="Tables\SnapshotStore.sql" />
+    <Build Include="Tables\Session_1.sql" />
+    <Build Include="Tables\SessionPermission_1.sql" />
+    <Build Include="Stored Procedures\RegisterAvailablePermission.sql" />
+    <Build Include="Stored Procedures\RegisterRole.sql" />
+    <Build Include="Stored Procedures\RegisterRolePermission.sql" />
+    <PostDeploy Include="post-deployment.sql" />
   </ItemGroup>
 </Project>

@@ -6,8 +6,8 @@ import localisation from '~/localisation';
 import state from '~/state';
 import each from 'can-util/js/each/';
 
-var anonymous = new Api('anonymouspermissions');
-var sessions = new Api('sessions');
+var anonymous = new Api({ endpoint: 'anonymouspermissions' });
+var sessions = new Api({ endpoint: 'sessions' });
 
 var Security = DefineMap.extend({
     username: { type: 'string', value: '' },

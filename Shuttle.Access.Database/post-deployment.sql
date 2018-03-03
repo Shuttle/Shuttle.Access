@@ -10,4 +10,10 @@ Post-Deployment Script Template
 --------------------------------------------------------------------------------------
 */
 exec RegisterAvailablePermission 'access://roles/manage'
+exec RegisterAvailablePermission 'access://roles/view'
 exec RegisterAvailablePermission 'access://users/manage'
+exec RegisterAvailablePermission 'access://users/view'
+exec RegisterAvailablePermission 'access://dashboard/view'
+
+exec RegisterRole 'Anonymous'
+exec RegisterRolePermission 'Anonymous', 'access://dashboard/view'
