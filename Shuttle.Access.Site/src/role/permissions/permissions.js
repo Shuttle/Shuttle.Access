@@ -12,10 +12,10 @@ import localisation from '~/localisation';
 import state from '~/state';
 
 var api = {
-    role: new Api({ endpoint: 'roles/{id}' }),
-    setPermission: new Api({ endpoint: 'roles/setpermission' }),
-    permissions: new Api({ endpoint: 'permissions' }),
-    permissionStatus: new Api({ endpoint: 'roles/permissionstatus' })
+    role: new Api({endpoint: 'roles/{id}'}),
+    setPermission: new Api({endpoint: 'roles/setpermission'}),
+    permissions: new Api({endpoint: 'permissions'}),
+    permissionStatus: new Api({endpoint: 'roles/permissionstatus'})
 }
 
 resources.add('role', {action: 'permissions', permission: Permissions.Manage.RolePermissions});
@@ -61,25 +61,30 @@ export const ViewModel = DefineMap.extend({
         Type: DefineMap
     },
 
-    isResolved: {type: 'boolean', value: false},
+    isResolved: {
+        type: 'boolean',
+        default: false
+    },
 
     columns: {
-        value: [
-            {
-                columnTitle: 'active',
-                columnClass: 'col-1',
-                stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
-            },
-            {
-                columnTitle: 'role:permission',
-                columnClass: 'col',
-                attributeName: 'permission'
-            }
-        ]
+        default() {
+            return [
+                {
+                    columnTitle: 'active',
+                    columnClass: 'col-1',
+                    stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
+                },
+                {
+                    columnTitle: 'role:permission',
+                    columnClass: 'col',
+                    attributeName: 'permission'
+                }
+            ]
+        }
     },
 
     permissions: {
-        value: new DefineList()
+        Default: DefineList
     },
 
     init: function () {
@@ -114,7 +119,7 @@ export const ViewModel = DefineMap.extend({
             .then(function (availablePermissionsResponse) {
                 var availablePermissions = makeArray(availablePermissionsResponse);
 
-                api.role.item({id: router.data.id})
+                api.role.map({id: router.data.id})
                     .then(function (response) {
                         self.role = response.data;
 

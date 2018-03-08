@@ -39,7 +39,7 @@ export const NavbarControlList = DefineList.extend({
 export const Navbar = DefineMap.extend({
     controls: {
         Type: NavbarControlList,
-        value: []
+        default() {}
     },
     addButton(options) {
         guard.againstUndefined(options, 'options')
@@ -101,19 +101,25 @@ export const Navbar = DefineMap.extend({
 var State = DefineMap.extend({
     route: route,
     alerts: {
-        value: alerts
+        default() {
+            return alerts;
+        }
     },
     debug: {
         type: 'boolean',
-        value: loader.debug
+        default() {
+            return loader.debug;
+        }
     },
     navbar: {
         Type: Navbar,
-        value: {}
+        default() {
+            return {};
+        }
     },
     title: {
         type: 'string',
-        value: '',
+        default: '',
         get(value) {
             return localisation.value(value);
         }
@@ -127,7 +133,7 @@ var State = DefineMap.extend({
                     },
                     message: {
                         type: 'string',
-                        value: ''
+                        default: ''
                     },
                     show(options) {
                         guard.againstUndefined(options, "options");
@@ -138,10 +144,14 @@ var State = DefineMap.extend({
                         $('#modal-confirmation').modal({show: true});
                     }
                 }),
-                value: {}
+                default() {
+                    return {};
+                }
             }
         }),
-        value: {}
+        default() {
+            return {};
+        }
     },
 });
 

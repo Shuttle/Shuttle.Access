@@ -5,16 +5,18 @@ import view from './navigation.stache!';
 import each from 'can-util/js/each/';
 import {DropdownMap, DropdownList} from 'shuttle-canstrap/nav-dropdown/';
 import map from './navigation-map';
-import security from '~/security';
+import access from 'shuttle-access';
 import state from '~/state';
 import router from '~/router';
 
 var ViewModel = DefineMap.extend({
-    hasSecondary(){
+    hasSecondary() {
         return !!this.title || this.navbar.controls.length > 0;
     },
-    security: {
-        value: security
+    access: {
+        default() {
+            return access;
+        }
     },
     title: {
         get() {
@@ -22,7 +24,9 @@ var ViewModel = DefineMap.extend({
         }
     },
     navbar: {
-        value: state.navbar
+        default() {
+            return state.navbar;
+        }
     },
     resources: {
         get: function (value) {
@@ -32,10 +36,10 @@ var ViewModel = DefineMap.extend({
                 var add = false;
                 var list = new DropdownList();
 
-                if (!item.permission || security.hasPermission(item.permission)) {
+                if (!item.permission || access.hasPermission(item.permission)) {
                     if (item.items !== undefined) {
                         each(item.items, function (subitem) {
-                            if (!subitem.permission || security.hasPermission(subitem.permission)) {
+                            if (!subitem.permission || access.hasPermission(subitem.permission)) {
                                 add = true;
 
                                 list.push(new DropdownMap({
@@ -62,7 +66,7 @@ var ViewModel = DefineMap.extend({
         }
     },
     logout() {
-        this.security.logout();
+        this.access.logout();
         router.goto({resource: 'dashboard'});
     }
 });

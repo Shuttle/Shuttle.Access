@@ -1,7 +1,7 @@
 ﻿import DefineMap from 'can-define/map/';
 import resources from '~/resources';
 import localisation from '~/localisation';
-import security from '~/security';
+import access from 'shuttle-access';
 import stache from 'can-stache';
 import route from 'can-route';
 import state from '~/state';
@@ -11,15 +11,15 @@ import each from 'can-util/js/each/';
 var RouteData = DefineMap.extend({
     resource: {
         type: 'string',
-        value: ''
+        default: ''
     },
     action: {
         type: 'string',
-        value: ''
+        default: ''
     },
     id: {
         type: 'string',
-        value: ''
+        default: ''
     },
     full: {
         get: function () {
@@ -31,7 +31,7 @@ var RouteData = DefineMap.extend({
 var routeData = new RouteData();
 
 routeData.on('full', function (ev, newVal, oldVal) {
-    if (!security.isUserRequired || (this.resource === 'user' && this.action === 'register')) {
+    if (!access.isUserRequired || (this.resource === 'user' && this.action === 'register')) {
         return;
     }
 
@@ -41,7 +41,7 @@ routeData.on('full', function (ev, newVal, oldVal) {
 var Router = DefineMap.extend({
     data: {
         Type: RouteData,
-        value: routeData
+        default: routeData
     },
     previousHash: 'string',
 
@@ -98,7 +98,7 @@ var Router = DefineMap.extend({
             return;
         }
 
-        if (resource.permission && !security.hasPermission(resource.permission)) {
+        if (resource.permission && !access.hasPermission(resource.permission)) {
             state.alerts.show({
                 message: localisation.value('security.access-denied', {
                     name: resource.name || window.location.hash,

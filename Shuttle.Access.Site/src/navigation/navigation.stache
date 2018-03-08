@@ -11,7 +11,7 @@
 {{/each}}
 </ul>
     <ul class="navbar-nav flex-row ml-md-auto d-md-flex">
-        {{#switch security.loginStatus}}
+        {{#switch access.loginStatus}}
             {{#case "user-required"}}
                 <li class="nav-item">
                     <a class="nav-link p-2" href='#!user/register'>{{i18n "register"}}</a>
@@ -27,7 +27,7 @@
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                        data-toggle="dropdown"
                        aria-haspopup="true" aria-expanded="false">
-                        {{security.username}}
+                        {{access.username}}
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" href='#' on:el:click='logout()'>{{i18n "sign-out"}}</a>

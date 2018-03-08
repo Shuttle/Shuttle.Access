@@ -14,11 +14,13 @@ apiOptions.url = loader.serviceBaseURL;
 
 import stache from '~/main.stache!';
 import localisation from '~/localisation';
-import security from '~/security';
 import state from '~/state';
 import router from '~/router';
 
 import canstrap from 'shuttle-canstrap';
+import access from 'shuttle-access';
+
+access.url = loader.serviceBaseURL;
 
 import '~/navigation/';
 import '~/dashboard/';
@@ -52,14 +54,14 @@ localisation.start(function (error) {
         throw new Error(error);
     }
 
-    security.start()
+    access.start()
         .then(function () {
             router.start();
 
             $('#application-container').html(stache(state));
 
             if (window.location.hash === '#!' || !window.location.hash) {
-                if (security.isUserRequired) {
+                if (access.isUserRequired) {
                     router.goto({resource: 'user', action: 'register'});
                 }
                 else {

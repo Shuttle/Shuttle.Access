@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Core.Contract;
 
@@ -39,8 +40,11 @@ namespace Shuttle.Access.WebApi
 			    {
 			        Registered = true,
 			        Token = registerSessionResult.Token.ToString("n"),
-			        registerSessionResult.Permissions
-			    })
+			        Permissions = registerSessionResult.Permissions.Select(permission => new
+			        {
+			            Permission = permission
+			        }).ToList()
+                })
 				: Ok(new
 				{
 					Registered = false

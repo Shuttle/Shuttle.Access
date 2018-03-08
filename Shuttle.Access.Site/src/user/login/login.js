@@ -2,7 +2,7 @@ import Component from 'can-component/';
 import DefineMap from 'can-define/map/';
 import view from './login.stache!';
 import resources from '~/resources';
-import security from '~/security';
+import access from 'shuttle-access';
 import ValidationViewModel from 'shuttle-canstrap/infrastructure/validation-view-model';
 import validate from 'can-define-validate-validatejs';
 import state from '~/state';
@@ -27,7 +27,7 @@ export const ViewModel = ValidationViewModel.extend({
     },
     working: {
         type: 'boolean',
-        value: false
+        default: false
     },
     submitIconName: {
         get: function () {
@@ -43,7 +43,7 @@ export const ViewModel = ValidationViewModel.extend({
 
         this.working = true;
 
-        security.login({
+        access.login({
             username: this.username,
             password: this.password
         })

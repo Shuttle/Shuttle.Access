@@ -5,7 +5,7 @@ import resources from '~/resources';
 import Permissions from '~/permissions';
 import Api from 'shuttle-can-api';
 import router from '~/router';
-import security from '~/security';
+import access from 'shuttle-access';
 import validator from 'can-define-validate-validatejs';
 
 resources.add('user', {action: 'register', permission: Permissions.Manage.Users});
@@ -29,16 +29,16 @@ export const ViewModel = DefineMap.extend(
         },
         working: {
             type: 'boolean',
-            value: false
+            default: false
         },
         title: {
             get: function () {
-                return security.isUserRequired ? 'user:register.user-required' : 'user:register.title';
+                return access.isUserRequired ? 'user:register.user-required' : 'user:register.title';
             }
         },
         showClose: {
             get: function () {
-                return !security.isUserRequired;
+                return !access.isUserRequired;
             }
         },
 
@@ -60,8 +60,8 @@ export const ViewModel = DefineMap.extend(
                 password: this.password
             })
                 .then(function () {
-                    if (security.isUserRequired) {
-                        security.isUserRequired = false;
+                    if (access.isUserRequired) {
+                        access.isUserRequired = false;
 
                         router.goto({
                             resource: 'dashboard'

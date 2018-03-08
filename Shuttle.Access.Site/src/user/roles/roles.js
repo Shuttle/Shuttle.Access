@@ -19,9 +19,9 @@ var roles = new Api({
 });
 
 var api = {
-    user: new Api({ endpoint: 'users/{id}' }),
-    setRole: new Api({ endpoint: 'users/setrole' }),
-    roleStatus: new Api({ endpoint: 'users/roleStatus' })
+    user: new Api({endpoint: 'users/{id}'}),
+    setRole: new Api({endpoint: 'users/setrole'}),
+    roleStatus: new Api({endpoint: 'users/roleStatus'})
 }
 
 const UserRole = DefineMap.extend({
@@ -118,7 +118,7 @@ export const ViewModel = DefineMap.extend({
                 availableRoles = makeArray(availableRoles);
                 availableRoles.push({id: '', roleName: 'administrator'});
 
-                api.user.item({id: router.data.id})
+                api.user.map({id: router.data.id})
                     .then(function (repsonse) {
                         self.user = repsonse.data;
 
@@ -142,22 +142,24 @@ export const ViewModel = DefineMap.extend({
     },
 
     columns: {
-        value: [
-            {
-                columnTitle: 'active',
-                columnClass: 'col-1',
-                stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
-            },
-            {
-                columnTitle: 'user:roleName',
-                columnClass: 'col',
-                attributeName: 'roleName'
-            }
-        ]
+        default() {
+            return [
+                {
+                    columnTitle: 'active',
+                    columnClass: 'col-1',
+                    stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
+                },
+                {
+                    columnTitle: 'user:roleName',
+                    columnClass: 'col',
+                    attributeName: 'roleName'
+                }
+            ]
+        }
     },
 
     roles: {
-        value: new DefineList()
+        Default: DefineList
     },
 
     getRoleItem: function (roleName) {

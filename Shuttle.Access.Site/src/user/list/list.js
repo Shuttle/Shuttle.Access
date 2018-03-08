@@ -43,8 +43,7 @@ var users = new Api({
 
 export const ViewModel = DefineMap.extend({
     columns: {
-        Type: ColumnList,
-        value: []
+        Default: ColumnList
     },
 
     refreshTimestamp: {
