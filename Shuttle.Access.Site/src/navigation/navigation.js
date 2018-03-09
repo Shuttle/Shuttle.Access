@@ -14,7 +14,7 @@ var ViewModel = DefineMap.extend({
         return !!this.title || this.navbar.controls.length > 0;
     },
     access: {
-        default() {
+        get() {
             return access;
         }
     },
@@ -24,7 +24,7 @@ var ViewModel = DefineMap.extend({
         }
     },
     navbar: {
-        default() {
+        get() {
             return state.navbar;
         }
     },

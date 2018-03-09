@@ -38,8 +38,7 @@ export const NavbarControlList = DefineList.extend({
 
 export const Navbar = DefineMap.extend({
     controls: {
-        Type: NavbarControlList,
-        default() {}
+        Default: NavbarControlList
     },
     addButton(options) {
         guard.againstUndefined(options, 'options')
@@ -101,21 +100,18 @@ export const Navbar = DefineMap.extend({
 var State = DefineMap.extend({
     route: route,
     alerts: {
-        default() {
+        get() {
             return alerts;
         }
     },
     debug: {
         type: 'boolean',
-        default() {
+        get() {
             return loader.debug;
         }
     },
     navbar: {
-        Type: Navbar,
-        default() {
-            return {};
-        }
+        Default: Navbar
     },
     title: {
         type: 'string',

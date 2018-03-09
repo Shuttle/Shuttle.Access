@@ -84,7 +84,10 @@ export const ViewModel = DefineMap.extend({
     user: {
         Type: DefineMap
     },
-    isResolved: {type: 'boolean', value: false},
+    isResolved: {
+        type: 'boolean',
+        default: false
+    },
 
     init: function () {
         var self = this;
@@ -119,13 +122,13 @@ export const ViewModel = DefineMap.extend({
                 availableRoles.push({id: '', roleName: 'administrator'});
 
                 api.user.map({id: router.data.id})
-                    .then(function (repsonse) {
-                        self.user = repsonse.data;
+                    .then(function (user) {
+                        self.user = user;
 
                         each(availableRoles,
                             function (availableRole) {
                                 const roleName = availableRole.roleName.toLowerCase();
-                                const active = self.user.roles.filter(function (role) {
+                                const active = user.roles.filter(function (role) {
                                     return role.toLowerCase() === roleName;
                                 }).length > 0;
 

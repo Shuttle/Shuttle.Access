@@ -116,20 +116,17 @@ export const ViewModel = DefineMap.extend({
         self.permissions.replace(new DefineList());
 
         api.permissions.list()
-            .then(function (availablePermissionsResponse) {
-                var availablePermissions = makeArray(availablePermissionsResponse);
-
+            .then(function (availablePermissions) {
                 api.role.map({id: router.data.id})
-                    .then(function (response) {
-                        self.role = response.data;
+                    .then(function (role) {
+                        self.role = role;
 
                         each(availablePermissions,
                             function (availablePermission) {
                                 const permission = availablePermission.permission;
-                                const active = self.role.permissions.filter(function (item) {
-                                        return item.permission === permission;
-                                    }).length >
-                                    0;
+                                const active = role.permissions.filter(function (item) {
+                                        return item === permission;
+                                    }).length > 0;
 
                                 self.permissions.push(new RolePermission({
                                     permission: permission,
