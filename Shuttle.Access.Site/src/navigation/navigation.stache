@@ -7,7 +7,7 @@
 <div class="collapse navbar-collapse" id="navigation">
 <ul class="navbar-nav">
 {{#each(resources)}}
-    <cs-nav-dropdown text:from="text" href:from="href" items:from="items"/>
+    <cs-nav-dropdown text:from="text" href:from="href" list:from="list"/>
 {{/each}}
 </ul>
     <ul class="navbar-nav flex-row ml-md-auto d-md-flex">

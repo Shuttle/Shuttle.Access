@@ -18,17 +18,21 @@ namespace Shuttle.Access.Mvc
 
         private class RequiresPermission : IActionFilter
         {
+            private readonly IAccessConfiguration _configuration;
             private readonly IDatabaseContextFactory _databaseContextFactory;
             private readonly string _permission;
             private readonly ISessionQuery _sessionQuery;
 
-            public RequiresPermission(IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery,
+            public RequiresPermission(IAccessConfiguration configuration,
+                IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery,
                 string permission)
             {
+                Guard.AgainstNull(configuration, nameof(configuration));
                 Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
                 Guard.AgainstNull(sessionQuery, nameof(sessionQuery));
                 Guard.AgainstNullOrEmptyString(permission, "permission");
 
+                _configuration = configuration;
                 _databaseContextFactory = databaseContextFactory;
                 _sessionQuery = sessionQuery;
                 _permission = permission;
@@ -51,7 +55,7 @@ namespace Shuttle.Access.Mvc
                     return;
                 }
 
-                using (_databaseContextFactory.Create())
+                using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
                 {
                     if (!_sessionQuery.Contains(sessionToken, _permission) || _sessionQuery.Contains(sessionToken, "*"))
                     {

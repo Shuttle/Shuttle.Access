@@ -51,7 +51,6 @@ namespace Shuttle.Access.WebApi
             EventStore.Register(componentContainer);
 
             componentContainer.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
-
             
             _bus = ServiceBus.Create(componentContainer).Start();
 

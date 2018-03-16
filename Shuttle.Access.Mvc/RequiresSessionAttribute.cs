@@ -11,14 +11,18 @@ namespace Shuttle.Access.Mvc
 {
     public class RequiresSessionAttribute : ActionFilterAttribute
     {
+        private readonly IAccessConfiguration _configuration;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly ISessionQuery _sessionQuery;
 
-        public RequiresSessionAttribute(IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery)
+        public RequiresSessionAttribute(IAccessConfiguration configuration,
+            IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery)
         {
-            Guard.AgainstNull(databaseContextFactory,nameof(databaseContextFactory));
+            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(sessionQuery, nameof(sessionQuery));
 
+            _configuration = configuration;
             _databaseContextFactory = databaseContextFactory;
             _sessionQuery = sessionQuery;
         }
@@ -42,7 +46,7 @@ namespace Shuttle.Access.Mvc
                 return;
             }
 
-            using (_databaseContextFactory.Create())
+            using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
             {
                 if (!_sessionQuery.Contains(sessionToken))
                 {
@@ -53,7 +57,7 @@ namespace Shuttle.Access.Mvc
 
         private static void SetUnauthorized(ActionContext actionContext)
         {
-            actionContext.HttpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+            actionContext.HttpContext.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
         }
 
         private static string GetHeaderValue(IHeaderDictionary headers, string name)
