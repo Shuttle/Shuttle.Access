@@ -11,12 +11,17 @@ import state from '~/state';
 
 resources.add('role', {action: 'list', permission: Permissions.Manage.Roles});
 
+var roles = new Api({
+    endpoint: 'roles/{id}',
+    Map
+});
+
 const Map = DefineMap.extend({
     id: 'string',
-    rolwName: 'string',
+    roleName: 'string',
 
     remove: function () {
-        users.delete({id: this.id})
+        roles.delete({id: this.id})
             .then(function () {
                 state.alerts.show({
                     message: localisation.value('itemRemovalRequested',
@@ -32,11 +37,6 @@ const Map = DefineMap.extend({
             id: this.id
         });
     }
-});
-
-var roles = new Api({
-    endpoint: 'roles/{id}',
-    Map
 });
 
 export const ViewModel = DefineMap.extend(
@@ -94,9 +94,9 @@ export const ViewModel = DefineMap.extend(
             });
         },
 
-            refresh: function () {
-                this.refreshTimestamp = Date.now();
-            }
+        refresh: function () {
+            this.refreshTimestamp = Date.now();
+        }
     });
 
 

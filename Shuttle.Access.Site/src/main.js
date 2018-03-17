@@ -29,14 +29,16 @@ import '~/user/';
 
 $.ajaxPrefilter(function (options, originalOptions) {
     options.error = function (xhr) {
-        if (xhr.responseJSON) {
-            state.alerts.show({message: xhr.responseJSON.message, type: 'danger', name: 'ajax-prefilter-error'});
-        } else {
-            state.alerts.show({
-                message: xhr.status + ' / ' + xhr.statusText,
-                type: 'danger',
-                name: 'ajax-prefilter-error'
-            });
+        if (xhr.status != 200) {
+            if (xhr.responseJSON) {
+                state.alerts.show({message: xhr.responseJSON.message, type: 'danger', name: 'ajax-prefilter-error'});
+            } else {
+                state.alerts.show({
+                    message: xhr.status + ' / ' + xhr.statusText,
+                    type: 'danger',
+                    name: 'ajax-prefilter-error'
+                });
+            }
         }
 
         if (originalOptions.error) {

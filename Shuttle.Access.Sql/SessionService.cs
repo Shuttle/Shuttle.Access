@@ -63,16 +63,12 @@ namespace Shuttle.Access.Sql
             {
                 using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
                 {
-                    session = _sessionRepository.Get(token);
+                    session = _sessionRepository.Find(token);
 
                     if (session == null)
                     {
                         return RegisterSessionResult.Failure();
                     }
-
-                    session.Renew();
-
-                    _sessionRepository.Renewed(session);
                 }
             }
 

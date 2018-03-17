@@ -161,11 +161,14 @@ namespace Shuttle.Access.WebApi
             {
                 using (_databaseContextFactory.Create())
                 {
-                    var session = _sessionRepository.Get(result.SessionToken);
+                    var session = _sessionRepository.Find(result.SessionToken);
 
-                    registeredBy = session.Username;
+                    if (session != null)
+                    {
+                        registeredBy = session.Username;
 
-                    ok = session.HasPermission(SystemPermissions.Manage.Users);
+                        ok = session.HasPermission(SystemPermissions.Manage.Users);
+                    }
                 }
             }
             else

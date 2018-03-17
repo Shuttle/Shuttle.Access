@@ -6,6 +6,7 @@ namespace Shuttle.Access
 	{
 		void Save(Session session);
 		Session Get(Guid token);
+		Session Find(Guid token);
 		void Remove(Guid token);
 	    void Renewed(Session session);
 	}

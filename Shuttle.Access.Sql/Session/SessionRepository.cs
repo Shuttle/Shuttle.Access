@@ -37,7 +37,24 @@ namespace Shuttle.Access.Sql
 
         public Session Get(Guid token)
         {
+            var result = Find(token);
+
+            if (result == null)
+            {
+                throw EntityNotFoundException.For("Session", token);
+            }
+
+            return result;
+        }
+
+        public Session Find(Guid token)
+        {
             var session = _dataRepository.FetchItemUsing(_queryFactory.Get(token));
+
+            if (session == null)
+            {
+                return null;
+            }
 
             foreach (var row in _databaseGateway.GetRowsUsing(_queryFactory.GetPermissions(token)))
             {
