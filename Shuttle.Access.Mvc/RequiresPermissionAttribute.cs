@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -16,7 +15,7 @@ namespace Shuttle.Access.Mvc
             Arguments = new object[] {permission};
         }
 
-        private class RequiresPermission : IActionFilter
+        private class RequiresPermission : IAuthorizationFilter
         {
             private readonly IAccessConfiguration _configuration;
             private readonly IDatabaseContextFactory _databaseContextFactory;
@@ -38,39 +37,35 @@ namespace Shuttle.Access.Mvc
                 _permission = permission;
             }
 
-            public void OnActionExecuting(ActionExecutingContext actionContext)
+            public void OnAuthorization(AuthorizationFilterContext context)
             {
-                var headers = actionContext.HttpContext.Request.Headers;
+                var headers = context.HttpContext.Request.Headers;
                 var sessionTokenValue = GetHeaderValue(headers, "access-sessiontoken");
 
                 if (string.IsNullOrEmpty(sessionTokenValue))
                 {
-                    SetUnauthorized(actionContext);
+                    SetUnauthorized(context);
                     return;
                 }
 
                 if (!Guid.TryParse(sessionTokenValue, out var sessionToken))
                 {
-                    SetUnauthorized(actionContext);
+                    SetUnauthorized(context);
                     return;
                 }
 
                 using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
                 {
-                    if (!_sessionQuery.Contains(sessionToken, _permission) || _sessionQuery.Contains(sessionToken, "*"))
+                    if (!(_sessionQuery.Contains(sessionToken, _permission) || _sessionQuery.Contains(sessionToken, "*")))
                     {
-                        SetUnauthorized(actionContext);
+                        SetUnauthorized(context);
                     }
                 }
             }
 
-            public void OnActionExecuted(ActionExecutedContext context)
+            private static void SetUnauthorized(AuthorizationFilterContext context)
             {
-            }
-
-            private static void SetUnauthorized(ActionContext actionContext)
-            {
-                actionContext.HttpContext.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
+                context.Result = new UnauthorizedResult();
             }
 
             private static string GetHeaderValue(IHeaderDictionary headers, string name)

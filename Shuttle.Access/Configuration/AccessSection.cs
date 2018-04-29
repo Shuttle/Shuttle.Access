@@ -9,7 +9,7 @@ namespace Shuttle.Access
         [ConfigurationProperty("connectionStringName", IsRequired = false, DefaultValue = "Access")]
         public string ConnectionStringName => (string)this["connectionStringName"];
 
-        public static AccessConfiguration Configuration()
+        public static IAccessConfiguration Configuration()
         {
             var section = ConfigurationSectionProvider.Open<AccessSection>("shuttle", "access");
             var configuration = new AccessConfiguration();

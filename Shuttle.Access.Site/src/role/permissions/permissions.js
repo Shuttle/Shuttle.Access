@@ -203,7 +203,9 @@ export const ViewModel = DefineMap.extend({
                     });
             })
             .then(function () {
-                setTimeout(self.getPermissionStatus(), 1000);
+                setTimeout(function() {
+                    self.getPermissionStatus.call(self);
+                }, 1000);
             });
     }
 });

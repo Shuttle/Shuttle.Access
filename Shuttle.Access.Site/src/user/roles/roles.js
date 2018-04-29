@@ -228,7 +228,9 @@ export const ViewModel = DefineMap.extend({
                     });
             })
             .then(function () {
-                setTimeout(self.getRoleStatus(), 1000);
+                setTimeout(function () {
+                    self.getRoleStatus.call(self);
+                }, 1000);
             });
     }
 });

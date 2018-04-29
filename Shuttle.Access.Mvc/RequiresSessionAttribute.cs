@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -9,67 +8,73 @@ using Shuttle.Core.Data;
 
 namespace Shuttle.Access.Mvc
 {
-    public class RequiresSessionAttribute : ActionFilterAttribute
+    public class RequiresSessionAttribute : TypeFilterAttribute
     {
-        private readonly IAccessConfiguration _configuration;
-        private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly ISessionQuery _sessionQuery;
-
-        public RequiresSessionAttribute(IAccessConfiguration configuration,
-            IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery)
+        public RequiresSessionAttribute(string permission) : base(typeof(RequiresSession))
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
-            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            Guard.AgainstNull(sessionQuery, nameof(sessionQuery));
-
-            _configuration = configuration;
-            _databaseContextFactory = databaseContextFactory;
-            _sessionQuery = sessionQuery;
+            Arguments = new object[] { permission };
         }
 
-        public override void OnActionExecuting(ActionExecutingContext actionContext)
+        private class RequiresSession : IAuthorizationFilter
         {
-            base.OnActionExecuting(actionContext);
+            private readonly IAccessConfiguration _configuration;
+            private readonly IDatabaseContextFactory _databaseContextFactory;
+            private readonly ISessionQuery _sessionQuery;
 
-            var headers = actionContext.HttpContext.Request.Headers;
-            var sessionTokenValue = GetHeaderValue(headers, "access-sessiontoken");
-
-            if (string.IsNullOrEmpty(sessionTokenValue))
+            public RequiresSession(IAccessConfiguration configuration,
+                IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery)
             {
-                SetUnauthorized(actionContext);
-                return;
+                Guard.AgainstNull(configuration, nameof(configuration));
+                Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+                Guard.AgainstNull(sessionQuery, nameof(sessionQuery));
+
+                _configuration = configuration;
+                _databaseContextFactory = databaseContextFactory;
+                _sessionQuery = sessionQuery;
             }
 
-            if (!Guid.TryParse(sessionTokenValue, out var sessionToken))
+            private static void SetUnauthorized(AuthorizationFilterContext context)
             {
-                SetUnauthorized(actionContext);
-                return;
+                context.Result = new UnauthorizedResult();
             }
 
-            using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
+            private static string GetHeaderValue(IHeaderDictionary headers, string name)
             {
-                if (!_sessionQuery.Contains(sessionToken))
+                if (!headers.ContainsKey(name))
                 {
-                    SetUnauthorized(actionContext);
+                    return null;
+                }
+
+                var tokens = headers[name].ToList();
+
+                return tokens.Count != 1 ? null : tokens[0];
+            }
+
+            public void OnAuthorization(AuthorizationFilterContext context)
+            {
+                var headers = context.HttpContext.Request.Headers;
+                var sessionTokenValue = GetHeaderValue(headers, "access-sessiontoken");
+
+                if (string.IsNullOrEmpty(sessionTokenValue))
+                {
+                    SetUnauthorized(context);
+                    return;
+                }
+
+                if (!Guid.TryParse(sessionTokenValue, out var sessionToken))
+                {
+                    SetUnauthorized(context);
+                    return;
+                }
+
+                using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
+                {
+                    if (!_sessionQuery.Contains(sessionToken))
+                    {
+                        SetUnauthorized(context);
+                    }
                 }
             }
-        }
-
-        private static void SetUnauthorized(ActionContext actionContext)
-        {
-            actionContext.HttpContext.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
-        }
-
-        private static string GetHeaderValue(IHeaderDictionary headers, string name)
-        {
-            if (!headers.ContainsKey(name))
-            {
-                return null;
-            }
-
-            var tokens = headers[name].ToList();
-
-            return tokens.Count != 1 ? null : tokens[0];
         }
     }
 }
