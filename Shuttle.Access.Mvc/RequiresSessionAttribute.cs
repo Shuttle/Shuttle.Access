@@ -10,9 +10,9 @@ namespace Shuttle.Access.Mvc
 {
     public class RequiresSessionAttribute : TypeFilterAttribute
     {
-        public RequiresSessionAttribute(string permission) : base(typeof(RequiresSession))
+        public RequiresSessionAttribute() : base(typeof(RequiresSession))
         {
-            Arguments = new object[] { permission };
+            Arguments = new object[] { };
         }
 
         private class RequiresSession : IAuthorizationFilter
