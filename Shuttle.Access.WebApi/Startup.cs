@@ -70,9 +70,7 @@ namespace Shuttle.Access.WebApi
             componentContainer.Register<IDatabaseContextCache, ContextDatabaseContextCache>();
             componentContainer.Register<IHashingService, HashingService>();
 
-            var accessConfiguration = AccessSection.Configuration();
-
-            componentContainer.RegisterInstance(accessConfiguration);
+            componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessConfiguration>());
 
             var applicationPartManager = app.ApplicationServices.GetRequiredService<ApplicationPartManager>();
             var controllerFeature = new ControllerFeature();
