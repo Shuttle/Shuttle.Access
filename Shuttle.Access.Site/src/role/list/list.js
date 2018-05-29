@@ -11,11 +11,6 @@ import state from '~/state';
 
 resources.add('role', {action: 'list', permission: Permissions.Manage.Roles});
 
-var roles = new Api({
-    endpoint: 'roles/{id}',
-    Map
-});
-
 const Map = DefineMap.extend({
     id: 'string',
     roleName: 'string',
@@ -39,6 +34,11 @@ const Map = DefineMap.extend({
     }
 });
 
+var roles = new Api({
+    endpoint: 'roles/{id}',
+    Map
+});
+
 export const ViewModel = DefineMap.extend(
     'role-list',
     {
@@ -57,7 +57,7 @@ export const ViewModel = DefineMap.extend(
                 columns.push({
                     columnTitle: 'role:permissions.title',
                     columnClass: 'col-1',
-                    stache: '<cs-button text:from="\'role:permissions.title\'" click:from="@permissions" elementClass:from="\'btn-sm\'"/>'
+                    stache: '<cs-button text:from="\'role:permissions.title\'" click:from="permissions" elementClass:from="\'btn-sm\'"/>'
                 });
 
                 columns.push({
@@ -69,7 +69,7 @@ export const ViewModel = DefineMap.extend(
                 columns.push({
                     columnTitle: 'remove',
                     columnClass: 'col-1',
-                    stache: '<cs-button-remove click:from="@remove" elementClass:from="\'btn-sm\'"/>'
+                    stache: '<cs-button-remove click:from="remove" elementClass:from="\'btn-sm\'"/>'
                 });
             }
 

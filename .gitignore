@@ -114,3 +114,5 @@ Backup*/
 UpgradeLog*.XML
 .vs/config/applicationhost.config
 *.jfm
+Shuttle.Access.Site/dev-bundle.css
+Shuttle.Access.Site/dev-bundle.js
