@@ -1,32 +1,32 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-#if NET40FULL
-[assembly: AssemblyTitle("Shuttle.Access.Sql for .NET Framework 4.0")]
+#if NET461
+[assembly: AssemblyTitle(".NET Framework 4.6.1")]
 #endif
 
-#if NET45FULL
-[assembly: AssemblyTitle("Shuttle.Access.Sql for .NET Framework 4.5")]
+#if NET462
+[assembly: AssemblyTitle(".NET Framework 4.6.2")]
 #endif
 
-#if NET451FULL
-[assembly: AssemblyTitle("Shuttle.Access.Sql for .NET Framework 4.5.1")]
+#if NET47
+[assembly: AssemblyTitle(".NET Framework 4.7")]
 #endif
 
-#if NET452FULL
-[assembly: AssemblyTitle("Shuttle.Access.Sql for .NET Framework 4.5.2")]
+#if NET471
+[assembly: AssemblyTitle(".NET Framework 4.7.1")]
 #endif
 
-#if NET46FULL
-[assembly: AssemblyTitle("Shuttle.Access.Sql for .NET Framework 4.6")]
+#if NETCOREAPP2_0
+[assembly: AssemblyTitle(".NET Core 2.0")]
 #endif
 
-#if NET461FULL
-[assembly: AssemblyTitle("Shuttle.Access.Sql for .NET Framework 4.6.1")]
+#if NETCOREAPP2_1
+[assembly: AssemblyTitle(".NET Core 2.1")]
 #endif
 
-#if NET462FULL
-[assembly: AssemblyTitle("Shuttle.Access.Sql for .NET Framework 4.6.2")]
+#if NETSTANDARD2_0
+[assembly: AssemblyTitle(".NET Standard 2.0")]
 #endif
 
 [assembly: AssemblyVersion("1.0.4.0")]

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Data.Common;
+using System.Data.SqlClient;
 using System.IO;
 using log4net;
 using Microsoft.AspNetCore;
@@ -12,6 +14,8 @@ namespace Shuttle.Access.WebApi
     {
         public static void Main(string[] args)
         {
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+
             Log.Assign(
                 new Log4NetLog(LogManager.GetLogger(typeof(Program)),
                     new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.xml"))));
