@@ -44,7 +44,7 @@ namespace Shuttle.Access.Sql
 
                 if (!userId.HasValue)
                 {
-                    _log.Trace(string.Format("[username not found] : username = '{0}'", username));
+                    _log.Trace($"[username not found] : username = '{username}'");
 
                     return AuthenticationResult.Failure();
                 }
@@ -61,7 +61,7 @@ namespace Shuttle.Access.Sql
                 return AuthenticationResult.Success();
             }
 
-            _log.Trace(string.Format("[invalid password] : username = '{0}'", username));
+            _log.Trace($"[invalid password] : username = '{username}'");
 
             return AuthenticationResult.Failure();
         }
