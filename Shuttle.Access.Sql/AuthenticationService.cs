@@ -3,6 +3,7 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Logging;
 using Shuttle.Recall;
+using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Sql
 {
