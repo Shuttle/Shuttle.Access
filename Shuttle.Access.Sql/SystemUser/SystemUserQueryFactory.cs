@@ -52,16 +52,16 @@ if not exists(select null from [dbo].[SystemUserRole] where UserId = @UserId and
     insert into [dbo].[SystemUserRole]
     (
 	    [UserId],
-	    [RoleName]
+	    [RoleId]
     )
     values
     (
 	    @UserId,
-	    @RoleName
+	    @RoleId
     )
 ")
                 .AddParameterValue(SystemUserRoleColumns.UserId, id)
-                .AddParameterValue(SystemUserRoleColumns.RoleName, domainEvent.Role);
+                .AddParameterValue(SystemUserRoleColumns.RoleId, domainEvent.RoleId);
         }
 
         public IQuery Search()
@@ -77,7 +77,7 @@ if not exists(select null from [dbo].[SystemUserRole] where UserId = @UserId and
 
         public IQuery Roles(Guid id)
         {
-            return RawQuery.Create(@"select RoleName from dbo.SystemUserRole where UserId = @UserId")
+            return RawQuery.Create(@"select RoleId from dbo.SystemUserRole where UserId = @UserId")
                 .AddParameterValue(SystemUserRoleColumns.UserId, id);
         }
 
@@ -90,10 +90,10 @@ from
 where
     [UserId] = @UserId
 and
-	[RoleName] = @RoleName
+	[RoleId] = @RoleId
 ")
                 .AddParameterValue(SystemUserRoleColumns.UserId, id)
-                .AddParameterValue(SystemUserRoleColumns.RoleName, domainEvent.Role);
+                .AddParameterValue(SystemUserRoleColumns.RoleId, domainEvent.RoleId);
         }
 
         public IQuery AdministratorCount()

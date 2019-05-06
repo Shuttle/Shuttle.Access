@@ -1,5 +1,5 @@
 ﻿CREATE TABLE [dbo].[SystemUser] (
-    [Id]             UNIQUEIDENTIFIER NOT NULL,
+    [Id]             UNIQUEIDENTIFIER NOT NULL DEFAULT newid(),
     [Username]       VARCHAR (65)     NOT NULL,
     [DateRegistered] DATETIME         NOT NULL,
     [RegisteredBy]   VARCHAR (65)     NOT NULL,

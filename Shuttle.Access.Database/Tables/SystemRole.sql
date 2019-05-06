@@ -1,5 +1,5 @@
 ﻿CREATE TABLE [dbo].[SystemRole] (
-    [Id]       UNIQUEIDENTIFIER NOT NULL,
+    [Id]       UNIQUEIDENTIFIER NOT NULL DEFAULT newid(),
     [RoleName] VARCHAR (130)    NOT NULL,
     CONSTRAINT [PK_SystemRole] PRIMARY KEY NONCLUSTERED ([Id] ASC)
 );

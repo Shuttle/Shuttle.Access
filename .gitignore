@@ -116,3 +116,4 @@ UpgradeLog*.XML
 *.jfm
 Shuttle.Access.Site/dev-bundle.css
 Shuttle.Access.Site/dev-bundle.js
+Shuttle.Access.Database/Shuttle.Access.Database.refactorlog

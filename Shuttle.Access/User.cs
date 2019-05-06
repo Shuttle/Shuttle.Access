@@ -10,7 +10,7 @@ namespace Shuttle.Access
     {
         private readonly Guid _id;
         private byte[] _passwordHash;
-        private readonly List<string> _roles = new List<string>();
+        private readonly List<Guid> _roles = new List<Guid>();
         private string _username;
 
         public User(Guid id)
@@ -41,7 +41,7 @@ namespace Shuttle.Access
 
         public static string Key(string username)
         {
-            return string.Format("[user]:username={0};", username);
+            return $"[user]:username={username};";
         }
 
         public bool PasswordMatches(byte[] hash)
@@ -51,42 +51,40 @@ namespace Shuttle.Access
             return _passwordHash.SequenceEqual(hash);
         }
 
-        public RoleAdded AddRole(string role)
+        public RoleAdded AddRole(Guid roleId)
         {
-            return On(new RoleAdded {Role = role});
+            return On(new RoleAdded {RoleId = roleId});
         }
 
         private RoleAdded On(RoleAdded roleAdded)
         {
             Guard.AgainstNull(roleAdded, nameof(roleAdded));
 
-            _roles.Add(roleAdded.Role);
+            _roles.Add(roleAdded.RoleId);
 
             return roleAdded;
         }
 
-        public bool IsInRole(string role)
+        public bool IsInRole(Guid roleId)
         {
-            return _roles.Contains(role);
+            return _roles.Contains(roleId);
         }
 
-        public RoleRemoved RemoveRole(string role)
+        public RoleRemoved RemoveRole(Guid roleId)
         {
-            Guard.AgainstNullOrEmptyString(role, "role");
-
-            if (!IsInRole(role))
+            if (!IsInRole(roleId))
             {
-                throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, role, _username));
+                throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, roleId, _username));
             }
 
-            return On(new RoleRemoved { Role = role });
+            return On(new RoleRemoved { RoleId = roleId });
         }
 
         private RoleRemoved On(RoleRemoved roleRemoved)
         {
             Guard.AgainstNull(roleRemoved, nameof(roleRemoved));
 
-            _roles.Remove(roleRemoved.Role);
+            _roles.Remove(roleRemoved.RoleId);
 
             return roleRemoved;
         }

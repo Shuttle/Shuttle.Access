@@ -1,7 +1,9 @@
-﻿namespace Shuttle.Access.Events.User.v1
+﻿using System;
+
+namespace Shuttle.Access.Events.User.v1
 {
     public class RoleRemoved
     {
-        public string Role { get; set; } 
+        public Guid RoleId { get; set; } 
     }
 }
