@@ -47,10 +47,8 @@ namespace Shuttle.Access.Projection
 
             _eventProcessor = container.Resolve<IEventProcessor>();
 
-            _eventProcessor.AddProjection(
-                new Recall.Projection("SystemUsers").AddEventHandler(container.Resolve<UserHandler>()));
-            _eventProcessor.AddProjection(
-                new Recall.Projection("SystemRoles").AddEventHandler(container.Resolve<RoleHandler>()));
+            container.AddEventHandler<UserHandler>("SystemUsers");
+            container.AddEventHandler<RoleHandler>("SystemRoles");
 
             _eventProcessor.Start();
         }

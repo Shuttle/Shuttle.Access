@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Shuttle.Access.Events.Role.v1;
+using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
-using Shuttle.Recall;
 
 namespace Shuttle.Access.Sql
 {
@@ -15,8 +14,8 @@ namespace Shuttle.Access.Sql
         private readonly ISystemRoleQueryFactory _queryFactory;
         private readonly IQueryMapper _queryMapper;
 
-        public SystemRoleQuery(IDatabaseGateway databaseGateway, ISystemRoleQueryFactory queryFactory,
-            IQueryMapper queryMapper)
+        public SystemRoleQuery(IDatabaseGateway databaseGateway,
+            IQueryMapper queryMapper, ISystemRoleQueryFactory queryFactory)
         {
             Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
             Guard.AgainstNull(queryFactory, nameof(queryFactory));
@@ -35,14 +34,21 @@ namespace Shuttle.Access.Sql
                     .ToList();
         }
 
-        public IEnumerable<DataRow> Search()
+        public IEnumerable<DataRow> Search(DataAccess.Query.Role.Specification specification)
         {
-            return _databaseGateway.GetRowsUsing(_queryFactory.Search());
+            Guard.AgainstNull(specification, nameof(specification));
+
+            return _databaseGateway.GetRowsUsing(_queryFactory.Search(specification));
         }
 
-        public Query.Role Get(Guid id)
+        public DataAccess.Query.Role Get(Guid id)
         {
-            var result = _queryMapper.MapObject<Query.Role>(_queryFactory.Get(id));
+            var result = _queryMapper.MapObject<DataAccess.Query.Role>(_queryFactory.Get(id));
+
+            if (result == null)
+            {
+                throw RecordNotFoundException.For<DataAccess.Query.Role>(id);
+            }
 
             result.Permissions = new List<string>(_queryMapper.MapValues<string>(_queryFactory.Permissions(id)));
 

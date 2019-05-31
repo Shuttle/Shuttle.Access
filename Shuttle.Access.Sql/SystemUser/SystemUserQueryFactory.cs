@@ -1,4 +1,5 @@
 ﻿using System;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Events.User.v1;
 using Shuttle.Core.Data;
 

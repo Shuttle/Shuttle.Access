@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
@@ -34,11 +35,11 @@ namespace Shuttle.Access.Sql
             return _databaseGateway.GetRowsUsing(_queryFactory.Search());
         }
 
-        public Query.User Get(Guid id)
+        public DataAccess.Query.User Get(Guid id)
         {
             var row = _databaseGateway.GetSingleRowUsing(_queryFactory.Get(id));
 
-            var result = new Query.User
+            var result = new DataAccess.Query.User
             {
                 Id = SystemUserColumns.Id.MapFrom(row),
                 DateRegistered = SystemUserColumns.DateRegistered.MapFrom(row),
@@ -48,7 +49,7 @@ namespace Shuttle.Access.Sql
 
             foreach (var roleRow in _databaseGateway.GetRowsUsing(_queryFactory.Roles(id)))
             {
-                result.Roles.Add(SystemUserRoleColumns.RoleName.MapFrom(roleRow));
+                result.Roles.Add(SystemUserRoleColumns.RoleId.MapFrom(roleRow));
             }
 
             return result;

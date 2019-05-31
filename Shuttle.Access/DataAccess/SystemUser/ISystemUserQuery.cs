@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 
-namespace Shuttle.Access
+namespace Shuttle.Access.DataAccess
 {
     public interface ISystemUserQuery
     {

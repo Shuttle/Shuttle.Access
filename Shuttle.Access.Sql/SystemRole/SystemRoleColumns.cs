@@ -7,6 +7,7 @@ namespace Shuttle.Access.Sql
     public class SystemRoleColumns
     {
         public static readonly MappedColumn<Guid> Id = new MappedColumn<Guid>("Id", DbType.Guid);
-        public static readonly MappedColumn<string> RoleName = new MappedColumn<string>("RoleName", DbType.String, 130);
+        public static readonly MappedColumn<string> RoleName = new MappedColumn<string>("RoleName", DbType.String);
+        public static readonly MappedColumn<string> RoleNameMatch = new MappedColumn<string>("RoleNameMatch", DbType.String);
     }
 }

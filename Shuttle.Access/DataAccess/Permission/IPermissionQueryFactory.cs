@@ -1,6 +1,6 @@
 ﻿using Shuttle.Core.Data;
 
-namespace Shuttle.Access
+namespace Shuttle.Access.DataAccess
 {
     public interface IPermissionQueryFactory
     {

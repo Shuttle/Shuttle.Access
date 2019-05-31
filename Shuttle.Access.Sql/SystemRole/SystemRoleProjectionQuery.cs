@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Events.Role.v1;
+﻿using Shuttle.Access.DataAccess;
+using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Recall;

@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Sql", "Shutt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.WebApi", "Shuttle.Access.WebApi\Shuttle.Access.WebApi.csproj", "{48AC876B-8F98-4FC0-87E3-134DD79D029D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Mvc", "Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj", "{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc", "Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj", "{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Tests", "Shuttle.Access.Tests\Shuttle.Access.Tests.csproj", "{F73242AF-AE6C-4C73-B542-D2200BEEA110}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -59,6 +61,10 @@ Global
 		{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F73242AF-AE6C-4C73-B542-D2200BEEA110}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F73242AF-AE6C-4C73-B542-D2200BEEA110}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F73242AF-AE6C-4C73-B542-D2200BEEA110}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F73242AF-AE6C-4C73-B542-D2200BEEA110}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

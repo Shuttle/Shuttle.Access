@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Shuttle.Access
+namespace Shuttle.Access.DataAccess
 {
     public interface IPermissionQuery
     {

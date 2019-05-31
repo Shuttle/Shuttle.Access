@@ -1,5 +1,7 @@
 ﻿using System;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Events.Role.v1;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
 namespace Shuttle.Access.Sql
@@ -33,15 +35,31 @@ where
                 .AddParameterValue(SystemRolePermissionColumns.RoleId, roleId);
         }
 
-        public IQuery Search()
+        public IQuery Search(DataAccess.Query.Role.Specification specification)
         {
+            Guard.AgainstNull(specification, nameof(specification));
+
             return RawQuery.Create(@"
 select
     Id,
     RoleName
 from
     SystemRole
-");
+where
+(
+    isnull(@RoleNameMatch, '') = ''
+    or
+    RoleName like '%' + @RoleNameMatch + '%'
+)
+or
+(
+    isnull(@RoleName, '') = ''
+    or
+    RoleName like '%' + @RoleName + '%'
+)
+")
+                .AddParameterValue(SystemRoleColumns.RoleNameMatch, specification.RoleNameMatch)
+                .AddParameterValue(SystemRoleColumns.RoleName, specification.RoleName);
         }
 
         public IQuery Added(Guid id, Added domainEvent)

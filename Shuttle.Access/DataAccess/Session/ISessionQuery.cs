@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shuttle.Access
+namespace Shuttle.Access.DataAccess
 {
     public interface ISessionQuery
     {

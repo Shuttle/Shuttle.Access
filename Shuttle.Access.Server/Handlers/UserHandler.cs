@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Linq;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
@@ -18,20 +19,26 @@ namespace Shuttle.Access.Server
 		private readonly IEventStore _eventStore;
 		private readonly IKeyStore _keyStore;
 		private readonly ISystemUserQuery _systemUserQuery;
+        private readonly ISystemRoleQuery _systemRoleQuery;
+        private readonly IDataRowMapper _dataRowMapper;
 
-		public UserHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore,
-			ISystemUserQuery systemUserQuery)
+        public UserHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore,
+            ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery, IDataRowMapper dataRowMapper)
 		{
 			Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
 			Guard.AgainstNull(eventStore, nameof(eventStore));
 			Guard.AgainstNull(keyStore, nameof(keyStore));
 			Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
+			Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
+			Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
 
 			_databaseContextFactory = databaseContextFactory;
 			_eventStore = eventStore;
 			_keyStore = keyStore;
 			_systemUserQuery = systemUserQuery;
-		}
+            _systemRoleQuery = systemRoleQuery;
+            _dataRowMapper = dataRowMapper;
+        }
 
 		public void ProcessMessage(IHandlerContext<RegisterUserCommand> context)
 		{
@@ -69,8 +76,18 @@ namespace Shuttle.Access.Server
 
 				if (count == 0)
 				{
-					stream.AddEvent(user.AddRole("administrator"));
-				}
+                    var rows = _systemRoleQuery.Search(new DataAccess.Query.Role.Specification().WithRoleNameMatch("Administrator")).ToList();
+
+                    if (rows.Count == 1)
+                    {
+                        var role = _dataRowMapper.MapObject<DataAccess.Query.Role>(rows[0]);
+
+                        if (role.Name.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            stream.AddEvent(user.AddRole(role.Id));
+                        }
+                    }
+                }
 
 				stream.AddEvent(registered);
 
@@ -84,24 +101,19 @@ namespace Shuttle.Access.Server
 
 			using (_databaseContextFactory.Create())
 			{
-				if (!message.Active && message.RoleName.Equals("administrator") && _systemUserQuery.AdministratorCount() == 1)
-				{
-					return;
-				}
-
 				var user = new User(message.UserId);
 				var stream = _eventStore.Get(message.UserId);
 
 				stream.Apply(user);
 
-				if (message.Active && !user.IsInRole(message.RoleName))
+				if (message.Active && !user.IsInRole(message.RoleId))
 				{
-					stream.AddEvent(user.AddRole(message.RoleName));
+					stream.AddEvent(user.AddRole(message.RoleId));
 				}
 
-				if (!message.Active && user.IsInRole(message.RoleName))
+				if (!message.Active && user.IsInRole(message.RoleId))
 				{
-					stream.AddEvent(user.RemoveRole(message.RoleName));
+					stream.AddEvent(user.RemoveRole(message.RoleId));
 				}
 
 				_eventStore.Save(stream);

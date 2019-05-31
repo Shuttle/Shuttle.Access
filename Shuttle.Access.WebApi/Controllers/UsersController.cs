@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
 using Shuttle.Access.Sql;
@@ -20,10 +21,12 @@ namespace Shuttle.Access.WebApi
         private readonly IHashingService _hashingService;
         private readonly ISessionRepository _sessionRepository;
         private readonly ISystemUserQuery _systemUserQuery;
+        private readonly ISystemRoleQuery _systemRoleQuery;
+        private readonly IDataRowMapper _dataRowMapper;
 
         public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,
             IHashingService hashingService, ISessionRepository sessionRepository,
-            IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery)
+            IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery, IDataRowMapper dataRowMapper)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(bus, nameof(bus));
@@ -31,6 +34,8 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
+            Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
+            Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
 
             _databaseContextFactory = databaseContextFactory;
             _bus = bus;
@@ -38,6 +43,8 @@ namespace Shuttle.Access.WebApi
             _sessionRepository = sessionRepository;
             _authorizationService = authorizationService;
             _systemUserQuery = systemUserQuery;
+            _systemRoleQuery = systemRoleQuery;
+            _dataRowMapper = dataRowMapper;
         }
 
         [RequiresPermission(SystemPermissions.Manage.Users)]
@@ -96,24 +103,32 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                if (model.RoleName.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase)
-                    &&
-                    !model.Active
-                    &&
-                    _systemUserQuery.AdministratorCount() == 1)
+                var rows = _systemRoleQuery.Search(
+                    new DataAccess.Query.Role.Specification().WithRoleName("Administrator")).ToList();
+
+                if (rows.Count == 1)
                 {
-                    return Ok(new
+                    var role = _dataRowMapper.MapObject<DataAccess.Query.Role>(rows[0]);
+
+                    if (model.RoleId.Equals(role.Id)
+                        &&
+                        !model.Active
+                        &&
+                        _systemUserQuery.AdministratorCount() == 1)
                     {
-                        Success = false,
-                        FailureReason = "LastAdministrator"
-                    });
+                        return Ok(new
+                        {
+                            Success = false,
+                            FailureReason = "LastAdministrator"
+                        });
+                    }
                 }
             }
 
             _bus.Send(new SetUserRoleCommand
             {
                 UserId = model.UserId,
-                RoleName = model.RoleName,
+                RoleId = model.RoleId,
                 Active = model.Active
             });
 

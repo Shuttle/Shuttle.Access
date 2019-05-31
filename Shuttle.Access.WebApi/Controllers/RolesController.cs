@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
 using Shuttle.Access.Sql;
@@ -78,7 +79,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Data = from row in _systemRoleQuery.Search()
+                    Data = from row in _systemRoleQuery.Search(new DataAccess.Query.Role.Specification())
                     select new
                     {
                         Id = SystemRoleColumns.Id.MapFrom(row),

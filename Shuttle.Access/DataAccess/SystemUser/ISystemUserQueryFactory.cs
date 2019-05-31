@@ -2,7 +2,7 @@
 using Shuttle.Access.Events.User.v1;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access
+namespace Shuttle.Access.DataAccess
 {
     public interface ISystemUserQueryFactory
     {
