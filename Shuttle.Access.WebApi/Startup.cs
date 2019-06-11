@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using Castle.MicroKernel;
+﻿using System.Linq;
 using Castle.Windsor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Castle;
 using Shuttle.Core.Container;
@@ -22,7 +21,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.WebApi
 {
-    public class Startup 
+    public class Startup
     {
         private IServiceBus _bus;
 
@@ -61,7 +60,8 @@ namespace Shuttle.Access.WebApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env,
+            IApplicationLifetime applicationLifetime)
         {
             var container = app.ApplicationServices.GetService<IWindsorContainer>();
 
@@ -88,9 +88,23 @@ namespace Shuttle.Access.WebApi
             ServiceBus.Register(componentContainer);
             EventStore.Register(componentContainer);
 
-            componentContainer.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
+            var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>();
+            var roleQuery = componentContainer.Resolve<ISystemRoleQuery>();
+
+            databaseContextFactory.ConfigureWith("Access");
 
             _bus = ServiceBus.Create(componentContainer).Start();
+
+            using (databaseContextFactory.Create())
+            {
+                if (roleQuery.Count(new DataAccess.Query.Role.Specification().WithRoleName("Administrator")) == 0)
+                {
+                    _bus.Send(new AddRoleCommand
+                    {
+                        Name = "Administrator"
+                    });
+                }
+            }
 
             applicationLifetime.ApplicationStopping.Register(OnShutdown);
 

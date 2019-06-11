@@ -1,8 +1,5 @@
-import DefineMap from 'can-define/map/';
-import DefineList from 'can-define/list/';
-import Component from 'can-component';
+import {DefineMap,DefineList,Component,Reflect} from 'can';
 import view from './navigation.stache!';
-import each from 'can-util/js/each/';
 import {DropdownMap, DropdownList} from 'shuttle-canstrap/nav-dropdown/';
 import map from './navigation-map';
 import access from 'shuttle-access';
@@ -32,13 +29,13 @@ var ViewModel = DefineMap.extend({
         get: function (value) {
             var result = new DefineList();
 
-            each(map, function (item) {
+            Reflect.each(map, function (item) {
                 var add = false;
                 var list = new DropdownList();
 
                 if (!item.permission || access.hasPermission(item.permission)) {
                     if (item.items !== undefined) {
-                        each(item.items, function (subitem) {
+                        Reflect.each(item.items, function (subitem) {
                             if (!subitem.permission || access.hasPermission(subitem.permission)) {
                                 add = true;
 

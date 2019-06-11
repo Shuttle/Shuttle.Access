@@ -5,10 +5,10 @@
               title:from="'confirmation'" message:from="modal.confirmation.message"
               primaryClick:from='modal@confirmation@primaryClick'/>
     <div id="application-content"></div>
-    {{#if debug}}
-        <footer class="footer">
-            <p class="text-muted">route: {{route.data.full}}</p>
-        </footer>
-    {{/if}}
 </main>
 
+{{#if debug}}
+    <footer class="footer">
+        <p class="text-muted">route: {{route.data.full}}</p>
+    </footer>
+{{/if}}

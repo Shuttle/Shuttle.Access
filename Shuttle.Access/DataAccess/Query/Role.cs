@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Shuttle.Access.DataAccess.Query
 {
@@ -25,13 +24,7 @@ namespace Shuttle.Access.DataAccess.Query
             }
         }
 
-        public Role()
-        {
-            Permissions = new List<string>();
-        }
-
-        public string Name { get; set; }
-        public List<string> Permissions { get; set; }
+        public string RoleName { get; set; }
         public Guid Id { get; set; }
     }
 }

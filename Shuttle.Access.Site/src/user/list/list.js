@@ -1,5 +1,4 @@
-import Component from 'can-component/';
-import DefineMap from 'can-define/map/';
+import {DefineMap,DefineList,Component} from 'can';
 import view from './list.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
@@ -20,7 +19,7 @@ const Map = DefineMap.extend({
     remove: function () {
         users.delete({id: this.id})
             .then(function () {
-                state.alerts.show({
+                state.alerts.add({
                     message: localisation.value('itemRemovalRequested',
                         {itemName: localisation.value('user:title')})
                 });
@@ -62,7 +61,7 @@ export const ViewModel = DefineMap.extend({
             columns.push({
                 columnTitle: 'user:list.roles',
                 columnClass: 'col-1',
-                stache: '<cs-button text:from="\'user:list.roles\'" click:from="@roles" elementClass:from="\'btn-sm\'"/>'
+                stache: '<cs-button text:from="\'user:list.roles\'" click:from="@roles" elementClass:raw="btn-sm btn-primary"/>'
             });
 
             columns.push({
@@ -86,7 +85,7 @@ export const ViewModel = DefineMap.extend({
             columns.push({
                 columnTitle: 'remove',
                 columnClass: 'col-1',
-                stache: '<cs-button-remove click:from="@remove" elementClass:from="\'btn-sm\'"/>'
+                stache: '<cs-button-remove click:from="@remove" elementClass:raw="btn-sm btn-danger"/>'
             });
         }
 

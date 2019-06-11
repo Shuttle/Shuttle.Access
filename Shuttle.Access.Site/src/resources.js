@@ -1,6 +1,4 @@
-import DefineMap from 'can-define/map/';
-import DefineList from 'can-define/list/';
-import each from 'can-util/js/each/';
+import {DefineMap,DefineList,Reflect} from 'can';
 
 var Resources = DefineMap.extend({
 	_resources: { Value: DefineList },
@@ -29,7 +27,7 @@ var Resources = DefineMap.extend({
 		var o = options || {};
 		var result = undefined;
 
-		each(this._resources, function (resource) {
+		Reflect.each(this._resources, function (resource) {
 			if (result) {
 				return;
 			}

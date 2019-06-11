@@ -22,11 +22,10 @@ namespace Shuttle.Access.WebApi
         private readonly ISessionRepository _sessionRepository;
         private readonly ISystemUserQuery _systemUserQuery;
         private readonly ISystemRoleQuery _systemRoleQuery;
-        private readonly IDataRowMapper _dataRowMapper;
 
         public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,
             IHashingService hashingService, ISessionRepository sessionRepository,
-            IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery, IDataRowMapper dataRowMapper)
+            IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(bus, nameof(bus));
@@ -35,7 +34,6 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
             Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
-            Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
 
             _databaseContextFactory = databaseContextFactory;
             _bus = bus;
@@ -44,7 +42,6 @@ namespace Shuttle.Access.WebApi
             _authorizationService = authorizationService;
             _systemUserQuery = systemUserQuery;
             _systemRoleQuery = systemRoleQuery;
-            _dataRowMapper = dataRowMapper;
         }
 
         [RequiresPermission(SystemPermissions.Manage.Users)]
@@ -55,14 +52,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Data = from row in _systemUserQuery.Search()
-                    select new
-                    {
-                        Id = SystemUserColumns.Id.MapFrom(row),
-                        Username = SystemUserColumns.Username.MapFrom(row),
-                        DateRegistered = SystemUserColumns.DateRegistered.MapFrom(row),
-                        RegisteredBy = SystemUserColumns.RegisteredBy.MapFrom(row)
-                    }
+                    Data = _systemUserQuery.Search(new DataAccess.Query.User.Specification())
                 });
             }
         }
@@ -75,7 +65,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Data = _systemUserQuery.Get(id)
+                    Data = _systemUserQuery.GetExtended(id)
                 });
             }
         }
@@ -103,12 +93,12 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                var rows = _systemRoleQuery.Search(
+                var roles = _systemRoleQuery.Search(
                     new DataAccess.Query.Role.Specification().WithRoleName("Administrator")).ToList();
 
-                if (rows.Count == 1)
+                if (roles.Count == 1)
                 {
-                    var role = _dataRowMapper.MapObject<DataAccess.Query.Role>(rows[0]);
+                    var role = roles[0];
 
                     if (model.RoleId.Equals(role.Id)
                         &&
@@ -192,7 +182,7 @@ namespace Shuttle.Access.WebApi
 
                 using (_databaseContextFactory.Create())
                 {
-                    count = _systemUserQuery.Count();
+                    count = _systemUserQuery.Count(new DataAccess.Query.User.Specification());
                 }
 
                 if (count == 0)

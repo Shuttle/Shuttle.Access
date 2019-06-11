@@ -37,12 +37,23 @@ where
 
         public IQuery Search(DataAccess.Query.Role.Specification specification)
         {
+            return Specification(specification, true);
+        }
+
+        private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
+        {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return RawQuery.Create(@"
-select
+            var what = columns
+                ? @"
     Id,
     RoleName
+"
+                : "count(*)";
+
+            return RawQuery.Create($@"
+select
+{what}
 from
     SystemRole
 where
@@ -55,10 +66,10 @@ or
 (
     isnull(@RoleName, '') = ''
     or
-    RoleName like '%' + @RoleName + '%'
+    RoleName = @RoleName
 )
 ")
-                .AddParameterValue(SystemRoleColumns.RoleNameMatch, specification.RoleNameMatch)
+            .AddParameterValue(SystemRoleColumns.RoleNameMatch, specification.RoleNameMatch)
                 .AddParameterValue(SystemRoleColumns.RoleName, specification.RoleName);
         }
 
@@ -136,6 +147,11 @@ where
     [Id] = @Id
 ")
                 .AddParameterValue(SystemRoleColumns.Id, id);
+        }
+
+        public IQuery Count(DataAccess.Query.Role.Specification specification)
+        {
+            return Specification(specification, false);
         }
     }
 }

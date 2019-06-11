@@ -42,7 +42,7 @@ namespace Shuttle.Access.Sql
 
             if (result == null)
             {
-                throw EntityNotFoundException.For("Session", token);
+                throw RecordNotFoundException.For("Session", token);
             }
 
             return result;

@@ -1,8 +1,7 @@
-import DefineMap from 'can-define/map/';
-import DefineList from 'can-define/list/';
+import {DefineMap,DefineList,} from 'can';
 import guard from 'shuttle-guard';
 import route from 'can-route';
-import {alerts} from 'shuttle-canstrap/alerts/';
+import {Alerts} from 'shuttle-canstrap/alerts/';
 import loader from '@loader';
 import stache from 'can-stache';
 import localisation from '~/localisation';
@@ -100,9 +99,7 @@ export const Navbar = DefineMap.extend({
 var State = DefineMap.extend({
     route: route,
     alerts: {
-        get() {
-            return alerts;
-        }
+        Default: Alerts
     },
     debug: {
         type: 'boolean',

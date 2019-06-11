@@ -1,4 +1,4 @@
-import DefineMap from 'can-define/map/';
+import {DefineMap} from 'can';
 import loader from '@loader';
 
 var Logger = DefineMap.extend({

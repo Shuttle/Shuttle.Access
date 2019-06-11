@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -13,8 +12,8 @@ namespace Shuttle.Access.Sql
         private readonly ISystemUserQueryFactory _queryFactory;
         private readonly IQueryMapper _queryMapper;
 
-        public SystemUserQuery(IDatabaseGateway databaseGateway, ISystemUserQueryFactory queryFactory,
-            IQueryMapper queryMapper)
+        public SystemUserQuery(IDatabaseGateway databaseGateway,
+            IQueryMapper queryMapper, ISystemUserQueryFactory queryFactory)
         {
             Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
             Guard.AgainstNull(queryFactory, nameof(queryFactory));
@@ -30,16 +29,18 @@ namespace Shuttle.Access.Sql
             return _databaseGateway.GetScalarUsing<int>(_queryFactory.AdministratorCount());
         }
 
-        public IEnumerable<DataRow> Search()
+        public IEnumerable<DataAccess.Query.User> Search(DataAccess.Query.User.Specification specification)
         {
-            return _databaseGateway.GetRowsUsing(_queryFactory.Search());
+            Guard.AgainstNull(specification, nameof(specification));
+
+            return _queryMapper.MapObjects<DataAccess.Query.User>(_queryFactory.Search(specification));
         }
 
-        public DataAccess.Query.User Get(Guid id)
+        public DataAccess.Query.UserExtended GetExtended(Guid id)
         {
             var row = _databaseGateway.GetSingleRowUsing(_queryFactory.Get(id));
 
-            var result = new DataAccess.Query.User
+            var result = new DataAccess.Query.UserExtended
             {
                 Id = SystemUserColumns.Id.MapFrom(row),
                 DateRegistered = SystemUserColumns.DateRegistered.MapFrom(row),
@@ -60,9 +61,11 @@ namespace Shuttle.Access.Sql
             return _queryMapper.MapValues<string>(_queryFactory.Roles(id));
         }
 
-        public int Count()
+        public int Count(DataAccess.Query.User.Specification specification)
         {
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count());
+            Guard.AgainstNull(specification, nameof(specification));
+
+            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count(specification));
         }
     }
 }

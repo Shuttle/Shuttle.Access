@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 
 namespace Shuttle.Access.DataAccess
 {
     public interface ISystemRoleQuery
     {
         IEnumerable<string> Permissions(string roleName);
-        IEnumerable<DataRow> Search(Query.Role.Specification specification);
-        Query.Role Get(Guid id);
+        IEnumerable<Query.Role> Search(Query.Role.Specification specification);
+        Query.RoleExtended GetExtended(Guid id);
         IEnumerable<string> Permissions(Guid id);
+        int Count(Query.Role.Specification specification);
     }
 }

@@ -1,5 +1,4 @@
-import Component from 'can-component/';
-import DefineMap from 'can-define/map/';
+import {DefineMap,Component} from 'can';
 import view from './add.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';

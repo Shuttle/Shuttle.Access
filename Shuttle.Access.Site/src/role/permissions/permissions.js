@@ -1,12 +1,8 @@
-import Component from 'can-component/';
-import DefineList from 'can-define/list/';
-import DefineMap from 'can-define/map/';
+import {DefineMap,DefineList,Component,Reflect} from 'can';
 import view from './permissions.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
 import Api from 'shuttle-can-api';
-import each from 'can-util/js/each/';
-import makeArray from 'can-util/js/make-array/';
 import router from '~/router';
 import localisation from '~/localisation';
 import state from '~/state';
@@ -29,7 +25,7 @@ const RolePermission = DefineMap.extend({
         var self = this;
 
         if (this.working) {
-            state.alerts.show({message: localisation.value('workingMessage'), name: 'working-message'});
+            state.alerts.add({message: localisation.value('workingMessage'), name: 'working-message'});
             return;
         }
 
@@ -121,7 +117,7 @@ export const ViewModel = DefineMap.extend({
                     .then(function (role) {
                         self.role = role;
 
-                        each(availablePermissions,
+                        Reflect.each(availablePermissions,
                             function (availablePermission) {
                                 const permission = availablePermission.permission;
                                 const active = role.permissions.filter(function (item) {
@@ -143,7 +139,7 @@ export const ViewModel = DefineMap.extend({
     getPermissionItem: function (permission) {
         var result;
 
-        each(this.permissions,
+        Reflect.each(this.permissions,
             function (item) {
                 if (result) {
                     return;
@@ -184,14 +180,14 @@ export const ViewModel = DefineMap.extend({
             permissions: []
         };
 
-        each(this.workingItems,
+        Reflect.each(this.workingItems,
             function (item) {
                 data.permissions.push(item.permission);
             });
 
         api.permissionStatus.post(data)
             .then(function (response) {
-                each(response.data,
+                Reflect.each(response.data,
                     function (item) {
                         const permissionItem = self.getPermissionItem(item.permission);
 

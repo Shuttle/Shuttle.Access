@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 
 namespace Shuttle.Access.DataAccess
 {
     public interface ISystemUserQuery
     {
-        int Count();
-        IEnumerable<DataRow> Search();
-        Query.User Get(Guid id);
+        int Count(Query.User.Specification specification);
+        IEnumerable<Query.User> Search(Query.User.Specification specification);
+        Query.UserExtended GetExtended(Guid id);
         IEnumerable<string> Roles(Guid id);
         int AdministratorCount();
     }

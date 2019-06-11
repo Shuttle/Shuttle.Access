@@ -33,7 +33,7 @@ namespace Shuttle.Access.Sql
 
             using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
             {
-                count = _systemUserQuery.Count();
+                count = _systemUserQuery.Count(new DataAccess.Query.User.Specification());
                 result.AddRange(_systemRoleQuery.Permissions("Anonymous"));
             }
 

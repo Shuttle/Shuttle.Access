@@ -1,12 +1,8 @@
-import Component from 'can-component/';
-import DefineList from 'can-define/list/';
-import DefineMap from 'can-define/map/';
+import {DefineMap,DefineList,Component,Reflect} from 'can';
 import view from './roles.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
 import Api from 'shuttle-can-api';
-import each from 'can-util/js/each/';
-import makeArray from 'can-util/js/make-array/';
 import router from '~/router';
 import localisation from '~/localisation';
 import state from '~/state';
@@ -33,7 +29,7 @@ const UserRole = DefineMap.extend({
         var self = this;
 
         if (this.working) {
-            state.alerts.show({message: localisation.value('workingMessage'), name: 'working-message'});
+            state.alerts.add({message: localisation.value('workingMessage'), name: 'working-message'});
             return;
         }
 
@@ -57,7 +53,7 @@ const UserRole = DefineMap.extend({
                         self.active = true;
                         self.working = false;
 
-                        state.alerts.show({
+                        state.alerts.add({
                             message: localisation.value('user:exceptions.last-administrator'),
                             name: 'last-administrator',
                             type: 'danger'
@@ -118,14 +114,14 @@ export const ViewModel = DefineMap.extend({
 
         roles.list()
             .then(function (availableRoles) {
-                availableRoles = makeArray(availableRoles);
+                availableRoles = Reflect.toArray(availableRoles);
                 availableRoles.push({id: '', roleName: 'administrator'});
 
                 api.user.map({id: router.data.id})
                     .then(function (user) {
                         self.user = user;
 
-                        each(availableRoles,
+                        Reflect.each(availableRoles,
                             function (availableRole) {
                                 const roleName = availableRole.roleName.toLowerCase();
                                 const active = user.roles.filter(function (role) {
@@ -168,7 +164,7 @@ export const ViewModel = DefineMap.extend({
     getRoleItem: function (roleName) {
         var result;
 
-        each(this.roles,
+        Reflect.each(this.roles,
             function (item) {
                 if (result) {
                     return;
@@ -209,14 +205,14 @@ export const ViewModel = DefineMap.extend({
             roles: []
         };
 
-        each(this.workingItems,
+        Reflect.each(this.workingItems,
             function (item) {
                 data.roles.push(item.roleName);
             });
 
         api.roleStatus.post(data)
             .then(function (response) {
-                each(response.data,
+                Reflect.each(response.data,
                     function (item) {
                         const roleItem = self.getRoleItem(item.roleName);
 

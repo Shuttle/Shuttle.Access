@@ -1,16 +1,19 @@
 ﻿import $ from 'jquery';
 import 'popper.js';
 import 'bootstrap';
-import 'can-stache-route-helpers';
+import 'moment';
+import 'tempusdominus';
+import '@fortawesome/fontawesome-svg-core';
 
 import 'bootstrap/dist/css/bootstrap.css';
-import 'font-awesome/css/font-awesome.css';
+import 'tempusdominus-bootstrap-4/build/css/tempusdominus-bootstrap-4.css';
 import './styles.css!';
 
+import {config as faConfiguration, library, dom} from '@fortawesome/fontawesome-svg-core'
+import {fas} from '@fortawesome/free-solid-svg-icons'
+import {far} from '@fortawesome/free-regular-svg-icons'
 import {options as apiOptions} from 'shuttle-can-api';
 import loader from '@loader';
-
-apiOptions.url = loader.serviceBaseURL;
 
 import stache from '~/main.stache!';
 import localisation from '~/localisation';
@@ -20,20 +23,26 @@ import router from '~/router';
 import canstrap from 'shuttle-canstrap';
 import access from 'shuttle-access';
 
-access.url = loader.serviceBaseURL;
-
 import '~/navigation/';
 import '~/dashboard/';
 import '~/role/';
 import '~/user/';
 
+apiOptions.url = loader.serviceBaseURL;
+access.url = loader.serviceBaseURL;
+faConfiguration.autoReplaceSvg = 'nest';
+
+library.add(fas, far)
+
+dom.watch();
+
 $.ajaxPrefilter(function (options, originalOptions) {
     options.error = function (xhr) {
         if (xhr.status != 200) {
             if (xhr.responseJSON) {
-                state.alerts.show({message: xhr.responseJSON.message, type: 'danger', name: 'ajax-prefilter-error'});
+                state.alerts.add({message: xhr.responseJSON.message, type: 'danger', name: 'ajax-prefilter-error'});
             } else {
-                state.alerts.show({
+                state.alerts.add({
                     message: xhr.status + ' / ' + xhr.statusText,
                     type: 'danger',
                     name: 'ajax-prefilter-error'

@@ -1,20 +1,18 @@
 ﻿using System;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Events.User.v1;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
 namespace Shuttle.Access.Sql
 {
     public class SystemUserQueryFactory : ISystemUserQueryFactory
     {
-        private const string SelectClause = @"
-select
-    Id,
-    Username,
-    DateRegistered,
-    RegisteredBy
-from
-    dbo.SystemUser
+        private const string Columns = @"
+    u.Id,
+    u.Username,
+    u.DateRegistered,
+    u.RegisteredBy
 ";
 
         public IQuery Register(Guid id, Registered domainEvent)
@@ -41,15 +39,38 @@ values
                 .AddParameterValue(SystemUserColumns.RegisteredBy, domainEvent.RegisteredBy);
         }
 
-        public IQuery Count()
+        public IQuery Count(DataAccess.Query.User.Specification specification)
         {
-            return RawQuery.Create("select count(*) as count from dbo.SystemUser");
+            return Specification(specification, false);
+        }
+
+        private IQuery Specification(DataAccess.Query.User.Specification specification, bool columns)
+        {
+            Guard.AgainstNull(specification, nameof(specification));
+
+            return RawQuery.Create($@"
+select distinct
+{(columns ? Columns : "count (*)")}
+from
+	SystemUser u
+left join
+	SystemUserRole ur on (ur.UserId = u.Id)
+left join
+	SystemRole r on (r.Id = ur.RoleId)    
+where
+(
+    isnull(@RoleName, '') = ''
+    or
+    r.RoleName = @RoleName
+)
+")
+                .AddParameterValue(SystemRoleColumns.RoleName, specification.RoleName);
         }
 
         public IQuery RoleAdded(Guid id, RoleAdded domainEvent)
         {
             return RawQuery.Create(@"
-if not exists(select null from [dbo].[SystemUserRole] where UserId = @UserId and RoleName = @RoleName)
+if not exists(select null from [dbo].[SystemUserRole] where UserId = @UserId and RoleId = @RoleId)
     insert into [dbo].[SystemUserRole]
     (
 	    [UserId],
@@ -65,14 +86,21 @@ if not exists(select null from [dbo].[SystemUserRole] where UserId = @UserId and
                 .AddParameterValue(SystemUserRoleColumns.RoleId, domainEvent.RoleId);
         }
 
-        public IQuery Search()
+        public IQuery Search(DataAccess.Query.User.Specification specification)
         {
-            return RawQuery.Create(SelectClause);
+            return Specification(specification, true);
         }
 
         public IQuery Get(Guid id)
         {
-            return RawQuery.Create(string.Concat(SelectClause, " where Id = @Id"))
+            return RawQuery.Create($@"
+select
+    {Columns}
+from
+    dbo.SystemUser u
+where 
+    u.Id = @Id
+")
                 .AddParameterValue(SystemUserColumns.Id, id);
         }
 

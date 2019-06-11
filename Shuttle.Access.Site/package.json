@@ -24,18 +24,24 @@
           "jquery",
           "popper.js"
         ]
+      },
+      "moment": {
+        "format": "global"
+      },
+      "tempusdominus": {
+        "format": "global"
       }
     },
     "map": {
       "popper.js": "popper.js/dist/umd/popper",
-      "bootstrap": "bootstrap/dist/js/bootstrap"
+      "bootstrap": "bootstrap/dist/js/bootstrap",
+      "tempusdominus": "tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.js"
     },
     "serviceBaseURL": "http://localhost:5599/api/",
     "debug": true,
     "localeVersion": "1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "steal-tools bundle --deps"
   },
   "repository": {
@@ -49,33 +55,27 @@
   },
   "homepage": "https://github.com/Shuttle/Shuttle.Access#readme",
   "dependencies": {
-    "bootstrap": "^4.1.1",
-    "can-component": "^4.1.0",
-    "can-compute": "^4.0.3",
-    "can-connect": "^2.0.1",
-    "can-define": "^2.3.1",
-    "can-define-validate-validatejs": "^1.0.0",
-    "can-route": "^4.0.1",
-    "can-route-pushstate": "^4.0.5",
-    "can-set": "^1.5.1",
-    "can-stache": "^4.5.0",
-    "can-stache-bindings": "^4.2.2",
-    "can-stache-route-helpers": "^0.1.4",
-    "can-util": "^3.11.6",
-    "font-awesome": "^4.7.0",
-    "i18next": "^11.3.2",
-    "i18next-xhr-backend": "^1.5.1",
-    "jquery": "^3.3.1",
-    "popper.js": "^1.14.3",
-    "shuttle-access": "^1.0.0",
-    "shuttle-can-api": "^1.0.17",
-    "shuttle-canstrap": "^1.0.50",
+    "@fortawesome/fontawesome-svg-core": "^1.2.18",
+    "@fortawesome/free-regular-svg-icons": "^5.8.2",
+    "@fortawesome/free-solid-svg-icons": "^5.8.2",
+    "bootstrap": "^4.3.1",
+    "can": "^5.26.1",
+    "can-define-validate-validatejs": "^1.1.1",
+    "i18next": "^17.0.2",
+    "i18next-xhr-backend": "^3.0.0",
+    "jquery": "^3.4.1",
+    "moment": "^2.24.0",
+    "popper.js": "^1.15.0",
+    "shuttle-access": "^1.0.3",
+    "shuttle-can-api": "^1.0.28",
+    "shuttle-canstrap": "^1.1.4",
     "shuttle-guard": "^1.0.0",
-    "steal": "^1.11.6",
+    "steal": "^2.2.1",
     "steal-css": "^1.3.2",
-    "steal-stache": "^4.1.0"
+    "steal-stache": "^4.1.4",
+    "tempusdominus-bootstrap-4": "^5.1.2"
   },
   "devDependencies": {
-    "steal-less": "^1.3.0"
+    "steal-less": "^1.3.4"
   }
 }

@@ -10,119 +10,103 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Server
 {
-	public class UserHandler :
-		IMessageHandler<RegisterUserCommand>,
-		IMessageHandler<SetUserRoleCommand>,
+    public class UserHandler :
+        IMessageHandler<RegisterUserCommand>,
+        IMessageHandler<SetUserRoleCommand>,
         IMessageHandler<RemoveUserCommand>
-	{
-		private readonly IDatabaseContextFactory _databaseContextFactory;
-		private readonly IEventStore _eventStore;
-		private readonly IKeyStore _keyStore;
-		private readonly ISystemUserQuery _systemUserQuery;
-        private readonly ISystemRoleQuery _systemRoleQuery;
+    {
+        private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IDataRowMapper _dataRowMapper;
+        private readonly IEventStore _eventStore;
+        private readonly IKeyStore _keyStore;
+        private readonly ISystemRoleQuery _systemRoleQuery;
+        private readonly ISystemUserQuery _systemUserQuery;
 
         public UserHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore,
             ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery, IDataRowMapper dataRowMapper)
-		{
-			Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-			Guard.AgainstNull(eventStore, nameof(eventStore));
-			Guard.AgainstNull(keyStore, nameof(keyStore));
-			Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
-			Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
-			Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
+        {
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
+            Guard.AgainstNull(eventStore, nameof(eventStore));
+            Guard.AgainstNull(keyStore, nameof(keyStore));
+            Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
+            Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
+            Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
 
-			_databaseContextFactory = databaseContextFactory;
-			_eventStore = eventStore;
-			_keyStore = keyStore;
-			_systemUserQuery = systemUserQuery;
+            _databaseContextFactory = databaseContextFactory;
+            _eventStore = eventStore;
+            _keyStore = keyStore;
+            _systemUserQuery = systemUserQuery;
             _systemRoleQuery = systemRoleQuery;
             _dataRowMapper = dataRowMapper;
         }
 
-		public void ProcessMessage(IHandlerContext<RegisterUserCommand> context)
-		{
-			var message = context.Message;
+        public void ProcessMessage(IHandlerContext<RegisterUserCommand> context)
+        {
+            var message = context.Message;
 
-			if (string.IsNullOrEmpty(message.Username))
-			{
-				return;
-			}
+            if (string.IsNullOrEmpty(message.Username))
+            {
+                return;
+            }
 
-			if (string.IsNullOrEmpty(message.RegisteredBy))
-			{
-				return;
-			}
+            if (string.IsNullOrEmpty(message.RegisteredBy))
+            {
+                return;
+            }
 
-			var id = Guid.NewGuid();
+            var id = Guid.NewGuid();
 
-		    using (_databaseContextFactory.Create())
-			{
-				var key = User.Key(message.Username);
+            using (_databaseContextFactory.Create())
+            {
+                var key = User.Key(message.Username);
 
-				if (_keyStore.Contains(key))
-				{
-					return;
-				}
+                if (_keyStore.Contains(key))
+                {
+                    return;
+                }
 
-				var count = _systemUserQuery.Count();
+                var count = _systemUserQuery.Count(
+                    new DataAccess.Query.User.Specification().WithRoleName("Administrator"));
 
-				_keyStore.Add(id, key);
+                _keyStore.Add(id, key);
 
-				var user = new User(id);
-				var stream = _eventStore.CreateEventStream(id);
+                var user = new User(id);
+                var stream = _eventStore.CreateEventStream(id);
 
-				var registered = user.Register(message.Username, message.PasswordHash, message.RegisteredBy);
+                var registered = user.Register(message.Username, message.PasswordHash, message.RegisteredBy);
 
-				if (count == 0)
-				{
-                    var rows = _systemRoleQuery.Search(new DataAccess.Query.Role.Specification().WithRoleNameMatch("Administrator")).ToList();
+                if (count == 0)
+                {
+                    var roles = _systemRoleQuery
+                        .Search(new DataAccess.Query.Role.Specification().WithRoleName("Administrator")).ToList();
 
-                    if (rows.Count == 1)
+                    if (roles.Count != 1)
                     {
-                        var role = _dataRowMapper.MapObject<DataAccess.Query.Role>(rows[0]);
-
-                        if (role.Name.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
+                        context.Send(new AddRoleCommand
                         {
-                            stream.AddEvent(user.AddRole(role.Id));
-                        }
+                            Name = "Administrator"
+                        }, c => c.Local());
+
+                        throw new InvalidOperationException(Resources.AdministratorRoleMissingException);
+                    }
+
+                    var role = roles[0];
+
+                    if (role.RoleName.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        stream.AddEvent(user.AddRole(role.Id));
                     }
                 }
 
-				stream.AddEvent(registered);
+                stream.AddEvent(registered);
 
-				_eventStore.Save(stream);
-			}
-		}
+                _eventStore.Save(stream);
+            }
+        }
 
-		public void ProcessMessage(IHandlerContext<SetUserRoleCommand> context)
-		{
-			var message = context.Message;
-
-			using (_databaseContextFactory.Create())
-			{
-				var user = new User(message.UserId);
-				var stream = _eventStore.Get(message.UserId);
-
-				stream.Apply(user);
-
-				if (message.Active && !user.IsInRole(message.RoleId))
-				{
-					stream.AddEvent(user.AddRole(message.RoleId));
-				}
-
-				if (!message.Active && user.IsInRole(message.RoleId))
-				{
-					stream.AddEvent(user.RemoveRole(message.RoleId));
-				}
-
-				_eventStore.Save(stream);
-			}
-		}
-
-	    public void ProcessMessage(IHandlerContext<RemoveUserCommand> context)
-	    {
-	        var message = context.Message;
+        public void ProcessMessage(IHandlerContext<RemoveUserCommand> context)
+        {
+            var message = context.Message;
 
             using (_databaseContextFactory.Create())
             {
@@ -138,5 +122,30 @@ namespace Shuttle.Access.Server
                 _keyStore.Remove(message.Id);
             }
         }
-	}
+
+        public void ProcessMessage(IHandlerContext<SetUserRoleCommand> context)
+        {
+            var message = context.Message;
+
+            using (_databaseContextFactory.Create())
+            {
+                var user = new User(message.UserId);
+                var stream = _eventStore.Get(message.UserId);
+
+                stream.Apply(user);
+
+                if (message.Active && !user.IsInRole(message.RoleId))
+                {
+                    stream.AddEvent(user.AddRole(message.RoleId));
+                }
+
+                if (!message.Active && user.IsInRole(message.RoleId))
+                {
+                    stream.AddEvent(user.RemoveRole(message.RoleId));
+                }
+
+                _eventStore.Save(stream);
+            }
+        }
+    }
 }

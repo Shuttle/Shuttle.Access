@@ -61,6 +61,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;Administrator&apos; role could not be found..
+        /// </summary>
+        public static string AdministratorRoleMissingException {
+            get {
+                return ResourceManager.GetString("AdministratorRoleMissingException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find a connection string with name &apos;{0}&apos;..
         /// </summary>
         public static string ConnectionStringMissing {

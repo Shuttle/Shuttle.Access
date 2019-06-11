@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
@@ -34,16 +33,16 @@ namespace Shuttle.Access.Sql
                     .ToList();
         }
 
-        public IEnumerable<DataRow> Search(DataAccess.Query.Role.Specification specification)
+        public IEnumerable<DataAccess.Query.Role> Search(DataAccess.Query.Role.Specification specification)
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return _databaseGateway.GetRowsUsing(_queryFactory.Search(specification));
+            return _queryMapper.MapObjects<DataAccess.Query.Role>(_queryFactory.Search(specification));
         }
 
-        public DataAccess.Query.Role Get(Guid id)
+        public DataAccess.Query.RoleExtended GetExtended(Guid id)
         {
-            var result = _queryMapper.MapObject<DataAccess.Query.Role>(_queryFactory.Get(id));
+            var result = _queryMapper.MapObject<DataAccess.Query.RoleExtended>(_queryFactory.Get(id));
 
             if (result == null)
             {
@@ -58,6 +57,11 @@ namespace Shuttle.Access.Sql
         public IEnumerable<string> Permissions(Guid id)
         {
             return _queryMapper.MapValues<string>(_queryFactory.Permissions(id));
+        }
+
+        public int Count(DataAccess.Query.Role.Specification specification)
+        {
+            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count(specification));
         }
     }
 }

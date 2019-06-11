@@ -1,5 +1,4 @@
-import Component from 'can-component/';
-import DefineMap from 'can-define/map/';
+import {DefineMap,Component} from 'can';
 import view from './login.stache!';
 import resources from '~/resources';
 import access from 'shuttle-access';
@@ -10,9 +9,6 @@ import state from '~/state';
 resources.add('user', {action: 'login'});
 
 export const ViewModel = ValidationViewModel.extend({
-    init(){
-        state.title = 'user:login.title';
-    },
     username: {
         type: 'string',
         validate: {

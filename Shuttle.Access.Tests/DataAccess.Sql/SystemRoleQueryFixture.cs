@@ -15,7 +15,7 @@ namespace Shuttle.Access.Tests.DataAccess.Sql
             using(TransactionScopeFactory.Create())
             using (DatabaseContextFactory.Create())
             {
-                Assert.That(() => query.Get(Guid.NewGuid()), Throws.TypeOf<RecordNotFoundException>());
+                Assert.That(() => query.GetExtended(Guid.NewGuid()), Throws.TypeOf<RecordNotFoundException>());
                 //Assert.That(() => query.Search(new SystemRoleSearchSpecification()), Throws.Nothing);
                 //Assert.That(() => query.Constraints(Guid.NewGuid()), Throws.Nothing);
                 //Assert.That(() => query.Operations(Guid.NewGuid()), Throws.Nothing);

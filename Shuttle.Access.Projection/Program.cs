@@ -4,6 +4,7 @@ using Castle.Windsor;
 using log4net;
 using Shuttle.Core.Castle;
 using Shuttle.Core.Container;
+using Shuttle.Core.Data;
 using Shuttle.Core.Log4Net;
 using Shuttle.Core.Logging;
 using Shuttle.Core.Reflection;
@@ -47,8 +48,11 @@ namespace Shuttle.Access.Projection
 
             _eventProcessor = container.Resolve<IEventProcessor>();
 
-            container.AddEventHandler<UserHandler>("SystemUsers");
-            container.AddEventHandler<RoleHandler>("SystemRoles");
+            using (container.Resolve<IDatabaseContextFactory>().Create("Access"))
+            {
+                container.AddEventHandler<UserHandler>("SystemUsers");
+                container.AddEventHandler<RoleHandler>("SystemRoles");
+            }
 
             _eventProcessor.Start();
         }

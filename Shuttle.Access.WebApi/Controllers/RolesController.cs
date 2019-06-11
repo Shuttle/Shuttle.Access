@@ -79,12 +79,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Data = from row in _systemRoleQuery.Search(new DataAccess.Query.Role.Specification())
-                    select new
-                    {
-                        Id = SystemRoleColumns.Id.MapFrom(row),
-                        RoleName = SystemRoleColumns.RoleName.MapFrom(row)
-                    }
+                    Data = _systemRoleQuery.Search(new DataAccess.Query.Role.Specification())
                 });
             }
         }
@@ -96,7 +91,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Data = _systemRoleQuery.Get(id)
+                    Data = _systemRoleQuery.GetExtended(id)
                 });
             }
         }

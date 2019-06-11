@@ -1,20 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Shuttle.Access.DataAccess.Query
 {
-    public class User
+    public class UserExtended
     {
-        public class Specification
+        public UserExtended()
         {
-            public string RoleName { get; private set; }
-
-            public Specification WithRoleName(string roleName)
-            {
-                RoleName = roleName;
-
-                return this;
-            }
+            Roles = new List<Guid>();
         }
+
+        public List<Guid> Roles { get; set; }
 
         public Guid Id { get; set; }
         public DateTime DateRegistered { get; set; }

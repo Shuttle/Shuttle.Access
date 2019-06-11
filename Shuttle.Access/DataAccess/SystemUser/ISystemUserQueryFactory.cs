@@ -7,9 +7,9 @@ namespace Shuttle.Access.DataAccess
     public interface ISystemUserQueryFactory
     {
         IQuery Register(Guid id, Registered domainEvent);
-        IQuery Count();
+        IQuery Count(Query.User.Specification specification);
         IQuery RoleAdded(Guid id, RoleAdded domainEvent);
-        IQuery Search();
+        IQuery Search(Query.User.Specification specification);
         IQuery Get(Guid id);
         IQuery Roles(Guid id);
         IQuery RoleRemoved(Guid id, RoleRemoved domainEvent);
