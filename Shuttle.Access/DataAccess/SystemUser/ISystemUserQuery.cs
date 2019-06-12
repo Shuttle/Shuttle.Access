@@ -8,7 +8,7 @@ namespace Shuttle.Access.DataAccess
         int Count(Query.User.Specification specification);
         IEnumerable<Query.User> Search(Query.User.Specification specification);
         Query.UserExtended GetExtended(Guid id);
-        IEnumerable<string> Roles(Guid id);
+        IEnumerable<Guid> Roles(Guid id);
         int AdministratorCount();
     }
 }

@@ -56,9 +56,9 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public IEnumerable<string> Roles(Guid id)
+        public IEnumerable<Guid> Roles(Guid id)
         {
-            return _queryMapper.MapValues<string>(_queryFactory.Roles(id));
+            return _queryMapper.MapValues<Guid>(_queryFactory.Roles(id));
         }
 
         public int Count(DataAccess.Query.User.Specification specification)

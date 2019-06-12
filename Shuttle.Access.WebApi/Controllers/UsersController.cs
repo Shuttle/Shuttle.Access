@@ -134,7 +134,7 @@ namespace Shuttle.Access.WebApi
         {
             Guard.AgainstNull(model, nameof(model));
 
-            List<string> roles;
+            List<Guid> roles;
 
             using (_databaseContextFactory.Create())
             {
@@ -144,10 +144,10 @@ namespace Shuttle.Access.WebApi
             return Ok(
                 new
                 {
-                    Data = from role in model.Roles
+                    Data = from role in model.RoleIds
                     select new
                     {
-                        RoleName = role,
+                        RoleId = role,
                         Active = roles.Find(item => item.Equals(role)) != null
                     }
                 });

@@ -1,4 +1,4 @@
-import {DefineMap,DefineList,Component,Reflect} from 'can';
+import {DefineMap, DefineList, Component, Reflect} from 'can';
 import view from './roles.stache!';
 import resources from '~/resources';
 import Permissions from '~/permissions';
@@ -21,6 +21,7 @@ var api = {
 }
 
 const UserRole = DefineMap.extend({
+    roleId: 'string',
     roleName: 'string',
     active: 'boolean',
     working: 'boolean',
@@ -38,7 +39,7 @@ const UserRole = DefineMap.extend({
 
         api.setRole.post({
             userId: router.data.id,
-            roleName: this.roleName,
+            roleId: this.roleId,
             active: this.active
         })
             .then(function (response) {
@@ -115,7 +116,6 @@ export const ViewModel = DefineMap.extend({
         roles.list()
             .then(function (availableRoles) {
                 availableRoles = Reflect.toArray(availableRoles);
-                availableRoles.push({id: '', roleName: 'administrator'});
 
                 api.user.map({id: router.data.id})
                     .then(function (user) {
@@ -123,12 +123,13 @@ export const ViewModel = DefineMap.extend({
 
                         Reflect.each(availableRoles,
                             function (availableRole) {
-                                const roleName = availableRole.roleName.toLowerCase();
+                                const roleId = availableRole.id;
                                 const active = user.roles.filter(function (role) {
-                                    return role.toLowerCase() === roleName;
+                                    return role.id === roleId;
                                 }).length > 0;
 
                                 self.roles.push(new UserRole({
+                                    roleId: availableRole.id,
                                     roleName: availableRole.roleName,
                                     active: active
                                 }));
@@ -146,7 +147,7 @@ export const ViewModel = DefineMap.extend({
                 {
                     columnTitle: 'active',
                     columnClass: 'col-1',
-                    stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="fa fa-hourglass-o" aria-hidden="true"></i>{{/if}}'
+                    stache: '<cs-checkbox click:from="@toggle" checked:bind="active" checkedClass:from="\'fa-toggle-on\'" uncheckedClass:from="\'fa-toggle-off\'"/>{{#if working}}<i class="far fa-hourglass" aria-hidden="true"></i>{{/if}}'
                 },
                 {
                     columnTitle: 'user:roleName',
@@ -161,7 +162,7 @@ export const ViewModel = DefineMap.extend({
         Default: DefineList
     },
 
-    getRoleItem: function (roleName) {
+    getRoleItem: function (roleId) {
         var result;
 
         Reflect.each(this.roles,
@@ -170,7 +171,7 @@ export const ViewModel = DefineMap.extend({
                     return;
                 }
 
-                if (item.roleName === roleName) {
+                if (item.roleId === roleId) {
                     result = item;
                 }
             });
@@ -202,19 +203,20 @@ export const ViewModel = DefineMap.extend({
 
         var data = {
             userId: router.data.id,
-            roles: []
+            roleIds: []
         };
 
         Reflect.each(this.workingItems,
             function (item) {
-                data.roles.push(item.roleName);
-            });
+                data.roleIds.push(item.roleId);
+            }
+        );
 
         api.roleStatus.post(data)
             .then(function (response) {
                 Reflect.each(response.data,
                     function (item) {
-                        const roleItem = self.getRoleItem(item.roleName);
+                        const roleItem = self.getRoleItem(item.roleId);
 
                         if (!roleItem) {
                             return;

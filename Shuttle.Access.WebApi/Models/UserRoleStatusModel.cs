@@ -6,6 +6,6 @@ namespace Shuttle.Access.WebApi
     public class UserRoleStatusModel
     {
         public Guid UserId { get; set; }
-        public List<string> Roles { get; set; }
+        public List<Guid> RoleIds { get; set; }
     }
 }
