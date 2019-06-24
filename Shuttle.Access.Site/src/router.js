@@ -1,4 +1,4 @@
-﻿import {DefineMap,Reflect} from 'can';
+﻿import { DefineMap, Reflect } from 'can';
 import resources from '~/resources';
 import localisation from '~/localisation';
 import access from 'shuttle-access';
@@ -34,13 +34,15 @@ routeData.on('full', function (ev, newVal, oldVal) {
         return;
     }
 
-    this.update({resource: 'user', action: 'register'}, true);
+    this.update({ resource: 'user', action: 'register' }, true);
 });
 
 var Router = DefineMap.extend({
     data: {
         Type: RouteData,
-        default: routeData
+        default: function () {
+            return routeData;
+        }
     },
     previousHash: 'string',
 
@@ -81,7 +83,7 @@ var Router = DefineMap.extend({
                 return;
             }
 
-            resource = resources.find(resourceName, {action: actionName});
+            resource = resources.find(resourceName, { action: actionName });
         } else {
             resource = resources.find(resourceName);
         }
@@ -90,7 +92,7 @@ var Router = DefineMap.extend({
             state.alerts.add({
                 message: localisation.value('exceptions.resource-not-found', {
                     hash: window.location.hash,
-                    interpolation: {escapeValue: false}
+                    interpolation: { escapeValue: false }
                 }), type: 'warning', name: 'route-error'
             });
 
@@ -102,7 +104,7 @@ var Router = DefineMap.extend({
                 message: localisation.value('security.access-denied', {
                     name: resource.name || window.location.hash,
                     permission: resource.permission,
-                    interpolation: {escapeValue: false}
+                    interpolation: { escapeValue: false }
                 }), type: 'danger', name: 'route-error'
             });
 
@@ -121,7 +123,7 @@ var Router = DefineMap.extend({
     goto: function (data) {
         guard.againstUndefined(data, 'data');
 
-        if (typeof(data) !== 'object') {
+        if (typeof (data) !== 'object') {
             throw new Error('Call \'router.goto\' with route data: e.g. router.goto({resource: \'the-resource\', action: \'the-action\'});');
         }
 
@@ -130,16 +132,16 @@ var Router = DefineMap.extend({
         }
 
         Reflect.each(Object.getOwnPropertyNames(data), function (propertyName) {
-                if (
-                    propertyName !== 'resource'
-                    &&
-                    propertyName !== 'action'
-                    &&
-                    propertyName !== 'id'
-                ) {
-                    throw new Error('The route data contains an unknown attribute \'' + propertyName + '\'.');
-                }
+            if (
+                propertyName !== 'resource'
+                &&
+                propertyName !== 'action'
+                &&
+                propertyName !== 'id'
+            ) {
+                throw new Error('The route data contains an unknown attribute \'' + propertyName + '\'.');
             }
+        }
         );
 
         route.data.update(data, true);

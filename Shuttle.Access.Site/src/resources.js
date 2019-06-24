@@ -1,7 +1,9 @@
-import {DefineMap,DefineList,Reflect} from 'can';
+import { DefineMap, DefineList, Reflect } from 'can';
 
 var Resources = DefineMap.extend({
-	_resources: { Value: DefineList },
+	_resources: {
+		Default: DefineList
+	},
 
 	add: function (name, options) {
 		var o = options || {};

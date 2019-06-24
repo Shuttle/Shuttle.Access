@@ -40,39 +40,6 @@ where
             return Specification(specification, true);
         }
 
-        private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
-        {
-            Guard.AgainstNull(specification, nameof(specification));
-
-            var what = columns
-                ? @"
-    Id,
-    RoleName
-"
-                : "count(*)";
-
-            return RawQuery.Create($@"
-select
-{what}
-from
-    SystemRole
-where
-(
-    isnull(@RoleNameMatch, '') = ''
-    or
-    RoleName like '%' + @RoleNameMatch + '%'
-)
-or
-(
-    isnull(@RoleName, '') = ''
-    or
-    RoleName = @RoleName
-)
-")
-            .AddParameterValue(SystemRoleColumns.RoleNameMatch, specification.RoleNameMatch)
-                .AddParameterValue(SystemRoleColumns.RoleName, specification.RoleName);
-        }
-
         public IQuery Added(Guid id, Added domainEvent)
         {
             return RawQuery.Create(@"
@@ -152,6 +119,39 @@ where
         public IQuery Count(DataAccess.Query.Role.Specification specification)
         {
             return Specification(specification, false);
+        }
+
+        private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
+        {
+            Guard.AgainstNull(specification, nameof(specification));
+
+            var what = columns
+                ? @"
+    Id,
+    RoleName
+"
+                : "count(*)";
+
+            return RawQuery.Create($@"
+select
+{what}
+from
+    SystemRole
+where
+(
+    isnull(@RoleNameMatch, '') = ''
+    or
+    RoleName like '%' + @RoleNameMatch + '%'
+)
+and
+(
+    isnull(@RoleName, '') = ''
+    or
+    RoleName = @RoleName
+)
+")
+                .AddParameterValue(SystemRoleColumns.RoleNameMatch, specification.RoleNameMatch)
+                .AddParameterValue(SystemRoleColumns.RoleName, specification.RoleName);
         }
     }
 }

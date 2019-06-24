@@ -1,4 +1,4 @@
-import {DefineMap,DefineList,} from 'can';
+import {DefineMap,DefineList} from 'can';
 import guard from 'shuttle-guard';
 import route from 'can-route';
 import {Alerts} from 'shuttle-canstrap/alerts/';

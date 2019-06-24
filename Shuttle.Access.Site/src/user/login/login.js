@@ -49,7 +49,8 @@ export const ViewModel = ValidationViewModel.extend({
             .then(function () {
                 self.working = false;
             })
-            .catch(function () {
+            .catch(function (error) {
+                state.alerts.add({message: error.message, name: 'login-error'})
                 self.working = false;
             });
 
