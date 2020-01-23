@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-
 <package>
   <metadata>
     <id>Shuttle.Access.Mvc</id>
@@ -8,7 +7,7 @@
     <owners>Eben Roux</owners>
     <license type="expression">BSD-3-Clause</license>
     <projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/Shuttle/Shuttle.Access/master/.media/logo.png</iconUrl>
+    <icon>images\logo.png</icon>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Infrastructure components for use in Mvc/Web-Api Shuttle.Access implementations.</description>
     <releaseNotes />
@@ -18,4 +17,8 @@
       <dependency id="Shuttle.Access" version="{Shuttle.Access-version}" />
     </dependencies>
   </metadata>
+  <files>
+    <file src="..\..\..\..\.media\logo.png" target="images\" />
+	<file src="lib\**\*.*" target="lib" />
+  </files>
 </package>
