@@ -1,0 +1,82 @@
+{
+  "name": "access",
+  "version": "1.0.0",
+  "description": "Identity and access control.",
+  "steal": {
+    "main": "main.js",
+    "directories": {
+      "lib": "src"
+    },
+    "npmAlgorithm": "flat",
+    "plugins": [
+      "steal-stache",
+      "steal-css"
+    ],
+    "meta": {
+      "popper.js": {
+        "format": "global",
+        "deps": [
+          "jquery"
+        ]
+      },
+      "bootstrap": {
+        "deps": [
+          "jquery",
+          "popper.js"
+        ]
+      },
+      "moment": {
+        "format": "global"
+      },
+      "tempusdominus": {
+        "format": "global",
+        "deps": [
+          "mement"
+        ]
+      }
+    },
+    "map": {
+      "popper.js": "popper.js/dist/umd/popper",
+      "bootstrap": "bootstrap/dist/js/bootstrap",
+      "tempusdominus": "tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.js"
+    },
+    "serviceBaseURL": "http://localhost:5599/api/",
+    "debug": true,
+    "localeVersion": "1"
+  },
+  "scripts": {
+    "postinstall": "steal-tools bundle --deps"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shuttle/Shuttle.Access.git"
+  },
+  "author": "Eben Roux",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/Shuttle/Shuttle.Access/issues"
+  },
+  "homepage": "https://github.com/Shuttle/Shuttle.Access#readme",
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.18",
+    "@fortawesome/free-regular-svg-icons": "^5.8.2",
+    "@fortawesome/free-solid-svg-icons": "^5.8.2",
+    "bootstrap": "^4.3.1",
+    "can": "^5.26.1",
+    "can-define-validate-validatejs": "^1.1.1",
+    "i18next": "^17.0.2",
+    "i18next-xhr-backend": "^3.0.0",
+    "jquery": "^3.4.1",
+    "moment": "^2.24.0",
+    "popper.js": "^1.15.0",
+    "shuttle-access": "^1.0.3",
+    "shuttle-can-api": "^1.0.28",
+    "shuttle-canstrap": "^1.1.4",
+    "shuttle-guard": "^1.0.0",
+    "steal": "^2.2.1",
+    "steal-css": "^1.3.2",
+    "steal-stache": "^4.1.4",
+    "tempusdominus-bootstrap-4": "^5.1.2"
+  },
+  "devDependencies": {}
+}

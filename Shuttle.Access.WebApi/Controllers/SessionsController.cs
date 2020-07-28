@@ -27,7 +27,9 @@ namespace Shuttle.Access.WebApi
 		    {
                 return Ok(new
                 {
-                    Registered = false
+					Data = new {
+                        Registered = false
+					}
                 });
             }
 
@@ -38,16 +40,22 @@ namespace Shuttle.Access.WebApi
 			return registerSessionResult.Ok
 				? Ok(new
 			    {
-			        Registered = true,
-			        Token = registerSessionResult.Token.ToString("n"),
-			        Permissions = registerSessionResult.Permissions.Select(permission => new
-			        {
-			            Permission = permission
-			        }).ToList()
-                })
+                    Data = new
+                    {
+                        Registered = true,
+                        Token = registerSessionResult.Token.ToString("n"),
+                        Permissions = registerSessionResult.Permissions.Select(permission => new
+                        {
+                            Permission = permission
+                        }).ToList()
+                    }
+				})
 				: Ok(new
 				{
-					Registered = false
+                    Data = new
+                    {
+                        Registered = false
+                    }
 				});
 		}
 	}

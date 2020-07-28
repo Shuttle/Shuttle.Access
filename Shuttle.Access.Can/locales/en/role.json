@@ -1,0 +1,14 @@
+﻿{
+  "title": "Role",
+  "add": {
+    "title": "Add a role"
+  },
+  "list": {
+    "title": "Roles"
+  },
+  "permissions": {
+    "title": "Permissions"
+  },
+  "name": "Role name",
+  "permission":  "Permission"
+}

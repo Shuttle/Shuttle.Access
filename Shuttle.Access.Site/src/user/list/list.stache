@@ -1,5 +1,0 @@
-{{#if usersPromise.isResolved}}
-<cs-table vm:columns:from="columns" vm:rows:from="usersPromise.value" />
-{{else}}
-<cs-fetching title:from="'user:list.title'" />
-{{/if}}

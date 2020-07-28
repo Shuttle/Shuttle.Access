@@ -43,7 +43,6 @@ namespace Shuttle.Access.WebApi
             services.AddSingleton<IControllerActivator, ControllerActivator>();
 
             services.AddSingleton(AccessSection.Configuration());
-            services.AddSingleton<IDbProviderFactories, DbProviderFactories>();
             services.AddSingleton<IConnectionConfigurationProvider, ConnectionConfigurationProvider>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IDatabaseContextCache, ContextDatabaseContextCache>();

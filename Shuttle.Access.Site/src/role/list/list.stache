@@ -1,5 +1,0 @@
-{{#if rolesPromise.isResolved}}
-<cs-table vm:columns:from="columns" vm:rows:from="rolesPromise.value" />
-{{else}}
-<cs-fetching title:from="'role:list.title'" />
-{{/if}}

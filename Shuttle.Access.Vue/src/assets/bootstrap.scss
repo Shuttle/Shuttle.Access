@@ -1,0 +1,24 @@
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables";
+
+$body-color:$gray-900;
+$input-height:calc(#{$input-height-inner} + #{$input-height-border});
+
+$theme-colors: ("primary": #fd6900,
+    "secondary":#cacaca,
+    "success":#015668,
+    "danger": #06648c,
+    "info":#0f81c7,
+    "warning":#0de2ea,
+    "light":#ececec,
+    "dark":#222222);
+
+$spacer:1rem;
+$border-width:3px;
+$btn-border-radius:0;
+$enable-rounded: false;
+$enable-shadows:false;
+$enable-gradients:false;
+
+@import '~bootstrap/scss/bootstrap.scss';
+@import '~bootstrap-vue/src/index.scss';

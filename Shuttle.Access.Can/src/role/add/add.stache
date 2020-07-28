@@ -1,0 +1,8 @@
+<cs-form title="role:add.title" elementClass:from="'w-50 mx-auto'">
+    <fieldset class="form-group">
+        <cs-form-input focus:from="'true'" label:from="'name'" vm:value:bind="name" required:from="'true'"
+                       vm:errors:from="errors" errorAttribute:from="'name'"/>
+        <cs-button-submit vm:click:from="@add" text:from="'add'"/>
+        <cs-button vm:click:from="@close" text:from="'close'"/>
+    </fieldset>
+</cs-form>

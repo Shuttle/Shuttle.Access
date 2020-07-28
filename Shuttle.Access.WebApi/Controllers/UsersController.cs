@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
-using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
