@@ -8,12 +8,11 @@ import { faCircleNotch, faExternalLinkAlt, faUser } from '@fortawesome/free-soli
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import router from './router'
 import Title from './components/sa-title';
-import { AgGridVue } from "ag-grid-vue";
+import { AgGridVue } from 'ag-grid-vue';
+import access from './access';
 
-import access from 'shuttle-access';
- 
 library.add(faCircleNotch, faExternalLinkAlt, faUser);
- 
+
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.component('ag-grid-vue', AgGridVue);
 Vue.component('sa-title', Title);
@@ -23,8 +22,12 @@ Vue.use(Vuelidate);
 
 Vue.config.productionTip = false;
 
-new Vue({
-  store,
-  router,
-  render: h => h(App),
-}).$mount('#app');
+access.initialize()
+  .then(function () {
+    new Vue({
+      store,
+      router,
+      render: h => h(App),
+    }).$mount('#app');
+  });
+

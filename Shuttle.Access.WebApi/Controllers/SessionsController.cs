@@ -43,6 +43,7 @@ namespace Shuttle.Access.WebApi
                     Data = new
                     {
                         Registered = true,
+						registerSessionResult.Username,
                         Token = registerSessionResult.Token.ToString("n"),
                         Permissions = registerSessionResult.Permissions.Select(permission => new
                         {

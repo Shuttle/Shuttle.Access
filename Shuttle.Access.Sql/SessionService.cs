@@ -72,7 +72,7 @@ namespace Shuttle.Access.Sql
                 }
             }
 
-            return RegisterSessionResult.Success(session.Token, session.Permissions);
+            return RegisterSessionResult.Success(session.Username, session.Token, session.Permissions);
         }
     }
 }

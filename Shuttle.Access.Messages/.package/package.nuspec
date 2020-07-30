@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<package>
+	<metadata>
+		<id>Shuttle.Access.Messages</id>
+		<version>1.0.0</version>
+		<authors>Eben Roux</authors>
+		<owners></owners>
+		<license type="expression">BSD-3-Clause</license>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<icon>images\logo.png</icon>
+		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.Messages.git" />
+		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
+		<description>Messages for use in Shuttle.Access implementations.</description>
+		<copyright>Copyright (c) 2020, Eben Roux</copyright>
+		<tags></tags>
+		<dependencies>
+
+		</dependencies>
+	</metadata>
+	<files>
+    <file src="..\..\..\.media\logo.png" target="images" />
+		<file src="lib\**\*.*" target="lib" />
+	</files>
+</package>
