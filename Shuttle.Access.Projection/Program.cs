@@ -29,9 +29,11 @@ namespace Shuttle.Access.Projection
 
         public void Start()
         {
-            Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
-
+#if NETCOREAPP
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+#endif
+
+            Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
 
             _container = new WindsorContainer();
 

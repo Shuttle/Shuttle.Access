@@ -22,12 +22,16 @@ Vue.use(Vuelidate);
 
 Vue.config.productionTip = false;
 
-access.initialize()
-  .then(function () {
-    new Vue({
-      store,
-      router,
-      render: h => h(App),
-    }).$mount('#app');
-  });
+new Vue({
+  store,
+  router,
+  render: h => h(App),
+}).$mount('#app');
 
+access.initialize()
+  .catch(function () {
+    store.dispatch('addAlert', { 
+      message: 'Could not initialize the `shuttle-access` module.  The back-end may not be available.',
+      type: 'danger'
+    })
+  });

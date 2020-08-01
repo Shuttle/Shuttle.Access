@@ -34,6 +34,9 @@ export default new Vuex.Store({
         logout: (state) => {
             state.accessToken = null;
         },
+        addAlert: (state, alert) => {
+            state.alerts.add(alert);
+        },
         removeAlert: (state, alert) => {
             state.alerts.remove(alert);
         }
@@ -63,6 +66,9 @@ export default new Vuex.Store({
             localStorage.removeItem('accessToken');
             commit('logout');
             router.push('/login');
+        },
+        addAlert({ commit }, alert) {
+            commit('addAlert', alert)
         }
     }
 })

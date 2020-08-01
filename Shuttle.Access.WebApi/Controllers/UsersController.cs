@@ -19,12 +19,13 @@ namespace Shuttle.Access.WebApi
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IHashingService _hashingService;
         private readonly ISessionRepository _sessionRepository;
-        private readonly ISystemUserQuery _systemUserQuery;
         private readonly ISystemRoleQuery _systemRoleQuery;
+        private readonly ISystemUserQuery _systemUserQuery;
 
         public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,
             IHashingService hashingService, ISessionRepository sessionRepository,
-            IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery)
+            IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery,
+            ISystemRoleQuery systemRoleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(bus, nameof(bus));
@@ -49,10 +50,7 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(new
-                {
-                    Data = _systemUserQuery.Search(new DataAccess.Query.User.Specification())
-                });
+                return Ok(_systemUserQuery.Search(new DataAccess.Query.User.Specification()));
             }
         }
 
@@ -62,10 +60,7 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(new
-                {
-                    Data = _systemUserQuery.GetExtended(id)
-                });
+                return Ok(_systemUserQuery.GetExtended(id));
             }
         }
 
@@ -141,15 +136,13 @@ namespace Shuttle.Access.WebApi
             }
 
             return Ok(
-                new
+                from role in model.RoleIds
+                select new
                 {
-                    Data = from role in model.RoleIds
-                    select new
-                    {
-                        RoleId = role,
-                        Active = roles.Find(item => item.Equals(role)) != null
-                    }
-                });
+                    RoleId = role,
+                    Active = roles.Find(item => item.Equals(role)) != null
+                }
+            );
         }
 
         [HttpPost]

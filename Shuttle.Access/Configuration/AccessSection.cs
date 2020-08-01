@@ -7,7 +7,7 @@ namespace Shuttle.Access
     public class AccessSection : ConfigurationSection
     {
         [ConfigurationProperty("connectionStringName", IsRequired = false, DefaultValue = "Access")]
-        public string ConnectionStringName => (string)this["connectionStringName"];
+        public string ConnectionStringName => (string) this["connectionStringName"];
 
         public static IAccessConfiguration Configuration()
         {
@@ -33,7 +33,8 @@ namespace Shuttle.Access
 
             if (settings == null)
             {
-                throw new InvalidOperationException(string.Format(Resources.ConnectionStringMissing, connectionStringName));
+                throw new InvalidOperationException(string.Format(Resources.ConnectionStringMissing,
+                    connectionStringName));
             }
 
             return settings;

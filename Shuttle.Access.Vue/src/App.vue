@@ -14,7 +14,7 @@
         <p class="m-0">Copyright (c) 2020 Shuttle</p>
       </div>
     </footer>
-    <div class="alert alert-dark" v-if="debugging">
+    <div class="alert" v-if="debugging">
       <div class="d-none d-xl-block font-weight-bold">X-LARGE (XL)</div>
       <div class="d-none d-lg-block d-xl-none font-weight-bold">LARGE (LG)</div>
       <div class="d-none d-md-block d-lg-none font-weight-bold">MEDIUM (M)</div>

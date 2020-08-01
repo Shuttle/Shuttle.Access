@@ -29,7 +29,8 @@
       <Output TaskParameter="BuildMetadata" PropertyName="SemanticVersionBuildMetadata" />
     </SemanticVersion>
 
-    <Copy SourceFiles="AssemblyInfo.cs.template" DestinationFiles="..\Properties\AssemblyInfo.cs" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="AssemblyInfo.cs.template" DestinationFiles="..\Properties\AssemblyInfo.cs"
+          SkipUnchangedFiles="false" />
 
     <RegexFindAndReplace Files="..\Properties\AssemblyInfo.cs" FindExpression="#\{SemanticVersionCore\}#"
                          ReplacementText="$(SemanticVersionCore)" />

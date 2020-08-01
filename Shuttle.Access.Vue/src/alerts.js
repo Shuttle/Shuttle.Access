@@ -6,36 +6,36 @@ export default class Alerts {
         this._removeExpiredAlerts();
     }
 
-    add(options) {
-        if (!options || !options.message) {
+    add(alert) {
+        if (!alert || !alert.message) {
             return;
         }
-        if (options.key || options.name) {
-            this.remove(options);
+        if (alert.key || alert.name) {
+            this.remove(alert);
         }
-        this._push(options);
+        this._push(alert);
     }
 
     clear() {
         this.messages = [];
     }
 
-    remove(options) {
-        if (!options || (!options.key && !options.name && !options.type)) {
+    remove(alert) {
+        if (!alert || (!alert.key && !alert.name && !alert.type)) {
             return;
         }
         this.messages = this.messages.filter(function (item) {
             var keep = true;
-            if (options.key) {
-                keep = item.key !== options.key;
+            if (alert.key) {
+                keep = item.key !== alert.key;
             }
             else {
-                if (options.name) {
-                    keep = item.name !== options.name;
+                if (alert.name) {
+                    keep = item.name !== alert.name;
                 }
                 else {
-                    if (options.type) {
-                        keep = (item.type || 'info') !== options.type;
+                    if (alert.type) {
+                        keep = (item.type || 'info') !== alert.type;
                     }
                 }
             }
@@ -43,20 +43,20 @@ export default class Alerts {
         });
     }
 
-    _push(options, mode) {
+    _push(alert, mode) {
         var key = this._key + 1;
         var expiryDate = new Date();
-        if (!options || !options.message) {
+        if (!alert || !alert.message) {
             return;
         }
-        var type = options.type || 'info';
+        var type = alert.type || 'info';
         expiryDate.setSeconds(expiryDate.getSeconds() + 10);
         const message = {
-            message: options.message,
+            message: alert.message,
             type: type,
             mode: mode,
             key: key,
-            name: options.name,
+            name: alert.name,
             expiryDate: expiryDate
         };
         this.messages.push(message);

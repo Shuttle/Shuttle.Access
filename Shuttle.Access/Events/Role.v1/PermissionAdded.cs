@@ -2,6 +2,6 @@
 {
     public class PermissionAdded
     {
-        public string Permission { get; set; } 
+        public string Permission { get; set; }
     }
 }

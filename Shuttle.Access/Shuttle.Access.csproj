@@ -1,42 +1,43 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+  <PropertyGroup>
+    <TargetFrameworks>net461;netstandard2.0;netcoreapp2.1</TargetFrameworks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    </PropertyGroup>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.3" />
-        <PackageReference Include="Shuttle.Core.Contract" Version="10.0.2" />
-        <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
-        <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.3" />
+    <PackageReference Include="Shuttle.Core.Contract" Version="10.0.2" />
+    <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <Reference Include="System.Configuration" Condition="'$(TargetFramework)' != 'netstandard2.0' and '$(TargetFramework)' != 'netcoreapp2.0' and '$(TargetFramework)' != 'netcoreapp2.1'" />
-    </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Configuration"
+               Condition="'$(TargetFramework)' != 'netstandard2.0' and '$(TargetFramework)' != 'netcoreapp2.0' and '$(TargetFramework)' != 'netcoreapp2.1'" />
+  </ItemGroup>
 
-    <ItemGroup>
-        <None Include=".package\AssemblyInfo.cs.template" />
-        <None Include=".package\package.msbuild" />
-        <None Include=".package\package.nuspec.template" />
-        <None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
-        <None Include=".package\Shuttle.NuGetPackager.targets" />
-    </ItemGroup>
+  <ItemGroup>
+    <None Include=".package\AssemblyInfo.cs.template" />
+    <None Include=".package\package.msbuild" />
+    <None Include=".package\package.nuspec.template" />
+    <None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
+    <None Include=".package\Shuttle.NuGetPackager.targets" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <Compile Update="Resources.Designer.cs">
-        <DesignTime>True</DesignTime>
-        <AutoGen>True</AutoGen>
-        <DependentUpon>Resources.resx</DependentUpon>
-      </Compile>
-    </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
-    <ItemGroup>
-      <EmbeddedResource Update="Resources.resx">
-        <Generator>PublicResXFileCodeGenerator</Generator>
-        <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-      </EmbeddedResource>
-    </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
 
 </Project>

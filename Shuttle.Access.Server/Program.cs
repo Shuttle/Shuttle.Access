@@ -28,7 +28,9 @@ namespace Shuttle.Access.Server
 
         public void Start()
         {
+#if NETCOREAPP
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+#endif
 
             Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
 

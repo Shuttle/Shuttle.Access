@@ -44,7 +44,8 @@ namespace Shuttle.Access
 
             if (HasPermission(permission))
             {
-                throw new InvalidOperationException(string.Format(Resources.DuplicatePermissionException, permission, _name));
+                throw new InvalidOperationException(string.Format(Resources.DuplicatePermissionException, permission,
+                    _name));
             }
 
             return On(new PermissionAdded {Permission = permission});
@@ -70,10 +71,11 @@ namespace Shuttle.Access
 
             if (!HasPermission(permission))
             {
-                throw new InvalidOperationException(string.Format(Resources.PermissionNotFoundException, permission, _name));
+                throw new InvalidOperationException(string.Format(Resources.PermissionNotFoundException, permission,
+                    _name));
             }
 
-            return On(new PermissionRemoved { Permission = permission });
+            return On(new PermissionRemoved {Permission = permission});
         }
 
         private PermissionRemoved On(PermissionRemoved permissionRemoved)

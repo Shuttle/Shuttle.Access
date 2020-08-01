@@ -9,8 +9,8 @@ namespace Shuttle.Access
     public class User
     {
         private readonly Guid _id;
-        private byte[] _passwordHash;
         private readonly List<Guid> _roles = new List<Guid>();
+        private byte[] _passwordHash;
         private string _username;
 
         public User(Guid id)
@@ -77,7 +77,7 @@ namespace Shuttle.Access
                 throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, roleId, _username));
             }
 
-            return On(new RoleRemoved { RoleId = roleId });
+            return On(new RoleRemoved {RoleId = roleId});
         }
 
         private RoleRemoved On(RoleRemoved roleRemoved)

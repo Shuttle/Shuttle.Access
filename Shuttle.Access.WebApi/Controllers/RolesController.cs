@@ -60,15 +60,13 @@ namespace Shuttle.Access.WebApi
             }
 
             return Ok(
-                new
+                from permission in model.Permissions
+                select new
                 {
-                    Data = from permission in model.Permissions
-                    select new
-                    {
-                        Permission = permission,
-                        Active = permissions.Find(item => item.Equals(permission)) != null
-                    }
-                });
+                    Permission = permission,
+                    Active = permissions.Find(item => item.Equals(permission)) != null
+                }
+            );
         }
 
         [HttpGet]
@@ -76,10 +74,7 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(new
-                {
-                    Data = _systemRoleQuery.Search(new DataAccess.Query.Role.Specification())
-                });
+                return Ok(_systemRoleQuery.Search(new DataAccess.Query.Role.Specification()));
             }
         }
 
@@ -88,10 +83,7 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(new
-                {
-                    Data = _systemRoleQuery.GetExtended(id)
-                });
+                return Ok(_systemRoleQuery.GetExtended(id));
             }
         }
 

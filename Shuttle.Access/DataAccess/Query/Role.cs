@@ -4,6 +4,9 @@ namespace Shuttle.Access.DataAccess.Query
 {
     public class Role
     {
+        public string RoleName { get; set; }
+        public Guid Id { get; set; }
+
         public class Specification
         {
             public string RoleNameMatch { get; private set; }
@@ -23,8 +26,5 @@ namespace Shuttle.Access.DataAccess.Query
                 return this;
             }
         }
-
-        public string RoleName { get; set; }
-        public Guid Id { get; set; }
     }
 }

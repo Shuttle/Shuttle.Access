@@ -28,7 +28,7 @@ namespace Shuttle.Access.WebApi
             _permissionQuery = permissionQuery;
         }
 
-        [HttpGet("/anonymous")]
+        [HttpGet("anonymous")]
         public IActionResult AnonymousPermissions()
         {
             var permissions = _authorizationService is IAnonymousPermissions anonymousPermissions
@@ -37,16 +37,13 @@ namespace Shuttle.Access.WebApi
 
             return Ok(new
             {
-                Data = new
-                {
-                    IsUserRequired = permissions.Contains(SystemPermissions.Register.UserRequired),
-                    Permissions =
-                        from permission in permissions
-                        select new
-                        {
-                            Permission = permission
-                        }
-                }
+                IsUserRequired = permissions.Contains(SystemPermissions.Register.UserRequired),
+                Permissions =
+                    from permission in permissions
+                    select new
+                    {
+                        Permission = permission
+                    }
             });
         }
 
@@ -55,14 +52,12 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(new
-                {
-                    Data = _permissionQuery.Available()
-                        .Select(permission => new
-                        {
-                            Permission = permission
-                        }).ToList()
-                });
+                return Ok(_permissionQuery.Available()
+                    .Select(permission => new
+                    {
+                        Permission = permission
+                    }).ToList()
+                );
             }
         }
     }
