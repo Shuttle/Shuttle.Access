@@ -6,7 +6,7 @@
     <b-navbar-toggle target="nav-text-collapse" v-if="authenticated"></b-navbar-toggle>
     <b-collapse id="nav-text-collapse" is-nav>
       <b-navbar-nav v-if="authenticated">
-        <b-nav-item to="/application/list">Applications</b-nav-item>
+        <b-nav-item to="/roles/list">Roles</b-nav-item>
       </b-navbar-nav>
       <b-navbar-nav class="ml-auto">
         <b-nav-item-dropdown right v-if="authenticated">

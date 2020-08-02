@@ -1,7 +1,7 @@
 <template>
-    <div class="ar-title">
+    <div class="sv-title">
         <h1>
-            {{text}}
+            {{ $t(text) }}
         </h1>
     </div>
 </template>

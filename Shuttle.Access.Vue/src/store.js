@@ -1,74 +1,62 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import axios from 'axios';
-import configuration from "@/configuration.js";
 import router from './router';
 import Alerts from './alerts';
+import access from './access';
 
 Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        accessToken: null,
         working: false,
-        alerts: new Alerts()
+        alerts: new Alerts(),
+        authenticated: false
     },
     getters: {
         authenticated: state => {
-            return state.accessToken !== null;
+            return state.authenticated;
         }
     },
     mutations: {
-        loginStart: state => state.working = true,
-        loginStop: (state, message) => {
-            state.working = false;
-            state.alerts.add({
-                message: message,
-                name: "login-error",
-                type: "danger"
-            });
-        },
-        updateAccessToken: (state, accessToken) => {
-            state.accessToken = accessToken;
-        },
-        logout: (state) => {
-            state.accessToken = null;
-        },
-        addAlert: (state, alert) => {
+        START_WORKING: state => state.working = true,
+        STOP_WORKING: state => state.working = false,
+        ADD_ALERT: (state, alert) => {
             state.alerts.add(alert);
         },
-        removeAlert: (state, alert) => {
+        REMOVE_ALERT: (state, alert) => {
             state.alerts.remove(alert);
-        }
+        },
+        AUTHENTICATED: state => state.authenticated = true,
+        LOGGED_OUT: state => state.authenticated = true
     },
     actions: {
         login({ commit }, payload) {
-            commit('loginStart');
+            commit('START_WORKING');
 
-            axios.post(configuration.url + '/token', {
+            access.login({
                 ...payload
             })
-                .then(response => {
-                    localStorage.setItem('accessToken', response.data);
-                    commit('loginStop', null);
-                    commit('updateAccessToken', response.data);
-                    router.push('/search');
+                .then(() => {
+                    commit('AUTHENTICATED');
+                    commit('STOP_WORKING');
+                    router.push('/dashboard');
                 })
                 .catch(error => {
-                    commit('loginStop', error.response.data);
-                    commit('updateAccessToken', null);
+                    commit('ADD_ALERT', {
+                        message: error,
+                        type: 'danger'
+                    });
+
+                    commit('STOP_WORKING');
                 })
         },
-        fetchAccessToken({ commit }) {
-            commit('updateAccessToken', localStorage.getItem('accessToken'));
-        },
         logout({ commit }) {
-            localStorage.removeItem('accessToken');
-            commit('logout');
+            access.logout();
+            commit('LOGGED_OUT');
             router.push('/login');
         },
         addAlert({ commit }, alert) {
-            commit('addAlert', alert)
+            commit('ADD_ALERT', alert)
         }
     }
 })

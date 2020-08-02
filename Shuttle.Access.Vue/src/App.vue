@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <sa-navigation />
-    <sa-alerts />
+    <sv-navigation />
+    <sv-alerts />
     <div class="container-fluid">
       <div class="row row-offcanvas row-offcanvas-left">
         <div id="application-content" class="main col-sm-12 col-md-12">
@@ -29,14 +29,14 @@ import "@/assets/bootstrap.scss";
 import "@/assets/main.css";
 import configuration from "@/configuration";
 
-import Navigation from "./components/sa-navigation.vue";
-import Alerts from "./components/sa-alerts.vue";
+import Navigation from "./components/sv-navigation.vue";
+import Alerts from "./components/sv-alerts.vue";
 
 export default {
   name: "app",
   components: {
-    "sa-navigation": Navigation,
-    "sa-alerts": Alerts
+    "sv-navigation": Navigation,
+    "sv-alerts": Alerts
   },
   computed: {
     debugging() {

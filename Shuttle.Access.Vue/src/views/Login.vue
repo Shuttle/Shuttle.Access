@@ -3,27 +3,22 @@
     <div class="row">
       <div class="col"></div>
       <div class="col-xl-3 col-lg-4 col-md-5 mx-auto p-0">
-        <sa-title text="Login" />
-        <div class="col">
+          <sv-title text="login" />
           <b-form @submit="login" v-if="show" class="w-100">
-            <b-form-group id="input-group-email" label="E-mail" label-for="input-email">
+            <b-form-group id="input-group-username" :label="$t('username')" label-for="input-username">
               <b-form-input
-                id="input-email"
-                v-model="form.email"
-                type="email"
+                id="input-username"
+                v-model="form.username"
                 required
-                placeholder="E-mail address"
                 class="mb-2"
               ></b-form-input>
             </b-form-group>
 
-            <b-form-group id="input-group-password" label="Password" label-for="input-password">
+            <b-form-group id="input-group-password" :label="$t('password')" label-for="input-password">
               <b-form-input
                 id="input-password"
-                label="Password"
                 v-model="form.password"
                 required
-                placeholder="Password"
                 class="mb-2"
                 type="password"
               ></b-form-input>
@@ -31,11 +26,10 @@
 
             <div>
               <b-button class="float-right" variant="primary" type="submit" :disabled="working">
-                <font-awesome-icon icon="circle-notch" class="fa-spin mr-2" v-if="working" />Login
+                <font-awesome-icon icon="circle-notch" class="fa-spin mr-2" v-if="working" />{{$t("login")}}
               </b-button>
             </div>
           </b-form>
-        </div>
       </div>
       <div class="col"></div>
     </div>
@@ -49,7 +43,7 @@ export default {
   data() {
     return {
       form: {
-        email: "",
+        username: "",
         password: ""
       },
       show: true
@@ -65,7 +59,7 @@ export default {
       evt.preventDefault();
 
       this.$store.dispatch("login", {
-        username: this.form.email,
+        username: this.form.username,
         password: this.form.password
       });
     },

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import store from './store';
+import access from './access';
 
 Vue.use(Router)
 
@@ -9,9 +9,19 @@ const router = new Router({
     base: process.env.BASE_URL,
     routes: [
         {
+            path: '/dashboard',
+            name: 'dashboard',
+            component: () => import(/* webpackChunkName: "dashboard" */ './views/Dashboard.vue')
+        },
+        {
             path: '/login',
             name: 'login',
             component: () => import(/* webpackChunkName: "login" */ './views/Login.vue')
+        },
+        {
+            path: '/register',
+            name: 'register',
+            component: () => import(/* webpackChunkName: "register" */ './views/Register.vue')
         },
         {
             path: '*',
@@ -26,11 +36,10 @@ const openRoutes = [
 ];
 
 router.beforeEach((to, from, next) => {
-    store.dispatch('fetchAccessToken');
-    if (!openRoutes.includes(to.fullPath) && !store.state.accessToken) {
+    if (!openRoutes.includes(to.fullPath) && access.loginStatus !== 'logged-in') {
         next('/login');
-    } else if (to.fullPath === '/login' && store.state.accessToken) {
-        next('/search');
+    } else if (to.fullPath === '/login' && access.loginStatus === 'logged-in') {
+        next('/home');
     }
     else {
         next();
