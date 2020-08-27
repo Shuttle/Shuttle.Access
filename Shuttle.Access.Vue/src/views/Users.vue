@@ -1,11 +1,11 @@
 <template>
   <div>
-    <s-title :text="$t('dashboard')" />
+    <s-title :text="$t('users')" />
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Dashboard'
+  name: 'Users'
 }
 </script>

@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col"></div>
       <div class="col-xl-3 col-lg-4 col-md-5 mx-auto p-0">
-        <sv-title text="register" />
+        <s-title text="register" />
         <b-form @submit="register" v-if="show" class="w-100">
           <b-form-group
             id="input-group-username"

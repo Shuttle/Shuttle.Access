@@ -19,13 +19,28 @@ const router = new Router({
             component: () => import(/* webpackChunkName: "login" */ './views/Login.vue')
         },
         {
+            path: '/roles',
+            name: 'roles',
+            component: () => import(/* webpackChunkName: "roles" */ './views/Roles.vue')
+        },
+        {
+            path: '/users',
+            name: 'users',
+            component: () => import(/* webpackChunkName: "users" */ './views/Users.vue')
+        },
+        {
+            path: '/profile',
+            name: 'profile',
+            component: () => import(/* webpackChunkName: "profile" */ './views/Profile.vue')
+        },
+        {
             path: '/register',
             name: 'register',
             component: () => import(/* webpackChunkName: "register" */ './views/Register.vue')
         },
         {
             path: '*',
-            redirect: '/login'
+            redirect: '/users'
         }
     ]
 })

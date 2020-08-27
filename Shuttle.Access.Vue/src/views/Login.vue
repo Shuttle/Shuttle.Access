@@ -2,8 +2,8 @@
   <div class="container-fluid">
     <div class="row">
       <div class="col"></div>
-      <div class="col-xl-3 col-lg-4 col-md-5 mx-auto p-0">
-          <sv-title text="login" />
+      <div class="col-xl-3 col-lg-4 col-md-5 mx-auto p-0 mt-5 mb-5">
+          <s-title text="login" />
           <b-form @submit="login" v-if="show" class="w-100">
             <b-form-group id="input-group-username" :label="$t('username')" label-for="input-username">
               <b-form-input
