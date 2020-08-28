@@ -27,7 +27,7 @@ export default new Vuex.Store({
             state.alerts.remove(alert);
         },
         AUTHENTICATED: state => state.authenticated = true,
-        LOGGED_OUT: state => state.authenticated = true
+        LOGGED_OUT: state => state.authenticated = false
     },
     actions: {
         login({ commit }, payload) {

@@ -1,5 +1,6 @@
 <template>
-  <b-navbar toggleable="lg" fixed="top" type="dark">
+  <div>
+  <b-navbar toggleable="lg" fixed="top" type="dark" class="navbar-primary">
     <b-navbar-brand to="dashboard">
       <img src="@/assets/logo-small.png" alt="Shuttle.Access logo" />
     </b-navbar-brand>
@@ -11,17 +12,19 @@
       <b-navbar-nav>
         <b-nav-item to="users">{{$t("users")}}</b-nav-item>
       </b-navbar-nav>
-      <b-navbar-nav class="ml-auto">
-        <b-nav-item-dropdown right v-if="authenticated">
-          <template v-slot:button-content>
-            <font-awesome-icon icon="user" />
-          </template>
-          <b-dropdown-item to="profile">{{$t("profile")}}</b-dropdown-item>
-          <b-dropdown-item href="#" v-on:click="logout">{{$t("log-out")}}</b-dropdown-item>
-        </b-nav-item-dropdown>
+      <b-navbar-nav class="ml-auto" right v-if="authenticated">
+        <b-nav-item to="profile"><font-awesome-icon icon="user" /></b-nav-item>
+        <b-nav-item v-on:click="logout"><font-awesome-icon icon="sign-out-alt" /></b-nav-item>
       </b-navbar-nav>
     </b-collapse>
   </b-navbar>
+  <b-navbar type="dark" class="navbar-secondary">
+      <b-navbar-nav>
+        <b-nav-item to="profile"><font-awesome-icon icon="plus-square" /></b-nav-item>
+        <b-nav-item to="profile"><font-awesome-icon icon="sync-alt" /></b-nav-item>
+      </b-navbar-nav>
+  </b-navbar>
+  </div>
 </template>
 
 <script>

@@ -51,6 +51,10 @@ const openRoutes = [
 ];
 
 router.beforeEach((to, from, next) => {
+    if (!access.initialized) {
+        return;
+    }
+
     if (!openRoutes.includes(to.fullPath) && access.loginStatus !== 'logged-in') {
         next('/login');
     } else if (to.fullPath === '/login' && access.loginStatus === 'logged-in') {

@@ -5,9 +5,12 @@
     "register": "Register",
     "profile": "Profile",
     "roles": "Roles",
+    "role-name": "Role Name",
     "users": "Users",
     "log-out": "Log out",
     "dashboard": "Dashboard",
+    "permissions": "Permissions",
+    "permissions-button": "permissions",
     "user-required": "No users have been registered.  You will be registered as an administrator.",
     "exceptions": {
         "access-failure": "Could not initialize the `shuttle-access` module.  The back-end may not be available.",

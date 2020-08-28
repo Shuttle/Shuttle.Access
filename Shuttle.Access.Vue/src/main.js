@@ -6,7 +6,7 @@ import BootstrapVue from 'bootstrap-vue';
 import ShuttleVue from 'shuttle-vue';
 import Vuelidate from 'vuelidate';
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faCircleNotch, faExternalLinkAlt, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faCircleNotch, faSignOutAlt, faUser, faPlusSquare, faSyncAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import router from './router'
 import { AgGridVue } from 'ag-grid-vue';
@@ -14,8 +14,7 @@ import access from './access';
 import configuration from './configuration';
 import axios from 'axios';
 
-
-library.add(faCircleNotch, faExternalLinkAlt, faUser);
+library.add(faCircleNotch, faSignOutAlt, faUser, faPlusSquare, faSyncAlt);
 
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.component('ag-grid-vue', AgGridVue);
@@ -26,7 +25,7 @@ Vue.use(Vuelidate);
 
 Vue.config.productionTip = false;
 
-Vue.prototype.$axios = axios.create({ baseURL: configuration.url });
+Vue.prototype.$api = axios.create({ baseURL: configuration.url });
 
 new Vue({
   store,
@@ -35,12 +34,17 @@ new Vue({
   render: h => h(App),
 }).$mount('#app');
 
-
-
 access.initialize()
   .then(function () {
     if (access.isUserRequired) {
       router.push('register');
+    }
+    else {
+      if (access.loginStatus == 'logged-in') {
+        store.commit('AUTHENTICATED');
+      }else{
+        router.push('login');
+      }
     }
   })
   .catch(function () {
