@@ -3,7 +3,11 @@
     <s-title :text="$t('roles')" />
     <b-table :items="roles" :fields="fields" dark responsive="md">
       <template v-slot:cell(permissions)="data">
-        <b-button variant="outline-primary" @click="permissions(data.item)" size="sm">{{$t("permissions-button")}}</b-button>
+        <b-button
+          variant="outline-primary"
+          @click="permissions(data.item)"
+          size="sm"
+        >{{$t("permissions-button")}}</b-button>
       </template>
     </b-table>
   </div>
@@ -18,12 +22,21 @@ export default {
       fields: Array,
     };
   },
-  methods:{
-    permissions(data){
+  methods: {
+    permissions(data) {
       console.log(data.id);
-    }
+    },
+    refresh() {
+      const self = this;
+
+      this.$api.get("roles").then(function (response) {
+        self.roles = response.data;
+      });
+    },
   },
   beforeMount() {
+    const self = this;
+
     this.fields = [
       {
         label: this.$i18n.t("permissions"),
@@ -32,16 +45,19 @@ export default {
       {
         label: this.$i18n.t("role-name"),
         key: "roleName",
-        thClass: "col"
-      }
+        thClass: "col",
+      },
     ];
+
+    this.$store.dispatch("addSecondaryNavbarItem", {
+      icon: "sync-alt",
+      click() {
+        self.refresh();
+      },
+    });
   },
   mounted() {
-    const self = this;
-
-    this.$api.get("roles").then(function (response) {
-      self.roles = response.data;
-    });
+    this.refresh();
   },
 };
 </script>

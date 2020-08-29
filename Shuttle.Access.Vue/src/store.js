@@ -10,11 +10,15 @@ export default new Vuex.Store({
     state: {
         working: false,
         alerts: new Alerts(),
-        authenticated: false
+        authenticated: false,
+        secondaryNavbarItems: []
     },
     getters: {
         authenticated: state => {
             return state.authenticated;
+        },
+        secondaryNavbarItems: state => {
+            return state.secondaryNavbarItems;
         }
     },
     mutations: {
@@ -27,7 +31,13 @@ export default new Vuex.Store({
             state.alerts.remove(alert);
         },
         AUTHENTICATED: state => state.authenticated = true,
-        LOGGED_OUT: state => state.authenticated = false
+        LOGGED_OUT: state => state.authenticated = false,
+        ADD_SECONDARY_NAVBAR_ITEM: (state, item) => {
+            state.secondaryNavbarItems.push(item);
+        },
+        CLEAR_SECONDARY_NAVBAR_ITEMS: (state) => {
+            state.secondaryNavbarItems = [];
+        }
     },
     actions: {
         login({ commit }, payload) {
@@ -56,7 +66,17 @@ export default new Vuex.Store({
             router.push('/login');
         },
         addAlert({ commit }, alert) {
-            commit('ADD_ALERT', alert)
+            commit('ADD_ALERT', alert);
+        },
+        addSecondaryNavbarItem({ commit }, item) {
+            if (!item.click || typeof item.click !== "function") {
+                throw new Error("Secondary navbar item does not have a 'click' method define.")
+            }
+
+            commit('ADD_SECONDARY_NAVBAR_ITEM', item);
+        },
+        clearSecondaryNavbarItems({ commit }) {
+            commit('CLEAR_SECONDARY_NAVBAR_ITEMS');
         }
     }
 })

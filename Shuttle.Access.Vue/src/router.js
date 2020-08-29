@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import access from './access';
+import store from './store';
 
 Vue.use(Router)
 
@@ -51,6 +52,8 @@ const openRoutes = [
 ];
 
 router.beforeEach((to, from, next) => {
+    store.dispatch("clearSecondaryNavbarItems");
+
     if (!access.initialized) {
         return;
     }
