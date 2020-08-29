@@ -19,7 +19,7 @@ inner join
     SystemRole r on (rp.RoleId = r.Id)
 where
     r.RoleName = @RoleName")
-                .AddParameterValue(SystemRoleColumns.RoleName, roleName);
+                .AddParameterValue(Columns.RoleName, roleName);
         }
 
         public IQuery Permissions(Guid roleId)
@@ -32,7 +32,7 @@ from
 where
     RoleId = @RoleId
 ")
-                .AddParameterValue(SystemRolePermissionColumns.RoleId, roleId);
+                .AddParameterValue(Columns.RoleId, roleId);
         }
 
         public IQuery Search(DataAccess.Query.Role.Specification specification)
@@ -54,8 +54,8 @@ values
 	@RoleName
 )
 ")
-                .AddParameterValue(SystemRoleColumns.Id, id)
-                .AddParameterValue(SystemRoleColumns.RoleName, domainEvent.Name);
+                .AddParameterValue(Columns.Id, id)
+                .AddParameterValue(Columns.RoleName, domainEvent.Name);
         }
 
         public IQuery Get(Guid id)
@@ -68,7 +68,7 @@ from
 where
     Id = @Id
 ")
-                .AddParameterValue(SystemRoleColumns.Id, id);
+                .AddParameterValue(Columns.Id, id);
         }
 
         public IQuery PermissionAdded(Guid id, PermissionAdded domainEvent)
@@ -85,8 +85,8 @@ values
 	@Permission
 )
 ")
-                .AddParameterValue(SystemRolePermissionColumns.RoleId, id)
-                .AddParameterValue(SystemRolePermissionColumns.Permission, domainEvent.Permission);
+                .AddParameterValue(Columns.RoleId, id)
+                .AddParameterValue(Columns.Permission, domainEvent.Permission);
         }
 
         public IQuery PermissionRemoved(Guid id, PermissionRemoved domainEvent)
@@ -100,8 +100,8 @@ where
 and
 	[Permission] = @Permission
 ")
-                .AddParameterValue(SystemRolePermissionColumns.RoleId, id)
-                .AddParameterValue(SystemRolePermissionColumns.Permission, domainEvent.Permission);
+                .AddParameterValue(Columns.RoleId, id)
+                .AddParameterValue(Columns.Permission, domainEvent.Permission);
         }
 
         public IQuery Removed(Guid id, Removed domainEvent)
@@ -113,12 +113,48 @@ from
 where	
     [Id] = @Id
 ")
-                .AddParameterValue(SystemRoleColumns.Id, id);
+                .AddParameterValue(Columns.Id, id);
         }
 
         public IQuery Count(DataAccess.Query.Role.Specification specification)
         {
             return Specification(specification, false);
+        }
+
+        public IQuery Permissions(DataAccess.Query.Role.Specification specification)
+        {
+            Guard.AgainstNull(specification, nameof(specification));
+
+            return RawQuery.Create(@"
+select 
+    Permission
+from
+    SystemRolePermission rp
+inner join
+    SystemRole r on (rp.RoleId = r.Id)
+where
+(
+    isnull(@RoleNameMatch, '') = ''
+    or
+    RoleName like '%' + @RoleNameMatch + '%'
+)
+and
+(
+    isnull(@RoleName, '') = ''
+    or
+    RoleName = @RoleName
+)
+and
+(
+    @RoleId is null
+    or
+    Id = @Id
+)
+")
+                .AddParameterValue(Columns.RoleNameMatch, specification.RoleNameMatch)
+                .AddParameterValue(Columns.RoleName, specification.RoleName)
+                .AddParameterValue(Columns.RoleId, specification.RoleId);
+
         }
 
         private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
@@ -149,9 +185,16 @@ and
     or
     RoleName = @RoleName
 )
+and
+(
+    @Id is null
+    or
+    Id = @Id
+)
 ")
-                .AddParameterValue(SystemRoleColumns.RoleNameMatch, specification.RoleNameMatch)
-                .AddParameterValue(SystemRoleColumns.RoleName, specification.RoleName);
+                .AddParameterValue(Columns.RoleNameMatch, specification.RoleNameMatch)
+                .AddParameterValue(Columns.RoleName, specification.RoleName)
+                .AddParameterValue(Columns.Id, specification.RoleId);
         }
     }
 }

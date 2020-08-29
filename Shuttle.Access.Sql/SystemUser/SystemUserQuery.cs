@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -33,30 +34,30 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return _queryMapper.MapObjects<DataAccess.Query.User>(_queryFactory.Search(specification));
-        }
+            var result = _queryMapper.MapObjects<DataAccess.Query.User>(_queryFactory.Search(specification));
 
-        public DataAccess.Query.UserExtended GetExtended(Guid id)
-        {
-            var row = _databaseGateway.GetSingleRowUsing(_queryFactory.Get(id));
-
-            var result = new DataAccess.Query.UserExtended
+            if (specification.RolesIncluded)
             {
-                Id = SystemUserColumns.Id.MapFrom(row),
-                DateRegistered = SystemUserColumns.DateRegistered.MapFrom(row),
-                RegisteredBy = SystemUserColumns.RegisteredBy.MapFrom(row),
-                Username = SystemUserColumns.Username.MapFrom(row)
-            };
+                var roleRows = _databaseGateway.GetRowsUsing(_queryFactory.Roles(specification));
 
-            foreach (var roleRow in _databaseGateway.GetRowsUsing(_queryFactory.Roles(id)))
-            {
-                result.Roles.Add(SystemUserRoleColumns.RoleId.MapFrom(roleRow));
+                foreach (var roleGroup in roleRows.GroupBy(row => Columns.UserId.MapFrom(row)))
+                {
+                    var user = result.FirstOrDefault(item => item.Id == roleGroup.Key);
+
+                    if (user == null)
+                    {
+                        continue;
+                    }
+
+                    user.Roles = roleGroup.Select(row => new DataAccess.Query.User.Role
+                        {Id = Columns.RoleId.MapFrom(row), Name = Columns.RoleName.MapFrom(row)}).ToList();
+                }
             }
 
             return result;
         }
 
-        public IEnumerable<Guid> Roles(Guid id)
+        public IEnumerable<Guid> Roles(DataAccess.Query.User.Specification id)
         {
             return _queryMapper.MapValues<Guid>(_queryFactory.Roles(id));
         }

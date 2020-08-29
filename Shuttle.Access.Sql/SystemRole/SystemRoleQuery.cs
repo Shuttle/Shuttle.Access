@@ -10,17 +10,20 @@ namespace Shuttle.Access.Sql
     public class SystemRoleQuery : ISystemRoleQuery
     {
         private readonly IDatabaseGateway _databaseGateway;
+        private readonly IDataRowMapper _dataRowMapper;
         private readonly ISystemRoleQueryFactory _queryFactory;
         private readonly IQueryMapper _queryMapper;
 
-        public SystemRoleQuery(IDatabaseGateway databaseGateway,
+        public SystemRoleQuery(IDatabaseGateway databaseGateway, IDataRowMapper dataRowMapper,
             IQueryMapper queryMapper, ISystemRoleQueryFactory queryFactory)
         {
             Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
+            Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
             Guard.AgainstNull(queryFactory, nameof(queryFactory));
             Guard.AgainstNull(queryMapper, nameof(queryMapper));
 
             _databaseGateway = databaseGateway;
+            _dataRowMapper = dataRowMapper;
             _queryFactory = queryFactory;
             _queryMapper = queryMapper;
         }
@@ -29,7 +32,7 @@ namespace Shuttle.Access.Sql
         {
             return
                 _databaseGateway.GetRowsUsing(_queryFactory.Permissions(roleName))
-                    .Select(row => SystemRolePermissionColumns.Permission.MapFrom(row))
+                    .Select(row => Columns.Permission.MapFrom(row))
                     .ToList();
         }
 
@@ -37,19 +40,24 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return _queryMapper.MapObjects<DataAccess.Query.Role>(_queryFactory.Search(specification));
-        }
+            var result = _queryMapper.MapObjects<DataAccess.Query.Role>(_queryFactory.Search(specification)).ToList();
 
-        public DataAccess.Query.RoleExtended GetExtended(Guid id)
-        {
-            var result = _queryMapper.MapObject<DataAccess.Query.RoleExtended>(_queryFactory.Get(id));
-
-            if (result == null)
+            if (specification.PermissionsIncluded)
             {
-                throw RecordNotFoundException.For<DataAccess.Query.Role>(id);
-            }
+                var permissionRows = _databaseGateway.GetRowsUsing(_queryFactory.Permissions(specification));
 
-            result.Permissions = new List<string>(_queryMapper.MapValues<string>(_queryFactory.Permissions(id)));
+                foreach (var permissionGroup in permissionRows.GroupBy(row=>Columns.RoleId.MapFrom(row)))
+                {
+                    var role = result.FirstOrDefault(item => item.Id == permissionGroup.Key);
+
+                    if (role == null)
+                    {
+                        continue;
+                    }
+
+                    role.Permissions = permissionGroup.Select(row => Columns.Permission.MapFrom(row)).ToList();
+                }
+            }
 
             return result;
         }

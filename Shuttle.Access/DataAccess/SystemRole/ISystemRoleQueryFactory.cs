@@ -15,5 +15,6 @@ namespace Shuttle.Access.DataAccess
         IQuery PermissionRemoved(Guid id, PermissionRemoved domainEvent);
         IQuery Removed(Guid id, Removed domainEvent);
         IQuery Count(Query.Role.Specification specification);
+        IQuery Permissions(Query.Role.Specification specification);
     }
 }

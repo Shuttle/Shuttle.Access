@@ -59,7 +59,7 @@ namespace Shuttle.Access.Sql
 
             foreach (var row in _databaseGateway.GetRowsUsing(_queryFactory.GetPermissions(token)))
             {
-                session.AddPermission(SessionPermissionColumns.Permission.MapFrom(row));
+                session.AddPermission(Columns.Permission.MapFrom(row));
             }
 
             return session;

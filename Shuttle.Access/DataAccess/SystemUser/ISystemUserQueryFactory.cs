@@ -11,7 +11,8 @@ namespace Shuttle.Access.DataAccess
         IQuery RoleAdded(Guid id, RoleAdded domainEvent);
         IQuery Search(Query.User.Specification specification);
         IQuery Get(Guid id);
-        IQuery Roles(Guid id);
+        IQuery Roles(Query.User.Specification specification);
+        IQuery Roles(Guid userId);
         IQuery RoleRemoved(Guid id, RoleRemoved domainEvent);
         IQuery AdministratorCount();
         IQuery RemoveRoles(Guid id, Removed domainEvent);

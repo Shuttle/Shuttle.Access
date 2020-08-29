@@ -60,7 +60,11 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(_systemUserQuery.GetExtended(id));
+                var user = _systemUserQuery.Search(new DataAccess.Query.User.Specification().WithUserId(id)).FirstOrDefault();
+
+                return user != null
+                    ? (IActionResult) Ok(user)
+                    : BadRequest();
             }
         }
 
@@ -132,7 +136,7 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                roles = _systemUserQuery.Roles(model.UserId).ToList();
+                roles = _systemUserQuery.Roles(new DataAccess.Query.User.Specification().WithUserId(model.UserId)).ToList();
             }
 
             return Ok(

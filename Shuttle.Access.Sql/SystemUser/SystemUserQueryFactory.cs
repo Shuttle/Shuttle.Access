@@ -8,7 +8,7 @@ namespace Shuttle.Access.Sql
 {
     public class SystemUserQueryFactory : ISystemUserQueryFactory
     {
-        private const string Columns = @"
+        private const string SelectedColumns = @"
     u.Id,
     u.Username,
     u.DateRegistered,
@@ -33,10 +33,10 @@ values
 	@RegisteredBy
 )
 ")
-                .AddParameterValue(SystemUserColumns.Id, id)
-                .AddParameterValue(SystemUserColumns.Username, domainEvent.Username)
-                .AddParameterValue(SystemUserColumns.DateRegistered, domainEvent.DateRegistered)
-                .AddParameterValue(SystemUserColumns.RegisteredBy, domainEvent.RegisteredBy);
+                .AddParameterValue(Columns.Id, id)
+                .AddParameterValue(Sql.Columns.Username, domainEvent.Username)
+                .AddParameterValue(Sql.Columns.DateRegistered, domainEvent.DateRegistered)
+                .AddParameterValue(Sql.Columns.RegisteredBy, domainEvent.RegisteredBy);
         }
 
         public IQuery Count(DataAccess.Query.User.Specification specification)
@@ -50,7 +50,7 @@ values
 
             return RawQuery.Create($@"
 select distinct
-{(columns ? Columns : "count (*)")}
+{(columns ? SelectedColumns : "count (*)")}
 from
 	SystemUser u
 left join
@@ -64,7 +64,7 @@ where
     r.RoleName = @RoleName
 )
 ")
-                .AddParameterValue(SystemRoleColumns.RoleName, specification.RoleName);
+                .AddParameterValue(Columns.RoleName, specification.RoleName);
         }
 
         public IQuery RoleAdded(Guid id, RoleAdded domainEvent)
@@ -82,8 +82,8 @@ if not exists(select null from [dbo].[SystemUserRole] where UserId = @UserId and
 	    @RoleId
     )
 ")
-                .AddParameterValue(SystemUserRoleColumns.UserId, id)
-                .AddParameterValue(SystemUserRoleColumns.RoleId, domainEvent.RoleId);
+                .AddParameterValue(Columns.UserId, id)
+                .AddParameterValue(Columns.RoleId, domainEvent.RoleId);
         }
 
         public IQuery Search(DataAccess.Query.User.Specification specification)
@@ -95,19 +95,37 @@ if not exists(select null from [dbo].[SystemUserRole] where UserId = @UserId and
         {
             return RawQuery.Create($@"
 select
-    {Columns}
+    {SelectedColumns}
 from
     dbo.SystemUser u
 where 
     u.Id = @Id
 ")
-                .AddParameterValue(SystemUserColumns.Id, id);
+                .AddParameterValue(Columns.Id, id);
         }
 
-        public IQuery Roles(Guid id)
+        public IQuery Roles(DataAccess.Query.User.Specification specification)
         {
-            return RawQuery.Create(@"select RoleId from dbo.SystemUserRole where UserId = @UserId")
-                .AddParameterValue(SystemUserRoleColumns.UserId, id);
+            Guard.AgainstNull(specification, nameof(specification));
+
+            return RawQuery.Create(@"
+select 
+    RoleId, 
+    RoleName 
+from 
+    dbo.SystemUserRole 
+where 
+    @UserId is not null
+    or
+    UserId = @UserId
+")
+                .AddParameterValue(Columns.UserId, specification.UserId);
+        }
+
+        public IQuery Roles(Guid userId)
+        {
+            return RawQuery.Create(@"select RoleId, RoleName from dbo.SystemUserRole where UserId = @UserId")
+                .AddParameterValue(Columns.UserId, userId);
         }
 
         public IQuery RoleRemoved(Guid id, RoleRemoved domainEvent)
@@ -121,8 +139,8 @@ where
 and
 	[RoleId] = @RoleId
 ")
-                .AddParameterValue(SystemUserRoleColumns.UserId, id)
-                .AddParameterValue(SystemUserRoleColumns.RoleId, domainEvent.RoleId);
+                .AddParameterValue(Columns.UserId, id)
+                .AddParameterValue(Columns.RoleId, domainEvent.RoleId);
         }
 
         public IQuery AdministratorCount()
@@ -133,12 +151,12 @@ and
         public IQuery RemoveRoles(Guid id, Removed domainEvent)
         {
             return RawQuery.Create("delete from SystemUserRole where UserId = @UserId")
-                .AddParameterValue(SystemUserRoleColumns.UserId, id);
+                .AddParameterValue(Columns.UserId, id);
         }
 
         public IQuery Remove(Guid id, Removed domainEvent)
         {
-            return RawQuery.Create("delete from SystemUser where Id = @Id").AddParameterValue(SystemUserColumns.Id, id);
+            return RawQuery.Create("delete from SystemUser where Id = @Id").AddParameterValue(Columns.Id, id);
         }
     }
 }

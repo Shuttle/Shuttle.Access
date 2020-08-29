@@ -6,7 +6,7 @@ import BootstrapVue from 'bootstrap-vue';
 import ShuttleVue from 'shuttle-vue';
 import Vuelidate from 'vuelidate';
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faCircleNotch, faSignOutAlt, faUser, faPlusSquare, faSyncAlt } from '@fortawesome/free-solid-svg-icons'
+import { faCircleNotch, faSignOutAlt, faUser, faPlusSquare, faSyncAlt, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import router from './router'
 import { AgGridVue } from 'ag-grid-vue';
@@ -14,7 +14,7 @@ import access from './access';
 import configuration from './configuration';
 import axios from 'axios';
 
-library.add(faCircleNotch, faSignOutAlt, faUser, faPlusSquare, faSyncAlt);
+library.add(faCircleNotch, faSignOutAlt, faUser, faPlusSquare, faSyncAlt, faTrashAlt);
 
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.component('ag-grid-vue', AgGridVue);
@@ -26,6 +26,13 @@ Vue.use(Vuelidate);
 Vue.config.productionTip = false;
 
 Vue.prototype.$api = axios.create({ baseURL: configuration.url });
+
+Vue.prototype.$api.interceptors.request.use(function (config) {
+  config.headers['access-sessiontoken'] = access.token;
+
+  return config;
+});
+
 
 new Vue({
   store,

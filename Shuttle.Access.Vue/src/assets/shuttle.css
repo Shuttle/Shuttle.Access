@@ -36,7 +36,12 @@ body {
 
 .s-title h1 {
     background-color: #de5c00;
-    color: #fff;
-    padding: .5rem 1rem;
-    border-right: solid 5px #823600!important
+    color: #ddd;
+    padding: .5rem;
+    border-right: solid 5px #823600!important;
+    font-size: 2em;
+}
+
+input, select {
+    background-color: #ccc;
 }

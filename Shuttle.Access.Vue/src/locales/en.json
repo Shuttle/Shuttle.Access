@@ -11,6 +11,14 @@
     "dashboard": "Dashboard",
     "permissions": "Permissions",
     "permissions-button": "permissions",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "request-sent": "The request has been submitted.  It may take a moment to process.",
+    "role-permissions": "Permissions",
+    "confirmation-remove": {
+        "title": "Confirmation",
+        "message": "Are you sure that you want to remove the selected item?"
+    },
     "user-required": "No users have been registered.  You will be registered as an administrator.",
     "exceptions": {
         "access-failure": "Could not initialize the `shuttle-access` module.  The back-end may not be available.",

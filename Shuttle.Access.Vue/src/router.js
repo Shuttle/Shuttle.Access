@@ -22,7 +22,7 @@ const router = new Router({
         {
             path: '/roles',
             name: 'roles',
-            component: () => import(/* webpackChunkName: "roles" */ './views/Roles.vue')
+            component: () => import(/* webpackChunkName: "roles" */ './views/Roles.vue'),
         },
         {
             path: '/users',
@@ -40,8 +40,10 @@ const router = new Router({
             component: () => import(/* webpackChunkName: "register" */ './views/Register.vue')
         },
         {
-            path: '*',
-            redirect: '/users'
+            path: '/roles/:id/permissions',
+            name: 'role-permissions',
+            props: true,
+            component: () => import(/* webpackChunkName: "role-permissions" */ './views/RolePermissions.vue')
         }
     ]
 })

@@ -83,7 +83,11 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(_systemRoleQuery.GetExtended(id));
+                var role = _systemRoleQuery.Search(new DataAccess.Query.Role.Specification().WithRoleId(id)).FirstOrDefault();
+
+                return role != null
+                    ? (IActionResult) Ok(role)
+                    : BadRequest();
             }
         }
 

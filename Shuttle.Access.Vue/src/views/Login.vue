@@ -38,6 +38,7 @@
 
 <script>
 import router from "../router";
+import {required} from "vuelidate";
 
 export default {
   data() {
@@ -49,6 +50,14 @@ export default {
       show: true
     };
   },
+  validations: {
+    username: {
+      required
+    },
+    password: {
+      required
+    }
+  },
   computed: {
     working() {
       return this.$store.state.working;
@@ -57,6 +66,10 @@ export default {
   methods: {
     login(evt) {
       evt.preventDefault();
+
+      if (this.$v.$invalid) {
+        return;
+      }
 
       this.$store.dispatch("login", {
         username: this.form.username,

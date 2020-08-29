@@ -7,10 +7,10 @@
       <b-navbar-toggle target="nav-text-collapse" v-if="authenticated"></b-navbar-toggle>
       <b-collapse id="nav-text-collapse" is-nav v-if="authenticated">
         <b-navbar-nav>
-          <b-nav-item to="roles">{{$t("roles")}}</b-nav-item>
+          <b-nav-item to="/roles">{{$t("roles")}}</b-nav-item>
         </b-navbar-nav>
         <b-navbar-nav>
-          <b-nav-item to="users">{{$t("users")}}</b-nav-item>
+          <b-nav-item to="/users">{{$t("users")}}</b-nav-item>
         </b-navbar-nav>
         <b-navbar-nav class="ml-auto" right v-if="authenticated">
           <b-nav-item to="profile">

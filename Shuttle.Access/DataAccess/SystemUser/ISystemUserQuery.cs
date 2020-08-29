@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Shuttle.Access.DataAccess.Query;
 
 namespace Shuttle.Access.DataAccess
 {
@@ -8,8 +7,7 @@ namespace Shuttle.Access.DataAccess
     {
         int Count(Query.User.Specification specification);
         IEnumerable<Query.User> Search(Query.User.Specification specification);
-        UserExtended GetExtended(Guid id);
-        IEnumerable<Guid> Roles(Guid id);
+        IEnumerable<Guid> Roles(Query.User.Specification id);
         int AdministratorCount();
     }
 }
