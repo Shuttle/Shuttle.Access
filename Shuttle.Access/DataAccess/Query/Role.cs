@@ -7,7 +7,7 @@ namespace Shuttle.Access.DataAccess.Query
     {
         public string RoleName { get; set; }
         public Guid Id { get; set; }
-        public List<string> Permissions { get; set; }
+        public List<string> Permissions { get; set; } = new List<string>();
 
         public class Specification
         {

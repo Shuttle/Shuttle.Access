@@ -17,19 +17,17 @@
           variant="outline-primary"
           @click="permissions(data.item)"
           size="sm"
-        >{{$t("permissions-button")}}</b-button>
+        ><font-awesome-icon icon="shield-alt" /></b-button>
       </template>
-      <template v-slot:cell(roleName)="data">
+      <template v-slot:cell(remove)="data">
         <b-button
           variant="outline-danger"
           v-b-modal.modal-confirmation
           size="sm"
-          class="mr-2"
           @click="selectedRole(data.item)"
         >
           <font-awesome-icon icon="trash-alt" />
         </b-button>
-        {{data.item.roleName}}
       </template>
     </b-table>
     <b-modal
@@ -108,8 +106,12 @@ export default {
 
     this.fields = [
       {
-        label: this.$i18n.t("permissions"),
+        label: "",
         key: "permissions",
+      },
+      {
+        label: "",
+        key: "remove",
       },
       {
         label: this.$i18n.t("role-name"),

@@ -9,6 +9,7 @@
     "users": "Users",
     "log-out": "Log out",
     "dashboard": "Dashboard",
+    "permission": "Permission",
     "permissions": "Permissions",
     "permissions-button": "permissions",
     "ok": "OK",
@@ -23,5 +24,6 @@
     "exceptions": {
         "access-failure": "Could not initialize the `shuttle-access` module.  The back-end may not be available.",
         "register": "Could not register user.  Exception: {0}"
-    }
+    },
+    "working-message": "Please wait until the current operation completes and then try again."
 }
