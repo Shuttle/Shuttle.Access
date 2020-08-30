@@ -24,7 +24,7 @@
           variant="outline-danger"
           v-b-modal.modal-confirmation
           size="sm"
-          @click="selectedRole(data.item)"
+          @click="selectRole(data.item)"
         >
           <font-awesome-icon icon="trash-alt" />
         </b-button>
@@ -52,6 +52,7 @@ export default {
     return {
       roles: Array,
       fields: Array,
+      selectedRole: Object,
       form: {
         roleName: "",
       },
@@ -95,9 +96,17 @@ export default {
         });
     },
     remove() {
-      alert(this.selectedRole.roleName);
+      const self = this;
+      
+      this.$api
+        .delete(`roles/${this.selectedRole.id}`)
+        .then(function () {
+          self.$store.dispatch("addAlert", {
+            message: self.$i18n.t("request-sent"),
+          });
+        });
     },
-    selectedRole(item) {
+    selectRole(item) {
       this.selectedRole = item;
     },
   },
