@@ -16,7 +16,6 @@ namespace Shuttle.Access.Tests.DataAccess.Sql
             using (TransactionScopeFactory.Create())
             using (DatabaseContextFactory.Create())
             {
-                Assert.That(() => query.Search(new Access.DataAccess.Query.Role.Specification().WithRoleId(Guid.NewGuid())), Throws.TypeOf<RecordNotFoundException>());
                 Assert.That(() => query.Search(new Access.DataAccess.Query.Role.Specification()), Throws.Nothing);
                 Assert.That(
                     query.Search(new Access.DataAccess.Query.Role.Specification().WithRoleName("Administrator")).Count(),

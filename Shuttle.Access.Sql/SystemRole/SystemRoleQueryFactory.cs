@@ -127,6 +127,7 @@ where
 
             return RawQuery.Create(@"
 select 
+    RoleId,
     Permission
 from
     SystemRolePermission rp
@@ -148,7 +149,7 @@ and
 (
     @RoleId is null
     or
-    Id = @Id
+    Id = @RoleId
 )
 ")
                 .AddParameterValue(Columns.RoleNameMatch, specification.RoleNameMatch)

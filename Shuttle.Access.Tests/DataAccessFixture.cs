@@ -31,7 +31,7 @@ namespace Shuttle.Access.Tests.DataAccess
 
             connectionConfigurationProvider.Setup(m => m.Get(It.IsAny<string>())).Returns(
                 new ConnectionConfiguration(
-                    "Abacus",
+                    "Access",
                     "System.Data.SqlClient",
                     "Data Source=.\\sqlexpress;Initial Catalog=Access;Integrated Security=SSPI;"));
 

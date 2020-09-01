@@ -83,7 +83,7 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                var role = _systemRoleQuery.Search(new DataAccess.Query.Role.Specification().WithRoleId(id)).FirstOrDefault();
+                var role = _systemRoleQuery.Search(new DataAccess.Query.Role.Specification().WithRoleId(id).IncludePermissions()).FirstOrDefault();
 
                 return role != null
                     ? (IActionResult) Ok(role)

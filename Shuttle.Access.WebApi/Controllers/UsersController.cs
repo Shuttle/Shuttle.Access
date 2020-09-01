@@ -199,7 +199,7 @@ namespace Shuttle.Access.WebApi
             _bus.Send(new RegisterUserCommand
             {
                 Username = model.Username,
-                PasswordHash = _hashingService.Sha256(model.Password),
+                PasswordHash = !string.IsNullOrWhiteSpace(model.Password) ? _hashingService.Sha256(model.Password) : null,
                 RegisteredBy = registeredBy
             });
 

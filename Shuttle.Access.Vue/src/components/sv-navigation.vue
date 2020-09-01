@@ -16,6 +16,9 @@
           <b-nav-item to="profile">
             <font-awesome-icon icon="user" />
           </b-nav-item>
+          <b-nav-item to="password">
+            <font-awesome-icon icon="key" />
+          </b-nav-item>
           <b-nav-item v-on:click="logout">
             <font-awesome-icon icon="sign-out-alt" />
           </b-nav-item>

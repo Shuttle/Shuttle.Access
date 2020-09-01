@@ -129,7 +129,7 @@ export default {
 
       Array.prototype.forEach.call(this.rolePermissions, (item) => {
         permissions.push({
-          permission: item.permission,
+          permission: item,
           active: true,
           working: false,
         });
