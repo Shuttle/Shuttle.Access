@@ -60,7 +60,7 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                var user = _systemUserQuery.Search(new DataAccess.Query.User.Specification().WithUserId(id)).FirstOrDefault();
+                var user = _systemUserQuery.Search(new DataAccess.Query.User.Specification().WithUserId(id).IncludeRoles()).FirstOrDefault();
 
                 return user != null
                     ? (IActionResult) Ok(user)
@@ -107,7 +107,7 @@ namespace Shuttle.Access.WebApi
                         return Ok(new
                         {
                             Success = false,
-                            FailureReason = "LastAdministrator"
+                            FailureReason = "last-administrator"
                         });
                     }
                 }
@@ -140,11 +140,11 @@ namespace Shuttle.Access.WebApi
             }
 
             return Ok(
-                from role in model.RoleIds
+                from roleId in model.RoleIds
                 select new
                 {
-                    RoleId = role,
-                    Active = roles.Find(item => item.Equals(role)) != null
+                    RoleId = roleId,
+                    Active = roles.Any(item => item.Equals(roleId))
                 }
             );
         }

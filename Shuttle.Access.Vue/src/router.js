@@ -25,9 +25,20 @@ const router = new Router({
             component: () => import(/* webpackChunkName: "roles" */ './views/Roles.vue'),
         },
         {
+            path: '/roles/:id/permissions',
+            name: 'role-permissions',
+            props: true,
+            component: () => import(/* webpackChunkName: "role-permissions" */ './views/RolePermissions.vue')
+        },
+        {
             path: '/users',
             name: 'users',
             component: () => import(/* webpackChunkName: "users" */ './views/Users.vue')
+        },
+        {
+            path: '/users/:id/roles',
+            name: 'user-roles',
+            component: () => import(/* webpackChunkName: "user-roles" */ './views/UserRoles.vue')
         },
         {
             path: '/profile',
@@ -39,12 +50,6 @@ const router = new Router({
             name: 'register',
             component: () => import(/* webpackChunkName: "register" */ './views/Register.vue')
         },
-        {
-            path: '/roles/:id/permissions',
-            name: 'role-permissions',
-            props: true,
-            component: () => import(/* webpackChunkName: "role-permissions" */ './views/RolePermissions.vue')
-        }
     ]
 })
 

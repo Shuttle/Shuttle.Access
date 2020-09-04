@@ -57,9 +57,10 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public IEnumerable<Guid> Roles(DataAccess.Query.User.Specification id)
+        public IEnumerable<Guid> Roles(DataAccess.Query.User.Specification specification)
         {
-            return _queryMapper.MapValues<Guid>(_queryFactory.Roles(id));
+            return _databaseGateway.GetRowsUsing(_queryFactory.Roles(specification))
+                .Select(row => Columns.RoleId.MapFrom(row));
         }
 
         public int Count(DataAccess.Query.User.Specification specification)

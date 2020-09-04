@@ -63,8 +63,15 @@ where
     or
     r.RoleName = @RoleName
 )
+and
+(
+    @UserId is null
+    or
+    u.Id = @UserId
+)
 ")
-                .AddParameterValue(Columns.RoleName, specification.RoleName);
+                .AddParameterValue(Columns.RoleName, specification.RoleName)
+                .AddParameterValue(Columns.UserId, specification.UserId);
         }
 
         public IQuery RoleAdded(Guid id, RoleAdded domainEvent)
@@ -110,12 +117,15 @@ where
 
             return RawQuery.Create(@"
 select 
-    RoleId, 
-    RoleName 
+    ur.UserId, 
+    ur.RoleId, 
+    r.RoleName 
 from 
-    dbo.SystemUserRole 
+    dbo.SystemUserRole ur
+inner join
+    dbo.SystemRole r on (r.Id = ur.RoleId)
 where 
-    @UserId is not null
+    @UserId is null
     or
     UserId = @UserId
 ")
@@ -145,7 +155,16 @@ and
 
         public IQuery AdministratorCount()
         {
-            return RawQuery.Create("select count(*) as count from dbo.SystemUserRole where RoleName = 'administrator'");
+            return RawQuery.Create(@"
+select 
+    count(*) as count 
+from 
+    dbo.SystemUserRole ur
+inner join
+    dbo.SystemRole r on r.Id = ur.RoleId
+where 
+    r.RoleName = 'administrator'
+");
         }
 
         public IQuery RemoveRoles(Guid id, Removed domainEvent)

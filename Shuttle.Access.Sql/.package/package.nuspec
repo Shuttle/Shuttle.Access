@@ -17,8 +17,8 @@
 		<dependencies>
       <dependency id="Shuttle.Access" version="1.0.0" />
       <dependency id="Shuttle.Core.Data" version="11.0.4" />
-      <dependency id="Shuttle.Recall" version="11.0.0" />
-      <dependency id="Shuttle.Recall.Sql.Storage" version="11.0.0" />
+      <dependency id="Shuttle.Recall" version="11.1.0" />
+      <dependency id="Shuttle.Recall.Sql.Storage" version="11.0.1" />
 		</dependencies>
 	</metadata>
 	<files>

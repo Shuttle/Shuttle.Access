@@ -1,13 +1,13 @@
 <template>
   <div>
     <s-title :text="title" />
-    <b-table :items="permissions" :fields="fields" dark responsive="md">
+    <b-table :items="roles" :fields="fields" dark responsive="md">
       <template v-slot:cell(active)="data">
         <font-awesome-icon v-if="data.item.working" icon="hourglass" />
         <b-form-checkbox v-else v-model="data.item.active" switch @input="toggle(data.item)" />
       </template>
-      <template v-slot:cell(permission)="data">
-        <span :class="!data.item.active ? 'text-muted' : ''">{{data.item.permission}}</span>
+      <template v-slot:cell(role)="data">
+        <span :class="!data.item.active ? 'text-muted' : ''">{{data.item.role}}</span>
       </template>
     </b-table>
   </div>
@@ -15,27 +15,25 @@
 
 <script>
 export default {
-  name: "RolePermissions",
+  name: "UserRoles",
   data() {
     return {
-      roleId: "",
-      roleName: "",
-      rolePermissions: [],
-      availablePermissions: [],
-      permissions: [],
-      fields: [],
-      working: false,
+      userId: "",
+      username: "",
+      userRoles: [],
+      roles: [],
+      fields: []
     };
   },
   computed: {
     title() {
       return (
-        this.$i18n.t("role-permissions") +
-        (this.roleName ? " - " + this.roleName : "")
+        this.$i18n.t("users") +
+        (this.username ? " - " + this.username : "")
       );
     },
     workingItems() {
-      return this.permissions.filter(function (item) {
+      return this.roles.filter(function (item) {
         return item.working;
       });
     },
@@ -58,27 +56,36 @@ export default {
       item.working = true;
 
       this.$api
-        .post("roles/setpermission", {
-          roleId: this.roleId,
-          permission: item.permission,
+        .post("users/setrole", {
+          userId: this.userId,
+          roleId: item.roleId,
           active: item.active,
+        })
+        .then(function(response){
+          if (!response.data.success){
+            item.active = !item.activel
+            item.working = false;
+            self.$store.dispatch("addAlert", {
+              message: self.$i18n.t(response.data.failureReason)
+            });
+          }
         })
         .finally(function () {
           self.working = false;
         });
 
-      this.getPermissionStatus();
+      this.getRoleStatus();
     },
 
-    getPermissionItem(permission) {
+    getRoleItem(roleId) {
       var result;
 
-      Array.prototype.forEach.call(this.permissions, (item) => {
+      Array.prototype.forEach.call(this.roles, (item) => {
         if (result) {
           return;
         }
 
-        if (item.permission === permission) {
+        if (item.roleId === roleId) {
           result = item;
         }
       });
@@ -86,7 +93,7 @@ export default {
       return result;
     },
 
-    getPermissionStatus() {
+    getRoleStatus() {
       var self = this;
 
       if (this.workingCount === 0) {
@@ -94,75 +101,78 @@ export default {
       }
 
       var data = {
-        roleId: self.roleId,
-        permissions: [],
+        userId: self.userId,
+        roleIds: [],
       };
 
       Array.prototype.forEach.call(this.workingItems, (item) => {
-        data.permissions.push(item.permission);
+        data.roleIds.push(item.roleId);
       });
 
       this.$api
-        .post("roles/permissionstatus", data)
+        .post("users/rolestatus", data)
         .then(function (response) {
           Array.prototype.forEach.call(response.data, (item) => {
-            const permissionItem = self.getPermissionItem(item.permission);
+            const roleItem = self.getRoleItem(item.roleId);
 
-            if (!permissionItem) {
+            if (!roleItem) {
               return;
             }
 
-            permissionItem.working = !(permissionItem.active === item.active);
+            roleItem.working = !(roleItem.active === item.active);
           });
         })
         .then(function () {
           setTimeout(function () {
-            self.getPermissionStatus.call(self);
+            self.getRoleStatus.call(self);
           }, 1000);
         });
     },
 
-    applyPermissions() {
-      var permissions = [];
+    applyRoles() {
+      var roles = [];
 
-      Array.prototype.forEach.call(this.rolePermissions, (item) => {
-        permissions.push({
-          permission: item,
+      Array.prototype.forEach.call(this.userRoles, (item) => {
+        roles.push({
+          roleId: item.id,
+          roleName: item.name,
           active: true,
           working: false,
         });
       });
       Array.prototype.forEach.call(
-        this.availablePermissions.filter((item) => {
-          return !permissions.some((p) => p.permission == item.permission);
+        this.roles.filter((item) => {
+          return !roles.some((r) => r.roleId == item.id);
         }),
         (item) => {
-          permissions.push({
-            permission: item.permission,
+          roles.push({
+            roleId: item.id,
+            roleName: item.roleName,
             active: false,
             working: false,
           });
         }
       );
 
-      this.permissions = permissions;
+      this.roles = roles;
     },
     refresh() {
       const self = this;
 
-      this.$api.get("roles/" + this.roleId).then(function (response) {
-        self.roleName = response.data.roleName;
-        self.rolePermissions = response.data.permissions;
+      this.$api.get("users/" + this.userId).then(function (response) {
+        self.userId = response.data.id;
+        self.username = response.data.username;
+        self.userRoles = response.data.roles;
 
-        self.$api.get("permissions").then(function (response) {
-          self.availablePermissions = response.data;
-          self.applyPermissions();
+        self.$api.get("roles").then(function (response) {
+          self.roles = response.data;
+          self.applyRoles();
         });
       });
     },
   },
   beforeMount() {
-    this.roleId = this.$route.params.id;
+    this.userId = this.$route.params.id;
 
     this.fields = [
       {
@@ -171,8 +181,8 @@ export default {
         class: "text-center"
       },
       {
-        key: "permission",
-        label: this.$i18n.t("permission"),
+        key: "roleName",
+        label: this.$i18n.t("role-name"),
         class: "col",
       },
     ];

@@ -16,6 +16,7 @@
     "cancel": "Cancel",
     "request-sent": "The request has been submitted.  It may take a moment to process.",
     "role-permissions": "Permissions",
+    "last-administrator": "You cannot remove the administrator role as this user is the last administrator.",
     "confirmation-remove": {
         "title": "Confirmation",
         "message": "Are you sure that you want to remove the selected item?"
