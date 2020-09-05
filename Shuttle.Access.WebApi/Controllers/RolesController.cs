@@ -34,7 +34,14 @@ namespace Shuttle.Access.WebApi
         [HttpPost("setpermission")]
         public IActionResult SetPermission([FromBody] SetRolePermissionModel model)
         {
-            Guard.AgainstNull(model, nameof(model));
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             _bus.Send(new SetRolePermissionCommand
             {
@@ -50,7 +57,14 @@ namespace Shuttle.Access.WebApi
         [HttpPost("permissionstatus")]
         public IActionResult PermissionStatus([FromBody] RolePermissionStatusModel model)
         {
-            Guard.AgainstNull(model, nameof(model));
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             List<string> permissions;
 
@@ -107,7 +121,14 @@ namespace Shuttle.Access.WebApi
         [HttpPost]
         public IActionResult Post([FromBody] AddRoleModel model)
         {
-            Guard.AgainstNull(model, nameof(model));
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             _bus.Send(new AddRoleCommand
             {

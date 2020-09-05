@@ -64,7 +64,7 @@ export default {
     register(evt) {
       evt.preventDefault();
 
-      this.$axios
+      this.$api
         .post("/users", {
           username: this.form.username,
           password: this.form.password,

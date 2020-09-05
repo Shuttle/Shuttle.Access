@@ -13,9 +13,6 @@
           <b-nav-item to="/users">{{$t("users")}}</b-nav-item>
         </b-navbar-nav>
         <b-navbar-nav class="ml-auto" right v-if="authenticated">
-          <b-nav-item to="profile">
-            <font-awesome-icon icon="user" />
-          </b-nav-item>
           <b-nav-item to="password">
             <font-awesome-icon icon="key" />
           </b-nav-item>

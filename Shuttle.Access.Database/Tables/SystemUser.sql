@@ -1,10 +1,12 @@
 ﻿CREATE TABLE [dbo].[SystemUser] (
-    [Id]             UNIQUEIDENTIFIER NOT NULL DEFAULT newid(),
+    [Id]             UNIQUEIDENTIFIER DEFAULT (newid()) NOT NULL,
     [Username]       VARCHAR (65)     NOT NULL,
     [DateRegistered] DATETIME         NOT NULL,
     [RegisteredBy]   VARCHAR (65)     NOT NULL,
     CONSTRAINT [PK_SystemUser] PRIMARY KEY NONCLUSTERED ([Id] ASC)
 );
+
+
 
 
 GO

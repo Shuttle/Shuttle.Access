@@ -47,7 +47,9 @@ namespace Shuttle.Access.Sql
                     return RegisterSessionResult.Failure();
                 }
 
-                session = new Session(Guid.NewGuid(), username, DateTime.Now);
+                var now = DateTime.Now;
+
+                session = new Session(Guid.NewGuid(), username, now, now.Add(_configuration.SessionDuration));
 
                 foreach (var permission in _authorizationService.Permissions(username, authenticationResult.AuthenticationTag))
                 {
@@ -69,6 +71,10 @@ namespace Shuttle.Access.Sql
                     {
                         return RegisterSessionResult.Failure();
                     }
+
+                    session.Renew(DateTime.Now.Add(_configuration.SessionDuration));
+
+                    _sessionRepository.Save(session);
                 }
             }
 

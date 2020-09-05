@@ -50,6 +50,11 @@ const router = new Router({
             name: 'register',
             component: () => import(/* webpackChunkName: "register" */ './views/Register.vue')
         },
+        {
+            path: '/password/:token',
+            name: 'password',
+            component: () => import(/* webpackChunkName: "password" */ './views/Password.vue')
+        },
     ]
 })
 

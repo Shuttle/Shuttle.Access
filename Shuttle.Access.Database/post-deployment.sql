@@ -13,6 +13,7 @@ exec RegisterAvailablePermission 'access://roles/manage'
 exec RegisterAvailablePermission 'access://roles/view'
 exec RegisterAvailablePermission 'access://users/manage'
 exec RegisterAvailablePermission 'access://users/view'
+exec RegisterAvailablePermission 'access://users/reset'
 exec RegisterAvailablePermission 'access://dashboard/view'
 
 exec RegisterRole 'Anonymous'

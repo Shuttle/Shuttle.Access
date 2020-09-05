@@ -8,7 +8,7 @@ namespace Shuttle.Access.Sql
 	{
 		public IQuery Get(Guid token)
 		{
-			return RawQuery.Create("select Token, Username, DateRegistered from [dbo].[Session] where Token = @Token")
+			return RawQuery.Create("select Token, Username, DateRegistered, ExpiryDate from [dbo].[Session] where Token = @Token")
 				.AddParameterValue(Columns.Token, token);
 		}
 
@@ -31,18 +31,21 @@ insert into [dbo].[Session]
 (
 	Token, 
 	Username, 
-	DateRegistered
+	DateRegistered,
+    ExpiryDate
 )
 values
 (
 	@Token, 
 	@Username, 
-	@DateRegistered
+	@DateRegistered,
+    @ExpiryDate
 )
 ")
 				.AddParameterValue(Columns.Token, session.Token)
 				.AddParameterValue(Columns.Username, session.Username)
-				.AddParameterValue(Columns.DateRegistered, session.DateRegistered);
+				.AddParameterValue(Columns.DateRegistered, session.DateRegistered)
+				.AddParameterValue(Columns.ExpiryDate, session.ExpiryDate);
 		}
 
 		public IQuery AddPermission(Guid token, string permission)

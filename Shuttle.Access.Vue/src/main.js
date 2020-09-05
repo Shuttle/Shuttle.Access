@@ -6,7 +6,7 @@ import BootstrapVue from 'bootstrap-vue';
 import ShuttleVue from 'shuttle-vue';
 import Vuelidate from 'vuelidate';
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faCircleNotch, faKey, faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons'
+import { faCircleNotch, faEye, faEyeSlash, faKey, faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import router from './router'
 import { AgGridVue } from 'ag-grid-vue';
@@ -14,7 +14,7 @@ import access from './access';
 import configuration from './configuration';
 import axios from 'axios';
 
-library.add(faCircleNotch, faKey,faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle);
+library.add(faCircleNotch, faEye, faEyeSlash, faKey,faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle);
 
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.component('ag-grid-vue', AgGridVue);

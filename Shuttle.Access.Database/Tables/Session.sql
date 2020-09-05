@@ -2,6 +2,7 @@
     [Token]          UNIQUEIDENTIFIER NOT NULL,
     [Username]       VARCHAR (65)     NOT NULL,
     [DateRegistered] DATETIME         CONSTRAINT [DF_Session_DateRegistered] DEFAULT (getdate()) NOT NULL,
+    [ExpiryDate]     DATETIME,
     CONSTRAINT [PK_Session] PRIMARY KEY NONCLUSTERED ([Token] ASC)
 );
 

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Shuttle.Access.DataAccess;
@@ -40,8 +38,7 @@ namespace Shuttle.Access.Mvc
 
             public void OnAuthorization(AuthorizationFilterContext context)
             {
-                var headers = context.HttpContext.Request.Headers;
-                var sessionTokenValue = GetHeaderValue(headers, "access-sessiontoken");
+                var sessionTokenValue = context.HttpContext.GetAccessSessionToken();
 
                 if (string.IsNullOrEmpty(sessionTokenValue))
                 {
@@ -67,18 +64,6 @@ namespace Shuttle.Access.Mvc
             private static void SetUnauthorized(AuthorizationFilterContext context)
             {
                 context.Result = new UnauthorizedResult();
-            }
-
-            private static string GetHeaderValue(IHeaderDictionary headers, string name)
-            {
-                if (!headers.ContainsKey(name))
-                {
-                    return null;
-                }
-
-                var tokens = headers[name].ToList();
-
-                return tokens.Count != 1 ? null : tokens[0];
             }
         }
     }

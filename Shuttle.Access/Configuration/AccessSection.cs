@@ -9,6 +9,9 @@ namespace Shuttle.Access
         [ConfigurationProperty("connectionStringName", IsRequired = false, DefaultValue = "Access")]
         public string ConnectionStringName => (string) this["connectionStringName"];
 
+        [ConfigurationProperty("sessionDuration", IsRequired = false, DefaultValue = "00:01:00")]
+        public TimeSpan SessionDuration => TimeSpan.Parse((string) this["sessionDuration"]);
+
         public static IAccessConfiguration Configuration()
         {
             var section = ConfigurationSectionProvider.Open<AccessSection>("shuttle", "access");
@@ -19,6 +22,7 @@ namespace Shuttle.Access
             if (section != null)
             {
                 connectionStringName = section.ConnectionStringName;
+                configuration.SessionDuration = section.SessionDuration;
             }
 
             configuration.ProviderName = GetSettings(connectionStringName).ProviderName;

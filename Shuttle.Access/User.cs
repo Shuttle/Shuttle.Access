@@ -11,6 +11,7 @@ namespace Shuttle.Access
         private readonly Guid _id;
         private readonly List<Guid> _roles = new List<Guid>();
         private byte[] _passwordHash;
+        private string _resetToken;
         private string _username;
 
         public User(Guid id)
@@ -37,6 +38,15 @@ namespace Shuttle.Access
             _passwordHash = registered.PasswordHash;
 
             return registered;
+        }
+
+        private PasswordSet On(PasswordSet passwordSet)
+        {
+            Guard.AgainstNull(passwordSet, nameof(passwordSet));
+
+            _passwordHash = passwordSet.PasswordHash;
+
+            return passwordSet;
         }
 
         public static string Key(string username)
@@ -102,6 +112,51 @@ namespace Shuttle.Access
             {
                 Id = _id
             });
+        }
+
+        private PasswordResetRegistered On(PasswordResetRegistered passwordResetRegistered)
+        {
+            _resetToken = passwordResetRegistered.Token;
+
+            return passwordResetRegistered;
+        }
+
+        public PasswordResetRegistered Reset(string token)
+        {
+            Guard.AgainstNullOrEmptyString(token, nameof(token));
+
+            return On(new PasswordResetRegistered
+            {
+                Token = token
+            });
+        }
+
+        public PasswordSet SetPassword(byte[] passwordHash, byte[] oldPassword, string token)
+        {
+            Guard.AgainstNull(passwordHash, nameof(passwordHash));
+
+            if (passwordHash.Length == 0)
+            {
+                throw new ArgumentException(Resources.PasswordHashException);
+            }
+
+            var oldPasswordSpecified = (oldPassword == null || oldPassword.Length == 0);
+
+            if (!oldPasswordSpecified && string.IsNullOrWhiteSpace(token))
+            {
+                throw new InvalidOperationException(Resources.SetPasswordException);
+            }
+
+            if ((oldPasswordSpecified && PasswordMatches(oldPassword)) ||
+                (!string.IsNullOrWhiteSpace(token) && _resetToken.Equals(token)))
+            {
+                return On(new PasswordSet
+                {
+                    PasswordHash = passwordHash
+                });
+            }
+
+            throw new InvalidOperationException();
         }
     }
 }

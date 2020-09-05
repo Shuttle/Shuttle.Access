@@ -10,7 +10,8 @@ namespace Shuttle.Access.Sql
 			return new MappedRow<Session>(row, new Session(
 				Columns.Token.MapFrom(row), 
 				Columns.Username.MapFrom(row),
-				Columns.DateRegistered.MapFrom(row)));
+				Columns.DateRegistered.MapFrom(row),
+                Columns.ExpiryDate.MapFrom(row)));
 		}
 	}
 }

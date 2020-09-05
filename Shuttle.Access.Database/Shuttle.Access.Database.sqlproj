@@ -68,7 +68,6 @@
     <Build Include="Tables\SystemRolePermission.sql" />
     <Build Include="Tables\SystemUser.sql" />
     <Build Include="Tables\SystemUserRole.sql" />
-    <Build Include="Tables\ProjectionPosition.sql" />
     <Build Include="Tables\EventStore.sql" />
     <Build Include="Tables\KeyStore.sql" />
     <Build Include="Tables\SnapshotStore.sql" />
@@ -78,5 +77,7 @@
     <Build Include="Stored Procedures\RegisterRole.sql" />
     <Build Include="Stored Procedures\RegisterRolePermission.sql" />
     <PostDeploy Include="post-deployment.sql" />
+    <Build Include="Tables\Projection.sql" />
+    <Build Include="Tables\EventType.sql" />
   </ItemGroup>
 </Project>

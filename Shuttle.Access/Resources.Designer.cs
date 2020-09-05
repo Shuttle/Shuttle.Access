@@ -88,6 +88,24 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid credentials..
+        /// </summary>
+        public static string InvalidCredentialsException {
+            get {
+                return ResourceManager.GetString("InvalidCredentialsException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;PasswordHash&apos; may not be empty..
+        /// </summary>
+        public static string PasswordHashException {
+            get {
+                return ResourceManager.GetString("PasswordHashException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Permission &apos;{0}&apos; does not exist on role &apos;{1}&apos;..
         /// </summary>
         public static string PermissionNotFoundException {
@@ -102,6 +120,33 @@ namespace Shuttle.Access {
         public static string RoleNotFoundException {
             get {
                 return ResourceManager.GetString("RoleNotFoundException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No token could be retrieved to fulfill the request..
+        /// </summary>
+        public static string SessionTokenException {
+            get {
+                return ResourceManager.GetString("SessionTokenException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The session token has expired.  Pleae log in again..
+        /// </summary>
+        public static string SessionTokenExpiredException {
+            get {
+                return ResourceManager.GetString("SessionTokenExpiredException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In order to set the password either the &apos;OldPassword&apos; or a &apos;Token&apos; should be specified..
+        /// </summary>
+        public static string SetPasswordException {
+            get {
+                return ResourceManager.GetString("SetPasswordException", resourceCulture);
             }
         }
     }

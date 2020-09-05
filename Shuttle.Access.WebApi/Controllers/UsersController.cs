@@ -19,18 +19,17 @@ namespace Shuttle.Access.WebApi
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IHashingService _hashingService;
         private readonly ISessionRepository _sessionRepository;
+        private readonly IAuthenticationService _authenticationService;
         private readonly ISystemRoleQuery _systemRoleQuery;
         private readonly ISystemUserQuery _systemUserQuery;
 
-        public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,
-            IHashingService hashingService, ISessionRepository sessionRepository,
-            IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery,
-            ISystemRoleQuery systemRoleQuery)
+        public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,IHashingService hashingService, ISessionRepository sessionRepository, IAuthenticationService authenticationService,IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery,ISystemRoleQuery systemRoleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(bus, nameof(bus));
             Guard.AgainstNull(hashingService, nameof(hashingService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
+            Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
             Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
@@ -39,6 +38,7 @@ namespace Shuttle.Access.WebApi
             _bus = bus;
             _hashingService = hashingService;
             _sessionRepository = sessionRepository;
+            _authenticationService = authenticationService;
             _authorizationService = authorizationService;
             _systemUserQuery = systemUserQuery;
             _systemRoleQuery = systemRoleQuery;
@@ -60,7 +60,8 @@ namespace Shuttle.Access.WebApi
         {
             using (_databaseContextFactory.Create())
             {
-                var user = _systemUserQuery.Search(new DataAccess.Query.User.Specification().WithUserId(id).IncludeRoles()).FirstOrDefault();
+                var user = _systemUserQuery
+                    .Search(new DataAccess.Query.User.Specification().WithUserId(id).IncludeRoles()).FirstOrDefault();
 
                 return user != null
                     ? (IActionResult) Ok(user)
@@ -87,7 +88,14 @@ namespace Shuttle.Access.WebApi
         [HttpPost("setrole")]
         public IActionResult SetRole([FromBody] SetUserRoleModel model)
         {
-            Guard.AgainstNull(model, nameof(model));
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             using (_databaseContextFactory.Create())
             {
@@ -126,17 +134,121 @@ namespace Shuttle.Access.WebApi
             });
         }
 
+        [RequiresPermission(SystemPermissions.Manage.Users)]
+        [HttpPost("resetpassword")]
+        public IActionResult RegisterPasswordReset([FromBody] RegisterPasswordResetModel model)
+        {
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            _bus.Send(new RegisterPasswordResetCommand
+            {
+                UserId = model.UserId,
+                Token = model.Token
+            });
+
+            return Ok(new
+            {
+                Success = true
+            });
+        }
+
+        [RequiresPermission(SystemPermissions.Manage.Users)]
+        [HttpPost("passwordexpiry")]
+        public IActionResult RegisterPasswordExpiry([FromBody] RegisterPasswordExpiryModel model)
+        {
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            _bus.Send(new RegisterPasswordExpiryCommand
+            {
+                UserId = model.UserId,
+                ExpiryDate = model.ExpiryDate,
+                NeverExpires = model.NeverExpires
+            });
+
+            return Ok(new
+            {
+                Success = true
+            });
+        }
+
+        [HttpPost("setpassword")]
+        public IActionResult SetPassword([FromBody] SetPasswordModel model)
+        {
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            var token = HttpContext.GetAccessSessionToken();
+
+            if (string.IsNullOrWhiteSpace(token) && string.IsNullOrWhiteSpace(model.Token))
+            {
+                return BadRequest(Resources.SessionTokenException);
+            }
+
+            var session = _sessionRepository.Find(new Guid(string.IsNullOrWhiteSpace(token) ? model.Token : token));
+
+            if (session == null)
+            {
+                return BadRequest(Resources.SessionTokenException);
+            }
+
+            var authenticationResult = _authenticationService.Authenticate(session.Username, model.OldPassword);
+
+            if (!authenticationResult.Authenticated)
+            {
+                return BadRequest(Resources.InvalidCredentialsException);
+            }
+
+            _bus.Send(new SetPasswordCommand
+            {
+                Username = session.Username,
+                PasswordHash = _hashingService.Sha256(model.NewPassword)
+            });
+
+            return Ok(new
+            {
+                Success = true
+            });
+        }
+
         [RequiresPermission(SystemPermissions.Manage.Roles)]
         [HttpPost("rolestatus")]
         public IActionResult RoleStatus([FromBody] UserRoleStatusModel model)
         {
-            Guard.AgainstNull(model, nameof(model));
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             List<Guid> roles;
 
             using (_databaseContextFactory.Create())
             {
-                roles = _systemUserQuery.Roles(new DataAccess.Query.User.Specification().WithUserId(model.UserId)).ToList();
+                roles = _systemUserQuery.Roles(new DataAccess.Query.User.Specification().WithUserId(model.UserId))
+                    .ToList();
             }
 
             return Ok(
@@ -152,7 +264,14 @@ namespace Shuttle.Access.WebApi
         [HttpPost]
         public IActionResult Post([FromBody] RegisterUserModel model)
         {
-            Guard.AgainstNull(model, nameof(model));
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
             var registeredBy = "system";
             var result = Request.GetSessionToken();
@@ -199,7 +318,9 @@ namespace Shuttle.Access.WebApi
             _bus.Send(new RegisterUserCommand
             {
                 Username = model.Username,
-                PasswordHash = !string.IsNullOrWhiteSpace(model.Password) ? _hashingService.Sha256(model.Password) : null,
+                PasswordHash = !string.IsNullOrWhiteSpace(model.Password)
+                    ? _hashingService.Sha256(model.Password)
+                    : null,
                 RegisteredBy = registeredBy
             });
 
