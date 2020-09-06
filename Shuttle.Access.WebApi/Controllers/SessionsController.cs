@@ -1,19 +1,25 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Mvc;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Data;
 
 namespace Shuttle.Access.WebApi
 {
     [Route("api/[controller]")]
     public class SessionsController : Controller
     {
+        private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly ISessionService _sessionService;
 
-        public SessionsController(ISessionService sessionService)
+        public SessionsController(IDatabaseContextFactory databaseContextFactory, ISessionService sessionService)
         {
+            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(sessionService, nameof(sessionService));
 
+            _databaseContextFactory = databaseContextFactory;
             _sessionService = sessionService;
         }
 
@@ -36,7 +42,12 @@ namespace Shuttle.Access.WebApi
 
             Guid.TryParse(model.Token, out var token);
 
-            var registerSessionResult = _sessionService.Register(model.Username, model.Password, token);
+            RegisterSessionResult registerSessionResult;
+
+            using (_databaseContextFactory.Create())
+            {
+                registerSessionResult = _sessionService.Register(model.Username, model.Password, token);
+            }
 
             return registerSessionResult.Ok
                 ? Ok(new
@@ -54,5 +65,19 @@ namespace Shuttle.Access.WebApi
                     Registered = false
                 });
         }
+
+        [RequiresSession]
+        [HttpDelete]
+        public IActionResult Delete()
+        {
+            using (_databaseContextFactory.Create())
+            {
+                return Ok(new
+                {
+                    Success = _sessionService.Remove(HttpContext.GetAccessSessionToken())
+                });
+            }
+        }
+
     }
 }

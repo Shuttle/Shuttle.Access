@@ -11,7 +11,6 @@ namespace Shuttle.Access
         private readonly Guid _id;
         private readonly List<Guid> _roles = new List<Guid>();
         private byte[] _passwordHash;
-        private string _resetToken;
         private string _username;
 
         public User(Guid id)
@@ -114,24 +113,7 @@ namespace Shuttle.Access
             });
         }
 
-        private PasswordResetRegistered On(PasswordResetRegistered passwordResetRegistered)
-        {
-            _resetToken = passwordResetRegistered.Token;
-
-            return passwordResetRegistered;
-        }
-
-        public PasswordResetRegistered Reset(string token)
-        {
-            Guard.AgainstNullOrEmptyString(token, nameof(token));
-
-            return On(new PasswordResetRegistered
-            {
-                Token = token
-            });
-        }
-
-        public PasswordSet SetPassword(byte[] passwordHash, byte[] oldPassword, string token)
+        public PasswordSet SetPassword(byte[] passwordHash)
         {
             Guard.AgainstNull(passwordHash, nameof(passwordHash));
 
@@ -140,23 +122,10 @@ namespace Shuttle.Access
                 throw new ArgumentException(Resources.PasswordHashException);
             }
 
-            var oldPasswordSpecified = (oldPassword == null || oldPassword.Length == 0);
-
-            if (!oldPasswordSpecified && string.IsNullOrWhiteSpace(token))
+            return On(new PasswordSet
             {
-                throw new InvalidOperationException(Resources.SetPasswordException);
-            }
-
-            if ((oldPasswordSpecified && PasswordMatches(oldPassword)) ||
-                (!string.IsNullOrWhiteSpace(token) && _resetToken.Equals(token)))
-            {
-                return On(new PasswordSet
-                {
-                    PasswordHash = passwordHash
-                });
-            }
-
-            throw new InvalidOperationException();
+                PasswordHash = passwordHash
+            });
         }
     }
 }

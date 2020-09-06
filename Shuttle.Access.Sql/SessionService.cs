@@ -1,29 +1,24 @@
 using System;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 
 namespace Shuttle.Access.Sql
 {
     public class SessionService : ISessionService
     {
-        private readonly IAccessConfiguration _configuration;
-        private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IAuthenticationService _authenticationService;
         private readonly IAuthorizationService _authorizationService;
+        private readonly IAccessConfiguration _configuration;
         private readonly ISessionRepository _sessionRepository;
 
-        public SessionService(IAccessConfiguration configuration, IDatabaseContextFactory databaseContextFactory,
-            IAuthenticationService authenticationService, IAuthorizationService authorizationService,
-            ISessionRepository sessionRepository)
+        public SessionService(IAccessConfiguration configuration, IAuthenticationService authenticationService,
+            IAuthorizationService authorizationService, ISessionRepository sessionRepository)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
-            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
 
             _configuration = configuration;
-            _databaseContextFactory = databaseContextFactory;
             _authenticationService = authenticationService;
             _authorizationService = authorizationService;
             _sessionRepository = sessionRepository;
@@ -31,7 +26,7 @@ namespace Shuttle.Access.Sql
 
         public RegisterSessionResult Register(string username, string password, Guid token)
         {
-            if (string.IsNullOrEmpty(username) || (string.IsNullOrEmpty(password) && token.Equals(Guid.Empty)))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) && token.Equals(Guid.Empty))
             {
                 return RegisterSessionResult.Failure();
             }
@@ -51,34 +46,76 @@ namespace Shuttle.Access.Sql
 
                 session = new Session(Guid.NewGuid(), username, now, now.Add(_configuration.SessionDuration));
 
-                foreach (var permission in _authorizationService.Permissions(username, authenticationResult.AuthenticationTag))
+                foreach (var permission in _authorizationService.Permissions(username,
+                    authenticationResult.AuthenticationTag))
                 {
                     session.AddPermission(permission);
                 }
 
-                using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
-                {
-                    _sessionRepository.Save(session);
-                }
+                _sessionRepository.Save(session);
             }
             else
             {
-                using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
+                session = _sessionRepository.Find(token);
+
+                if (session == null)
                 {
-                    session = _sessionRepository.Find(token);
+                    return RegisterSessionResult.Failure();
+                }
 
-                    if (session == null)
-                    {
-                        return RegisterSessionResult.Failure();
-                    }
-
+                if (session.HasExpired && session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.Now)
+                {
                     session.Renew(DateTime.Now.Add(_configuration.SessionDuration));
 
                     _sessionRepository.Save(session);
                 }
+                else
+                {
+                    return RegisterSessionResult.Failure();
+                }
             }
 
             return RegisterSessionResult.Success(session.Username, session.Token, session.Permissions);
+        }
+
+        public RegisterSessionResult Register(string username, Guid token)
+        {
+            Guard.AgainstNullOrEmptyString(username, nameof(username));
+
+            var authenticationResult = _authenticationService.Authenticate(username);
+
+            if (!authenticationResult.Authenticated)
+            {
+                return RegisterSessionResult.Failure();
+            }
+
+            var now = DateTime.Now;
+
+            var session = new Session(token, username, now, now.Add(_configuration.SessionDuration));
+
+            foreach (var permission in _authorizationService.Permissions(username,
+                authenticationResult.AuthenticationTag))
+            {
+                session.AddPermission(permission);
+            }
+
+            _sessionRepository.Save(session);
+
+            return RegisterSessionResult.Success(session.Username, session.Token, session.Permissions);
+        }
+
+        public bool Remove(Guid token)
+        {
+            var session = _sessionRepository.Find(token);
+
+            return session != null && Remove(session.Username);
+        }
+
+        public bool Remove(string username)
+        {
+            Guard.AgainstNullOrEmptyString(username, nameof(username));
+
+            return _sessionRepository.Remove(username) > 0;
         }
     }
 }

@@ -204,24 +204,34 @@ namespace Shuttle.Access.WebApi
                 return BadRequest(Resources.SessionTokenException);
             }
 
-            var session = _sessionRepository.Find(new Guid(string.IsNullOrWhiteSpace(token) ? model.Token : token));
+            Session session;
+
+            using (_databaseContextFactory.Create())
+            {
+                session = _sessionRepository.Find(new Guid(string.IsNullOrWhiteSpace(token) ? model.Token : token));
+            }
 
             if (session == null)
             {
                 return BadRequest(Resources.SessionTokenException);
             }
 
-            var authenticationResult = _authenticationService.Authenticate(session.Username, model.OldPassword);
+            var passwordHash = _hashingService.Sha256(model.NewPassword);
 
-            if (!authenticationResult.Authenticated)
+            if (!string.IsNullOrWhiteSpace(model.OldPassword) && string.IsNullOrWhiteSpace(model.Token))
             {
-                return BadRequest(Resources.InvalidCredentialsException);
+                var authenticationResult = _authenticationService.Authenticate(session.Username, model.OldPassword);
+
+                if (!authenticationResult.Authenticated)
+                {
+                    return BadRequest(Resources.InvalidCredentialsException);
+                }
             }
 
             _bus.Send(new SetPasswordCommand
             {
                 Username = session.Username,
-                PasswordHash = _hashingService.Sha256(model.NewPassword)
+                PasswordHash = passwordHash
             });
 
             return Ok(new

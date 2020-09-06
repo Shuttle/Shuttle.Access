@@ -14,7 +14,7 @@ import access from './access';
 import configuration from './configuration';
 import axios from 'axios';
 
-library.add(faCircleNotch, faEye, faEyeSlash, faKey,faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle);
+library.add(faCircleNotch, faEye, faEyeSlash, faKey, faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle);
 
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.component('ag-grid-vue', AgGridVue);
@@ -33,6 +33,12 @@ Vue.prototype.$api.interceptors.request.use(function (config) {
   return config;
 });
 
+Vue.prototype.$api.interceptors.response.use((response) => response, (error) => {
+  store.dispatch('addAlert', {
+    message: error.response.data,
+    type: 'danger'
+  });
+});
 
 new Vue({
   store,
@@ -49,7 +55,7 @@ access.initialize()
     else {
       if (access.loginStatus == 'logged-in') {
         store.commit('AUTHENTICATED');
-      }else{
+      } else {
         router.push('login');
       }
     }
@@ -59,4 +65,7 @@ access.initialize()
       message: i18n.t('exceptions.access-failure'),
       type: 'danger'
     });
+  })
+  .finally(function () {
+    router.push({ path: window.location.pathname });
   });

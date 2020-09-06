@@ -51,7 +51,7 @@ const router = new Router({
             component: () => import(/* webpackChunkName: "register" */ './views/Register.vue')
         },
         {
-            path: '/password/:token',
+            path: '/password/:token?',
             name: 'password',
             component: () => import(/* webpackChunkName: "password" */ './views/Password.vue')
         },
@@ -73,7 +73,7 @@ router.beforeEach((to, from, next) => {
     if (!openRoutes.includes(to.fullPath) && access.loginStatus !== 'logged-in') {
         next('/login');
     } else if (to.fullPath === '/login' && access.loginStatus === 'logged-in') {
-        next('/home');
+        next('/dashboard');
     }
     else {
         next();

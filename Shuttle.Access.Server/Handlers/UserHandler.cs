@@ -13,7 +13,8 @@ namespace Shuttle.Access.Server
     public class UserHandler :
         IMessageHandler<RegisterUserCommand>,
         IMessageHandler<SetUserRoleCommand>,
-        IMessageHandler<RemoveUserCommand>
+        IMessageHandler<RemoveUserCommand>,
+        IMessageHandler<SetPasswordCommand>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IDataRowMapper _dataRowMapper;
@@ -143,6 +144,22 @@ namespace Shuttle.Access.Server
                 {
                     stream.AddEvent(user.RemoveRole(message.RoleId));
                 }
+
+                _eventStore.Save(stream);
+            }
+        }
+
+        public void ProcessMessage(IHandlerContext<SetPasswordCommand> context)
+        {
+            var message = context.Message;
+
+            using (_databaseContextFactory.Create())
+            {
+                var user = new User(message.UserId);
+                var stream = _eventStore.Get(message.UserId);
+
+                stream.Apply(user);
+                stream.AddEvent(user.SetPassword(message.PasswordHash));
 
                 _eventStore.Save(stream);
             }

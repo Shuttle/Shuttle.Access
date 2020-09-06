@@ -66,5 +66,10 @@ namespace Shuttle.Access.Sql
 
             return AuthenticationResult.Failure();
         }
+
+        public AuthenticationResult Authenticate(string username)
+        {
+            return AuthenticationResult.Success();
+        }
     }
 }

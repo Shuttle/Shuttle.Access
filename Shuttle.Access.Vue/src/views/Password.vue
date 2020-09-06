@@ -9,6 +9,7 @@
             id="input-group-old-password"
             :label="$t('old-password')"
             label-for="input-old-password"
+            :class="this.token ? 'd-none' : ''"
           >
             <b-input-group>
               <b-form-input
@@ -18,7 +19,9 @@
                 :type="form.oldPasswordType"
               ></b-form-input>
               <b-input-group-append>
-                <b-button @click="toggleOldPasswordView" ><font-awesome-icon :icon="passwordView(form.oldPasswordType)" /></b-button>
+                <b-button @click="toggleOldPasswordView">
+                  <font-awesome-icon :icon="passwordView(form.oldPasswordType)" />
+                </b-button>
               </b-input-group-append>
             </b-input-group>
           </b-form-group>
@@ -36,7 +39,9 @@
                 :type="form.newPasswordType"
               ></b-form-input>
               <b-input-group-append>
-                <b-button @click="toggleNewPasswordView" ><font-awesome-icon :icon="passwordView(form.newPasswordType)" /></b-button>
+                <b-button @click="toggleNewPasswordView">
+                  <font-awesome-icon :icon="passwordView(form.newPasswordType)" />
+                </b-button>
               </b-input-group-append>
             </b-input-group>
           </b-form-group>
@@ -70,7 +75,6 @@
 </template>
 
 <script>
-import router from "../router";
 import { required } from "vuelidate/lib/validators";
 
 export default {
@@ -82,34 +86,37 @@ export default {
         newPasswordConfirm: "",
         oldPasswordType: "password",
         newPasswordType: "password",
-        newPasswordConfirmType: "password"
+        newPasswordConfirmType: "password",
       },
       working: false,
       show: true,
+      token: "",
     };
   },
   validations: {
     form: {
       oldPassword: {
-        required
+        required,
       },
       newPassword: {
-        required
+        required,
       },
       newPasswordConfirm: {
-        required
+        required,
       },
     },
   },
   methods: {
-    toggleOldPasswordView(){
-      this.form.oldPasswordType = this.form.oldPasswordType === "password" ? "text" : "password";
+    toggleOldPasswordView() {
+      this.form.oldPasswordType =
+        this.form.oldPasswordType === "password" ? "text" : "password";
     },
-    toggleNewPasswordView(){
-      this.form.newPasswordType = this.form.newPasswordType === "password" ? "text" : "password";
+    toggleNewPasswordView() {
+      this.form.newPasswordType =
+        this.form.newPasswordType === "password" ? "text" : "password";
     },
-    passwordView(type){
-      return type==="password" ? "eye" : "eye-slash";
+    passwordView(type) {
+      return type === "password" ? "eye" : "eye-slash";
     },
     submit(evt) {
       const self = this;
@@ -120,8 +127,7 @@ export default {
         return;
       }
 
-      if (this.form.newPassword !== this.form.newPasswordConfirm)
-      {
+      if (this.form.newPassword !== this.form.newPasswordConfirm) {
         self.$store.dispatch("addAlert", {
           message: self.$i18n.t("password-mismatch"),
           name: "password-mismatch",
@@ -129,12 +135,16 @@ export default {
       }
 
       this.$api.post("users/setpassword", {
-        
-      })
+        token: this.token,
+        oldPassword: this.form.oldPassword,
+        newPassword: this.form.newPassword,
+      });
     },
-    register() {
-      router.replace("/register");
-    },
+  },
+  beforeMount() {
+    if (this.$route.params.token) {
+      this.token = this.$route.params.token;
+    }
   },
 };
 </script>

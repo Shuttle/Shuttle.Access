@@ -7,7 +7,8 @@ namespace Shuttle.Access
         void Save(Session session);
         Session Get(Guid token);
         Session Find(Guid token);
-        void Remove(Guid token);
+        int Remove(Guid token);
+        int Remove(string username);
         void Renewed(Session session);
     }
 }

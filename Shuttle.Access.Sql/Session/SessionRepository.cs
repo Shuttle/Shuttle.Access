@@ -65,9 +65,14 @@ namespace Shuttle.Access.Sql
             return session;
         }
 
-        public void Remove(Guid token)
+        public int Remove(Guid token)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Remove(token));
+            return _databaseGateway.ExecuteUsing(_queryFactory.Remove(token));
+        }
+
+        public int Remove(string username)
+        {
+            return _databaseGateway.ExecuteUsing(_queryFactory.Remove(username));
         }
 
         public void Renewed(Session session)
