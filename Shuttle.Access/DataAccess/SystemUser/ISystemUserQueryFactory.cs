@@ -17,5 +17,6 @@ namespace Shuttle.Access.DataAccess
         IQuery AdministratorCount();
         IQuery RemoveRoles(Guid id, Removed domainEvent);
         IQuery Remove(Guid id, Removed domainEvent);
+        IQuery GetId(string username);
     }
 }

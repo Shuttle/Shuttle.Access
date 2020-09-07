@@ -134,57 +134,6 @@ namespace Shuttle.Access.WebApi
             });
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Users)]
-        [HttpPost("resetpassword")]
-        public IActionResult RegisterPasswordReset([FromBody] RegisterPasswordResetModel model)
-        {
-            try
-            {
-                model.ApplyInvariants();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-            _bus.Send(new RegisterPasswordResetCommand
-            {
-                UserId = model.UserId,
-                Token = model.Token
-            });
-
-            return Ok(new
-            {
-                Success = true
-            });
-        }
-
-        [RequiresPermission(SystemPermissions.Manage.Users)]
-        [HttpPost("passwordexpiry")]
-        public IActionResult RegisterPasswordExpiry([FromBody] RegisterPasswordExpiryModel model)
-        {
-            try
-            {
-                model.ApplyInvariants();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-            _bus.Send(new RegisterPasswordExpiryCommand
-            {
-                UserId = model.UserId,
-                ExpiryDate = model.ExpiryDate,
-                NeverExpires = model.NeverExpires
-            });
-
-            return Ok(new
-            {
-                Success = true
-            });
-        }
-
         [HttpPost("setpassword")]
         public IActionResult SetPassword([FromBody] SetPasswordModel model)
         {
@@ -230,7 +179,7 @@ namespace Shuttle.Access.WebApi
 
             _bus.Send(new SetPasswordCommand
             {
-                Username = session.Username,
+                UserId = session.UserId,
                 PasswordHash = passwordHash
             });
 

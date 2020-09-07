@@ -30,6 +30,11 @@ namespace Shuttle.Access.Sql
             return _databaseGateway.GetScalarUsing<int>(_queryFactory.AdministratorCount());
         }
 
+        public Guid GetId(string username)
+        {
+            return _databaseGateway.GetScalarUsing<Guid>(_queryFactory.GetId(username));
+        }
+
         public IEnumerable<DataAccess.Query.User> Search(DataAccess.Query.User.Specification specification)
         {
             Guard.AgainstNull(specification, nameof(specification));

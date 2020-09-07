@@ -8,7 +8,7 @@ namespace Shuttle.Access.Sql
 	{
 		public IQuery Get(Guid token)
 		{
-			return RawQuery.Create("select Token, Username, DateRegistered, ExpiryDate from [dbo].[Session] where Token = @Token")
+			return RawQuery.Create("select Token, UserId, Username, DateRegistered, ExpiryDate from [dbo].[Session] where Token = @Token")
 				.AddParameterValue(Columns.Token, token);
 		}
 
@@ -30,6 +30,7 @@ namespace Shuttle.Access.Sql
 insert into [dbo].[Session] 
 (
 	Token, 
+	UserId, 
 	Username, 
 	DateRegistered,
     ExpiryDate
@@ -37,6 +38,7 @@ insert into [dbo].[Session]
 values
 (
 	@Token, 
+	@UserId, 
 	@Username, 
 	@DateRegistered,
     @ExpiryDate
@@ -44,6 +46,7 @@ values
 ")
 				.AddParameterValue(Columns.Token, session.Token)
 				.AddParameterValue(Columns.Username, session.Username)
+				.AddParameterValue(Columns.UserId, session.UserId)
 				.AddParameterValue(Columns.DateRegistered, session.DateRegistered)
 				.AddParameterValue(Columns.ExpiryDate, session.ExpiryDate);
 		}
@@ -84,12 +87,5 @@ values
                 .AddParameterValue(Columns.Token, token)
                 .AddParameterValue(Columns.Permission, permission);
         }
-
-	    public IQuery Renewed(Session session)
-	    {
-	        return RawQuery.Create("update [dbo].[Session] set Token = @Token where Username = @Username")
-	            .AddParameterValue(Columns.Token, session.Token)
-	            .AddParameterValue(Columns.Username, session.Username);
-	    }
-	}
+    }
 }

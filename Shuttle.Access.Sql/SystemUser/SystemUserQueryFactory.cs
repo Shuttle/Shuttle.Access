@@ -177,5 +177,13 @@ where
         {
             return RawQuery.Create("delete from SystemUser where Id = @Id").AddParameterValue(Columns.Id, id);
         }
+
+        public IQuery GetId(string username)
+        {
+            Guard.AgainstNullOrEmptyString(username, nameof(username));
+
+            return RawQuery.Create("select Id from SystemUser where Username = @Username")
+                .AddParameterValue(Columns.Username, username);
+        }
     }
 }

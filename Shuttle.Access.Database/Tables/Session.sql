@@ -1,5 +1,6 @@
 ﻿CREATE TABLE [dbo].[Session] (
     [Token]          UNIQUEIDENTIFIER NOT NULL,
+    [UserId]         UNIQUEIDENTIFIER NOT NULL,
     [Username]       VARCHAR (65)     NOT NULL,
     [DateRegistered] DATETIME         CONSTRAINT [DF_Session_DateRegistered] DEFAULT (getdate()) NOT NULL,
     [ExpiryDate]     DATETIME,

@@ -1,4 +1,5 @@
 using System;
+using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Sql
@@ -9,19 +10,23 @@ namespace Shuttle.Access.Sql
         private readonly IAuthorizationService _authorizationService;
         private readonly IAccessConfiguration _configuration;
         private readonly ISessionRepository _sessionRepository;
+        private readonly ISystemUserQuery _userQuery;
 
         public SessionService(IAccessConfiguration configuration, IAuthenticationService authenticationService,
-            IAuthorizationService authorizationService, ISessionRepository sessionRepository)
+            IAuthorizationService authorizationService, ISessionRepository sessionRepository,
+            ISystemUserQuery userQuery)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
+            Guard.AgainstNull(userQuery, nameof(userQuery));
 
             _configuration = configuration;
             _authenticationService = authenticationService;
             _authorizationService = authorizationService;
             _sessionRepository = sessionRepository;
+            _userQuery = userQuery;
         }
 
         public RegisterSessionResult Register(string username, string password, Guid token)
@@ -44,7 +49,7 @@ namespace Shuttle.Access.Sql
 
                 var now = DateTime.Now;
 
-                session = new Session(Guid.NewGuid(), username, now, now.Add(_configuration.SessionDuration));
+                session = new Session(Guid.NewGuid(), _userQuery.GetId(username), username, now, now.Add(_configuration.SessionDuration));
 
                 foreach (var permission in _authorizationService.Permissions(username,
                     authenticationResult.AuthenticationTag))
@@ -91,7 +96,7 @@ namespace Shuttle.Access.Sql
 
             var now = DateTime.Now;
 
-            var session = new Session(token, username, now, now.Add(_configuration.SessionDuration));
+            var session = new Session(token, _userQuery.GetId(username), username, now, now.Add(_configuration.SessionDuration));
 
             foreach (var permission in _authorizationService.Permissions(username,
                 authenticationResult.AuthenticationTag))

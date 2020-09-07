@@ -46,7 +46,7 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                registerSessionResult = _sessionService.Register(model.Username, model.Password, token);
+                registerSessionResult = _sessionService.Register(model.Password, token);
             }
 
             return registerSessionResult.Ok

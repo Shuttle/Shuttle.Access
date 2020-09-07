@@ -9,5 +9,6 @@ namespace Shuttle.Access.DataAccess
         IEnumerable<Query.User> Search(Query.User.Specification specification);
         IEnumerable<Guid> Roles(Query.User.Specification specification);
         int AdministratorCount();
+        Guid GetId(string username);
     }
 }

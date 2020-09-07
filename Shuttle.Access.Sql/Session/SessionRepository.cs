@@ -74,10 +74,5 @@ namespace Shuttle.Access.Sql
         {
             return _databaseGateway.ExecuteUsing(_queryFactory.Remove(username));
         }
-
-        public void Renewed(Session session)
-        {
-            _databaseGateway.ExecuteUsing(_queryFactory.Renewed(session));
-        }
     }
 }
