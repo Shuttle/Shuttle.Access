@@ -6,14 +6,14 @@
       </b-navbar-brand>
       <b-navbar-toggle target="nav-text-collapse" v-if="authenticated"></b-navbar-toggle>
       <b-collapse id="nav-text-collapse" is-nav v-if="authenticated">
-        <b-navbar-nav>
+        <b-navbar-nav v-if="$access.hasPermission('access://roles/view')">
           <b-nav-item to="/roles">{{$t("roles")}}</b-nav-item>
         </b-navbar-nav>
-        <b-navbar-nav>
+        <b-navbar-nav v-if="$access.hasPermission('access://users/view')">
           <b-nav-item to="/users">{{$t("users")}}</b-nav-item>
         </b-navbar-nav>
         <b-navbar-nav class="ml-auto" right v-if="authenticated">
-          <b-nav-item to="password">
+          <b-nav-item to="/password">
             <font-awesome-icon icon="key" />
           </b-nav-item>
           <b-nav-item v-on:click="logout">

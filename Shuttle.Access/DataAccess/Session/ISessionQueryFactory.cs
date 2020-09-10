@@ -13,5 +13,6 @@ namespace Shuttle.Access.DataAccess
         IQuery Remove(Guid token);
         IQuery Contains(Guid token);
         IQuery Contains(Guid token, string permission);
+        IQuery Renew(Session session);
     }
 }

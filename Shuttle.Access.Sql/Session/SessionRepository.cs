@@ -36,6 +36,13 @@ namespace Shuttle.Access.Sql
             }
         }
 
+        public void Renew(Session session)
+        {
+            Guard.AgainstNull(session, nameof(session));
+
+            _databaseGateway.ExecuteUsing(_queryFactory.Renew(session));
+        }
+
         public Session Get(Guid token)
         {
             var result = Find(token);

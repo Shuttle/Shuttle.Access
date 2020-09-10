@@ -16,6 +16,7 @@
     "log-out": "Log out",
     "dashboard": "Dashboard",
     "permission": "Permission",
+    "permission-required": "You do not have permission to access the requested route.",
     "permissions": "Permissions",
     "permissions-button": "permissions",
     "ok": "OK",

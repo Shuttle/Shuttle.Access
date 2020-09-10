@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import access from './access';
 import store from './store';
+import i18n from './i18n';
 
 Vue.use(Router)
 
@@ -23,27 +24,42 @@ const router = new Router({
             path: '/roles',
             name: 'roles',
             component: () => import(/* webpackChunkName: "roles" */ './views/Roles.vue'),
+            meta: {
+                permission: 'access://roles/view'
+            }
         },
         {
             path: '/roles/:id/permissions',
             name: 'role-permissions',
             props: true,
-            component: () => import(/* webpackChunkName: "role-permissions" */ './views/RolePermissions.vue')
+            component: () => import(/* webpackChunkName: "role-permissions" */ './views/RolePermissions.vue'),
+            meta: {
+                permission: 'access://roles/manage'
+            }
         },
         {
             path: '/users',
             name: 'users',
-            component: () => import(/* webpackChunkName: "users" */ './views/Users.vue')
+            component: () => import(/* webpackChunkName: "users" */ './views/Users.vue'),
+            meta: {
+                permission: 'access://users/view'
+            }
         },
         {
             path: '/users/:id/roles',
             name: 'user-roles',
-            component: () => import(/* webpackChunkName: "user-roles" */ './views/UserRoles.vue')
+            component: () => import(/* webpackChunkName: "user-roles" */ './views/UserRoles.vue'),
+            meta: {
+                permission: 'access://users/manage'
+            }
         },
         {
             path: '/profile',
             name: 'profile',
-            component: () => import(/* webpackChunkName: "profile" */ './views/Profile.vue')
+            component: () => import(/* webpackChunkName: "profile" */ './views/Profile.vue'),
+            meta: {
+                requiresAuthentication: true
+            }
         },
         {
             path: '/register',
@@ -53,15 +69,13 @@ const router = new Router({
         {
             path: '/password/:token?',
             name: 'password',
-            component: () => import(/* webpackChunkName: "password" */ './views/Password.vue')
+            component: () => import(/* webpackChunkName: "password" */ './views/Password.vue'),
+            meta: {
+                requiresAuthentication: true
+            }
         },
     ]
 })
-
-const openRoutes = [
-    '/login',
-    '/register'
-];
 
 router.beforeEach((to, from, next) => {
     store.dispatch("clearSecondaryNavbarItems");
@@ -70,9 +84,15 @@ router.beforeEach((to, from, next) => {
         return;
     }
 
-    if (!openRoutes.includes(to.fullPath) && access.loginStatus !== 'logged-in') {
+    if ((to.meta.permission || to.meta.requiresAuthentication) && access.loginStatus !== 'logged-in') {
         next('/login');
     } else if (to.fullPath === '/login' && access.loginStatus === 'logged-in') {
+        next('/dashboard');
+    } else if((to.meta.permission && !access.hasPermission(to.meta.permission))) {
+        store.dispatch("addAlert", {
+            message: i18n.t("permission-required"),
+          });
+
         next('/dashboard');
     }
     else {

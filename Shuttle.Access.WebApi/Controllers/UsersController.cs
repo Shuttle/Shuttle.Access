@@ -14,16 +14,19 @@ namespace Shuttle.Access.WebApi
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
+        private readonly IAuthenticationService _authenticationService;
         private readonly IAuthorizationService _authorizationService;
         private readonly IServiceBus _bus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IHashingService _hashingService;
         private readonly ISessionRepository _sessionRepository;
-        private readonly IAuthenticationService _authenticationService;
         private readonly ISystemRoleQuery _systemRoleQuery;
         private readonly ISystemUserQuery _systemUserQuery;
 
-        public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,IHashingService hashingService, ISessionRepository sessionRepository, IAuthenticationService authenticationService,IAuthorizationService authorizationService, ISystemUserQuery systemUserQuery,ISystemRoleQuery systemRoleQuery)
+        public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,
+            IHashingService hashingService, ISessionRepository sessionRepository,
+            IAuthenticationService authenticationService, IAuthorizationService authorizationService,
+            ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(bus, nameof(bus));
@@ -154,26 +157,25 @@ namespace Shuttle.Access.WebApi
             }
 
             Session session;
+            var passwordHash = _hashingService.Sha256(model.NewPassword);
 
             using (_databaseContextFactory.Create())
             {
                 session = _sessionRepository.Find(new Guid(string.IsNullOrWhiteSpace(token) ? model.Token : token));
-            }
 
-            if (session == null)
-            {
-                return BadRequest(Resources.SessionTokenException);
-            }
-
-            var passwordHash = _hashingService.Sha256(model.NewPassword);
-
-            if (!string.IsNullOrWhiteSpace(model.OldPassword) && string.IsNullOrWhiteSpace(model.Token))
-            {
-                var authenticationResult = _authenticationService.Authenticate(session.Username, model.OldPassword);
-
-                if (!authenticationResult.Authenticated)
+                if (session == null)
                 {
-                    return BadRequest(Resources.InvalidCredentialsException);
+                    return BadRequest(Resources.SessionTokenException);
+                }
+
+                if (!string.IsNullOrWhiteSpace(model.OldPassword) && string.IsNullOrWhiteSpace(model.Token))
+                {
+                    var authenticationResult = _authenticationService.Authenticate(session.Username, model.OldPassword);
+
+                    if (!authenticationResult.Authenticated)
+                    {
+                        return BadRequest(Resources.InvalidCredentialsException);
+                    }
                 }
             }
 

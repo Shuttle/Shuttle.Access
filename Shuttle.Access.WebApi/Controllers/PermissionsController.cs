@@ -31,9 +31,15 @@ namespace Shuttle.Access.WebApi
         [HttpGet("anonymous")]
         public IActionResult AnonymousPermissions()
         {
-            var permissions = _authorizationService is IAnonymousPermissions anonymousPermissions
-                ? new List<string>(anonymousPermissions.AnonymousPermissions())
-                : _emptyAnonymousPermissions;
+
+            List<string> permissions;
+
+            using (_databaseContextFactory.Create())
+            {
+                permissions = _authorizationService is IAnonymousPermissions anonymousPermissions
+                    ? new List<string>(anonymousPermissions.AnonymousPermissions())
+                    : _emptyAnonymousPermissions;
+            }
 
             return Ok(new
             {

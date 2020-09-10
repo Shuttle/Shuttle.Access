@@ -87,5 +87,21 @@ values
                 .AddParameterValue(Columns.Token, token)
                 .AddParameterValue(Columns.Permission, permission);
         }
+
+        public IQuery Renew(Session session)
+        {
+            return RawQuery.Create(@"
+update
+    [dbo].[Session]
+set
+    Token = @Token,
+    ExpiryDate = @ExpiryDate
+where
+    Username = @Username
+")
+                .AddParameterValue(Columns.Token, session.Token)
+                .AddParameterValue(Columns.ExpiryDate, session.ExpiryDate)
+                .AddParameterValue(Columns.Username, session.Username);
+        }
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -46,7 +45,7 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                registerSessionResult = _sessionService.Register(model.Password, token);
+                registerSessionResult = _sessionService.Register(model.Username, model.Password, token);
             }
 
             return registerSessionResult.Ok

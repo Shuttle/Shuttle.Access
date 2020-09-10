@@ -9,7 +9,6 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import { faCircleNotch, faEye, faEyeSlash, faKey, faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import router from './router'
-import { AgGridVue } from 'ag-grid-vue';
 import access from './access';
 import configuration from './configuration';
 import axios from 'axios';
@@ -17,7 +16,6 @@ import axios from 'axios';
 library.add(faCircleNotch, faEye, faEyeSlash, faKey, faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle);
 
 Vue.component('font-awesome-icon', FontAwesomeIcon);
-Vue.component('ag-grid-vue', AgGridVue);
 
 Vue.use(BootstrapVue);
 Vue.use(ShuttleVue);
@@ -26,13 +24,11 @@ Vue.use(Vuelidate);
 Vue.config.productionTip = false;
 
 Vue.prototype.$api = axios.create({ baseURL: configuration.url });
-
 Vue.prototype.$api.interceptors.request.use(function (config) {
   config.headers['access-sessiontoken'] = access.token;
 
   return config;
 });
-
 Vue.prototype.$api.interceptors.response.use((response) => response, (error) => {
   store.dispatch('addAlert', {
     message: error.response.data,
@@ -40,22 +36,28 @@ Vue.prototype.$api.interceptors.response.use((response) => response, (error) => 
   });
 });
 
-new Vue({
+Vue.prototype.$access = access;
+
+const vm = new Vue({
   store,
   router,
   i18n,
   render: h => h(App),
 }).$mount('#app');
 
+var redirect = true;
+
 access.initialize()
   .then(function () {
     if (access.isUserRequired) {
+      redirect = false;
       router.push('register');
     }
     else {
       if (access.loginStatus == 'logged-in') {
         store.commit('AUTHENTICATED');
       } else {
+        redirect = false;
         router.push('login');
       }
     }
@@ -67,5 +69,7 @@ access.initialize()
     });
   })
   .finally(function () {
-    router.push({ path: window.location.pathname });
+    if (redirect) {
+      router.push({ path: window.location.pathname });
+    }
   });

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 
@@ -68,43 +69,20 @@ namespace Shuttle.Access.Sql
                     return RegisterSessionResult.Failure();
                 }
 
-                if (session.HasExpired && session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.Now)
+                if (session.HasExpired)
                 {
-                    session.Renew(DateTime.Now.Add(_configuration.SessionDuration));
+                    if (session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.Now)
+                    {
+                        session.Renew(DateTime.Now.Add(_configuration.SessionDuration));
 
-                    _sessionRepository.Save(session);
+                        _sessionRepository.Renew(session);
+                    }
+                    else
+                    {
+                        return RegisterSessionResult.Failure();
+                    }
                 }
-                else
-                {
-                    return RegisterSessionResult.Failure();
-                }
             }
-
-            return RegisterSessionResult.Success(session.Username, session.Token, session.Permissions);
-        }
-
-        public RegisterSessionResult Register(string username, Guid token)
-        {
-            Guard.AgainstNullOrEmptyString(username, nameof(username));
-
-            var authenticationResult = _authenticationService.Authenticate(username);
-
-            if (!authenticationResult.Authenticated)
-            {
-                return RegisterSessionResult.Failure();
-            }
-
-            var now = DateTime.Now;
-
-            var session = new Session(token, _userQuery.GetId(username), username, now, now.Add(_configuration.SessionDuration));
-
-            foreach (var permission in _authorizationService.Permissions(username,
-                authenticationResult.AuthenticationTag))
-            {
-                session.AddPermission(permission);
-            }
-
-            _sessionRepository.Save(session);
 
             return RegisterSessionResult.Success(session.Username, session.Token, session.Permissions);
         }

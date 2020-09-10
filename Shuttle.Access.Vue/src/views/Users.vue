@@ -1,7 +1,7 @@
 <template>
   <div>
     <s-title :text="$t('users')" />
-    <b-form class="my-2">
+    <b-form class="my-2" v-if="$access.hasPermission('access://users/manage')">
       <b-input-group>
         <b-input-group-prepend>
           <b-button variant="outline-primary" @click="add">
@@ -17,6 +17,7 @@
           variant="outline-primary"
           @click="roles(data.item)"
           size="sm"
+          :disabled="!$access.hasPermission('access://users/manage')"
         ><font-awesome-icon icon="user-circle" /></b-button>
       </template>
       <template v-slot:cell(remove)="data">
@@ -25,6 +26,7 @@
           v-b-modal.modal-confirmation
           size="sm"
           @click="selectUser(data.item)"
+          :disabled="!$access.hasPermission('access://users/manage')"
         >
           <font-awesome-icon icon="trash-alt" />
         </b-button>

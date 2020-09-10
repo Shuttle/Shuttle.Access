@@ -132,12 +132,16 @@ export default {
           message: self.$i18n.t("password-mismatch"),
           name: "password-mismatch",
         });
+        return;
       }
 
       this.$api.post("users/setpassword", {
         token: this.token,
         oldPassword: this.form.oldPassword,
         newPassword: this.form.newPassword,
+      })
+      .finally(function(){
+        self.$store.dispatch("logout");
       });
     },
   },
