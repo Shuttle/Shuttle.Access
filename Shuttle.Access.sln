@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access", "Shuttle.Access\Shuttle.Access.csproj", "{199AE83F-04AB-4624-AF81-51D3173CBD14}"
 EndProject
@@ -19,7 +19,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.WebApi", "Sh
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc", "Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj", "{FDCBC646-2A08-4EB0-86B1-C45481C7B0DC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Tests", "Shuttle.Access.Tests\Shuttle.Access.Tests.csproj", "{F73242AF-AE6C-4C73-B542-D2200BEEA110}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests", "Shuttle.Access.Tests\Shuttle.Access.Tests.csproj", "{F73242AF-AE6C-4C73-B542-D2200BEEA110}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9721FF0E-91D7-43E1-88A0-2DFF02AC2A66}"
+	ProjectSection(SolutionItems) = preProject
+		package.msbuild = package.msbuild
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests.Integration", "Shuttle.Access.Tests.Integration\Shuttle.Access.Tests.Integration.csproj", "{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +72,10 @@ Global
 		{F73242AF-AE6C-4C73-B542-D2200BEEA110}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F73242AF-AE6C-4C73-B542-D2200BEEA110}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F73242AF-AE6C-4C73-B542-D2200BEEA110}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

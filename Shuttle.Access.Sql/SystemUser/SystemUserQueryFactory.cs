@@ -23,20 +23,23 @@ insert into [dbo].[SystemUser]
 	[Id],
 	[Username],
 	[DateRegistered],
-	[RegisteredBy]
+	[RegisteredBy],
+    [GeneratedPassword]
 )
 values
 (
 	@Id,
 	@Username,
 	@DateRegistered,
-	@RegisteredBy
+	@RegisteredBy,
+    @GeneratedPassword
 )
 ")
                 .AddParameterValue(Columns.Id, id)
                 .AddParameterValue(Sql.Columns.Username, domainEvent.Username)
                 .AddParameterValue(Sql.Columns.DateRegistered, domainEvent.DateRegistered)
-                .AddParameterValue(Sql.Columns.RegisteredBy, domainEvent.RegisteredBy);
+                .AddParameterValue(Sql.Columns.RegisteredBy, domainEvent.RegisteredBy)
+                .AddParameterValue(Sql.Columns.GeneratedPassword, domainEvent.GeneratedPassword);
         }
 
         public IQuery Count(DataAccess.Query.User.Specification specification)

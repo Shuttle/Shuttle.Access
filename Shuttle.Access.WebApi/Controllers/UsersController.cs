@@ -8,6 +8,7 @@ using Shuttle.Access.Mvc;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
+using Shuttle.Recall;
 
 namespace Shuttle.Access.WebApi
 {
@@ -18,6 +19,8 @@ namespace Shuttle.Access.WebApi
         private readonly IAuthorizationService _authorizationService;
         private readonly IServiceBus _bus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
+        private readonly IEventStore _eventStore;
+        private readonly IPasswordGenerator _passwordGenerator;
         private readonly IHashingService _hashingService;
         private readonly ISessionRepository _sessionRepository;
         private readonly ISystemRoleQuery _systemRoleQuery;
@@ -26,7 +29,7 @@ namespace Shuttle.Access.WebApi
         public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,
             IHashingService hashingService, ISessionRepository sessionRepository,
             IAuthenticationService authenticationService, IAuthorizationService authorizationService,
-            ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery)
+            ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery, IEventStore eventStore, IPasswordGenerator passwordGenerator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(bus, nameof(bus));
@@ -36,6 +39,8 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
             Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
+            Guard.AgainstNull(eventStore, nameof(eventStore));
+            Guard.AgainstNull(passwordGenerator, nameof(passwordGenerator));
 
             _databaseContextFactory = databaseContextFactory;
             _bus = bus;
@@ -45,6 +50,8 @@ namespace Shuttle.Access.WebApi
             _authorizationService = authorizationService;
             _systemUserQuery = systemUserQuery;
             _systemRoleQuery = systemRoleQuery;
+            _eventStore = eventStore;
+            _passwordGenerator = passwordGenerator;
         }
 
         [RequiresPermission(SystemPermissions.Manage.Users)]
@@ -156,12 +163,11 @@ namespace Shuttle.Access.WebApi
                 return BadRequest(Resources.SessionTokenException);
             }
 
-            Session session;
             var passwordHash = _hashingService.Sha256(model.NewPassword);
 
             using (_databaseContextFactory.Create())
             {
-                session = _sessionRepository.Find(new Guid(string.IsNullOrWhiteSpace(token) ? model.Token : token));
+                var session = _sessionRepository.Find(new Guid(string.IsNullOrWhiteSpace(token) ? model.Token : token));
 
                 if (session == null)
                 {
@@ -177,13 +183,15 @@ namespace Shuttle.Access.WebApi
                         return BadRequest(Resources.InvalidCredentialsException);
                     }
                 }
-            }
 
-            _bus.Send(new SetPasswordCommand
-            {
-                UserId = session.UserId,
-                PasswordHash = passwordHash
-            });
+                var user = new User(session.UserId);
+                var stream = _eventStore.Get(session.UserId);
+
+                stream.Apply(user);
+                stream.AddEvent(user.SetPassword(passwordHash));
+
+                _eventStore.Save(stream);
+            }
 
             return Ok(new
             {
@@ -276,13 +284,20 @@ namespace Shuttle.Access.WebApi
                 return Unauthorized();
             }
 
+            var generatedPassword = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(model.Password))
+            {
+                generatedPassword = _passwordGenerator.Generate();
+                model.Password = generatedPassword;
+            }
+
             _bus.Send(new RegisterUserCommand
             {
                 Username = model.Username,
-                PasswordHash = !string.IsNullOrWhiteSpace(model.Password)
-                    ? _hashingService.Sha256(model.Password)
-                    : null,
-                RegisteredBy = registeredBy
+                PasswordHash = _hashingService.Sha256(model.Password),
+                RegisteredBy = registeredBy,
+                GeneratedPassword = generatedPassword
             });
 
             return Ok();

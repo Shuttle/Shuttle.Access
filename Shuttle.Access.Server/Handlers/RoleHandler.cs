@@ -57,6 +57,11 @@ namespace Shuttle.Access.Server
 
                 _eventStore.Save(stream);
             }
+
+            context.Publish(new RoleAddedEvent
+            {
+                Name = message.Name
+            });
         }
 
         public void ProcessMessage(IHandlerContext<SetRolePermissionCommand> context)

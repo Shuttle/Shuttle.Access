@@ -18,13 +18,14 @@ namespace Shuttle.Access
             _id = id;
         }
 
-        public Registered Register(string username, byte[] passwordHash, string registeredBy)
+        public Registered Register(string username, byte[] passwordHash, string registeredBy, string generatedPassword)
         {
             return On(new Registered
             {
                 Username = username,
                 PasswordHash = passwordHash,
                 RegisteredBy = registeredBy,
+                GeneratedPassword = generatedPassword ?? string.Empty,
                 DateRegistered = DateTime.Now
             });
         }

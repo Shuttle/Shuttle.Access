@@ -45,12 +45,10 @@ namespace Shuttle.Access.Server
         {
             var message = context.Message;
 
-            if (string.IsNullOrEmpty(message.Username))
-            {
-                return;
-            }
-
-            if (string.IsNullOrEmpty(message.RegisteredBy))
+            if (string.IsNullOrEmpty(message.Username) ||
+                string.IsNullOrEmpty(message.RegisteredBy) ||
+                message.PasswordHash == null ||
+                message.PasswordHash.Length == 0)
             {
                 return;
             }
@@ -74,7 +72,7 @@ namespace Shuttle.Access.Server
                 var user = new User(id);
                 var stream = _eventStore.CreateEventStream(id);
 
-                var registered = user.Register(message.Username, message.PasswordHash, message.RegisteredBy);
+                var registered = user.Register(message.Username, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword);
 
                 if (count == 0)
                 {
@@ -103,6 +101,13 @@ namespace Shuttle.Access.Server
 
                 _eventStore.Save(stream);
             }
+
+            context.Publish(new UserRegisteredEvent
+            {
+                Username = message.Username,
+                RegisteredBy = message.RegisteredBy,
+                GeneratedPassword = message.GeneratedPassword
+            });
         }
 
         public void ProcessMessage(IHandlerContext<RemoveUserCommand> context)
