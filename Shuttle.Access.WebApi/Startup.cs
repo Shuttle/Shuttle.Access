@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Castle.Components.DictionaryAdapter;
 using Castle.Windsor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -71,6 +72,7 @@ namespace Shuttle.Access.WebApi
             componentContainer.Register<IHttpContextAccessor, HttpContextAccessor>();
             componentContainer.Register<IDatabaseContextCache, ContextDatabaseContextCache>();
             componentContainer.Register<IHashingService, HashingService>();
+            componentContainer.Register<IPasswordGenerator, DefaultPasswordGenerator>();
 
             componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessConfiguration>());
 

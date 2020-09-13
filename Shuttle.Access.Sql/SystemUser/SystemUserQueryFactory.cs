@@ -188,5 +188,20 @@ where
             return RawQuery.Create("select Id from SystemUser where Username = @Username")
                 .AddParameterValue(Columns.Username, username);
         }
+
+        public IQuery Permissions(Guid userId)
+        {
+            return RawQuery.Create(@"
+select
+	Permission
+from
+	SystemRolePermission rp
+inner join
+	SystemUserRole ur on ur.RoleId = rp.RoleId
+where
+	ur.UserId = @UserId
+")
+                .AddParameterValue(Columns.UserId, userId);
+        }
     }
 }

@@ -10,8 +10,7 @@ import { faCircleNotch, faEye, faEyeSlash, faKey, faHourglass, faSignOutAlt, faU
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import router from './router'
 import access from './access';
-import configuration from './configuration';
-import axios from 'axios';
+import api from './api';
 
 library.add(faCircleNotch, faEye, faEyeSlash, faKey, faHourglass, faSignOutAlt, faUser, faPlusSquare, faShieldAlt, faSyncAlt, faTrashAlt, faUserCircle);
 
@@ -23,22 +22,10 @@ Vue.use(Vuelidate);
 
 Vue.config.productionTip = false;
 
-Vue.prototype.$api = axios.create({ baseURL: configuration.url });
-Vue.prototype.$api.interceptors.request.use(function (config) {
-  config.headers['access-sessiontoken'] = access.token;
-
-  return config;
-});
-Vue.prototype.$api.interceptors.response.use((response) => response, (error) => {
-  store.dispatch('addAlert', {
-    message: error.response.data,
-    type: 'danger'
-  });
-});
-
+Vue.prototype.$api = api;
 Vue.prototype.$access = access;
 
-const vm = new Vue({
+new Vue({
   store,
   router,
   i18n,

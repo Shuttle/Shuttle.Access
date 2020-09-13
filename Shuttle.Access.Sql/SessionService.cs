@@ -50,7 +50,7 @@ namespace Shuttle.Access.Sql
 
                 var now = DateTime.Now;
 
-                session = new Session(Guid.NewGuid(), _userQuery.GetId(username), username, now, now.Add(_configuration.SessionDuration));
+                session = new Session(Guid.NewGuid(), _userQuery.Id(username), username, now, now.Add(_configuration.SessionDuration));
 
                 foreach (var permission in _authorizationService.Permissions(username,
                     authenticationResult.AuthenticationTag))

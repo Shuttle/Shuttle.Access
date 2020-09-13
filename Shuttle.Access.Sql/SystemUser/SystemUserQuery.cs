@@ -30,9 +30,19 @@ namespace Shuttle.Access.Sql
             return _databaseGateway.GetScalarUsing<int>(_queryFactory.AdministratorCount());
         }
 
-        public Guid GetId(string username)
+        public Guid Id(string username)
         {
             return _databaseGateway.GetScalarUsing<Guid>(_queryFactory.GetId(username));
+        }
+
+        public IEnumerable<string> Permissions(Guid userId)
+        {
+            return _queryMapper.MapValues<string>(_queryFactory.Permissions(userId));
+        }
+
+        public IEnumerable<string> GetPermissions(string username)
+        {
+            throw new NotImplementedException();
         }
 
         public IEnumerable<DataAccess.Query.User> Search(DataAccess.Query.User.Specification specification)
@@ -62,7 +72,7 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public IEnumerable<Guid> Roles(DataAccess.Query.User.Specification specification)
+        public IEnumerable<Guid> RoleIds(DataAccess.Query.User.Specification specification)
         {
             return _databaseGateway.GetRowsUsing(_queryFactory.Roles(specification))
                 .Select(row => Columns.RoleId.MapFrom(row));

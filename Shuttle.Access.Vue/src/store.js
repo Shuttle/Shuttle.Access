@@ -3,6 +3,7 @@ import Vuex from 'vuex';
 import router from './router';
 import Alerts from './alerts';
 import access from './access';
+import api from './api';
 
 Vue.use(Vuex)
 
@@ -61,9 +62,12 @@ export default new Vuex.Store({
                 })
         },
         logout({ commit }) {
-            access.logout();
-            commit('LOGGED_OUT');
-            router.push('/login');
+            api.delete('sessions').then(
+                function () {
+                    access.logout();
+                    commit('LOGGED_OUT');
+                    router.push('/login');
+                });
         },
         addAlert({ commit }, alert) {
             commit('ADD_ALERT', alert);

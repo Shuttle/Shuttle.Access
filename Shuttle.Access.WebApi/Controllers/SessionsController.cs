@@ -73,7 +73,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Success = _sessionService.Remove(HttpContext.GetAccessSessionToken())
+                    Success = _sessionService.Remove(new Guid(HttpContext.GetAccessSessionToken()))
                 });
             }
         }

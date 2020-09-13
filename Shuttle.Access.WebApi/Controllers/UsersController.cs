@@ -20,8 +20,8 @@ namespace Shuttle.Access.WebApi
         private readonly IServiceBus _bus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
-        private readonly IPasswordGenerator _passwordGenerator;
         private readonly IHashingService _hashingService;
+        private readonly IPasswordGenerator _passwordGenerator;
         private readonly ISessionRepository _sessionRepository;
         private readonly ISystemRoleQuery _systemRoleQuery;
         private readonly ISystemUserQuery _systemUserQuery;
@@ -29,7 +29,8 @@ namespace Shuttle.Access.WebApi
         public UsersController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,
             IHashingService hashingService, ISessionRepository sessionRepository,
             IAuthenticationService authenticationService, IAuthorizationService authorizationService,
-            ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery, IEventStore eventStore, IPasswordGenerator passwordGenerator)
+            ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery, IEventStore eventStore,
+            IPasswordGenerator passwordGenerator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(bus, nameof(bus));
@@ -54,7 +55,7 @@ namespace Shuttle.Access.WebApi
             _passwordGenerator = passwordGenerator;
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Users)]
+        [RequiresPermission(SystemPermissions.View.Users)]
         [HttpGet]
         public IActionResult Get()
         {
@@ -64,7 +65,7 @@ namespace Shuttle.Access.WebApi
             }
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Users)]
+        [RequiresPermission(SystemPermissions.View.Users)]
         [HttpGet("{id}")]
         public IActionResult Get(Guid id)
         {
@@ -216,7 +217,7 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                roles = _systemUserQuery.Roles(new DataAccess.Query.User.Specification().WithUserId(model.UserId))
+                roles = _systemUserQuery.RoleIds(new DataAccess.Query.User.Specification().WithUserId(model.UserId))
                     .ToList();
             }
 
@@ -262,16 +263,10 @@ namespace Shuttle.Access.WebApi
             }
             else
             {
-                int count;
-
                 using (_databaseContextFactory.Create())
                 {
-                    count = _systemUserQuery.Count(new DataAccess.Query.User.Specification());
-                }
-
-                if (count == 0)
-                {
-                    if (_authorizationService is IAnonymousPermissions anonymousPermissions)
+                    if (_systemUserQuery.Count(new DataAccess.Query.User.Specification()) == 0 &&
+                        _authorizationService is IAnonymousPermissions anonymousPermissions)
                     {
                         ok = anonymousPermissions.AnonymousPermissions()
                             .Any(item => item.Equals(SystemPermissions.Manage.Users));

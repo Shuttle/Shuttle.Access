@@ -18,7 +18,9 @@
           @click="roles(data.item)"
           size="sm"
           :disabled="!$access.hasPermission('access://users/manage')"
-        ><font-awesome-icon icon="user-circle" /></b-button>
+        >
+          <font-awesome-icon icon="user-circle" />
+        </b-button>
       </template>
       <template v-slot:cell(remove)="data">
         <b-button
@@ -75,6 +77,10 @@ export default {
       const self = this;
 
       this.$api.get("users").then(function (response) {
+        if (!response || !response.data) {
+          return;
+        }
+
         self.users = response.data;
       });
     },
@@ -89,7 +95,7 @@ export default {
 
       this.$api
         .post("users", {
-          username: this.form.username
+          username: this.form.username,
         })
         .then(function () {
           self.$store.dispatch("addAlert", {
@@ -99,14 +105,12 @@ export default {
     },
     remove() {
       const self = this;
-      
-      this.$api
-        .delete(`users/${this.selectedUser.id}`)
-        .then(function () {
-          self.$store.dispatch("addAlert", {
-            message: self.$i18n.t("request-sent"),
-          });
+
+      this.$api.delete(`users/${this.selectedUser.id}`).then(function () {
+        self.$store.dispatch("addAlert", {
+          message: self.$i18n.t("request-sent"),
         });
+      });
     },
     selectUser(item) {
       this.selectedUser = item;
