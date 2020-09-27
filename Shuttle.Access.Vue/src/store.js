@@ -74,7 +74,7 @@ export default new Vuex.Store({
         },
         addSecondaryNavbarItem({ commit }, item) {
             if (!item.click || typeof item.click !== "function") {
-                throw new Error("Secondary navbar item does not have a 'click' method define.")
+                throw new Error("Secondary navbar item does not have a 'click' method defined.")
             }
 
             commit('ADD_SECONDARY_NAVBAR_ITEM', item);
