@@ -20,7 +20,9 @@
               ></b-form-input>
               <b-input-group-append>
                 <b-button @click="toggleOldPasswordView">
-                  <font-awesome-icon :icon="passwordView(form.oldPasswordType)" />
+                  <font-awesome-icon
+                    :icon="passwordView(form.oldPasswordType)"
+                  />
                 </b-button>
               </b-input-group-append>
             </b-input-group>
@@ -40,7 +42,9 @@
               ></b-form-input>
               <b-input-group-append>
                 <b-button @click="toggleNewPasswordView">
-                  <font-awesome-icon :icon="passwordView(form.newPasswordType)" />
+                  <font-awesome-icon
+                    :icon="passwordView(form.newPasswordType)"
+                  />
                 </b-button>
               </b-input-group-append>
             </b-input-group>
@@ -62,9 +66,18 @@
           </b-form-group>
 
           <div>
-            <b-button class="float-right" variant="primary" type="submit" :disabled="working">
-              <font-awesome-icon icon="circle-notch" class="fa-spin mr-2" v-if="working" />
-              {{$t("submit")}}
+            <b-button
+              class="float-right"
+              variant="primary"
+              type="submit"
+              :disabled="working"
+            >
+              <font-awesome-icon
+                icon="circle-notch"
+                class="fa-spin mr-2"
+                v-if="working"
+              />
+              {{ $t("submit") }}
             </b-button>
           </div>
         </b-form>
@@ -76,6 +89,7 @@
 
 <script>
 import { required } from "vuelidate/lib/validators";
+import router from "../router";
 
 export default {
   data() {
@@ -135,14 +149,17 @@ export default {
         return;
       }
 
-      this.$api.post("users/setpassword", {
-        token: this.token,
-        oldPassword: this.form.oldPassword,
-        newPassword: this.form.newPassword,
-      })
-      .finally(function(){
-        self.$store.dispatch("logout");
-      });
+      this.$api
+        .post("users/setpassword", {
+          token: this.token,
+          oldPassword: this.form.oldPassword,
+          newPassword: this.form.newPassword,
+        })
+        .finally(function () {
+          self.$store.dispatch("logout").then(function () {
+            router.push("/login");
+          });
+        });
     },
   },
   beforeMount() {

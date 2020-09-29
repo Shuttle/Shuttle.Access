@@ -85,15 +85,15 @@ router.beforeEach((to, from, next) => {
     }
 
     if ((to.meta.permission || to.meta.requiresAuthentication) && access.loginStatus !== 'logged-in') {
-        next('/login');
+        router.push({ path: '/login' });
     } else if (to.fullPath === '/login' && access.loginStatus === 'logged-in') {
-        next('/dashboard');
-    } else if((to.meta.permission && !access.hasPermission(to.meta.permission))) {
+        router.push({ path: '/dashboard' });
+    } else if ((to.meta.permission && !access.hasPermission(to.meta.permission))) {
         store.dispatch("addAlert", {
             message: i18n.t("permission-required"),
-          });
+        });
 
-        next('/dashboard');
+        router.push({ path: '/dashboard' });
     }
     else {
         next();

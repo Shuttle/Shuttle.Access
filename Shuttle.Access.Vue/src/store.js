@@ -1,6 +1,5 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import router from './router';
 import Alerts from './alerts';
 import access from './access';
 import api from './api';
@@ -44,13 +43,12 @@ export default new Vuex.Store({
         login({ commit }, payload) {
             commit('START_WORKING');
 
-            access.login({
+            return access.login({
                 ...payload
             })
                 .then(() => {
                     commit('AUTHENTICATED');
                     commit('STOP_WORKING');
-                    router.push('/dashboard');
                 })
                 .catch(error => {
                     commit('ADD_ALERT', {
@@ -62,11 +60,10 @@ export default new Vuex.Store({
                 })
         },
         logout({ commit }) {
-            api.delete('sessions').then(
+            return api.delete('sessions').then(
                 function () {
                     access.logout();
                     commit('LOGGED_OUT');
-                    router.push('/login');
                 });
         },
         addAlert({ commit }, alert) {

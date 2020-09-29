@@ -4,13 +4,16 @@
       <b-navbar-brand to="dashboard">
         <img src="@/assets/logo-small.png" alt="Shuttle.Access logo" />
       </b-navbar-brand>
-      <b-navbar-toggle target="nav-text-collapse" v-if="authenticated"></b-navbar-toggle>
+      <b-navbar-toggle
+        target="nav-text-collapse"
+        v-if="authenticated"
+      ></b-navbar-toggle>
       <b-collapse id="nav-text-collapse" is-nav v-if="authenticated">
         <b-navbar-nav v-if="$access.hasPermission('access://roles/view')">
-          <b-nav-item to="/roles">{{$t("roles")}}</b-nav-item>
+          <b-nav-item to="/roles">{{ $t("roles") }}</b-nav-item>
         </b-navbar-nav>
         <b-navbar-nav v-if="$access.hasPermission('access://users/view')">
-          <b-nav-item to="/users">{{$t("users")}}</b-nav-item>
+          <b-nav-item to="/users">{{ $t("users") }}</b-nav-item>
         </b-navbar-nav>
         <b-navbar-nav class="ml-auto" right v-if="authenticated">
           <b-nav-item to="/password">
@@ -22,15 +25,28 @@
         </b-navbar-nav>
       </b-collapse>
     </b-navbar>
-    <b-navbar type="dark" class="navbar-secondary" v-if="hasSecondaryNavbarItems">
+    <b-navbar
+      type="dark"
+      class="navbar-secondary"
+      v-if="hasSecondaryNavbarItems"
+    >
       <b-nav-form>
-        <b-button v-for="item in secondaryNavbarItems" :key="item.key" :variant="!!item.variant ? item.variant : 'outline-secondary'" class="mr-2" @click="item.click"><font-awesome-icon v-if="!!item.icon" :icon="item.icon" /></b-button>
+        <b-button
+          v-for="item in secondaryNavbarItems"
+          :key="item.key"
+          :variant="!!item.variant ? item.variant : 'outline-secondary'"
+          class="mr-2"
+          @click="item.click"
+          ><font-awesome-icon v-if="!!item.icon" :icon="item.icon"
+        /></b-button>
       </b-nav-form>
     </b-navbar>
   </div>
 </template>
 
 <script>
+import router from "../router";
+
 export default {
   computed: {
     authenticated() {
@@ -45,7 +61,9 @@ export default {
   },
   methods: {
     logout() {
-      this.$store.dispatch("logout");
+      this.$store.dispatch("logout").then(function () {
+        router.push("/login");
+      });
     },
   },
 };

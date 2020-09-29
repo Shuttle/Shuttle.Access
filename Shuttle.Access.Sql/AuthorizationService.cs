@@ -44,7 +44,7 @@ namespace Shuttle.Access.Sql
         {
             var userId = _systemUserQuery.Id(username);
             var user = _systemUserQuery.Search(
-                new DataAccess.Query.User.Specification().WithUserId(userId)).FirstOrDefault();
+                new DataAccess.Query.User.Specification().WithUserId(userId).IncludeRoles()).FirstOrDefault();
 
             if (user == null)
             {

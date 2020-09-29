@@ -10,7 +10,12 @@
             :label="$t('username')"
             label-for="input-username"
           >
-            <b-form-input id="input-username" v-model="form.username" required class="mb-2"></b-form-input>
+            <b-form-input
+              id="input-username"
+              v-model="form.username"
+              required
+              class="mb-2"
+            ></b-form-input>
           </b-form-group>
 
           <b-form-group
@@ -28,9 +33,18 @@
           </b-form-group>
 
           <div>
-            <b-button class="float-right" variant="primary" type="submit" :disabled="working">
-              <font-awesome-icon icon="circle-notch" class="fa-spin mr-2" v-if="working" />
-              {{$t("login")}}
+            <b-button
+              class="float-right"
+              variant="primary"
+              type="submit"
+              :disabled="working"
+            >
+              <font-awesome-icon
+                icon="circle-notch"
+                class="fa-spin mr-2"
+                v-if="working"
+              />
+              {{ $t("login") }}
             </b-button>
           </div>
         </b-form>
@@ -77,10 +91,14 @@ export default {
         return;
       }
 
-      this.$store.dispatch("login", {
-        username: this.form.username,
-        password: this.form.password,
-      });
+      this.$store
+        .dispatch("login", {
+          username: this.form.username,
+          password: this.form.password,
+        })
+        .then(function () {
+          router.push("/dashboard");
+        });
     },
     register() {
       router.replace("/register");
