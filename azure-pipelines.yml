@@ -15,6 +15,6 @@ steps:
     command: restore
     restoreSolution: 'Shuttle.Access.sln'
     includeNuGetOrg: true
-- task: MSBuild@1
+- task: VSBuild@1
   inputs:
     solution: 'Shuttle.Access.sln'
