@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Access.Mvc</id>
-		<version>1.1.0</version>
+		<version>1.1.1</version>
 		<authors>Eben Roux</authors>
 		<owners></owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -16,7 +16,7 @@
 		<tags></tags>
 		<dependencies>
       <dependency id="Microsoft.AspNetCore.Mvc" version="2.2.0" />
-      <dependency id="Shuttle.Access" version="1.0.0" />
+      <dependency id="Shuttle.Access" version="1.1.0" />
       <dependency id="Shuttle.Core.Contract" version="10.0.2" />
 		</dependencies>
 	</metadata>
