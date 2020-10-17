@@ -10,6 +10,11 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+- task: NuGetCommand@2
+  inputs:
+    command: restore
+    restoreSolution: 'Shuttle.Access.sln'
+    includeNuGetOrg: true
 - task: MSBuild@1
   inputs:
     solution: 'Shuttle.Access.sln'
