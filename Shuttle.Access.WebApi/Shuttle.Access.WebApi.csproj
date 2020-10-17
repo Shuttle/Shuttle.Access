@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -30,7 +30,7 @@
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Log4Net" Version="10.0.3" />
     <PackageReference Include="Shuttle.Esb" Version="11.0.1" />
-    <PackageReference Include="Shuttle.Esb.RabbitMQ" Version="11.0.4" />
+    <PackageReference Include="Shuttle.Esb.AzureMQ" Version="11.0.0" />
     <PackageReference Include="Shuttle.Recall.Sql.Storage" Version="11.0.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
