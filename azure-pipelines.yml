@@ -10,12 +10,6 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: NuGetCommand@2
-  displayName: 'Restore packages'
-  inputs:
-    command: restore
-    restoreSolution: 'Shuttle.Access.sln'
-    includeNuGetOrg: true
 - task: DotNetCoreCLI@2
   displayName: 'Publish Shuttle.Access.Projection'
   inputs:
