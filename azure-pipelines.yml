@@ -16,11 +16,6 @@ steps:
     command: restore
     restoreSolution: 'Shuttle.Access.sln'
     includeNuGetOrg: true
-- task: MSBuild@1
-  displayName: 'Build all projects'
-  inputs:
-    solution: '**/*.csproj'
-    msbuildArguments: '/p:OutputPath=$(Build.ArtifactStagingDirectory)'
 - task: DotNetCoreCLI@2
   displayName: 'Publish Shuttle.Access.Projection'
   inputs:
