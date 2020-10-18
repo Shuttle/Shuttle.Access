@@ -20,12 +20,28 @@ steps:
   displayName: 'Build all projects'
   inputs:
     solution: '**/*.csproj'
-    msbuildArguments: 
+    msbuildArguments: '/p:OutputPath=$(Build.ArtifactStagingDirectory)'
 - task: DotNetCoreCLI@2
   displayName: 'Publish Shuttle.Access.Projection'
   inputs:
     command: publish
     publishWebProjects: false
     projects: 'Shuttle.Access.Projection/Shuttle.Access.Projection.csproj'
+    arguments:  '-f netcoreapp3.1 -r linux-x64 -o $(Build.ArtifactStagingDirectory) -c Release'
+    modifyOutputPath: true
+- task: DotNetCoreCLI@2
+  displayName: 'Publish Shuttle.Access.Server'
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: 'Shuttle.Access.Server/Shuttle.Access.Server.csproj'
+    arguments:  '-f netcoreapp3.1 -r linux-x64 -o $(Build.ArtifactStagingDirectory) -c Release'
+    modifyOutputPath: true
+- task: DotNetCoreCLI@2
+  displayName: 'Publish Shuttle.Access.WebApi'
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: 'Shuttle.Access.WebAPi/Shuttle.Access.WebApi.csproj'
     arguments:  '-f netcoreapp3.1 -r linux-x64 -o $(Build.ArtifactStagingDirectory) -c Release'
     modifyOutputPath: true
