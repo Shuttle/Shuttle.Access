@@ -3,8 +3,8 @@ using System.Data.Common;
 using System.Data.SqlClient;
 using System.IO;
 using log4net;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Shuttle.Core.Log4Net;
 using Shuttle.Core.Logging;
 
@@ -22,18 +22,18 @@ namespace Shuttle.Access.WebApi
 
             Log.Information("[started]");
 
-            BuildWebHost(args).Run();
+            CreateHostBuilder(args).Build().Run();
 
             Log.Information("[stopped]");
 
             LogManager.Shutdown();
         }
 
-        public static IWebHost BuildWebHost(string[] args)
-        {
-            return WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>()
-                .Build();
-        }
+        public static IHostBuilder CreateHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                });
     }
 }

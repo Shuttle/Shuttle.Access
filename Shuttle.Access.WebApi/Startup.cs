@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Castle.Components.DictionaryAdapter;
 using Castle.Windsor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
@@ -16,7 +16,6 @@ using Shuttle.Core.Castle;
 using Shuttle.Core.Container;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Http;
-using Shuttle.Core.Data.SqlClient;
 using Shuttle.Esb;
 using Shuttle.Recall;
 
@@ -51,17 +50,15 @@ namespace Shuttle.Access.WebApi
             services.AddSingleton<IDatabaseGateway, DatabaseGateway>();
             services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
             services.AddSingleton<IDbCommandFactory, DbCommandFactory>();
+            services.AddSingleton<IDataRowMapper, DataRowMapper>();
             services.AddSingleton<IQueryMapper, QueryMapper>();
             services.AddSingleton<ISessionQueryFactory, SessionQueryFactory>();
             services.AddSingleton<ISessionQuery, SessionQuery>();
 
-            services.AddMvc();
-            services.AddCors();
+            services.AddControllers();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env,
-            IApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime applicationLifetime)
         {
             var container = app.ApplicationServices.GetService<IWindsorContainer>();
 
@@ -123,7 +120,11 @@ namespace Shuttle.Access.WebApi
                 options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()
             );
 
-            app.UseMvc();
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }
