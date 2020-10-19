@@ -29,10 +29,9 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: '
-Copy-Item -Path "Shuttle.Access.WebApi/App.template.config" -Destination "Shuttle.Access.WebApi/App.config" -Force
-Copy-Item -Path "Shuttle.Access.WebApi/log4net.template.xml" -Destination "Shuttle.Access.WebApi/log4net.xml" -Force
-'
+    script: |
+      Copy-Item -Path "Shuttle.Access.WebApi/App.template.config" -Destination "Shuttle.Access.WebApi/App.config" -Force
+      Copy-Item -Path "Shuttle.Access.WebApi/log4net.template.xml" -Destination "Shuttle.Access.WebApi/log4net.xml" -Force
 - task: DotNetCoreCLI@2
   displayName: 'Publish Shuttle.Access.WebApi'
   inputs:
