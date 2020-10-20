@@ -19,6 +19,7 @@ steps:
     script: |
       Copy-Item -Path "Shuttle.Access.WebApi/App.template.config" -Destination "Shuttle.Access.WebApi/App.config" -Force
       Copy-Item -Path "Shuttle.Access.WebApi/log4net.template.xml" -Destination "Shuttle.Access.WebApi/log4net.xml" -Force
+      Copy-Item -Path "Shuttle.Access.WebApi/web.template.config" -Destination "Shuttle.Access.WebApi/web.config" -Force
       Copy-Item -Path "Shuttle.Access.Projection/App.template.config" -Destination "Shuttle.Access.Projection/App.config" -Force
       Copy-Item -Path "Shuttle.Access.Server/App.template.config" -Destination "Shuttle.Access.Server/App.config" -Force
 - task: replacetokens@3
