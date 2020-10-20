@@ -1,6 +1,0 @@
-<cs-page-title title:from="role.name" localize:from="'false'"/>
-{{#if isResolved}}
-    <cs-table vm:columns:from="columns" vm:rows:from="permissions"/>
-{{else}}
-    <cs-fetching title:from="'role:permissions.title'"/>
-{{/if}}

@@ -24,6 +24,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9721FF0E-91D7-43E1-88A0-2DFF02AC2A66}"
 	ProjectSection(SolutionItems) = preProject
 		package.msbuild = package.msbuild
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests.Integration", "Shuttle.Access.Tests.Integration\Shuttle.Access.Tests.Integration.csproj", "{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}"

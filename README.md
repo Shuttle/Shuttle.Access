@@ -1,3 +1,3 @@
 # Shuttle.Access
 
-An abstration layer for identity and access control.
+An Identity and Access Management (IAM) platform.
