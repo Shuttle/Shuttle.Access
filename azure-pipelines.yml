@@ -34,12 +34,22 @@ steps:
     useLegacyPattern: false
     enableTelemetry: false
 - task: DotNetCoreCLI@2
+  displayName: 'Publish Shuttle.Access.WebApi'
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: 'Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj'
+    arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.BinariesDirectory)/appservice/ -c Release'
+    zipAfterPublish: false
+    modifyOutputPath: true
+- task: DotNetCoreCLI@2
   displayName: 'Publish Shuttle.Access.Projection'
   inputs:
     command: publish
     publishWebProjects: false
     projects: 'Shuttle.Access.Projection/Shuttle.Access.Projection.csproj'
-    arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.ArtifactStagingDirectory) -c Release'
+    arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.BinariesDirectory)/appservice/App_Data/jobs/continuous/Shuttle.Access.Projection -c Release'
+    zipAfterPublish: false
     modifyOutputPath: true
 - task: DotNetCoreCLI@2
   displayName: 'Publish Shuttle.Access.Server'
@@ -47,16 +57,16 @@ steps:
     command: publish
     publishWebProjects: false
     projects: 'Shuttle.Access.Server/Shuttle.Access.Server.csproj'
-    arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.ArtifactStagingDirectory) -c Release'
+    arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.BinariesDirectory)/appservice/App_Data/jobs/continuous/Shuttle.Access.Server -c Release'
+    zipAfterPublish: false
     modifyOutputPath: true
-- task: DotNetCoreCLI@2
-  displayName: 'Publish Shuttle.Access.WebApi'
+- task: ArchiveFiles@2
   inputs:
-    command: publish
-    publishWebProjects: false
-    projects: 'Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj'
-    arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.ArtifactStagingDirectory) -c Release'
-    modifyOutputPath: true
+    rootFolderOrFile: '$(Build.BinariesDirectory)/appservice'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/Shuttle.Access.AppService.zip'
+    replaceExistingArchive: true    
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Build Artifacts'
   inputs:
