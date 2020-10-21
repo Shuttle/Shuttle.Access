@@ -41,7 +41,7 @@ steps:
     projects: 'Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj'
     arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.BinariesDirectory)/appservice/ -c Release'
     zipAfterPublish: false
-    modifyOutputPath: true
+    modifyOutputPath: false
 - task: DotNetCoreCLI@2
   displayName: 'Publish Shuttle.Access.Projection'
   inputs:
@@ -50,7 +50,7 @@ steps:
     projects: 'Shuttle.Access.Projection/Shuttle.Access.Projection.csproj'
     arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.BinariesDirectory)/appservice/App_Data/jobs/continuous/Shuttle.Access.Projection -c Release'
     zipAfterPublish: false
-    modifyOutputPath: true
+    modifyOutputPath: false
 - task: DotNetCoreCLI@2
   displayName: 'Publish Shuttle.Access.Server'
   inputs:
@@ -59,7 +59,7 @@ steps:
     projects: 'Shuttle.Access.Server/Shuttle.Access.Server.csproj'
     arguments:  '-f netcoreapp3.1 -r win-x64 -o $(Build.BinariesDirectory)/appservice/App_Data/jobs/continuous/Shuttle.Access.Server -c Release'
     zipAfterPublish: false
-    modifyOutputPath: true
+    modifyOutputPath: false
 - task: ArchiveFiles@2
   inputs:
     rootFolderOrFile: '$(Build.BinariesDirectory)/appservice'
