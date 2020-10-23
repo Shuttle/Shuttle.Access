@@ -42,6 +42,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".azure", ".azure", "{D53FED
 		.azure\build-pipeline.yml = .azure\build-pipeline.yml
 		.azure\Projection.App.config = .azure\Projection.App.config
 		.azure\Server.App.config = .azure\Server.App.config
+		.azure\WebApi.App.config = .azure\WebApi.App.config
+		.azure\WebApi.log4net.xml = .azure\WebApi.log4net.xml
+		.azure\WebApi.web.config = .azure\WebApi.web.config
 	EndProjectSection
 EndProject
 Global
