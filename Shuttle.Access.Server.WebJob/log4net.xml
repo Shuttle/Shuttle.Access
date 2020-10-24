@@ -2,7 +2,7 @@
 
 <log4net>
   <appender name="RollingFileAppender" type="log4net.Appender.RollingFileAppender">
-    <file value="#{LogFolder}#\shuttle-access-webapi" />
+    <file value="logs\shuttle-server" />
     <appendToFile value="true" />
     <rollingStyle value="Composite" />
     <maxSizeRollBackups value="10" />
@@ -14,11 +14,11 @@
     </layout>
   </appender>
   <root>
-    <level value="#{LogLevel}#" />
+    <level value="TRACE" />
     <appender-ref ref="RollingFileAppender" />
   </root>
   <logger name="Shuttle.Data" additivity="false">
-    <level value="#{Shuttle.Data.LogLevel}#" />
+    <level value="WARN" />
     <appender-ref ref="RollingFileAppender" />
   </logger>
 </log4net>

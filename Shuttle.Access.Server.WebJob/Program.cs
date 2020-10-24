@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.IO;
 using System.Threading.Tasks;
 using Castle.Windsor;
 using log4net;
@@ -24,7 +25,9 @@ namespace Shuttle.Access.Server.WebJob
         {
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
 
-            Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Program))));
+            Log.Assign(
+                new Log4NetLog(LogManager.GetLogger(typeof(Program)),
+                    new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.xml"))));
 
             Log.Information("[starting]");
 
