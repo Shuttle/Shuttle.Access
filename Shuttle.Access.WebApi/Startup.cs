@@ -16,6 +16,7 @@ using Shuttle.Core.Castle;
 using Shuttle.Core.Container;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Http;
+using Shuttle.Core.Logging;
 using Shuttle.Esb;
 using Shuttle.Recall;
 
@@ -24,10 +25,13 @@ namespace Shuttle.Access.WebApi
     public class Startup
     {
         private IServiceBus _bus;
+        private readonly ILog _log;
 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            _log = Log.For(this);
         }
 
         public IConfiguration Configuration { get; }
@@ -58,7 +62,8 @@ namespace Shuttle.Access.WebApi
             services.AddControllers();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            IHostApplicationLifetime applicationLifetime)
         {
             var container = app.ApplicationServices.GetService<IWindsorContainer>();
 
@@ -93,9 +98,14 @@ namespace Shuttle.Access.WebApi
 
             _bus = ServiceBus.Create(componentContainer).Start();
 
+            bool administratorExists;
+
             using (databaseContextFactory.Create())
             {
-                if (roleQuery.Count(new DataAccess.Query.Role.Specification().WithRoleName("Administrator")) == 0)
+                administratorExists =
+                    roleQuery.Count(new DataAccess.Query.Role.Specification().WithRoleName("Administrator")) > 0;
+
+                if (!administratorExists)
                 {
                     _bus.Send(new AddRoleCommand
                     {
@@ -103,6 +113,9 @@ namespace Shuttle.Access.WebApi
                     });
                 }
             }
+
+            _log.Information(
+                $"[role] : name = 'Administrator' / exists = {administratorExists}{(administratorExists ? string.Empty : " / add role command sent")}");
 
             applicationLifetime.ApplicationStopping.Register(OnShutdown);
 
