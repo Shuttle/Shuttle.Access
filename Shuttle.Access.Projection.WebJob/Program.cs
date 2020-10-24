@@ -28,6 +28,8 @@ namespace Shuttle.Access.Projection.WebJob
 
             Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Program))));
 
+            Log.Information("[starting]"); 
+            
             _container = new WindsorContainer();
 
             var container = new WindsorComponentContainer(_container);
@@ -51,14 +53,20 @@ namespace Shuttle.Access.Projection.WebJob
 
             _eventProcessor.Start();
 
+            Log.Information("[started]");
+            
             using (var host = new HostBuilder().UseConsoleLifetime().Build())
             {
                 await host.RunAsync();
             }
 
-            _container?.Dispose();
+            Log.Information("[stopping]");
+
             _eventProcessor?.Dispose();
             _eventStore?.AttemptDispose();
+            _container?.Dispose();
+
+            Log.Information("[stopped]");
         }
     }
 }
