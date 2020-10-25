@@ -1,6 +1,8 @@
 ﻿using System.Linq;
+using System.Net;
 using Castle.Windsor;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -17,6 +19,7 @@ using Shuttle.Core.Container;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Http;
 using Shuttle.Core.Logging;
+using Shuttle.Core.Reflection;
 using Shuttle.Esb;
 using Shuttle.Recall;
 
@@ -62,8 +65,7 @@ namespace Shuttle.Access.WebApi
             services.AddControllers();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
-            IHostApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime applicationLifetime)
         {
             var container = app.ApplicationServices.GetService<IWindsorContainer>();
 
@@ -123,6 +125,19 @@ namespace Shuttle.Access.WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseExceptionHandler(error =>
+            {
+                error.Run(async context =>
+                {
+                    var feature = context.Features.Get<IExceptionHandlerFeature>();
+
+                    if (feature != null)
+                    {
+                        _log.Error(feature.Error.AllMessages());
+                    }
+                });
+            });
 
             app.UseForwardedHeaders(new ForwardedHeadersOptions
             {
