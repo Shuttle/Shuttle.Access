@@ -29,7 +29,7 @@ namespace Shuttle.Access.Projection.WebJob
 
             Log.Assign(
                 new Log4NetLog(LogManager.GetLogger(typeof(Program)),
-                    new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.xml"))));
+                    new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory ?? ".", "log4net.xml"))));
 
             Log.Information("[starting]"); 
             
@@ -50,6 +50,9 @@ namespace Shuttle.Access.Projection.WebJob
 
             using (container.Resolve<IDatabaseContextFactory>().Create("Access"))
             {
+                _eventProcessor.AddProjection("SystemUsers");
+                _eventProcessor.AddProjection("SystemRoles");
+
                 container.AddEventHandler<UserHandler>("SystemUsers");
                 container.AddEventHandler<RoleHandler>("SystemRoles");
             }
