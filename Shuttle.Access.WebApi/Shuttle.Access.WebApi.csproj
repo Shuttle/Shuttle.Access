@@ -22,8 +22,8 @@
 
   <ItemGroup>
     <PackageReference Include="Shuttle.Access.Messages" Version="1.1.0" />
-    <PackageReference Include="Shuttle.Access" Version="1.1.0" />
-    <PackageReference Include="Shuttle.Access.Mvc" Version="1.1.1" />
+    <PackageReference Include="Shuttle.Access" Version="1.1.1" />
+    <PackageReference Include="Shuttle.Access.Mvc" Version="1.1.2" />
     <PackageReference Include="Shuttle.Access.Sql" Version="1.1.0" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.6" />
     <PackageReference Include="Shuttle.Core.Data.Http" Version="11.0.0" />
@@ -38,6 +38,10 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj" />
   </ItemGroup>
 
 </Project>

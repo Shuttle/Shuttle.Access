@@ -1,5 +1,6 @@
-﻿using System.Linq;
+﻿using System;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Mvc
@@ -8,20 +9,29 @@ namespace Shuttle.Access.Mvc
     {
         public static readonly string AccessSessionTokenHeaderName = "access-sessiontoken";
 
-        public static string GetAccessSessionToken(this HttpContext httpContext)
+        public static SessionTokenResult GetAccessSessionToken(this HttpContext context)
         {
-            Guard.AgainstNull(httpContext, nameof(httpContext));
+            Guard.AgainstNull(context, nameof(context));
 
-            var headers = httpContext.Request.Headers;
-
-            if (!headers.ContainsKey(AccessSessionTokenHeaderName))
+            try
             {
-                return null;
+                var requestHeaders = context.Request.Headers[AccessSessionTokenHeaderName];
+
+                if (requestHeaders.Count == 1)
+                {
+                    var sessionTokenValue = requestHeaders[0];
+
+                    return !Guid.TryParse(sessionTokenValue, out var sessionToken)
+                        ? SessionTokenResult.Failure(new UnauthorizedResult())
+                        : SessionTokenResult.Success(sessionToken);
+                }
+
+                return SessionTokenResult.Failure(new UnauthorizedResult());
             }
-
-            var tokens = headers[AccessSessionTokenHeaderName].ToList();
-
-            return tokens.Count != 1 ? null : tokens[0];
+            catch
+            {
+                throw new Exception("Could not retrieve the session token.");
+            }
         }
     }
 }

@@ -16,48 +16,31 @@ namespace Shuttle.Access.Mvc
 
         private class RequiresPermission : IAuthorizationFilter
         {
-            private readonly IAccessConfiguration _configuration;
-            private readonly IDatabaseContextFactory _databaseContextFactory;
+            private readonly IAccessService _accessService;
             private readonly string _permission;
-            private readonly ISessionQuery _sessionQuery;
 
-            public RequiresPermission(IAccessConfiguration configuration,
-                IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery,
-                string permission)
+            public RequiresPermission(IAccessService accessService,  string permission)
             {
-                Guard.AgainstNull(configuration, nameof(configuration));
-                Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-                Guard.AgainstNull(sessionQuery, nameof(sessionQuery));
+                Guard.AgainstNull(accessService, nameof(accessService));
                 Guard.AgainstNullOrEmptyString(permission, "permission");
 
-                _configuration = configuration;
-                _databaseContextFactory = databaseContextFactory;
-                _sessionQuery = sessionQuery;
+                _accessService = accessService;
                 _permission = permission;
             }
 
             public void OnAuthorization(AuthorizationFilterContext context)
             {
-                var sessionTokenValue = context.HttpContext.GetAccessSessionToken();
+                var sessionTokenResult = context.HttpContext.GetAccessSessionToken();
 
-                if (string.IsNullOrEmpty(sessionTokenValue))
+                if (!sessionTokenResult.Ok)
                 {
                     SetUnauthorized(context);
                     return;
                 }
 
-                if (!Guid.TryParse(sessionTokenValue, out var sessionToken))
+                if (!_accessService.HasPermission(sessionTokenResult.SessionToken, _permission))
                 {
                     SetUnauthorized(context);
-                    return;
-                }
-
-                using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
-                {
-                    if (!(_sessionQuery.Contains(sessionToken, _permission) || _sessionQuery.Contains(sessionToken, "*")))
-                    {
-                        SetUnauthorized(context);
-                    }
                 }
             }
 

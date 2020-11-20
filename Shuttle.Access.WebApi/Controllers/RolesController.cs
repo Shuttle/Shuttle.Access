@@ -12,6 +12,7 @@ using Shuttle.Esb;
 namespace Shuttle.Access.WebApi
 {
     [Route("api/[controller]")]
+    [RequiresPermission(SystemPermissions.Manage.Roles)]
     public class RolesController : Controller
     {
         private readonly IServiceBus _bus;
@@ -30,7 +31,6 @@ namespace Shuttle.Access.WebApi
             _systemRoleQuery = systemRoleQuery;
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Roles)]
         [HttpPost("setpermission")]
         public IActionResult SetPermission([FromBody] SetRolePermissionModel model)
         {
@@ -53,7 +53,6 @@ namespace Shuttle.Access.WebApi
             return Ok();
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Roles)]
         [HttpPost("permissionstatus")]
         public IActionResult PermissionStatus([FromBody] RolePermissionStatusModel model)
         {
@@ -105,7 +104,6 @@ namespace Shuttle.Access.WebApi
             }
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Roles)]
         [HttpDelete("{id}")]
         public IActionResult Delete(Guid id)
         {
@@ -117,7 +115,6 @@ namespace Shuttle.Access.WebApi
             return Ok();
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Roles)]
         [HttpPost]
         public IActionResult Post([FromBody] AddRoleModel model)
         {

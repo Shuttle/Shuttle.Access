@@ -13,6 +13,7 @@ using Shuttle.Recall;
 namespace Shuttle.Access.WebApi
 {
     [Route("api/[controller]")]
+    [RequiresPermission(SystemPermissions.View.Users)]
     public class UsersController : Controller
     {
         private readonly IAuthenticationService _authenticationService;
@@ -55,7 +56,6 @@ namespace Shuttle.Access.WebApi
             _passwordGenerator = passwordGenerator;
         }
 
-        [RequiresPermission(SystemPermissions.View.Users)]
         [HttpGet]
         public IActionResult Get()
         {
@@ -65,7 +65,7 @@ namespace Shuttle.Access.WebApi
             }
         }
 
-        [RequiresPermission(SystemPermissions.View.Users)]
+        
         [HttpGet("{id}")]
         public IActionResult Get(Guid id)
         {
@@ -80,7 +80,6 @@ namespace Shuttle.Access.WebApi
             }
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Users)]
         [HttpDelete("{id}")]
         public IActionResult Delete(Guid id)
         {
@@ -95,7 +94,6 @@ namespace Shuttle.Access.WebApi
             });
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Roles)]
         [HttpPost("setrole")]
         public IActionResult SetRole([FromBody] SetUserRoleModel model)
         {
@@ -157,9 +155,9 @@ namespace Shuttle.Access.WebApi
                 return BadRequest(ex.Message);
             }
 
-            var token = HttpContext.GetAccessSessionToken();
+            var sessionTokenResult = HttpContext.GetAccessSessionToken();
 
-            if (string.IsNullOrWhiteSpace(token) && string.IsNullOrWhiteSpace(model.Token))
+            if (!sessionTokenResult.Ok)
             {
                 return BadRequest(Resources.SessionTokenException);
             }
@@ -168,7 +166,7 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                var session = _sessionRepository.Find(new Guid(string.IsNullOrWhiteSpace(token) ? model.Token : token));
+                var session = _sessionRepository.Find(sessionTokenResult.SessionToken);
 
                 if (session == null)
                 {
@@ -200,7 +198,6 @@ namespace Shuttle.Access.WebApi
             });
         }
 
-        [RequiresPermission(SystemPermissions.Manage.Roles)]
         [HttpPost("rolestatus")]
         public IActionResult RoleStatus([FromBody] UserRoleStatusModel model)
         {
@@ -244,7 +241,7 @@ namespace Shuttle.Access.WebApi
             }
 
             var registeredBy = "system";
-            var result = Request.GetSessionToken();
+            var result = HttpContext.GetAccessSessionToken();
             var ok = false;
 
             if (result.Ok)

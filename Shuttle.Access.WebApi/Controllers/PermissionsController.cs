@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Mvc;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
 namespace Shuttle.Access.WebApi
 {
     [Route("api/[controller]")]
+    [RequiresSession()]
     public class PermissionsController : Controller
     {
         private readonly IAuthorizationService _authorizationService;

@@ -2,16 +2,16 @@
 
 <package>
 	<metadata>
-		<id>Shuttle.Access.Sql</id>
+		<id>Shuttle.Access.Mvc.DataStore</id>
 		<version>#{SemanticVersion}#</version>
 		<authors>Eben Roux</authors>
-		<owners></owners>
+		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<icon>images\logo.png</icon>
-		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.Sql.git" />
-		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
-		<description>Provides Sql-based implementation of data access components for use with Shuttle.Access implementations.</description>
+		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
+    <projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
+		<description>Infrastructure components for use in Mvc/Web-Api Shuttle.Access implementations that retrieve the session information directly from the underlying data store.</description>
 		<copyright>Copyright (c) #{Year}#, Eben Roux</copyright>
     <tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
