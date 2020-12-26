@@ -8,7 +8,7 @@ using Shuttle.Core.Data;
 
 namespace Shuttle.Access.WebApi
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     public class SessionsController : Controller
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;

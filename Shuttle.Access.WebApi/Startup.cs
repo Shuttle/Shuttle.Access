@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Mvc.DataStore;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Castle;
 using Shuttle.Core.Container;
@@ -61,6 +62,10 @@ namespace Shuttle.Access.WebApi
             services.AddSingleton<IQueryMapper, QueryMapper>();
             services.AddSingleton<ISessionQueryFactory, SessionQueryFactory>();
             services.AddSingleton<ISessionQuery, SessionQuery>();
+            services.AddSingleton<ISessionRepository, SessionRepository>();
+            services.AddSingleton<IDataRowMapper<Session>, SessionMapper>();
+            services.AddSingleton(typeof(IDataRepository<>), typeof(DataRepository<>));
+            services.AddSingleton<IAccessService, DataStoreAccessService>();
 
             services.AddControllers();
         }

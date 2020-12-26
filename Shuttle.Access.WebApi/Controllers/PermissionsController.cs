@@ -8,8 +8,7 @@ using Shuttle.Core.Data;
 
 namespace Shuttle.Access.WebApi
 {
-    [Route("api/[controller]")]
-    [RequiresSession()]
+    [Route("[controller]")]
     public class PermissionsController : Controller
     {
         private readonly IAuthorizationService _authorizationService;
@@ -56,6 +55,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpGet]
+        [RequiresSession]
         public IActionResult Get()
         {
             using (_databaseContextFactory.Create())

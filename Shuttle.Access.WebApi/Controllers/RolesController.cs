@@ -11,7 +11,7 @@ using Shuttle.Esb;
 
 namespace Shuttle.Access.WebApi
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [RequiresPermission(SystemPermissions.Manage.Roles)]
     public class RolesController : Controller
     {

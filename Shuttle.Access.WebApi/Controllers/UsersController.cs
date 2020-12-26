@@ -12,8 +12,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.WebApi
 {
-    [Route("api/[controller]")]
-    [RequiresPermission(SystemPermissions.View.Users)]
+    [Route("[controller]")]
     public class UsersController : Controller
     {
         private readonly IAuthenticationService _authenticationService;
@@ -57,6 +56,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpGet]
+        [RequiresPermission(SystemPermissions.View.Users)]
         public IActionResult Get()
         {
             using (_databaseContextFactory.Create())
@@ -67,6 +67,7 @@ namespace Shuttle.Access.WebApi
 
         
         [HttpGet("{id}")]
+        [RequiresPermission(SystemPermissions.View.Users)]
         public IActionResult Get(Guid id)
         {
             using (_databaseContextFactory.Create())
@@ -81,6 +82,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpDelete("{id}")]
+        [RequiresPermission(SystemPermissions.Manage.Users)]
         public IActionResult Delete(Guid id)
         {
             _bus.Send(new RemoveUserCommand
@@ -95,6 +97,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("setrole")]
+        [RequiresPermission(SystemPermissions.Manage.Users)]
         public IActionResult SetRole([FromBody] SetUserRoleModel model)
         {
             try
@@ -144,6 +147,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("setpassword")]
+        [RequiresPermission(SystemPermissions.Manage.Users)]
         public IActionResult SetPassword([FromBody] SetPasswordModel model)
         {
             try
@@ -199,6 +203,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("rolestatus")]
+        [RequiresPermission(SystemPermissions.Manage.Users)]
         public IActionResult RoleStatus([FromBody] UserRoleStatusModel model)
         {
             try

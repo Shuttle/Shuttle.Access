@@ -53,6 +53,9 @@ namespace Shuttle.Access.Projection
 
             using (container.Resolve<IDatabaseContextFactory>().Create("Access"))
             {
+                _eventProcessor.AddProjection("SystemUsers");
+                _eventProcessor.AddProjection("SystemRoles");
+                
                 container.AddEventHandler<UserHandler>("SystemUsers");
                 container.AddEventHandler<RoleHandler>("SystemRoles");
             }
