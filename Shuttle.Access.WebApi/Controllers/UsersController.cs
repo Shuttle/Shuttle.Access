@@ -82,7 +82,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpDelete("{id}")]
-        [RequiresPermission(SystemPermissions.Manage.Users)]
+        [RequiresPermission(SystemPermissions.Remove.Users)]
         public IActionResult Delete(Guid id)
         {
             _bus.Send(new RemoveUserCommand
@@ -97,7 +97,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("setrole")]
-        [RequiresPermission(SystemPermissions.Manage.Users)]
+        [RequiresPermission(SystemPermissions.Register.Users)]
         public IActionResult SetRole([FromBody] SetUserRoleModel model)
         {
             try
@@ -147,7 +147,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("setpassword")]
-        [RequiresPermission(SystemPermissions.Manage.Users)]
+        [RequiresPermission(SystemPermissions.Register.Users)]
         public IActionResult SetPassword([FromBody] SetPasswordModel model)
         {
             try
@@ -203,7 +203,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("rolestatus")]
-        [RequiresPermission(SystemPermissions.Manage.Users)]
+        [RequiresPermission(SystemPermissions.Register.Users)]
         public IActionResult RoleStatus([FromBody] UserRoleStatusModel model)
         {
             try
@@ -234,6 +234,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost]
+        [RequiresPermission(SystemPermissions.Register.Users)]
         public IActionResult Post([FromBody] RegisterUserModel model)
         {
             try
@@ -259,7 +260,7 @@ namespace Shuttle.Access.WebApi
                     {
                         registeredBy = session.Username;
 
-                        ok = session.HasPermission(SystemPermissions.Manage.Users);
+                        ok = session.HasPermission(SystemPermissions.Register.Users);
                     }
                 }
             }
@@ -271,7 +272,7 @@ namespace Shuttle.Access.WebApi
                         _authorizationService is IAnonymousPermissions anonymousPermissions)
                     {
                         ok = anonymousPermissions.AnonymousPermissions()
-                            .Any(item => item.Equals(SystemPermissions.Manage.Users));
+                            .Any(item => item.Equals(SystemPermissions.Register.Users));
                     }
                 }
             }

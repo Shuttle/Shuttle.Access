@@ -12,7 +12,6 @@ using Shuttle.Esb;
 namespace Shuttle.Access.WebApi
 {
     [Route("[controller]")]
-    [RequiresPermission(SystemPermissions.Manage.Roles)]
     public class RolesController : Controller
     {
         private readonly IServiceBus _bus;
@@ -32,6 +31,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("setpermission")]
+        [RequiresPermission(SystemPermissions.Register.Roles)]
         public IActionResult SetPermission([FromBody] SetRolePermissionModel model)
         {
             try
@@ -54,6 +54,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("permissionstatus")]
+        [RequiresPermission(SystemPermissions.Register.Roles)]
         public IActionResult PermissionStatus([FromBody] RolePermissionStatusModel model)
         {
             try
@@ -83,6 +84,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpGet]
+        [RequiresPermission(SystemPermissions.View.Roles)]
         public IActionResult Get()
         {
             using (_databaseContextFactory.Create())
@@ -92,6 +94,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpGet("{id}")]
+        [RequiresPermission(SystemPermissions.View.Roles)]
         public IActionResult Get(Guid id)
         {
             using (_databaseContextFactory.Create())
@@ -105,6 +108,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpDelete("{id}")]
+        [RequiresPermission(SystemPermissions.Remove.Roles)]
         public IActionResult Delete(Guid id)
         {
             _bus.Send(new RemoveRoleCommand
@@ -116,6 +120,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost]
+        [RequiresPermission(SystemPermissions.Register.Roles)]
         public IActionResult Post([FromBody] AddRoleModel model)
         {
             try

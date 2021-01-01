@@ -18,7 +18,7 @@ namespace Shuttle.Access
             _id = id;
         }
 
-        public Registered Register(string username, byte[] passwordHash, string registeredBy, string generatedPassword)
+        public Registered Register(string username, byte[] passwordHash, string registeredBy, string generatedPassword, bool activated)
         {
             return On(new Registered
             {
@@ -26,7 +26,17 @@ namespace Shuttle.Access
                 PasswordHash = passwordHash,
                 RegisteredBy = registeredBy,
                 GeneratedPassword = generatedPassword ?? string.Empty,
-                DateRegistered = DateTime.Now
+                DateRegistered = DateTime.Now,
+                Activated = activated
+            });
+        }
+
+        public Activated Activate(DateTime dateActivated)
+        {
+            return On(new Activated
+            {
+                Id = _id,
+                DateActivated = dateActivated
             });
         }
 
@@ -38,6 +48,13 @@ namespace Shuttle.Access
             _passwordHash = registered.PasswordHash;
 
             return registered;
+        }
+
+        private Activated On(Activated activated)
+        {
+            Guard.AgainstNull(activated, nameof(activated));
+
+            return activated;
         }
 
         private PasswordSet On(PasswordSet passwordSet)

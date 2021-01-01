@@ -33,7 +33,7 @@ namespace Shuttle.Access.Sql
 
             if (count == 0)
             {
-                result.Add(SystemPermissions.Manage.Users);
+                result.Add(SystemPermissions.Register.Users);
                 result.Add(SystemPermissions.Register.UserRequired);
             }
 

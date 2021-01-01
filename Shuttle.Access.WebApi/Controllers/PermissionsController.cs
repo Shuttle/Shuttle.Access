@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
@@ -68,5 +69,47 @@ namespace Shuttle.Access.WebApi
                 );
             }
         }
+
+        [HttpPost]
+        [RequiresPermission(SystemPermissions.Register.Permissions)]
+        public IActionResult Post([FromBody] AvailablePermissionModel model)
+        {
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            using (_databaseContextFactory.Create())
+            {
+                _permissionQuery.Register(model.Permission);
+            }
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        public IActionResult Delete([FromBody] AvailablePermissionModel model)
+        {
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            using (_databaseContextFactory.Create())
+            {
+                _permissionQuery.Remove(model.Permission);
+            }
+
+            return Ok();
+        }
+
     }
 }

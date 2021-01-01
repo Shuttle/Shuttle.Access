@@ -9,5 +9,6 @@ namespace Shuttle.Access.Events.User.v1
         public string RegisteredBy { get; set; }
         public DateTime DateRegistered { get; set; }
         public string GeneratedPassword { get; set; }
+        public bool Activated { get; set; }
     }
 }

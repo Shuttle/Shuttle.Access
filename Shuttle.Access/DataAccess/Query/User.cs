@@ -13,6 +13,7 @@ namespace Shuttle.Access.DataAccess.Query
 
         public Guid Id { get; set; }
         public DateTime DateRegistered { get; set; }
+        public DateTime? DateActivated { get; set; }
         public string RegisteredBy { get; set; }
         public string Username { get; set; }
         public List<Role> Roles { get; set; } = new List<Role>();

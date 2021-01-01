@@ -40,5 +40,10 @@ namespace Shuttle.Access.Sql
             _databaseGateway.ExecuteUsing(_queryFactory.RemoveRoles(primitiveEvent.Id, domainEvent));
             _databaseGateway.ExecuteUsing(_queryFactory.Remove(primitiveEvent.Id, domainEvent));
         }
+
+        public void Activated(PrimitiveEvent primitiveEvent, Activated domainEvent)
+        {
+            _databaseGateway.ExecuteUsing(_queryFactory.Activated(primitiveEvent.Id, domainEvent));
+        }
     }
 }

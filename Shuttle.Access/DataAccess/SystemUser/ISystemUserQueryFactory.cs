@@ -18,6 +18,7 @@ namespace Shuttle.Access.DataAccess
         IQuery RemoveRoles(Guid id, Removed domainEvent);
         IQuery Remove(Guid id, Removed domainEvent);
         IQuery GetId(string username);
-        IQuery Permissions(Guid userId);
+        IQuery Permissions(Guid id);
+        IQuery Activated(Guid id, Activated domainEvent);
     }
 }

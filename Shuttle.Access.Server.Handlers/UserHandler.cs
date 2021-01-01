@@ -14,7 +14,8 @@ namespace Shuttle.Access.Server.Handlers
         IMessageHandler<RegisterUserCommand>,
         IMessageHandler<SetUserRoleCommand>,
         IMessageHandler<RemoveUserCommand>,
-        IMessageHandler<SetPasswordCommand>
+        IMessageHandler<SetPasswordCommand>,
+        IMessageHandler<ActivateUserCommand>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IDataRowMapper _dataRowMapper;
@@ -43,6 +44,8 @@ namespace Shuttle.Access.Server.Handlers
 
         public void ProcessMessage(IHandlerContext<RegisterUserCommand> context)
         {
+            Guard.AgainstNull(context, nameof(context));
+            
             var message = context.Message;
 
             if (string.IsNullOrEmpty(message.Username) ||
@@ -72,7 +75,7 @@ namespace Shuttle.Access.Server.Handlers
                 var user = new User(id);
                 var stream = _eventStore.CreateEventStream(id);
 
-                var registered = user.Register(message.Username, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword);
+                var registered = user.Register(message.Username, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
                 if (count == 0)
                 {
@@ -112,6 +115,8 @@ namespace Shuttle.Access.Server.Handlers
 
         public void ProcessMessage(IHandlerContext<RemoveUserCommand> context)
         {
+            Guard.AgainstNull(context, nameof(context));
+
             var message = context.Message;
 
             using (_databaseContextFactory.Create())
@@ -131,6 +136,8 @@ namespace Shuttle.Access.Server.Handlers
 
         public void ProcessMessage(IHandlerContext<SetUserRoleCommand> context)
         {
+            Guard.AgainstNull(context, nameof(context));
+
             var message = context.Message;
 
             using (_databaseContextFactory.Create())
@@ -156,6 +163,8 @@ namespace Shuttle.Access.Server.Handlers
 
         public void ProcessMessage(IHandlerContext<SetPasswordCommand> context)
         {
+            Guard.AgainstNull(context, nameof(context));
+
             var message = context.Message;
 
             using (_databaseContextFactory.Create())
@@ -168,6 +177,31 @@ namespace Shuttle.Access.Server.Handlers
 
                 _eventStore.Save(stream);
             }
+        }
+
+        public void ProcessMessage(IHandlerContext<ActivateUserCommand> context)
+        {
+            Guard.AgainstNull(context, nameof(context));
+
+            var message = context.Message;
+            var now = DateTime.Now;
+
+            using (_databaseContextFactory.Create())
+            {
+                var user = new User(message.UserId);
+                var stream = _eventStore.Get(message.UserId);
+
+                stream.Apply(user);
+                stream.AddEvent(user.Activate(now));
+
+                _eventStore.Save(stream);
+            }
+
+            context.Publish(new UserActivatedEvent
+            {
+                UserId = message.UserId,
+                DateActivated = now
+            });
         }
     }
 }

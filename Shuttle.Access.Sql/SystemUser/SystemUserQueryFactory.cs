@@ -189,7 +189,7 @@ where
                 .AddParameterValue(Columns.Username, username);
         }
 
-        public IQuery Permissions(Guid userId)
+        public IQuery Permissions(Guid id)
         {
             return RawQuery.Create(@"
 select
@@ -201,7 +201,21 @@ inner join
 where
 	ur.UserId = @UserId
 ")
-                .AddParameterValue(Columns.UserId, userId);
+                .AddParameterValue(Columns.UserId, id);
+        }
+
+        public IQuery Activated(Guid id, Activated domainEvent)
+        {
+            return RawQuery.Create(@"
+update
+    SystemUser
+set
+    DateActivated = @DateActivated
+where
+    Id = @Id
+")
+                .AddParameterValue(Columns.Id, id)
+                .AddParameterValue(Columns.DateActivated, domainEvent.DateActivated);
         }
     }
 }

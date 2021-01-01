@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Access.Messages</id>
-		<version>1.1.0</version>
+		<version>1.1.1</version>
 		<authors>Eben Roux</authors>
 		<owners></owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -12,7 +12,7 @@
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.Messages" />
 		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
 		<description>Messages for use in Shuttle.Access implementations.</description>
-		<copyright>Copyright (c) 2020, Eben Roux</copyright>
+		<copyright>Copyright (c) 2021, Eben Roux</copyright>
     <tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
 

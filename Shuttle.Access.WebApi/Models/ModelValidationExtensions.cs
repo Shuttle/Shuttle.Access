@@ -59,5 +59,11 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNull(model, nameof(model));
             Guard.AgainstNull(model.Permission, nameof(model.Permission));
         }
+
+        public static void ApplyInvariants(this AvailablePermissionModel model)
+        {
+            Guard.AgainstNull(model, nameof(model));
+            Guard.AgainstNullOrEmptyString(model.Permission, nameof(model.Permission));
+        }
     }
 }
