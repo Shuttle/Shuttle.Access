@@ -27,7 +27,7 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNull(session, nameof(session));
 
-            _databaseGateway.ExecuteUsing(_queryFactory.Remove(session.Username));
+            _databaseGateway.ExecuteUsing(_queryFactory.Remove(session.IdentityName));
             _databaseGateway.ExecuteUsing(_queryFactory.Add(session));
 
             foreach (var permission in session.Permissions)

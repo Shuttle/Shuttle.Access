@@ -9,13 +9,13 @@ namespace Shuttle.Access
     {
         private readonly List<string> _permissions = new List<string>();
 
-        public Session(Guid token, Guid userId, string username, DateTime dateRegistered, DateTime expiryDate)
+        public Session(Guid token, Guid identityId, string identityName, DateTime dateRegistered, DateTime expiryDate)
         {
-            Guard.AgainstNullOrEmptyString(username, nameof(username));
+            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
             Token = token;
-            UserId = userId;
-            Username = username;
+            IdentityId = identityId;
+            IdentityName = identityName;
             DateRegistered = dateRegistered;
             ExpiryDate = expiryDate;
         }
@@ -23,8 +23,8 @@ namespace Shuttle.Access
         public DateTime ExpiryDate { get; private set; }
 
         public Guid Token { get; private set; }
-        public Guid UserId { get; }
-        public string Username { get; }
+        public Guid IdentityId { get; }
+        public string IdentityName { get; }
         public DateTime DateRegistered { get; set; }
 
         public bool HasExpired => ExpiryDate >= DateTime.Now;

@@ -35,18 +35,18 @@ namespace Shuttle.Access.Sql
             EventStream stream;
             Guid? userId;
 
-            userId = _keyStore.Get(User.Key(username));
+            userId = _keyStore.Get(Identity.Key(username));
 
             if (!userId.HasValue)
             {
-                _log.Trace($"[username not found] : username = '{username}'");
+                _log.Trace($"[identityName not found] : identityName = '{username}'");
 
                 return AuthenticationResult.Failure();
             }
 
             stream = _eventStore.Get(userId.Value);
 
-            var user = new User(userId.Value);
+            var user = new Identity(userId.Value);
 
             stream.Apply(user);
 
@@ -55,7 +55,7 @@ namespace Shuttle.Access.Sql
                 return AuthenticationResult.Success();
             }
 
-            _log.Trace($"[invalid password] : username = '{username}'");
+            _log.Trace($"[invalid password] : identityName = '{username}'");
 
             return AuthenticationResult.Failure();
         }

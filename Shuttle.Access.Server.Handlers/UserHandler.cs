@@ -11,44 +11,41 @@ using Shuttle.Recall.Sql.Storage;
 namespace Shuttle.Access.Server.Handlers
 {
     public class UserHandler :
-        IMessageHandler<RegisterUserCommand>,
-        IMessageHandler<SetUserRoleCommand>,
-        IMessageHandler<RemoveUserCommand>,
+        IMessageHandler<RegisterIdentityCommand>,
+        IMessageHandler<SetIdentityRoleCommand>,
+        IMessageHandler<RemoveIdentityCommand>,
         IMessageHandler<SetPasswordCommand>,
-        IMessageHandler<ActivateUserCommand>
+        IMessageHandler<ActivateIdentityCommand>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly IDataRowMapper _dataRowMapper;
         private readonly IEventStore _eventStore;
         private readonly IKeyStore _keyStore;
-        private readonly ISystemRoleQuery _systemRoleQuery;
-        private readonly ISystemUserQuery _systemUserQuery;
+        private readonly IRoleQuery _roleQuery;
+        private readonly IIdentityQuery _identityQuery;
 
         public UserHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore,
-            ISystemUserQuery systemUserQuery, ISystemRoleQuery systemRoleQuery, IDataRowMapper dataRowMapper)
+            IIdentityQuery identityQuery, IRoleQuery roleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(keyStore, nameof(keyStore));
-            Guard.AgainstNull(systemUserQuery, nameof(systemUserQuery));
-            Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
-            Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
+            Guard.AgainstNull(identityQuery, nameof(identityQuery));
+            Guard.AgainstNull(roleQuery, nameof(roleQuery));
 
             _databaseContextFactory = databaseContextFactory;
             _eventStore = eventStore;
             _keyStore = keyStore;
-            _systemUserQuery = systemUserQuery;
-            _systemRoleQuery = systemRoleQuery;
-            _dataRowMapper = dataRowMapper;
+            _identityQuery = identityQuery;
+            _roleQuery = roleQuery;
         }
 
-        public void ProcessMessage(IHandlerContext<RegisterUserCommand> context)
+        public void ProcessMessage(IHandlerContext<RegisterIdentityCommand> context)
         {
             Guard.AgainstNull(context, nameof(context));
             
             var message = context.Message;
 
-            if (string.IsNullOrEmpty(message.Username) ||
+            if (string.IsNullOrEmpty(message.Name) ||
                 string.IsNullOrEmpty(message.RegisteredBy) ||
                 message.PasswordHash == null ||
                 message.PasswordHash.Length == 0)
@@ -60,26 +57,26 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var key = User.Key(message.Username);
+                var key = Identity.Key(message.Name);
 
                 if (_keyStore.Contains(key))
                 {
                     return;
                 }
 
-                var count = _systemUserQuery.Count(
-                    new DataAccess.Query.User.Specification().WithRoleName("Administrator"));
+                var count = _identityQuery.Count(
+                    new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
 
                 _keyStore.Add(id, key);
 
-                var user = new User(id);
+                var user = new Identity(id);
                 var stream = _eventStore.CreateEventStream(id);
 
-                var registered = user.Register(message.Username, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
+                var registered = user.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
                 if (count == 0)
                 {
-                    var roles = _systemRoleQuery
+                    var roles = _roleQuery
                         .Search(new DataAccess.Query.Role.Specification().WithRoleName("Administrator")).ToList();
 
                     if (roles.Count != 1)
@@ -105,15 +102,15 @@ namespace Shuttle.Access.Server.Handlers
                 _eventStore.Save(stream);
             }
 
-            context.Publish(new UserRegisteredEvent
+            context.Publish(new IdentityRegisteredEvent
             {
-                Username = message.Username,
+                Name = message.Name,
                 RegisteredBy = message.RegisteredBy,
                 GeneratedPassword = message.GeneratedPassword
             });
         }
 
-        public void ProcessMessage(IHandlerContext<RemoveUserCommand> context)
+        public void ProcessMessage(IHandlerContext<RemoveIdentityCommand> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -121,7 +118,7 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var user = new User(message.Id);
+                var user = new Identity(message.Id);
                 var stream = _eventStore.Get(message.Id);
 
                 stream.Apply(user);
@@ -134,7 +131,7 @@ namespace Shuttle.Access.Server.Handlers
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetUserRoleCommand> context)
+        public void ProcessMessage(IHandlerContext<SetIdentityRoleCommand> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -142,8 +139,8 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var user = new User(message.UserId);
-                var stream = _eventStore.Get(message.UserId);
+                var user = new Identity(message.IdentityId);
+                var stream = _eventStore.Get(message.IdentityId);
 
                 stream.Apply(user);
 
@@ -169,8 +166,8 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var user = new User(message.UserId);
-                var stream = _eventStore.Get(message.UserId);
+                var user = new Identity(message.Id);
+                var stream = _eventStore.Get(message.Id);
 
                 stream.Apply(user);
                 stream.AddEvent(user.SetPassword(message.PasswordHash));
@@ -179,7 +176,7 @@ namespace Shuttle.Access.Server.Handlers
             }
         }
 
-        public void ProcessMessage(IHandlerContext<ActivateUserCommand> context)
+        public void ProcessMessage(IHandlerContext<ActivateIdentityCommand> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -188,8 +185,8 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var user = new User(message.UserId);
-                var stream = _eventStore.Get(message.UserId);
+                var user = new Identity(message.Id);
+                var stream = _eventStore.Get(message.Id);
 
                 stream.Apply(user);
                 stream.AddEvent(user.Activate(now));
@@ -197,9 +194,9 @@ namespace Shuttle.Access.Server.Handlers
                 _eventStore.Save(stream);
             }
 
-            context.Publish(new UserActivatedEvent
+            context.Publish(new IdentityActivatedEvent
             {
-                UserId = message.UserId,
+                Id = message.Id,
                 DateActivated = now
             });
         }

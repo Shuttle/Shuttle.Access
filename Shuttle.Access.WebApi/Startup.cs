@@ -99,7 +99,7 @@ namespace Shuttle.Access.WebApi
             EventStore.Register(componentContainer);
 
             var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>();
-            var roleQuery = componentContainer.Resolve<ISystemRoleQuery>();
+            var roleQuery = componentContainer.Resolve<IRoleQuery>();
 
             databaseContextFactory.ConfigureWith("Access");
 

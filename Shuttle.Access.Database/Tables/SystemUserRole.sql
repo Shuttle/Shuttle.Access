@@ -1,6 +1,0 @@
-﻿CREATE TABLE [dbo].[SystemUserRole] (
-    [UserId]   UNIQUEIDENTIFIER NOT NULL,
-    [RoleId] UNIQUEIDENTIFIER    NOT NULL,
-    CONSTRAINT [PK_SystemUserRole] PRIMARY KEY CLUSTERED ([UserId] ASC, [RoleId] ASC)
-);
-

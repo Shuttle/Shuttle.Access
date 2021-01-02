@@ -12,7 +12,7 @@ namespace Shuttle.Access.Sql
 select 
     Permission 
 from 
-    AvailablePermission
+    Permission
 ");
         }
 
@@ -26,12 +26,12 @@ if not exists
     select
         null
     from
-        AvailablePermission
+        Permission
     where
         Permission = @Permission
 )
     insert into
-        AvailablePermission
+        Permission
     (
         Permission
     )
@@ -49,7 +49,7 @@ if not exists
 
             return RawQuery.Create(@"
 delete from
-    AvailablePermission
+    Permission
 where
     Permission = @Permission
 ")

@@ -1,4 +1,4 @@
-﻿using Shuttle.Access.Events.User.v1;
+﻿using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
@@ -12,9 +12,9 @@ namespace Shuttle.Access.Projection.Handlers
         IEventHandler<Removed>,
         IEventHandler<Activated>
     {
-        private readonly ISystemUserProjectionQuery _query;
+        private readonly IIdentityProjectionQuery _query;
 
-        public UserHandler(ISystemUserProjectionQuery query)
+        public UserHandler(IIdentityProjectionQuery query)
         {
             Guard.AgainstNull(query, nameof(query));
 

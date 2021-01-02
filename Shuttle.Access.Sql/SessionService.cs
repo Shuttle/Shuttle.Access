@@ -11,11 +11,11 @@ namespace Shuttle.Access.Sql
         private readonly IAuthorizationService _authorizationService;
         private readonly IAccessConfiguration _configuration;
         private readonly ISessionRepository _sessionRepository;
-        private readonly ISystemUserQuery _userQuery;
+        private readonly IIdentityQuery _userQuery;
 
         public SessionService(IAccessConfiguration configuration, IAuthenticationService authenticationService,
             IAuthorizationService authorizationService, ISessionRepository sessionRepository,
-            ISystemUserQuery userQuery)
+            IIdentityQuery userQuery)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
@@ -84,14 +84,14 @@ namespace Shuttle.Access.Sql
                 }
             }
 
-            return RegisterSessionResult.Success(session.Username, session.Token, session.Permissions);
+            return RegisterSessionResult.Success(session.IdentityName, session.Token, session.Permissions);
         }
 
         public bool Remove(Guid token)
         {
             var session = _sessionRepository.Find(token);
 
-            return session != null && Remove(session.Username);
+            return session != null && Remove(session.IdentityName);
         }
 
         public bool Remove(string username)

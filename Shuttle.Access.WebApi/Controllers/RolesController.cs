@@ -16,22 +16,22 @@ namespace Shuttle.Access.WebApi
     {
         private readonly IServiceBus _bus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly ISystemRoleQuery _systemRoleQuery;
+        private readonly IRoleQuery _roleQuery;
 
         public RolesController(IServiceBus bus, IDatabaseContextFactory databaseContextFactory,
-            ISystemRoleQuery systemRoleQuery)
+            IRoleQuery roleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(bus, nameof(bus));
-            Guard.AgainstNull(systemRoleQuery, nameof(systemRoleQuery));
+            Guard.AgainstNull(roleQuery, nameof(roleQuery));
 
             _databaseContextFactory = databaseContextFactory;
             _bus = bus;
-            _systemRoleQuery = systemRoleQuery;
+            _roleQuery = roleQuery;
         }
 
         [HttpPost("setpermission")]
-        [RequiresPermission(SystemPermissions.Register.Roles)]
+        [RequiresPermission(Permissions.Register.Role)]
         public IActionResult SetPermission([FromBody] SetRolePermissionModel model)
         {
             try
@@ -54,7 +54,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("permissionstatus")]
-        [RequiresPermission(SystemPermissions.Register.Roles)]
+        [RequiresPermission(Permissions.Register.Role)]
         public IActionResult PermissionStatus([FromBody] RolePermissionStatusModel model)
         {
             try
@@ -70,7 +70,7 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                permissions = _systemRoleQuery.Permissions(model.RoleId).ToList();
+                permissions = _roleQuery.Permissions(model.RoleId).ToList();
             }
 
             return Ok(
@@ -84,22 +84,22 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpGet]
-        [RequiresPermission(SystemPermissions.View.Roles)]
+        [RequiresPermission(Permissions.View.Role)]
         public IActionResult Get()
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(_systemRoleQuery.Search(new DataAccess.Query.Role.Specification()));
+                return Ok(_roleQuery.Search(new DataAccess.Query.Role.Specification()));
             }
         }
 
         [HttpGet("{id}")]
-        [RequiresPermission(SystemPermissions.View.Roles)]
+        [RequiresPermission(Permissions.View.Role)]
         public IActionResult Get(Guid id)
         {
             using (_databaseContextFactory.Create())
             {
-                var role = _systemRoleQuery.Search(new DataAccess.Query.Role.Specification().WithRoleId(id).IncludePermissions()).FirstOrDefault();
+                var role = _roleQuery.Search(new DataAccess.Query.Role.Specification().WithRoleId(id).IncludePermissions()).FirstOrDefault();
 
                 return role != null
                     ? (IActionResult) Ok(role)
@@ -108,7 +108,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpDelete("{id}")]
-        [RequiresPermission(SystemPermissions.Remove.Roles)]
+        [RequiresPermission(Permissions.Remove.Role)]
         public IActionResult Delete(Guid id)
         {
             _bus.Send(new RemoveRoleCommand
@@ -120,7 +120,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost]
-        [RequiresPermission(SystemPermissions.Register.Roles)]
+        [RequiresPermission(Permissions.Register.Role)]
         public IActionResult Post([FromBody] AddRoleModel model)
         {
             try

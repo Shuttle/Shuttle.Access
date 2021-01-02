@@ -16,7 +16,7 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNull(model, nameof(model));
         }
         
-        public static void ApplyInvariants(this SetUserRoleModel model)
+        public static void ApplyInvariants(this SetIdentityRoleModel model)
         {
             Guard.AgainstNull(model, nameof(model));
         }
@@ -42,16 +42,16 @@ namespace Shuttle.Access.WebApi
             }
         }
         
-        public static void ApplyInvariants(this UserRoleStatusModel model)
+        public static void ApplyInvariants(this IdentityRoleStatusModel model)
         {
             Guard.AgainstNull(model, nameof(model));
             Guard.AgainstNull(model.RoleIds, nameof(model.RoleIds));
         }
         
-        public static void ApplyInvariants(this RegisterUserModel model)
+        public static void ApplyInvariants(this RegisterIdentityModel model)
         {
             Guard.AgainstNull(model, nameof(model));
-            Guard.AgainstNull(model.Username, nameof(model.Username));
+            Guard.AgainstNull(model.Name, nameof(model.Name));
         }
 
         public static void ApplyInvariants(this SetRolePermissionModel model)
@@ -60,7 +60,7 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNull(model.Permission, nameof(model.Permission));
         }
 
-        public static void ApplyInvariants(this AvailablePermissionModel model)
+        public static void ApplyInvariants(this PermissionModel model)
         {
             Guard.AgainstNull(model, nameof(model));
             Guard.AgainstNullOrEmptyString(model.Permission, nameof(model.Permission));

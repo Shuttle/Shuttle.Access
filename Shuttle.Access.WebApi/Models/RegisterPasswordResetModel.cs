@@ -4,7 +4,7 @@ namespace Shuttle.Access.WebApi
 {
     public class RegisterPasswordResetModel
     {
-        public Guid UserId { get; set; }
+        public Guid IdentityId { get; set; }
         public string Token { get; set; }
     }
 }

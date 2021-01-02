@@ -8,7 +8,7 @@ namespace Shuttle.Access.Sql
 	{
 		public IQuery Get(Guid token)
 		{
-			return RawQuery.Create("select Token, UserId, Username, DateRegistered, ExpiryDate from [dbo].[Session] where Token = @Token")
+			return RawQuery.Create("select Token, IdentityId, Name, DateRegistered, ExpiryDate from [dbo].[Session] where Token = @Token")
 				.AddParameterValue(Columns.Token, token);
 		}
 
@@ -20,8 +20,8 @@ namespace Shuttle.Access.Sql
 
 		public IQuery Remove(string username)
 		{
-			return RawQuery.Create("delete from [dbo].[Session] where Username = @Username")
-				.AddParameterValue(Columns.Username, username);
+			return RawQuery.Create("delete from [dbo].[Session] where Name = @Name")
+				.AddParameterValue(Columns.Name, username);
 		}
 
 		public IQuery Add(Session session)
@@ -30,23 +30,23 @@ namespace Shuttle.Access.Sql
 insert into [dbo].[Session] 
 (
 	Token, 
-	UserId, 
-	Username, 
+	IdentityId, 
+	Name, 
 	DateRegistered,
     ExpiryDate
 )
 values
 (
 	@Token, 
-	@UserId, 
-	@Username, 
+	@IdentityId, 
+	@Name, 
 	@DateRegistered,
     @ExpiryDate
 )
 ")
 				.AddParameterValue(Columns.Token, session.Token)
-				.AddParameterValue(Columns.Username, session.Username)
-				.AddParameterValue(Columns.UserId, session.UserId)
+				.AddParameterValue(Columns.Name, session.IdentityName)
+				.AddParameterValue(Columns.UserId, session.IdentityId)
 				.AddParameterValue(Columns.DateRegistered, session.DateRegistered)
 				.AddParameterValue(Columns.ExpiryDate, session.ExpiryDate);
 		}
@@ -97,11 +97,11 @@ set
     Token = @Token,
     ExpiryDate = @ExpiryDate
 where
-    Username = @Username
+    Name = @Name
 ")
                 .AddParameterValue(Columns.Token, session.Token)
                 .AddParameterValue(Columns.ExpiryDate, session.ExpiryDate)
-                .AddParameterValue(Columns.Username, session.Username);
+                .AddParameterValue(Columns.Name, session.IdentityName);
         }
     }
 }

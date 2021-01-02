@@ -31,7 +31,7 @@ namespace Shuttle.Access.WebApi
         {
             Guard.AgainstNull(model, nameof(model));
 
-            if (string.IsNullOrEmpty(model.Username) ||
+            if (string.IsNullOrEmpty(model.IdentityName) ||
                 string.IsNullOrEmpty(model.Password) && string.IsNullOrEmpty(model.Token))
             {
                 return Ok(new
@@ -49,7 +49,7 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                registerSessionResult = _sessionService.Register(model.Username, model.Password, token);
+                registerSessionResult = _sessionService.Register(model.IdentityName, model.Password, token);
             }
 
             return registerSessionResult.Ok

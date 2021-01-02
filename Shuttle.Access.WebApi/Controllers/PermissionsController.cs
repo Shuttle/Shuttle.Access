@@ -45,7 +45,7 @@ namespace Shuttle.Access.WebApi
 
             return Ok(new
             {
-                IsUserRequired = permissions.Contains(SystemPermissions.Register.UserRequired),
+                IsIdentityRequired = permissions.Contains(Permissions.Register.IdentityRequired),
                 Permissions =
                     from permission in permissions
                     select new
@@ -71,8 +71,8 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost]
-        [RequiresPermission(SystemPermissions.Register.Permissions)]
-        public IActionResult Post([FromBody] AvailablePermissionModel model)
+        [RequiresPermission(Permissions.Register.Permission)]
+        public IActionResult Post([FromBody] PermissionModel model)
         {
             try
             {
@@ -92,7 +92,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpDelete]
-        public IActionResult Delete([FromBody] AvailablePermissionModel model)
+        public IActionResult Delete([FromBody] PermissionModel model)
         {
             try
             {

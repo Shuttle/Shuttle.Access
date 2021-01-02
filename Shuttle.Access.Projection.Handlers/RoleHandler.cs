@@ -11,9 +11,9 @@ namespace Shuttle.Access.Projection.Handlers
         IEventHandler<PermissionAdded>,
         IEventHandler<PermissionRemoved>
     {
-        private readonly ISystemRoleProjectionQuery _query;
+        private readonly IRoleProjectionQuery _query;
 
-        public RoleHandler(ISystemRoleProjectionQuery query)
+        public RoleHandler(IRoleProjectionQuery query)
         {
             Guard.AgainstNull(query, nameof(query));
 

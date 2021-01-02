@@ -4,15 +4,15 @@
 AS
 	declare @Id uniqueidentifier
 
-	select @Id = Id from SystemRole where RoleName = @RoleName
+	select @Id = Id from Role where RoleName = @RoleName
 
 	if (@Id is null)
 		return 0;
 
-	if exists (select null from SystemRolePermission where RoleId = @Id and Permission = @Permission)
+	if exists (select null from RolePermission where RoleId = @Id and Permission = @Permission)
 		return;
 
-	insert into SystemRolePermission
+	insert into RolePermission
 	(
 		RoleId,
 		Permission
