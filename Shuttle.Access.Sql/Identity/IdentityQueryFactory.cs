@@ -9,10 +9,11 @@ namespace Shuttle.Access.Sql
     public class IdentityQueryFactory : IIdentityQueryFactory
     {
         private const string SelectedColumns = @"
-    u.Id,
-    u.Name,
-    u.DateRegistered,
-    u.RegisteredBy
+    i.Id,
+    i.Name,
+    i.DateRegistered,
+    i.RegisteredBy,
+    i.DateActivated
 ";
 
         public IQuery Register(Guid id, Registered domainEvent)
@@ -55,11 +56,11 @@ values
 select distinct
 {(columns ? SelectedColumns : "count (*)")}
 from
-	[dbo].[Identity] u
+	[dbo].[Identity] i
 left join
-	IdentityRole ur on (ur.IdentityId = u.Id)
+	IdentityRole ir on (ir.IdentityId = i.Id)
 left join
-	Role r on (r.Id = ur.RoleId)    
+	Role r on (r.Id = ir.RoleId)    
 where
 (
     isnull(@RoleName, '') = ''
@@ -70,11 +71,11 @@ and
 (
     @IdentityId is null
     or
-    u.Id = @IdentityId
+    i.Id = @IdentityId
 )
 ")
                 .AddParameterValue(Columns.RoleName, specification.RoleName)
-                .AddParameterValue(Columns.UserId, specification.IdentityId);
+                .AddParameterValue(Columns.IdentityId, specification.IdentityId);
         }
 
         public IQuery RoleAdded(Guid id, RoleAdded domainEvent)
@@ -92,7 +93,7 @@ if not exists(select null from [dbo].[IdentityRole] where IdentityId = @Identity
 	    @RoleId
     )
 ")
-                .AddParameterValue(Columns.UserId, id)
+                .AddParameterValue(Columns.IdentityId, id)
                 .AddParameterValue(Columns.RoleId, domainEvent.RoleId);
         }
 
@@ -107,9 +108,9 @@ if not exists(select null from [dbo].[IdentityRole] where IdentityId = @Identity
 select
     {SelectedColumns}
 from
-    [dbo].[Identity] u
+    [dbo].[Identity] i
 where 
-    u.Id = @Id
+    i.Id = @Id
 ")
                 .AddParameterValue(Columns.Id, id);
         }
@@ -120,25 +121,25 @@ where
 
             return RawQuery.Create(@"
 select 
-    ur.IdentityId, 
-    ur.RoleId, 
+    ir.IdentityId, 
+    ir.RoleId, 
     r.RoleName 
 from 
-    dbo.IdentityRole ur
+    dbo.IdentityRole ir
 inner join
-    dbo.Role r on (r.Id = ur.RoleId)
+    dbo.Role r on (r.Id = ir.RoleId)
 where 
     @IdentityId is null
     or
     IdentityId = @IdentityId
 ")
-                .AddParameterValue(Columns.UserId, specification.IdentityId);
+                .AddParameterValue(Columns.IdentityId, specification.IdentityId);
         }
 
         public IQuery Roles(Guid userId)
         {
             return RawQuery.Create(@"select RoleId, RoleName from dbo.IdentityRole where IdentityId = @IdentityId")
-                .AddParameterValue(Columns.UserId, userId);
+                .AddParameterValue(Columns.IdentityId, userId);
         }
 
         public IQuery RoleRemoved(Guid id, RoleRemoved domainEvent)
@@ -152,7 +153,7 @@ where
 and
 	[RoleId] = @RoleId
 ")
-                .AddParameterValue(Columns.UserId, id)
+                .AddParameterValue(Columns.IdentityId, id)
                 .AddParameterValue(Columns.RoleId, domainEvent.RoleId);
         }
 
@@ -162,9 +163,9 @@ and
 select 
     count(*) as count 
 from 
-    dbo.IdentityRole ur
+    dbo.IdentityRole ir
 inner join
-    dbo.Role r on r.Id = ur.RoleId
+    dbo.Role r on r.Id = ir.RoleId
 where 
     r.RoleName = 'administrator'
 ");
@@ -173,19 +174,19 @@ where
         public IQuery RemoveRoles(Guid id, Removed domainEvent)
         {
             return RawQuery.Create("delete from IdentityRole where IdentityId = @IdentityId")
-                .AddParameterValue(Columns.UserId, id);
+                .AddParameterValue(Columns.IdentityId, id);
         }
 
         public IQuery Remove(Guid id, Removed domainEvent)
         {
-            return RawQuery.Create("delete from Identity where Id = @Id").AddParameterValue(Columns.Id, id);
+            return RawQuery.Create("delete from [dbo].[Identity] where Id = @Id").AddParameterValue(Columns.Id, id);
         }
 
         public IQuery GetId(string username)
         {
             Guard.AgainstNullOrEmptyString(username, nameof(username));
 
-            return RawQuery.Create("select Id from Identity where Name = @Name")
+            return RawQuery.Create("select Id from [dbo].[Identity] where Name = @Name")
                 .AddParameterValue(Columns.Name, username);
         }
 
@@ -197,11 +198,11 @@ select
 from
 	RolePermission rp
 inner join
-	IdentityRole ur on ur.RoleId = rp.RoleId
+	IdentityRole ir on ir.RoleId = rp.RoleId
 where
-	ur.IdentityId = @IdentityId
+	ir.IdentityId = @IdentityId
 ")
-                .AddParameterValue(Columns.UserId, id);
+                .AddParameterValue(Columns.IdentityId, id);
         }
 
         public IQuery Activated(Guid id, Activated domainEvent)

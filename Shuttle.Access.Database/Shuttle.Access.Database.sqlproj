@@ -63,21 +63,21 @@
     <Folder Include="Stored Procedures\" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\AvailablePermission.sql" />
-    <Build Include="Tables\SystemRole.sql" />
-    <Build Include="Tables\SystemRolePermission.sql" />
-    <Build Include="Tables\SystemUser.sql" />
-    <Build Include="Tables\SystemUserRole.sql" />
     <Build Include="Tables\EventStore.sql" />
     <Build Include="Tables\KeyStore.sql" />
     <Build Include="Tables\SnapshotStore.sql" />
     <Build Include="Tables\Session.sql" />
     <Build Include="Tables\SessionPermission.sql" />
-    <Build Include="Stored Procedures\RegisterAvailablePermission.sql" />
     <Build Include="Stored Procedures\RegisterRole.sql" />
     <Build Include="Stored Procedures\RegisterRolePermission.sql" />
     <PostDeploy Include="post-deployment.sql" />
     <Build Include="Tables\Projection.sql" />
     <Build Include="Tables\EventType.sql" />
+    <Build Include="Tables\Identity.sql" />
+    <Build Include="Tables\IdentityRole.sql" />
+    <Build Include="Tables\Permission.sql" />
+    <Build Include="Tables\Role.sql" />
+    <Build Include="Tables\RolePermission.sql" />
+    <Build Include="Stored Procedures\RegisterPermission.sql" />
   </ItemGroup>
 </Project>

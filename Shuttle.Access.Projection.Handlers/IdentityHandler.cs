@@ -5,7 +5,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Projection.Handlers
 {
-    public class UserHandler :
+    public class IdentityHandler :
         IEventHandler<Registered>,
         IEventHandler<RoleAdded>,
         IEventHandler<RoleRemoved>,
@@ -14,7 +14,7 @@ namespace Shuttle.Access.Projection.Handlers
     {
         private readonly IIdentityProjectionQuery _query;
 
-        public UserHandler(IIdentityProjectionQuery query)
+        public IdentityHandler(IIdentityProjectionQuery query)
         {
             Guard.AgainstNull(query, nameof(query));
 

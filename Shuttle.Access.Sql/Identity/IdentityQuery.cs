@@ -55,7 +55,7 @@ namespace Shuttle.Access.Sql
             {
                 var roleRows = _databaseGateway.GetRowsUsing(_queryFactory.Roles(specification));
 
-                foreach (var roleGroup in roleRows.GroupBy(row => Columns.UserId.MapFrom(row)))
+                foreach (var roleGroup in roleRows.GroupBy(row => Columns.IdentityId.MapFrom(row)))
                 {
                     var user = result.FirstOrDefault(item => item.Id == roleGroup.Key);
 

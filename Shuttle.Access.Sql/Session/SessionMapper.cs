@@ -9,8 +9,8 @@ namespace Shuttle.Access.Sql
 		{
 			return new MappedRow<Session>(row, new Session(
 				Columns.Token.MapFrom(row), 
-                Columns.UserId.MapFrom(row), 
-				Columns.Name.MapFrom(row),
+                Columns.IdentityId.MapFrom(row), 
+				Columns.IdentityName.MapFrom(row),
 				Columns.DateRegistered.MapFrom(row),
                 Columns.ExpiryDate.MapFrom(row)));
 		}

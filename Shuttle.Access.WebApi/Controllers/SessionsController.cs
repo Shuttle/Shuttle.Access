@@ -36,10 +36,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Data = new
-                    {
-                        Registered = false
-                    }
+                    Registered = false
                 });
             }
 

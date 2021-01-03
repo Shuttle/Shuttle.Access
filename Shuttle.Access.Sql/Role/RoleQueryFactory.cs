@@ -43,16 +43,25 @@ where
         public IQuery Added(Guid id, Added domainEvent)
         {
             return RawQuery.Create(@"
-insert into [dbo].[Role]
+if not exists
 (
-	[Id],
-	[RoleName]
+    select
+        null
+    from
+        [dbo].[Role]
+    where
+        RoleName = @RoleName
 )
-values
-(
-	@Id,
-	@RoleName
-)
+    insert into [dbo].[Role]
+    (
+	    [Id],
+	    [RoleName]
+    )
+    values
+    (
+	    @Id,
+	    @RoleName
+    )
 ")
                 .AddParameterValue(Columns.Id, id)
                 .AddParameterValue(Columns.RoleName, domainEvent.Name);

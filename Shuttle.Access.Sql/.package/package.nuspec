@@ -15,7 +15,6 @@
 		<copyright>Copyright (c) 2021, Eben Roux</copyright>
     <tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
-      <dependency id="Shuttle.Access" version="1.1.2" />
       <dependency id="Shuttle.Core.Data" version="11.0.4" />
       <dependency id="Shuttle.Recall" version="12.0.1" />
       <dependency id="Shuttle.Recall.Sql.Storage" version="12.0.1" />

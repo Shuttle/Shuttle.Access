@@ -234,7 +234,6 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost]
-        [RequiresPermission(Permissions.Register.Identity)]
         public IActionResult Post([FromBody] RegisterIdentityModel model)
         {
             try
@@ -295,7 +294,8 @@ namespace Shuttle.Access.WebApi
                 Name = model.Name,
                 PasswordHash = _hashingService.Sha256(model.Password),
                 RegisteredBy = registeredBy,
-                GeneratedPassword = generatedPassword
+                GeneratedPassword = generatedPassword,
+                Activated = model.Activated
             });
 
             return Ok();

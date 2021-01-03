@@ -43,18 +43,18 @@ namespace Shuttle.Access.Projection.WebJob
 
             _eventStore = EventStore.Create(container);
 
-            container.Register<UserHandler>();
+            container.Register<IdentityHandler>();
             container.Register<RoleHandler>();
 
             _eventProcessor = container.Resolve<IEventProcessor>();
 
             using (container.Resolve<IDatabaseContextFactory>().Create("Access"))
             {
-                _eventProcessor.AddProjection("SystemUsers");
-                _eventProcessor.AddProjection("SystemRoles");
+                _eventProcessor.AddProjection("Identity");
+                _eventProcessor.AddProjection("Role");
 
-                container.AddEventHandler<UserHandler>("SystemUsers");
-                container.AddEventHandler<RoleHandler>("SystemRoles");
+                container.AddEventHandler<IdentityHandler>("Identity");
+                container.AddEventHandler<RoleHandler>("Role");
             }
 
             _eventProcessor.Start();

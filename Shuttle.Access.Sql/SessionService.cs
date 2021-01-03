@@ -30,9 +30,9 @@ namespace Shuttle.Access.Sql
             _userQuery = userQuery;
         }
 
-        public RegisterSessionResult Register(string username, string password, Guid token)
+        public RegisterSessionResult Register(string identityName, string password, Guid token)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) && token.Equals(Guid.Empty))
+            if (string.IsNullOrEmpty(identityName) || string.IsNullOrEmpty(password) && token.Equals(Guid.Empty))
             {
                 return RegisterSessionResult.Failure();
             }
@@ -41,7 +41,7 @@ namespace Shuttle.Access.Sql
 
             if (!string.IsNullOrEmpty(password))
             {
-                var authenticationResult = _authenticationService.Authenticate(username, password);
+                var authenticationResult = _authenticationService.Authenticate(identityName, password);
 
                 if (!authenticationResult.Authenticated)
                 {
@@ -50,9 +50,9 @@ namespace Shuttle.Access.Sql
 
                 var now = DateTime.Now;
 
-                session = new Session(Guid.NewGuid(), _userQuery.Id(username), username, now, now.Add(_configuration.SessionDuration));
+                session = new Session(Guid.NewGuid(), _userQuery.Id(identityName), identityName, now, now.Add(_configuration.SessionDuration));
 
-                foreach (var permission in _authorizationService.Permissions(username,
+                foreach (var permission in _authorizationService.Permissions(identityName,
                     authenticationResult.AuthenticationTag))
                 {
                     session.AddPermission(permission);
@@ -94,11 +94,11 @@ namespace Shuttle.Access.Sql
             return session != null && Remove(session.IdentityName);
         }
 
-        public bool Remove(string username)
+        public bool Remove(string identityName)
         {
-            Guard.AgainstNullOrEmptyString(username, nameof(username));
+            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
-            return _sessionRepository.Remove(username) > 0;
+            return _sessionRepository.Remove(identityName) > 0;
         }
     }
 }

@@ -10,7 +10,7 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Server.Handlers
 {
-    public class UserHandler :
+    public class IdentityHandler :
         IMessageHandler<RegisterIdentityCommand>,
         IMessageHandler<SetIdentityRoleCommand>,
         IMessageHandler<RemoveIdentityCommand>,
@@ -23,7 +23,7 @@ namespace Shuttle.Access.Server.Handlers
         private readonly IRoleQuery _roleQuery;
         private readonly IIdentityQuery _identityQuery;
 
-        public UserHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore,
+        public IdentityHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore,
             IIdentityQuery identityQuery, IRoleQuery roleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
@@ -69,10 +69,10 @@ namespace Shuttle.Access.Server.Handlers
 
                 _keyStore.Add(id, key);
 
-                var user = new Identity(id);
+                var identity = new Identity(id);
                 var stream = _eventStore.CreateEventStream(id);
 
-                var registered = user.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
+                var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
                 if (count == 0)
                 {
@@ -93,11 +93,16 @@ namespace Shuttle.Access.Server.Handlers
 
                     if (role.RoleName.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
                     {
-                        stream.AddEvent(user.AddRole(role.Id));
+                        stream.AddEvent(identity.AddRole(role.Id));
                     }
                 }
 
                 stream.AddEvent(registered);
+
+                if (message.Activated)
+                {
+                    stream.AddEvent(identity.Activate(registered.DateRegistered));
+                }
 
                 _eventStore.Save(stream);
             }
@@ -118,12 +123,12 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var user = new Identity(message.Id);
+                var identity = new Identity(message.Id);
                 var stream = _eventStore.Get(message.Id);
 
-                stream.Apply(user);
+                stream.Apply(identity);
 
-                stream.AddEvent(user.Remove());
+                stream.AddEvent(identity.Remove());
 
                 _eventStore.Save(stream);
 
@@ -139,19 +144,19 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var user = new Identity(message.IdentityId);
+                var identity = new Identity(message.IdentityId);
                 var stream = _eventStore.Get(message.IdentityId);
 
-                stream.Apply(user);
+                stream.Apply(identity);
 
-                if (message.Active && !user.IsInRole(message.RoleId))
+                if (message.Active && !identity.IsInRole(message.RoleId))
                 {
-                    stream.AddEvent(user.AddRole(message.RoleId));
+                    stream.AddEvent(identity.AddRole(message.RoleId));
                 }
 
-                if (!message.Active && user.IsInRole(message.RoleId))
+                if (!message.Active && identity.IsInRole(message.RoleId))
                 {
-                    stream.AddEvent(user.RemoveRole(message.RoleId));
+                    stream.AddEvent(identity.RemoveRole(message.RoleId));
                 }
 
                 _eventStore.Save(stream);
@@ -166,11 +171,11 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var user = new Identity(message.Id);
+                var identity = new Identity(message.Id);
                 var stream = _eventStore.Get(message.Id);
 
-                stream.Apply(user);
-                stream.AddEvent(user.SetPassword(message.PasswordHash));
+                stream.Apply(identity);
+                stream.AddEvent(identity.SetPassword(message.PasswordHash));
 
                 _eventStore.Save(stream);
             }
@@ -185,11 +190,11 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var user = new Identity(message.Id);
+                var identity = new Identity(message.Id);
                 var stream = _eventStore.Get(message.Id);
 
-                stream.Apply(user);
-                stream.AddEvent(user.Activate(now));
+                stream.Apply(identity);
+                stream.AddEvent(identity.Activate(now));
 
                 _eventStore.Save(stream);
             }

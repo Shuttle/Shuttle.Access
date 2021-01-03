@@ -8,7 +8,7 @@ namespace Shuttle.Access.Sql
 	{
 		public IQuery Get(Guid token)
 		{
-			return RawQuery.Create("select Token, IdentityId, Name, DateRegistered, ExpiryDate from [dbo].[Session] where Token = @Token")
+			return RawQuery.Create("select Token, IdentityId, IdentityName, DateRegistered, ExpiryDate from [dbo].[Session] where Token = @Token")
 				.AddParameterValue(Columns.Token, token);
 		}
 
@@ -18,10 +18,10 @@ namespace Shuttle.Access.Sql
 				.AddParameterValue(Columns.Token, token);
 		}
 
-		public IQuery Remove(string username)
+		public IQuery Remove(string identityName)
 		{
-			return RawQuery.Create("delete from [dbo].[Session] where Name = @Name")
-				.AddParameterValue(Columns.Name, username);
+			return RawQuery.Create("delete from [dbo].[Session] where IdentityName = @IdentityName")
+				.AddParameterValue(Columns.IdentityName, identityName);
 		}
 
 		public IQuery Add(Session session)
@@ -31,7 +31,7 @@ insert into [dbo].[Session]
 (
 	Token, 
 	IdentityId, 
-	Name, 
+	IdentityName, 
 	DateRegistered,
     ExpiryDate
 )
@@ -39,14 +39,14 @@ values
 (
 	@Token, 
 	@IdentityId, 
-	@Name, 
+	@IdentityName, 
 	@DateRegistered,
     @ExpiryDate
 )
 ")
 				.AddParameterValue(Columns.Token, session.Token)
-				.AddParameterValue(Columns.Name, session.IdentityName)
-				.AddParameterValue(Columns.UserId, session.IdentityId)
+				.AddParameterValue(Columns.IdentityName, session.IdentityName)
+				.AddParameterValue(Columns.IdentityId, session.IdentityId)
 				.AddParameterValue(Columns.DateRegistered, session.DateRegistered)
 				.AddParameterValue(Columns.ExpiryDate, session.ExpiryDate);
 		}
@@ -97,11 +97,11 @@ set
     Token = @Token,
     ExpiryDate = @ExpiryDate
 where
-    Name = @Name
+    IdentityName = @IdentityName
 ")
                 .AddParameterValue(Columns.Token, session.Token)
                 .AddParameterValue(Columns.ExpiryDate, session.ExpiryDate)
-                .AddParameterValue(Columns.Name, session.IdentityName);
+                .AddParameterValue(Columns.IdentityName, session.IdentityName);
         }
     }
 }

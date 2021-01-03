@@ -7,7 +7,7 @@ namespace Shuttle.Access.DataAccess
     {
         IQuery Get(Guid token);
         IQuery GetPermissions(Guid token);
-        IQuery Remove(string username);
+        IQuery Remove(string identityName);
         IQuery Add(Session session);
         IQuery AddPermission(Guid token, string permission);
         IQuery Remove(Guid token);
