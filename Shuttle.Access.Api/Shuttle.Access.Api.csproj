@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include=".package\AssemblyInfo.cs.template" />
+		<None Include=".package\package.msbuild" />
+		<None Include=".package\package.nuspec.template" />
+		<None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
+		<None Include=".package\Shuttle.NuGetPackager.targets" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+		<PackageReference Include="RestSharp" Version="106.11.7" />
+		<PackageReference Include="Shuttle.Core.Configuration" Version="10.0.3" />
+		<PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+	</ItemGroup>
+
+</Project>

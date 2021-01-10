@@ -50,9 +50,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".azure", ".azure", "{D53FED
 		.azure\WebApi.web.config = .azure\WebApi.web.config
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Mvc.DataStore", "Shuttle.Access.Mvc.DataStore\Shuttle.Access.Mvc.DataStore.csproj", "{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc.DataStore", "Shuttle.Access.Mvc.DataStore\Shuttle.Access.Mvc.DataStore.csproj", "{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Mvc.Rest", "Shuttle.Access.Mvc.Rest\Shuttle.Access.Mvc.Rest.csproj", "{CFDA6059-0EF1-48D2-8FBE-D28A3298475A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc.Rest", "Shuttle.Access.Mvc.Rest\Shuttle.Access.Mvc.Rest.csproj", "{CFDA6059-0EF1-48D2-8FBE-D28A3298475A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Api", "Shuttle.Access.Api\Shuttle.Access.Api.csproj", "{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Tests.Console", "Shuttle.Access.Tests.Console\Shuttle.Access.Tests.Console.csproj", "{4BBAFAD1-A37E-49D4-8362-14AE49087B32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -126,6 +130,14 @@ Global
 		{CFDA6059-0EF1-48D2-8FBE-D28A3298475A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CFDA6059-0EF1-48D2-8FBE-D28A3298475A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CFDA6059-0EF1-48D2-8FBE-D28A3298475A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BBAFAD1-A37E-49D4-8362-14AE49087B32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BBAFAD1-A37E-49D4-8362-14AE49087B32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BBAFAD1-A37E-49D4-8362-14AE49087B32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BBAFAD1-A37E-49D4-8362-14AE49087B32}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
