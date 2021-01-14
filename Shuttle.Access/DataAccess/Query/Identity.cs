@@ -16,6 +16,7 @@ namespace Shuttle.Access.DataAccess.Query
         public DateTime? DateActivated { get; set; }
         public string RegisteredBy { get; set; }
         public string Name { get; set; }
+        public string GeneratedPassword { get; set; }
         public List<Role> Roles { get; set; } = new List<Role>();
 
         public class Specification

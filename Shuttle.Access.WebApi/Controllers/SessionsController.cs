@@ -36,7 +36,7 @@ namespace Shuttle.Access.WebApi
             {
                 return Ok(new
                 {
-                    Registered = false
+                    Success = false
                 });
             }
 
@@ -52,7 +52,7 @@ namespace Shuttle.Access.WebApi
             return registerSessionResult.Ok
                 ? Ok(new
                 {
-                    Registered = true,
+                    Success = true,
                     registerSessionResult.Username,
                     Token = registerSessionResult.Token.ToString("n"),
                     Permissions = registerSessionResult.Permissions.Select(permission => new
@@ -62,7 +62,7 @@ namespace Shuttle.Access.WebApi
                 })
                 : Ok(new
                 {
-                    Registered = false
+                    Success = false
                 });
         }
 
@@ -100,7 +100,6 @@ namespace Shuttle.Access.WebApi
 
                 return Ok(new
                 {
-
                     session.Permissions
                 });
             }

@@ -236,6 +236,8 @@ namespace Shuttle.Access.WebApi
         [HttpPost]
         public IActionResult Post([FromBody] RegisterIdentityModel model)
         {
+            Guard.AgainstNull(model, nameof(model));
+
             try
             {
                 model.ApplyInvariants();

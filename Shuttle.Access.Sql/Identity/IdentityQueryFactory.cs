@@ -13,7 +13,8 @@ namespace Shuttle.Access.Sql
     i.Name,
     i.DateRegistered,
     i.RegisteredBy,
-    i.DateActivated
+    i.DateActivated,
+    i.GeneratedPassword
 ";
 
         public IQuery Register(Guid id, Registered domainEvent)

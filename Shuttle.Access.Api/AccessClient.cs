@@ -102,12 +102,12 @@ namespace Shuttle.Access.Api
 
                 if (response.success == null)
                 {
-                    throw new ApiException("Could not retrieve the 'success' status from the logout response.");
+                    throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "success"));
                 }
 
                 if (!Convert.ToBoolean(response.success.ToString()))
                 {
-                    throw new ApiException("Could not log out.");
+                    throw new ApiException(Resources.LogoutException);
                 }
 
                 ResetSession();
@@ -141,24 +141,24 @@ namespace Shuttle.Access.Api
 
                 if (!response.IsSuccessful)
                 {
-                    throw new InvalidOperationException($"[{response.StatusDescription}] : {response.Content}");
+                    throw new ApiException($"[{response.StatusDescription}] : {response.Content}");
                 }
 
                 var result = JsonConvert.DeserializeObject<dynamic>(response.Content);
 
-                if (result.registered == null)
+                if (result.success == null)
                 {
-                    throw new ApiException("Could not retrieve the 'success' status from the logout response.");
+                    throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "success"));
                 }
 
-                if (!Convert.ToBoolean(result.registered.ToString()))
+                if (!Convert.ToBoolean(result.success.ToString()))
                 {
-                    throw new ApiException("Could not log in.");
+                    throw new ApiException(Resources.LoginException);
                 }
 
                 if (result.token == null)
                 {
-                    throw new ApiException("Could not retrieve the 'results' object from the logout response.");
+                    throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "token"));
                 }
 
                 _token = result.token;

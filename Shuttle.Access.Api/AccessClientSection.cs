@@ -3,7 +3,7 @@ using Shuttle.Core.Configuration;
 
 namespace Shuttle.Access.Api
 {
-    public class ClientSection : ConfigurationSection
+    public class AccessClientSection : ConfigurationSection
     {
         [ConfigurationProperty("url", IsRequired = true)]
         public string Url => (string)this["url"];
@@ -17,7 +17,12 @@ namespace Shuttle.Access.Api
         public static IClientConfiguration GetConfiguration()
         {
             var section =
-                ConfigurationSectionProvider.Open<ClientSection>("shuttle", "accessClient");
+                ConfigurationSectionProvider.Open<AccessClientSection>("shuttle", "accessClient");
+
+            if (section == null)
+            {
+                throw new ConfigurationErrorsException(Resources.ClientSectionException);
+            }
 
             return new ClientConfiguration(section.Url, section.IdentityName, section.Password);
         }

@@ -11,7 +11,7 @@ namespace Shuttle.Access
         private readonly Guid _id;
         private readonly List<Guid> _roles = new List<Guid>();
         private byte[] _passwordHash;
-        private string _username;
+        private string _name;
 
         public Identity(Guid id)
         {
@@ -44,7 +44,7 @@ namespace Shuttle.Access
         {
             Guard.AgainstNull(registered, nameof(registered));
 
-            _username = registered.Name;
+            _name = registered.Name;
             _passwordHash = registered.PasswordHash;
 
             return registered;
@@ -66,9 +66,9 @@ namespace Shuttle.Access
             return passwordSet;
         }
 
-        public static string Key(string username)
+        public static string Key(string name)
         {
-            return $"[user]:name={username};";
+            return $"[identity]:name={name};";
         }
 
         public bool PasswordMatches(byte[] hash)
@@ -101,7 +101,7 @@ namespace Shuttle.Access
         {
             if (!IsInRole(roleId))
             {
-                throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, roleId, _username));
+                throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, roleId, _name));
             }
 
             return On(new RoleRemoved {RoleId = roleId});
