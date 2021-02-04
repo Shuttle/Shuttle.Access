@@ -25,9 +25,9 @@ namespace Shuttle.Access.DataAccess.Query
             public bool RolesIncluded { get; set; }
             public Guid? IdentityId { get; private set; }
 
-            public Specification WithIdentityId(Guid userId)
+            public Specification WithIdentityId(Guid identityId)
             {
-                IdentityId = userId;
+                IdentityId = identityId;
 
                 return this;
             }

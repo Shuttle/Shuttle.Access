@@ -66,9 +66,9 @@ namespace Shuttle.Access.Api
         }
 
 
-        public void Register(string identityName)
+        public void Register(string name, string password)
         {
-            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+            Guard.AgainstNullOrEmptyString(name, nameof(name));
 
             var request = new RestRequest(_configuration.GetApiUrl("sessions"))
             {
@@ -76,8 +76,12 @@ namespace Shuttle.Access.Api
                 RequestFormat = DataFormat.Json
             };
 
-            request.AddParameter("name", _configuration.IdentityName, ParameterType.GetOrPost);
-            request.AddParameter("password", _configuration.Password, ParameterType.GetOrPost);
+            request.AddHeader("content-type", "application/json");
+            request.AddJsonBody(new
+            {
+                name = name,
+                _configuration.Password
+            });
 
             var response = _client.Execute(request);
 
@@ -130,7 +134,6 @@ namespace Shuttle.Access.Api
                 };
 
                 request.AddHeader("content-type", "application/json");
-
                 request.AddJsonBody(new
                 {
                     _configuration.IdentityName,

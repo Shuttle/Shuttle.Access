@@ -15,9 +15,9 @@
     <PackageReference Include="Shuttle.Access.Sql" Version="1.1.1" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
-    <PackageReference Include="Shuttle.Core.Log4Net" Version="10.0.3" />
+    <PackageReference Include="Shuttle.Core.Log4Net" Version="10.0.4" />
     <PackageReference Include="Shuttle.Core.ServiceHost" Version="10.1.0" />
-    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="12.0.1" />
+    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="12.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
