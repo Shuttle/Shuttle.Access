@@ -142,11 +142,39 @@
     <value>Role '{0}' does not exist on user '{1}'.</value>
     <comment>0 = role name, 1 = user name</comment>
   </data>
+  <data name="SessionRegisterExpired" xml:space="preserve">
+    <value>The session has expired for identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
+  <data name="SessionRegisterFailure" xml:space="preserve">
+    <value>Could not authenticate identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
+  <data name="SessionRegisterIdentity" xml:space="preserve">
+    <value>Attemping to register with password for identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
+  <data name="SessionRegisterInvalidToken" xml:space="preserve">
+    <value>Invalid token specified for identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
+  <data name="SessionRegisterRenewed" xml:space="preserve">
+    <value>The session has been renewed for identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
+  <data name="SessionRegisterSuccess" xml:space="preserve">
+    <value>The session has been created for identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
+  <data name="SessionRegisterToken" xml:space="preserve">
+    <value>Attemping to register with token for identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
   <data name="SessionTokenException" xml:space="preserve">
     <value>No token could be retrieved to fulfill the request.</value>
   </data>
   <data name="SessionTokenExpiredException" xml:space="preserve">
-    <value>The session token has expired.  Pleae log in again.</value>
+    <value>The session token has expired.  Please log in again.</value>
   </data>
   <data name="SetPasswordException" xml:space="preserve">
     <value>In order to set the password either the 'OldPassword' or a 'Token' should be specified.</value>

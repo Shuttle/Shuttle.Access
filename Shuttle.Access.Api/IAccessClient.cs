@@ -1,4 +1,5 @@
-﻿using RestSharp;
+﻿using System;
+using RestSharp;
 
 namespace Shuttle.Access.Api
 {
@@ -10,5 +11,7 @@ namespace Shuttle.Access.Api
         void Register(string name, string password);
         void Logout();
         void Login();
+        void Activate(string name, DateTime dateActivate);
+        void Activate(Guid id, DateTime dateActivate);
     }
 }

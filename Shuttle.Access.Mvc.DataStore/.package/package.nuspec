@@ -12,7 +12,7 @@
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
     <projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
 		<description>Infrastructure components for use in Mvc/Web-Api Shuttle.Access implementations that retrieve the session information directly from the underlying data store.</description>
-		<copyright>Copyright (c) 2020, Eben Roux</copyright>
+		<copyright>Copyright (c) 2021, Eben Roux</copyright>
     <tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
 

@@ -9,17 +9,15 @@ namespace Shuttle.Access.Api
     {
         private static readonly object Lock = new object();
         private readonly IClientConfiguration _configuration;
-        private IRestClient _client;
+        private readonly IRestClient _client;
         private string _token;
 
         public AccessClient(IClientConfiguration configuration)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
-            
+
             _configuration = configuration;
             _client = new RestClient(configuration.Url);
-            
-            Login();
         }
 
         public bool HasSession => !string.IsNullOrWhiteSpace(_token);
@@ -42,9 +40,9 @@ namespace Shuttle.Access.Api
             {
                 Login();
             }
-        
+
             if (request.Parameters.Find(item =>
-                (item.Name??string.Empty).Equals("access-sessiontoken", StringComparison.InvariantCultureIgnoreCase)) == null)
+                (item.Name ?? string.Empty).Equals("access-sessiontoken", StringComparison.InvariantCultureIgnoreCase)) == null)
             {
                 request.AddHeader("access-sessiontoken", _token);
             }
@@ -70,7 +68,7 @@ namespace Shuttle.Access.Api
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
-            var request = new RestRequest(_configuration.GetApiUrl("sessions"))
+            var request = new RestRequest(_configuration.GetApiUrl("identities"))
             {
                 Method = Method.POST,
                 RequestFormat = DataFormat.Json
@@ -79,11 +77,11 @@ namespace Shuttle.Access.Api
             request.AddHeader("content-type", "application/json");
             request.AddJsonBody(new
             {
-                name = name,
-                _configuration.Password
+                name,
+                password
             });
 
-            var response = _client.Execute(request);
+            var response = GetResponse(request);
 
             if (!response.IsSuccessful)
             {
@@ -127,44 +125,80 @@ namespace Shuttle.Access.Api
                     return;
                 }
 
-                var request = new RestRequest(_configuration.GetApiUrl("sessions"))
+                try
                 {
-                    Method = Method.POST,
-                    RequestFormat = DataFormat.Json,
-                };
+                    var request = new RestRequest(_configuration.GetApiUrl("sessions"))
+                    {
+                        Method = Method.POST,
+                        RequestFormat = DataFormat.Json,
+                    };
 
-                request.AddHeader("content-type", "application/json");
-                request.AddJsonBody(new
-                {
-                    _configuration.IdentityName,
-                    _configuration.Password
-                });
+                    request.AddHeader("content-type", "application/json");
+                    request.AddJsonBody(new
+                    {
+                        _configuration.IdentityName,
+                        _configuration.Password
+                    });
 
-                var response = _client.Execute(request);
+                    var response = _client.Execute(request);
 
-                if (!response.IsSuccessful)
-                {
-                    throw new ApiException($"[{response.StatusDescription}] : {response.Content}");
+                    if (!response.IsSuccessful)
+                    {
+                        throw new ApiException($"[{response.StatusDescription}] : {response.Content}");
+                    }
+
+                    var result = JsonConvert.DeserializeObject<dynamic>(response.Content);
+
+                    if (result.success == null)
+                    {
+                        throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "success"));
+                    }
+
+                    if (!Convert.ToBoolean(result.success.ToString()))
+                    {
+                        throw new ApiException(Resources.LoginException);
+                    }
+
+                    if (result.token == null)
+                    {
+                        throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "token"));
+                    }
+
+                    _token = result.token;
                 }
-
-                var result = JsonConvert.DeserializeObject<dynamic>(response.Content);
-
-                if (result.success == null)
-                {
-                    throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "success"));
-                }
-
-                if (!Convert.ToBoolean(result.success.ToString()))
+                catch
                 {
                     throw new ApiException(Resources.LoginException);
                 }
+            }
+        }
 
-                if (result.token == null)
-                {
-                    throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "token"));
-                }
+        public void Activate(string name, DateTime dateActivated)
+        {
+            Activate(new { name, dateActivated });
+        }
 
-                _token = result.token;
+        public void Activate(Guid id, DateTime dateActivated)
+        {
+            Activate(new { id, dateActivated });
+        }
+
+        public void Activate(dynamic model)
+        {
+            var request = new RestRequest(_configuration.GetApiUrl("identities/activate"))
+            {
+                Method = Method.POST,
+                RequestFormat = DataFormat.Json,
+            };
+
+            request.AddHeader("content-type", "application/json");
+            request.AddJsonBody(model);
+
+            var response = GetResponse(request);
+
+            if (!response.IsSuccessful)
+            {
+                throw new ApiException($@"[{response.StatusDescription}] : {response.Content}");
             }
         }
     }

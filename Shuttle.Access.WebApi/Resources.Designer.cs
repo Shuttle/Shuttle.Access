@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Shuttle.Access.Api {
+namespace Shuttle.Access.WebApi {
     using System;
     
     
@@ -22,7 +22,7 @@ namespace Shuttle.Access.Api {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,10 +36,10 @@ namespace Shuttle.Access.Api {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Shuttle.Access.Api.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Shuttle.Access.WebApi.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace Shuttle.Access.Api {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,38 +61,11 @@ namespace Shuttle.Access.Api {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find a configuration section with name &quot;accessClient&quot; or &quot;shuttle/accessClient&quot;..
+        ///   Looks up a localized string similar to Please specify either the &apos;Id&apos; or the &apos;Name&apos; to activate..
         /// </summary>
-        public static string ClientSectionException {
+        internal static string IdentityActivateModelException {
             get {
-                return ResourceManager.GetString("ClientSectionException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [AccessClient] : Could not log in..
-        /// </summary>
-        public static string LoginException {
-            get {
-                return ResourceManager.GetString("LoginException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [AccessClient] : Could not log out..
-        /// </summary>
-        public static string LogoutException {
-            get {
-                return ResourceManager.GetString("LogoutException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [AccessClient] : Could not retrieve the &apos;{0}&apos; value from the response..
-        /// </summary>
-        public static string ResponseMissingAttributeException {
-            get {
-                return ResourceManager.GetString("ResponseMissingAttributeException", resourceCulture);
+                return ResourceManager.GetString("IdentityActivateModelException", resourceCulture);
             }
         }
     }

@@ -117,17 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ClientSectionException" xml:space="preserve">
-    <value>Could not find a configuration section with name "accessClient" or "shuttle/accessClient".</value>
-  </data>
-  <data name="LoginException" xml:space="preserve">
-    <value>[AccessClient] : Could not log in.</value>
-  </data>
-  <data name="LogoutException" xml:space="preserve">
-    <value>[AccessClient] : Could not log out.</value>
-  </data>
-  <data name="ResponseMissingAttributeException" xml:space="preserve">
-    <value>[AccessClient] : Could not retrieve the '{0}' value from the response.</value>
-    <comment>0 =attribute name</comment>
+  <data name="IdentityActivateModelException" xml:space="preserve">
+    <value>Please specify either the 'Id' or the 'Name' to activate.</value>
   </data>
 </root>

@@ -48,6 +48,17 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNull(model.RoleIds, nameof(model.RoleIds));
         }
         
+        public static void ApplyInvariants(this IdentityActivateModel model)
+        {
+            Guard.AgainstNull(model, nameof(model));
+
+            if (!model.Id.HasValue &&
+                string.IsNullOrWhiteSpace(model.Name))
+            {
+                throw new ArgumentException(Resources.IdentityActivateModelException);
+            }
+        }
+        
         public static void ApplyInvariants(this RegisterIdentityModel model)
         {
             Guard.AgainstNull(model, nameof(model));

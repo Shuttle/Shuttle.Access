@@ -17,6 +17,12 @@ namespace Shuttle.Access.Server
     {
         private static void Main(string[] args)
         {
+#if NETCOREAPP
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+#endif
+            
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
             ServiceHost.Run<Host>();
         }
     }
@@ -28,10 +34,6 @@ namespace Shuttle.Access.Server
 
         public void Start()
         {
-#if NETCOREAPP
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
-#endif
-
             Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
 
             _container = new WindsorContainer();

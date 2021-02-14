@@ -76,7 +76,7 @@ and
 )
 ")
                 .AddParameterValue(Columns.RoleName, specification.RoleName)
-                .AddParameterValue(Columns.IdentityId, specification.IdentityId);
+                .AddParameterValue(Columns.IdentityId, specification.Id);
         }
 
         public IQuery RoleAdded(Guid id, RoleAdded domainEvent)
@@ -134,7 +134,7 @@ where
     or
     IdentityId = @IdentityId
 ")
-                .AddParameterValue(Columns.IdentityId, specification.IdentityId);
+                .AddParameterValue(Columns.IdentityId, specification.Id);
         }
 
         public IQuery Roles(Guid userId)

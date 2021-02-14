@@ -30,7 +30,7 @@
     <PackageReference Include="Shuttle.Core.Data.Http" Version="11.0.0" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Log4Net" Version="10.0.4" />
-    <PackageReference Include="Shuttle.Esb" Version="11.1.0" />
+    <PackageReference Include="Shuttle.Esb" Version="11.1.1" />
     <PackageReference Include="Shuttle.Esb.AzureMQ" Version="11.0.1" />
     <PackageReference Include="Shuttle.Recall.Sql.Storage" Version="12.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
@@ -43,6 +43,21 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

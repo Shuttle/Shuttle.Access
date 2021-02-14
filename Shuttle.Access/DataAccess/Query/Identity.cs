@@ -21,13 +21,14 @@ namespace Shuttle.Access.DataAccess.Query
 
         public class Specification
         {
+            public string Name { get; private set; }
             public string RoleName { get; private set; }
             public bool RolesIncluded { get; set; }
-            public Guid? IdentityId { get; private set; }
+            public Guid? Id { get; private set; }
 
-            public Specification WithIdentityId(Guid identityId)
+            public Specification WithIdentityId(Guid id)
             {
-                IdentityId = identityId;
+                Id = id;
 
                 return this;
             }
@@ -35,6 +36,13 @@ namespace Shuttle.Access.DataAccess.Query
             public Specification WithRoleName(string roleName)
             {
                 RoleName = roleName;
+
+                return this;
+            }
+
+            public Specification WithName(string name)
+            {
+                Name = name;
 
                 return this;
             }

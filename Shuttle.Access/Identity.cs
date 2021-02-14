@@ -13,6 +13,9 @@ namespace Shuttle.Access
         private byte[] _passwordHash;
         private string _name;
 
+        public DateTime? DateActivated { get; private set; }
+        public bool Activated => DateActivated.HasValue;
+
         public Identity(Guid id)
         {
             _id = id;
@@ -53,6 +56,8 @@ namespace Shuttle.Access
         private Activated On(Activated activated)
         {
             Guard.AgainstNull(activated, nameof(activated));
+
+            DateActivated = activated.DateActivated;
 
             return activated;
         }

@@ -124,6 +124,69 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The session has expired for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterExpired {
+            get {
+                return ResourceManager.GetString("SessionRegisterExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not authenticate identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterFailure {
+            get {
+                return ResourceManager.GetString("SessionRegisterFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attemping to register with password for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterIdentity {
+            get {
+                return ResourceManager.GetString("SessionRegisterIdentity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid token specified for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterInvalidToken {
+            get {
+                return ResourceManager.GetString("SessionRegisterInvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The session has been renewed for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterRenewed {
+            get {
+                return ResourceManager.GetString("SessionRegisterRenewed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The session has been created for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterSuccess {
+            get {
+                return ResourceManager.GetString("SessionRegisterSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attemping to register with token for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterToken {
+            get {
+                return ResourceManager.GetString("SessionRegisterToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No token could be retrieved to fulfill the request..
         /// </summary>
         public static string SessionTokenException {
@@ -133,7 +196,7 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The session token has expired.  Pleae log in again..
+        ///   Looks up a localized string similar to The session token has expired.  Please log in again..
         /// </summary>
         public static string SessionTokenExpiredException {
             get {

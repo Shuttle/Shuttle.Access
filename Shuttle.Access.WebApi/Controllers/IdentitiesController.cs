@@ -81,6 +81,21 @@ namespace Shuttle.Access.WebApi
             }
         }
 
+        [HttpGet("{name}")]
+        [RequiresPermission(Permissions.View.Identity)]
+        public IActionResult Get(string name)
+        {
+            using (_databaseContextFactory.Create())
+            {
+                var user = _identityQuery
+                    .Search(new DataAccess.Query.Identity.Specification().WithName(name).IncludeRoles()).FirstOrDefault();
+
+                return user != null
+                    ? (IActionResult) Ok(user)
+                    : BadRequest();
+            }
+        }
+
         [HttpDelete("{id}")]
         [RequiresPermission(Permissions.Remove.Identity)]
         public IActionResult Delete(Guid id)
@@ -163,7 +178,7 @@ namespace Shuttle.Access.WebApi
 
             if (!sessionTokenResult.Ok)
             {
-                return BadRequest(Resources.SessionTokenException);
+                return BadRequest(Access.Resources.SessionTokenException);
             }
 
             var passwordHash = _hashingService.Sha256(model.NewPassword);
@@ -174,7 +189,7 @@ namespace Shuttle.Access.WebApi
 
                 if (session == null)
                 {
-                    return BadRequest(Resources.SessionTokenException);
+                    return BadRequest(Access.Resources.SessionTokenException);
                 }
 
                 if (!string.IsNullOrWhiteSpace(model.OldPassword) && string.IsNullOrWhiteSpace(model.Token))
@@ -183,7 +198,7 @@ namespace Shuttle.Access.WebApi
 
                     if (!authenticationResult.Authenticated)
                     {
-                        return BadRequest(Resources.InvalidCredentialsException);
+                        return BadRequest(Access.Resources.InvalidCredentialsException);
                     }
                 }
 
@@ -231,6 +246,55 @@ namespace Shuttle.Access.WebApi
                     Active = roles.Any(item => item.Equals(roleId))
                 }
             );
+        }
+
+        [HttpPost("activate")]
+        [RequiresPermission(Permissions.Register.Identity)]
+        public IActionResult Activate([FromBody] IdentityActivateModel model)
+        {
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            var specification = new DataAccess.Query.Identity.Specification();
+
+            if (model.Id.HasValue)
+            {
+                specification.WithIdentityId(model.Id.Value);
+            }
+            else
+            {
+                specification.WithName(model.Name);
+            }
+            
+            using (_databaseContextFactory.Create())
+            {
+                var query = _identityQuery.Search(specification).FirstOrDefault();
+
+                if (query == null)
+                {
+                    return BadRequest();
+                }
+
+                var stream = _eventStore.Get(query.Id);
+                var identity = new Identity(query.Id);
+                
+                stream.Apply(identity);
+
+                if (!identity.Activated)
+                {
+                    identity.Activate(model.DateActivated);
+
+                    _eventStore.Save(stream);
+                }
+            }
+
+            return Ok();
         }
 
         [HttpPost]
