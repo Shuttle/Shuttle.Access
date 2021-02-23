@@ -39,6 +39,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Server.WebJo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".azure", ".azure", "{D53FEDEF-EE4C-4F47-8248-F3C8AB932585}"
 	ProjectSection(SolutionItems) = preProject
+		.azure\build-pipeline-services.yml = .azure\build-pipeline-services.yml
 		.azure\build-pipeline-webapi.yml = .azure\build-pipeline-webapi.yml
 		.azure\build-pipeline-webjob.yml = .azure\build-pipeline-webjob.yml
 		.azure\Projection.App.config = .azure\Projection.App.config
@@ -56,7 +57,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc.Rest", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Api", "Shuttle.Access.Api\Shuttle.Access.Api.csproj", "{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shuttle.Access.Tests.Console", "Shuttle.Access.Tests.Console\Shuttle.Access.Tests.Console.csproj", "{4BBAFAD1-A37E-49D4-8362-14AE49087B32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests.Console", "Shuttle.Access.Tests.Console\Shuttle.Access.Tests.Console.csproj", "{4BBAFAD1-A37E-49D4-8362-14AE49087B32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

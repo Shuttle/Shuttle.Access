@@ -288,7 +288,7 @@ namespace Shuttle.Access.WebApi
 
                 if (!identity.Activated)
                 {
-                    identity.Activate(model.DateActivated);
+                    stream.AddEvent(identity.Activate(model.DateActivated));
 
                     _eventStore.Save(stream);
                 }
