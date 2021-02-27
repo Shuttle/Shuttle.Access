@@ -39,7 +39,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Server.WebJo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".azure", ".azure", "{D53FEDEF-EE4C-4F47-8248-F3C8AB932585}"
 	ProjectSection(SolutionItems) = preProject
-		.azure\build-pipeline-webjob.yml = .azure\build-pipeline-webjob.yml
+		.azure\access.projection.service = .azure\access.projection.service
+		.azure\access.server.service = .azure\access.server.service
+		.azure\build-pipeline.yml = .azure\build-pipeline.yml
 		.azure\Projection.App.config = .azure\Projection.App.config
 		.azure\Projection.log4net.xml = .azure\Projection.log4net.xml
 		.azure\Server.App.config = .azure\Server.App.config
