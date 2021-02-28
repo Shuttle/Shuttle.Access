@@ -41,6 +41,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".azure", ".azure", "{D53FED
 	ProjectSection(SolutionItems) = preProject
 		.azure\access.projection.service = .azure\access.projection.service
 		.azure\access.server.service = .azure\access.server.service
+		.azure\access.webapi.service = .azure\access.webapi.service
 		.azure\build-pipeline.yml = .azure\build-pipeline.yml
 		.azure\Projection.App.config = .azure\Projection.App.config
 		.azure\Projection.log4net.xml = .azure\Projection.log4net.xml
