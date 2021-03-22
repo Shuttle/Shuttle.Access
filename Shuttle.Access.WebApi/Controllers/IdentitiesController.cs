@@ -66,29 +66,24 @@ namespace Shuttle.Access.WebApi
         }
 
         
-        [HttpGet("{id}")]
+        [HttpGet("{value}")]
         [RequiresPermission(Permissions.View.Identity)]
-        public IActionResult Get(Guid id)
+        public IActionResult Get(string value)
         {
             using (_databaseContextFactory.Create())
             {
-                var user = _identityQuery
-                    .Search(new DataAccess.Query.Identity.Specification().WithIdentityId(id).IncludeRoles()).FirstOrDefault();
+                var specification = new DataAccess.Query.Identity.Specification().IncludeRoles();
 
-                return user != null
-                    ? (IActionResult) Ok(user)
-                    : BadRequest();
-            }
-        }
+                if (Guid.TryParse(value, out var id))
+                {
+                    specification.WithIdentityId(id);
+                }
+                else
+                {
+                    specification.WithName(value);
+                }
 
-        [HttpGet("{name}")]
-        [RequiresPermission(Permissions.View.Identity)]
-        public IActionResult Get(string name)
-        {
-            using (_databaseContextFactory.Create())
-            {
-                var user = _identityQuery
-                    .Search(new DataAccess.Query.Identity.Specification().WithName(name).IncludeRoles()).FirstOrDefault();
+                var user = _identityQuery.Search(specification).FirstOrDefault();
 
                 return user != null
                     ? (IActionResult) Ok(user)
