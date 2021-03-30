@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Access.Api</id>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -16,7 +16,7 @@
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
       <dependency id="Microsoft.CSharp" version="4.7.0" />
-      <dependency id="Newtonsoft.Json" version="12.0.3" />
+      <dependency id="Newtonsoft.Json" version="13.0.1" />
       <dependency id="RestSharp" version="106.11.7" />
       <dependency id="Shuttle.Core.Configuration" version="10.0.4" />
       <dependency id="Shuttle.Core.Contract" version="10.0.3" />
