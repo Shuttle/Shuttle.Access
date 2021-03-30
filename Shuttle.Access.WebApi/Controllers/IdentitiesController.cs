@@ -83,7 +83,7 @@ namespace Shuttle.Access.WebApi
                     specification.WithName(value);
                 }
 
-                var user = _identityQuery.Search(specification).FirstOrDefault();
+                var user = _identityQuery.Search(specification).SingleOrDefault();
 
                 return user != null
                     ? (IActionResult) Ok(user)
@@ -235,7 +235,7 @@ namespace Shuttle.Access.WebApi
 
             using (_databaseContextFactory.Create())
             {
-                var queryIdentity = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(model.Name)).FirstOrDefault();
+                var queryIdentity = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(model.Name)).SingleOrDefault();
 
                 if (queryIdentity == null)
                 {
@@ -360,7 +360,7 @@ namespace Shuttle.Access.WebApi
             
             using (_databaseContextFactory.Create())
             {
-                var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(model.Name)).FirstOrDefault();
+                var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(model.Name)).SingleOrDefault();
 
                 if (query == null)
                 {
