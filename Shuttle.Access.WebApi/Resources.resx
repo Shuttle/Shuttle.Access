@@ -120,4 +120,7 @@
   <data name="IdentityActivateModelException" xml:space="preserve">
     <value>Please specify either the 'Id' or the 'Name' to activate.</value>
   </data>
+  <data name="IdentityInactiveException" xml:space="preserve">
+    <value>The identity is inactive.</value>
+  </data>
 </root>

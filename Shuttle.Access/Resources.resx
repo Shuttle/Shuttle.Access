@@ -138,6 +138,9 @@
     <value>Permission '{0}' does not exist on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
   </data>
+  <data name="RegisterPasswordResetTokenException" xml:space="preserve">
+    <value>There is already a password reset token registered.</value>
+  </data>
   <data name="RoleNotFoundException" xml:space="preserve">
     <value>Role '{0}' does not exist on user '{1}'.</value>
     <comment>0 = role name, 1 = user name</comment>

@@ -157,7 +157,6 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpPost("setpassword")]
-        [RequiresPermission(Permissions.Register.Identity)]
         public IActionResult SetPassword([FromBody] SetPasswordModel model)
         {
             try
@@ -204,6 +203,60 @@ namespace Shuttle.Access.WebApi
                 stream.AddEvent(user.SetPassword(passwordHash));
 
                 _eventStore.Save(stream);
+            }
+
+            return Ok(new
+            {
+                Success = true
+            });
+        }
+
+        [HttpPost("resetpassword")]
+        [RequiresPermission(Permissions.Register.Identity)]
+        public IActionResult ResetPassword([FromBody] ResetPasswordModel model)
+        {
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            var sessionTokenResult = HttpContext.GetAccessSessionToken();
+
+            if (!sessionTokenResult.Ok)
+            {
+                return BadRequest(Access.Resources.SessionTokenException);
+            }
+
+            var passwordHash = _hashingService.Sha256(model.Password);
+
+            using (_databaseContextFactory.Create())
+            {
+                var queryIdentity = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(model.Name)).FirstOrDefault();
+
+                if (queryIdentity == null)
+                {
+                    return BadRequest();
+                }
+
+                var identity = new Identity(queryIdentity.Id);
+                var stream = _eventStore.Get(queryIdentity.Id);
+
+                stream.Apply(identity);
+
+                if (identity.HasPasswordResetToken && identity.PasswordResetToken == model.PasswordResetToken)
+                {
+                    stream.AddEvent(identity.SetPassword(passwordHash));
+
+                    _eventStore.Save(stream);
+                }
+                else
+                {
+                    return BadRequest();
+                }
             }
 
             return Ok(new
@@ -290,6 +343,54 @@ namespace Shuttle.Access.WebApi
             }
 
             return Ok();
+        }
+
+        [HttpPost("getpasswordresettoken")]
+        [RequiresPermission(Permissions.Register.Identity)]
+        public IActionResult GetPasswordResetToken([FromBody] GetPasswordResetTokenModel model)
+        {
+            try
+            {
+                model.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            
+            using (_databaseContextFactory.Create())
+            {
+                var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(model.Name)).FirstOrDefault();
+
+                if (query == null)
+                {
+                    return BadRequest();
+                }
+
+                var stream = _eventStore.Get(query.Id);
+                var identity = new Identity(query.Id);
+                
+                stream.Apply(identity);
+
+                if (identity.Activated)
+                {
+                    if (!identity.HasPasswordResetToken)
+                    {
+                        stream.AddEvent(identity.RegisterPasswordResetToken());
+
+                        _eventStore.Save(stream);
+                    }
+
+                    return Ok(new
+                    {
+                        PasswordResetToken = identity.PasswordResetToken ?? Guid.Empty
+                    });
+                }
+                else
+                {
+                    return BadRequest(Resources.IdentityInactiveException);
+                }
+            }
         }
 
         [HttpPost]

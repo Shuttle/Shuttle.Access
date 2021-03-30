@@ -32,7 +32,6 @@ namespace Shuttle.Access.Sql
 
         public AuthenticationResult Authenticate(string username, string password)
         {
-            EventStream stream;
             Guid? userId;
 
             userId = _keyStore.Get(Identity.Key(username));
@@ -44,13 +43,11 @@ namespace Shuttle.Access.Sql
                 return AuthenticationResult.Failure();
             }
 
-            stream = _eventStore.Get(userId.Value);
+            var identity = new Identity(userId.Value);
 
-            var user = new Identity(userId.Value);
+            _eventStore.Get(userId.Value).Apply(identity);
 
-            stream.Apply(user);
-
-            if (user.PasswordMatches(_hashingService.Sha256(password)))
+            if (identity.PasswordMatches(_hashingService.Sha256(password)))
             {
                 return AuthenticationResult.Success();
             }

@@ -115,6 +115,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is already a password reset token registered..
+        /// </summary>
+        public static string RegisterPasswordResetTokenException {
+            get {
+                return ResourceManager.GetString("RegisterPasswordResetTokenException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Role &apos;{0}&apos; does not exist on user &apos;{1}&apos;..
         /// </summary>
         public static string RoleNotFoundException {

@@ -11,6 +11,12 @@ namespace Shuttle.Access.WebApi
             Guard.AgainstNullOrEmptyString(model.Name, nameof(model.Name));
         }
         
+        public static void ApplyInvariants(this GetPasswordResetTokenModel model)
+        {
+            Guard.AgainstNull(model, nameof(model));
+            Guard.AgainstNullOrEmptyString(model.Name, nameof(model.Name));
+        }
+        
         public static void ApplyInvariants(this RolePermissionStatusModel model)
         {
             Guard.AgainstNull(model, nameof(model));
@@ -40,6 +46,13 @@ namespace Shuttle.Access.WebApi
             {
                 throw new InvalidOperationException(Access.Resources.SetPasswordException);
             }
+        }
+        
+        public static void ApplyInvariants(this ResetPasswordModel model)
+        {
+            Guard.AgainstNull(model, nameof(model));
+            Guard.AgainstNullOrEmptyString(model.Name, nameof(model.Name));
+            Guard.AgainstNullOrEmptyString(model.Password, nameof(model.Password));
         }
         
         public static void ApplyInvariants(this IdentityRoleStatusModel model)

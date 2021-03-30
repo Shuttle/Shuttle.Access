@@ -64,6 +64,12 @@ left join
 	Role r on (r.Id = ir.RoleId)    
 where
 (
+    isnull(@Name, '') = ''
+    or
+    i.Name = @Name
+)
+and
+(
     isnull(@RoleName, '') = ''
     or
     r.RoleName = @RoleName
@@ -76,6 +82,7 @@ and
 )
 ")
                 .AddParameterValue(Columns.RoleName, specification.RoleName)
+                .AddParameterValue(Columns.Name, specification.Name)
                 .AddParameterValue(Columns.IdentityId, specification.Id);
         }
 

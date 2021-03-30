@@ -183,6 +183,48 @@ namespace Shuttle.Access.Api
             Activate(new { id, dateActivated });
         }
 
+        public Guid GetPasswordResetToken(string name)
+        {
+            var request = new RestRequest(_configuration.GetApiUrl("identities/getpasswordresettoken"))
+            {
+                Method = Method.POST,
+                RequestFormat = DataFormat.Json
+            };
+
+            request.AddHeader("content-type", "application/json");
+            request.AddJsonBody(new { name });
+
+            var response = GetResponse(request);
+
+            if (!response.IsSuccessful)
+            {
+                throw new ApiException($@"[{response.StatusDescription}] : {response.Content}");
+            }
+
+            var passwordResetToken = response.AsDynamic().passwordResetToken;
+            
+            return passwordResetToken == null ? Guid.Empty : (Guid)passwordResetToken;
+        }
+
+        public void ResetPassword(string name, Guid passwordResetToken, string password)
+        {
+            var request = new RestRequest(_configuration.GetApiUrl("identities/resetpassword"))
+            {
+                Method = Method.POST,
+                RequestFormat = DataFormat.Json,
+            };
+
+            request.AddHeader("content-type", "application/json");
+            request.AddJsonBody(new { name, passwordResetToken, password });
+
+            var response = GetResponse(request);
+
+            if (!response.IsSuccessful)
+            {
+                throw new ApiException($@"[{response.StatusDescription}] : {response.Content}");
+            }
+        }
+
         public void Activate(dynamic model)
         {
             var request = new RestRequest(_configuration.GetApiUrl("identities/activate"))

@@ -10,18 +10,21 @@ namespace Shuttle.Access
     {
         private readonly Guid _id;
         private readonly List<Guid> _roles = new List<Guid>();
-        private byte[] _passwordHash;
         private string _name;
-
-        public DateTime? DateActivated { get; private set; }
-        public bool Activated => DateActivated.HasValue;
+        private byte[] _passwordHash;
 
         public Identity(Guid id)
         {
             _id = id;
         }
 
-        public Registered Register(string name, byte[] passwordHash, string registeredBy, string generatedPassword, bool activated)
+        public Guid? PasswordResetToken { get; private set; }
+        public bool HasPasswordResetToken => PasswordResetToken.HasValue;
+        public DateTime? DateActivated { get; private set; }
+        public bool Activated => DateActivated.HasValue;
+
+        public Registered Register(string name, byte[] passwordHash, string registeredBy, string generatedPassword,
+            bool activated)
         {
             return On(new Registered
             {
@@ -32,6 +35,28 @@ namespace Shuttle.Access
                 DateRegistered = DateTime.Now,
                 Activated = activated
             });
+        }
+
+        public PasswordResetTokenRegistered RegisterPasswordResetToken()
+        {
+            if (HasPasswordResetToken)
+            {
+                throw new DomainException(Resources.RegisterPasswordResetTokenException);
+            }
+
+            return On(new PasswordResetTokenRegistered
+            {
+                Token = Guid.NewGuid()
+            });
+        }
+
+        private PasswordResetTokenRegistered On(PasswordResetTokenRegistered passwordResetTokenRegistered)
+        {
+            Guard.AgainstNull(passwordResetTokenRegistered, nameof(passwordResetTokenRegistered));
+
+            PasswordResetToken = passwordResetTokenRegistered.Token;
+
+            return passwordResetTokenRegistered;
         }
 
         public Activated Activate(DateTime dateActivated)
@@ -67,6 +92,7 @@ namespace Shuttle.Access
             Guard.AgainstNull(passwordSet, nameof(passwordSet));
 
             _passwordHash = passwordSet.PasswordHash;
+            PasswordResetToken = null;
 
             return passwordSet;
         }

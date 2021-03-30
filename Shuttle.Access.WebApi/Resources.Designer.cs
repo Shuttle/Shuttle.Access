@@ -68,5 +68,14 @@ namespace Shuttle.Access.WebApi {
                 return ResourceManager.GetString("IdentityActivateModelException", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The identity is inactive..
+        /// </summary>
+        internal static string IdentityInactiveException {
+            get {
+                return ResourceManager.GetString("IdentityInactiveException", resourceCulture);
+            }
+        }
     }
 }
