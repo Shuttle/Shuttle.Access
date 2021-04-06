@@ -8,7 +8,8 @@ namespace Shuttle.Access
         void Renew(Session session);
         Session Get(Guid token);
         Session Find(Guid token);
+        Session Find(string identityName);
         int Remove(Guid token);
-        int Remove(string username);
+        int Remove(string identityName);
     }
 }

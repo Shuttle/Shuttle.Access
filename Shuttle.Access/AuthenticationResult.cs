@@ -12,30 +12,28 @@ namespace Shuttle.Access
 
     public class AuthenticationResult
     {
-        private AuthenticationResult(bool authenticated, AuthenticationResultType resultType, object authenticationTag)
+        private AuthenticationResult(bool authenticated, AuthenticationResultType resultType)
         {
             Authenticated = authenticated;
             ResultType = resultType;
-            AuthenticationTag = authenticationTag;
         }
 
         public bool Authenticated { get; }
         public AuthenticationResultType ResultType { get; }
-        public object AuthenticationTag { get; }
 
         public static AuthenticationResult Success()
         {
-            return new AuthenticationResult(true, AuthenticationResultType.Authenticated, null);
+            return new AuthenticationResult(true, AuthenticationResultType.Authenticated);
         }
 
         public static AuthenticationResult Success(object authenticationTag)
         {
-            return new AuthenticationResult(true, AuthenticationResultType.Authenticated, authenticationTag);
+            return new AuthenticationResult(true, AuthenticationResultType.Authenticated);
         }
 
         public static AuthenticationResult Failure()
         {
-            return new AuthenticationResult(false, AuthenticationResultType.Failure, null);
+            return new AuthenticationResult(false, AuthenticationResultType.Failure);
         }
 
         public static AuthenticationResult Failure(AuthenticationResultType resultType)
@@ -43,7 +41,7 @@ namespace Shuttle.Access
             Guard.Against<ApplicationException>(resultType == AuthenticationResultType.Authenticated,
                 "Cannot specify 'Authenticated' as the AuthenticationResultType when authentication has failed.");
 
-            return new AuthenticationResult(false, resultType, null);
+            return new AuthenticationResult(false, resultType);
         }
     }
 }

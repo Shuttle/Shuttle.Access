@@ -9,6 +9,7 @@ exec RegisterPermission 'access://permission/view'
 exec RegisterPermission 'access://permission/register'
 exec RegisterPermission 'access://permission/remove'
 exec RegisterPermission 'access://dashboard/view'
+exec RegisterPermission 'access://identity/register-session'
 
 exec RegisterRole 'Anonymous'
 exec RegisterRolePermission 'Anonymous', 'access://dashboard/view'

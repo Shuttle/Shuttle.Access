@@ -33,6 +33,70 @@ namespace Shuttle.Access.Sql
             _log = Log.For(this);
         }
 
+        public RegisterSessionResult Register(string identityName, Guid requesterToken)
+        {
+            if (string.IsNullOrEmpty(identityName))
+            {
+                return RegisterSessionResult.Failure();
+            }
+
+            var requesterSession = _sessionRepository.Find(requesterToken);
+
+            if (requesterSession == null)
+            {
+                _log.Debug(string.Format(Resources.RequesterSessionRegisterInvalidToken, requesterToken));
+
+                return RegisterSessionResult.Failure();
+            }
+
+            if (requesterSession.HasExpired)
+            {
+                if (requesterSession.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.Now)
+                {
+                    _log.Debug(string.Format(Resources.RequesterSessionRegisterRenewed, requesterSession.IdentityName));
+
+                    requesterSession.Renew(DateTime.Now.Add(_configuration.SessionDuration));
+
+                    _sessionRepository.Renew(requesterSession);
+                }
+                else
+                {
+                    _log.Debug(string.Format(Resources.RequesterSessionRegisterExpired, requesterSession.IdentityName));
+
+                    return RegisterSessionResult.Failure();
+                }
+            }
+
+            var session = _sessionRepository.Find(identityName);
+
+            if (session != null && 
+                session.HasExpired &&
+                session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.Now)
+            {
+                    _log.Debug(string.Format(Resources.SessionRegisterRenewed, identityName));
+
+                    session.Renew(DateTime.Now.Add(_configuration.SessionDuration));
+
+                    _sessionRepository.Renew(session);
+            }
+            else
+            {
+                var now = DateTime.Now;
+
+                session = new Session(Guid.NewGuid(), _userQuery.Id(identityName), identityName, now,
+                    now.Add(_configuration.SessionDuration));
+
+                foreach (var permission in _authorizationService.Permissions(identityName))
+                {
+                    session.AddPermission(permission);
+                }
+
+                _sessionRepository.Save(session);
+            }
+
+            return RegisterSessionResult.Success(session);
+        }
+
         public RegisterSessionResult Register(string identityName, string password, Guid token)
         {
             if (string.IsNullOrEmpty(identityName) || string.IsNullOrEmpty(password) && token.Equals(Guid.Empty))
@@ -59,8 +123,7 @@ namespace Shuttle.Access.Sql
 
                 session = new Session(Guid.NewGuid(), _userQuery.Id(identityName), identityName, now, now.Add(_configuration.SessionDuration));
 
-                foreach (var permission in _authorizationService.Permissions(identityName,
-                    authenticationResult.AuthenticationTag))
+                foreach (var permission in _authorizationService.Permissions(identityName))
                 {
                     session.AddPermission(permission);
                 }

@@ -72,14 +72,31 @@ namespace Shuttle.Access.Sql
             return session;
         }
 
+        public Session Find(string identityName)
+        {
+            var session = _dataRepository.FetchItemUsing(_queryFactory.Get(identityName));
+
+            if (session == null)
+            {
+                return null;
+            }
+
+            foreach (var row in _databaseGateway.GetRowsUsing(_queryFactory.GetPermissions(session.Token)))
+            {
+                session.AddPermission(Columns.Permission.MapFrom(row));
+            }
+
+            return session;
+        }
+
         public int Remove(Guid token)
         {
             return _databaseGateway.ExecuteUsing(_queryFactory.Remove(token));
         }
 
-        public int Remove(string username)
+        public int Remove(string identityName)
         {
-            return _databaseGateway.ExecuteUsing(_queryFactory.Remove(username));
+            return _databaseGateway.ExecuteUsing(_queryFactory.Remove(identityName));
         }
     }
 }

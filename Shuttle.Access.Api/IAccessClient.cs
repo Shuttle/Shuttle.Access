@@ -15,5 +15,6 @@ namespace Shuttle.Access.Api
         void Activate(Guid id, DateTime dateActivate);
         Guid GetPasswordResetToken(string name);
         void ResetPassword(string name, Guid passwordResetToken, string password);
+        RegisterSessionResult RegisterSession(string identityName);
     }
 }

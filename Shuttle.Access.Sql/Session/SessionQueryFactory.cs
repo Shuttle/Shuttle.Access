@@ -1,5 +1,6 @@
 using System;
 using Shuttle.Access.DataAccess;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
 namespace Shuttle.Access.Sql
@@ -12,6 +13,14 @@ namespace Shuttle.Access.Sql
 				.AddParameterValue(Columns.Token, token);
 		}
 
+        public IQuery Get(string identityName)
+        {
+            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+            
+            return RawQuery.Create("select Token, IdentityId, IdentityName, DateRegistered, ExpiryDate from [dbo].[Session] where IdentityName = @IdentityName")
+                .AddParameterValue(Columns.IdentityName, identityName);
+        }
+
 		public IQuery GetPermissions(Guid token)
 		{
 			return RawQuery.Create("select Permission from [dbo].[SessionPermission] where Token = @Token")
@@ -20,12 +29,16 @@ namespace Shuttle.Access.Sql
 
 		public IQuery Remove(string identityName)
 		{
+            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+
 			return RawQuery.Create("delete from [dbo].[Session] where IdentityName = @IdentityName")
 				.AddParameterValue(Columns.IdentityName, identityName);
 		}
 
 		public IQuery Add(Session session)
 		{
+            Guard.AgainstNull(session, nameof(session));
+            
 			return RawQuery.Create(@"
 insert into [dbo].[Session] 
 (
@@ -53,6 +66,8 @@ values
 
 		public IQuery AddPermission(Guid token, string permission)
 		{
+            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
+            
 			return RawQuery.Create(@"
 insert into [dbo].[SessionPermission]
 (
@@ -83,6 +98,8 @@ values
 
 	    public IQuery Contains(Guid token, string permission)
 	    {
+            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
+
             return RawQuery.Create("if exists (select null from [dbo].[SessionPermission] where Token = @Token and Permission = @Permission) select 1 else select 0")
                 .AddParameterValue(Columns.Token, token)
                 .AddParameterValue(Columns.Permission, permission);

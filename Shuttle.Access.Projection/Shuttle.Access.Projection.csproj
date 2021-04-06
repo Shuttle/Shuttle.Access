@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shuttle.Access" Version="1.1.3" />
+    <PackageReference Include="Shuttle.Access" Version="1.1.4" />
     <PackageReference Include="Shuttle.Access.Sql" Version="1.1.2" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />

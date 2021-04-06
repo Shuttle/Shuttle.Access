@@ -26,6 +26,47 @@ namespace Shuttle.Access.WebApi
             _sessionRepository = sessionRepository;
         }
 
+        [HttpPost("requester")]
+        public IActionResult Post([FromBody] RequesterRegisterSessionModel model)
+        {
+            Guard.AgainstNull(model, nameof(model));
+
+            if (string.IsNullOrEmpty(model.IdentityName) ||
+                string.IsNullOrEmpty(model.RequesterToken))
+            {
+                return Ok(new
+                {
+                    Success = false
+                });
+            }
+
+            Guid.TryParse(model.RequesterToken, out var requesterToken);
+
+            RegisterSessionResult registerSessionResult;
+
+            using (_databaseContextFactory.Create())
+            {
+                registerSessionResult = _sessionService.Register(model.IdentityName, requesterToken);
+            }
+
+            return registerSessionResult.Ok
+                ? Ok(new
+                {
+                    Success = true,
+                    registerSessionResult.IdentityName,
+                    Token = registerSessionResult.Token.ToString("n"),
+                    Permissions = registerSessionResult.Permissions.Select(permission => new
+                    {
+                        Permission = permission
+                    }).ToList()
+                })
+                : Ok(new
+                {
+                    Success = false
+                });
+        }
+
+
         [HttpPost]
         public IActionResult Post([FromBody] RegisterSessionModel model)
         {
@@ -53,7 +94,7 @@ namespace Shuttle.Access.WebApi
                 ? Ok(new
                 {
                     Success = true,
-                    registerSessionResult.Username,
+                    registerSessionResult.IdentityName,
                     Token = registerSessionResult.Token.ToString("n"),
                     Permissions = registerSessionResult.Permissions.Select(permission => new
                     {

@@ -225,6 +225,33 @@ namespace Shuttle.Access.Api
             }
         }
 
+        public RegisterSessionResult RegisterSession(string identityName)
+        {
+            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+            
+            var request = new RestRequest(_configuration.GetApiUrl("sessions/resetpassword"))
+            {
+                Method = Method.POST,
+                RequestFormat = DataFormat.Json,
+            };
+
+            request.AddHeader("content-type", "application/json");
+            request.AddJsonBody(new { identityName, _token });
+
+            var response = GetResponse(request);
+
+            if (!response.IsSuccessful)
+            {
+                throw new ApiException($@"[{response.StatusDescription}] : {response.Content}");
+            }
+
+            var content = response.AsDynamic();
+
+            return content.success
+                ? RegisterSessionResult.Success(identityName, content.token, content.permissions)
+                : RegisterSessionResult.Failure();
+        }
+
         public void Activate(dynamic model)
         {
             var request = new RestRequest(_configuration.GetApiUrl("identities/activate"))

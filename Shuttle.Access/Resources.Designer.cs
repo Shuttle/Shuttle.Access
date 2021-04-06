@@ -124,6 +124,33 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The session has expired for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string RequesterSessionRegisterExpired {
+            get {
+                return ResourceManager.GetString("RequesterSessionRegisterExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid token &apos;{0}&apos; specified..
+        /// </summary>
+        public static string RequesterSessionRegisterInvalidToken {
+            get {
+                return ResourceManager.GetString("RequesterSessionRegisterInvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The session has been renewed for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string RequesterSessionRegisterRenewed {
+            get {
+                return ResourceManager.GetString("RequesterSessionRegisterRenewed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Role &apos;{0}&apos; does not exist on user &apos;{1}&apos;..
         /// </summary>
         public static string RoleNotFoundException {

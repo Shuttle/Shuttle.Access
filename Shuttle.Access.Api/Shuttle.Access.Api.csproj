@@ -23,6 +23,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Compile Update="Resources.Designer.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>

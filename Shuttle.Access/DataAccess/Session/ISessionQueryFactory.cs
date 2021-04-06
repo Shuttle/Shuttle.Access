@@ -6,6 +6,7 @@ namespace Shuttle.Access.DataAccess
     public interface ISessionQueryFactory
     {
         IQuery Get(Guid token);
+        IQuery Get(string identityName);
         IQuery GetPermissions(Guid token);
         IQuery Remove(string identityName);
         IQuery Add(Session session);

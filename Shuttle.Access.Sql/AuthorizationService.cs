@@ -40,9 +40,9 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public IEnumerable<string> Permissions(string username, object authenticationTag)
+        public IEnumerable<string> Permissions(string identityName)
         {
-            var userId = _identityQuery.Id(username);
+            var userId = _identityQuery.Id(identityName);
             var user = _identityQuery.Search(
                 new DataAccess.Query.Identity.Specification().WithIdentityId(userId).IncludeRoles()).FirstOrDefault();
 

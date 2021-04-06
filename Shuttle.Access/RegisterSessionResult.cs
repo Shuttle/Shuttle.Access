@@ -8,23 +8,30 @@ namespace Shuttle.Access
     {
         private static readonly List<string> EmptyPermissions = new List<string>();
 
-        private RegisterSessionResult(string username, Guid token, IEnumerable<string> permissions)
+        private RegisterSessionResult(string identityName, Guid token, IEnumerable<string> permissions)
         {
-            Username = username;
+            IdentityName = identityName;
             Permissions = permissions;
             Token = token;
         }
 
         public Guid Token { get; }
-        public string Username { get; }
+        public string IdentityName { get; }
         public IEnumerable<string> Permissions { get; }
         public bool Ok => !Guid.Empty.Equals(Token);
 
-        public static RegisterSessionResult Success(string username, Guid token, IEnumerable<string> permissions)
+        public static RegisterSessionResult Success(Session session)
         {
-            Guard.AgainstNullOrEmptyString(username, nameof(username));
+            Guard.AgainstNull(session, nameof(session));
 
-            return new RegisterSessionResult(username, token, permissions ?? EmptyPermissions);
+            return new RegisterSessionResult(session.IdentityName, session.Token, session.Permissions);
+        }
+        
+        public static RegisterSessionResult Success(string identityName, Guid token, IEnumerable<string> permissions)
+        {
+            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+
+            return new RegisterSessionResult(identityName, token, permissions ?? EmptyPermissions);
         }
 
         public static RegisterSessionResult Failure()
