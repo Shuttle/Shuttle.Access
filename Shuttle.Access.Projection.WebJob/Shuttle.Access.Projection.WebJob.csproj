@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.27" />
-    <PackageReference Include="Shuttle.Access" Version="1.1.5" />
+    <PackageReference Include="Shuttle.Access" Version="1.1.6" />
     <PackageReference Include="Shuttle.Access.Sql" Version="1.1.5" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
