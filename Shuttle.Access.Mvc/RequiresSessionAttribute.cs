@@ -29,15 +29,15 @@ namespace Shuttle.Access.Mvc
 
             public void OnAuthorization(AuthorizationFilterContext context)
             {
-                var sessionTokenValue = context.HttpContext.GetAccessSessionToken();
+                var sessionTokenResult = context.HttpContext.GetAccessSessionToken();
 
-                if (!sessionTokenValue.Ok)
+                if (!sessionTokenResult.Ok)
                 {
                     SetUnauthorized(context);
                     return;
                 }
 
-                if (!_accessService.Contains(sessionTokenValue.SessionToken))
+                if (!_accessService.Contains(sessionTokenResult.SessionToken))
                 {
                     SetUnauthorized(context);
                 }

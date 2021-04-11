@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using RestSharp;
 using Shuttle.Core.Contract;
@@ -36,7 +37,7 @@ namespace Shuttle.Access.Api
         {
             Guard.AgainstNull(request, nameof(request));
 
-            if (!HasSession && !request.Resource.Contains("sessions"))
+            if (!HasSession && !request.Resource.Contains("login"))
             {
                 Login();
             }
@@ -64,7 +65,7 @@ namespace Shuttle.Access.Api
         }
 
 
-        public void Register(string name, string password)
+        public void Register(string name, string password, string system)
         {
             Guard.AgainstNullOrEmptyString(name, nameof(name));
 
@@ -78,7 +79,8 @@ namespace Shuttle.Access.Api
             request.AddJsonBody(new
             {
                 name,
-                password
+                password,
+                system
             });
 
             var response = GetResponse(request);
@@ -229,14 +231,15 @@ namespace Shuttle.Access.Api
         {
             Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
             
-            var request = new RestRequest(_configuration.GetApiUrl("sessions/resetpassword"))
+            
+            var request = new RestRequest(_configuration.GetApiUrl("sessions/request"))
             {
                 Method = Method.POST,
                 RequestFormat = DataFormat.Json,
             };
 
             request.AddHeader("content-type", "application/json");
-            request.AddJsonBody(new { identityName, _token });
+            request.AddJsonBody(new { identityName });
 
             var response = GetResponse(request);
 
@@ -247,8 +250,15 @@ namespace Shuttle.Access.Api
 
             var content = response.AsDynamic();
 
-            return content.success
-                ? RegisterSessionResult.Success(identityName, content.token, content.permissions)
+            var permissions = new List<string>();
+
+            foreach (var permission in content.permissions)
+            {
+                permissions.Add(permission);
+            }
+
+            return (content.success != null && (bool)content.success)
+                ? RegisterSessionResult.Success(identityName, (Guid)content.token, permissions)
                 : RegisterSessionResult.Failure();
         }
 

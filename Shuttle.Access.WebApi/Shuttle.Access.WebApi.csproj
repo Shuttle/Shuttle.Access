@@ -22,10 +22,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shuttle.Access.Messages" Version="1.1.1" />
-    <PackageReference Include="Shuttle.Access" Version="1.1.4" />
+    <PackageReference Include="Shuttle.Access.Messages" Version="1.1.3" />
+    <PackageReference Include="Shuttle.Access" Version="1.1.5" />
     <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="1.0.0" />
-    <PackageReference Include="Shuttle.Access.Sql" Version="1.1.2" />
+    <PackageReference Include="Shuttle.Access.Sql" Version="1.1.5" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
     <PackageReference Include="Shuttle.Core.Data.Http" Version="11.0.0" />

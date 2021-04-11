@@ -8,7 +8,7 @@ namespace Shuttle.Access.Api
         bool HasSession { get; }
         T Get<T>(RestRequest request) where T : new();
         IRestResponse GetResponse(RestRequest request);
-        void Register(string name, string password);
+        void Register(string name, string password, string system);
         void Logout();
         void Login();
         void Activate(string name, DateTime dateActivate);

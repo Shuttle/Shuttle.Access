@@ -7,5 +7,6 @@
 	    public string RegisteredBy { get; set; }
         public string GeneratedPassword { get; set; }
         public bool Activated { get; set; }
+        public string System { get; set; }
     }
 }

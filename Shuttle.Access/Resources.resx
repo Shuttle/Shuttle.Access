@@ -141,18 +141,6 @@
   <data name="RegisterPasswordResetTokenException" xml:space="preserve">
     <value>There is already a password reset token registered.</value>
   </data>
-  <data name="RequesterSessionRegisterExpired" xml:space="preserve">
-    <value>The session has expired for identity '{0}'.</value>
-    <comment>0 = identity name</comment>
-  </data>
-  <data name="RequesterSessionRegisterInvalidToken" xml:space="preserve">
-    <value>Invalid token '{0}' specified.</value>
-    <comment>0 = token</comment>
-  </data>
-  <data name="RequesterSessionRegisterRenewed" xml:space="preserve">
-    <value>The session has been renewed for identity '{0}'.</value>
-    <comment>0 = identity name</comment>
-  </data>
   <data name="RoleNotFoundException" xml:space="preserve">
     <value>Role '{0}' does not exist on user '{1}'.</value>
     <comment>0 = role name, 1 = user name</comment>
@@ -174,6 +162,22 @@
     <comment>0 = identity name</comment>
   </data>
   <data name="SessionRegisterRenewed" xml:space="preserve">
+    <value>The session has been renewed for identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
+  <data name="SessionRegisterRequestDenied" xml:space="preserve">
+    <value>Session with token '{0}' does not have the required permission '{1}'.</value>
+    <comment>0 = token, 1 = permission required</comment>
+  </data>
+  <data name="SessionRegisterRequestExpired" xml:space="preserve">
+    <value>The session has expired for identity '{0}'.</value>
+    <comment>0 = identity name</comment>
+  </data>
+  <data name="SessionRegisterRequestInvalidToken" xml:space="preserve">
+    <value>Invalid token '{0}' specified.</value>
+    <comment>0 = token</comment>
+  </data>
+  <data name="SessionRegisterRequestRenewed" xml:space="preserve">
     <value>The session has been renewed for identity '{0}'.</value>
     <comment>0 = identity name</comment>
   </data>

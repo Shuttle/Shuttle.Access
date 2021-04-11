@@ -9,7 +9,7 @@ namespace Shuttle.Access.DataAccess
         IEnumerable<Query.Identity> Search(Query.Identity.Specification specification);
         IEnumerable<Guid> RoleIds(Query.Identity.Specification specification);
         int AdministratorCount();
-        Guid Id(string username);
+        Guid Id(string identityName);
         IEnumerable<string> Permissions(Guid userId);
     }
 }

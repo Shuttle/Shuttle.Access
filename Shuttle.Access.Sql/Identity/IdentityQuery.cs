@@ -30,19 +30,14 @@ namespace Shuttle.Access.Sql
             return _databaseGateway.GetScalarUsing<int>(_queryFactory.AdministratorCount());
         }
 
-        public Guid Id(string username)
+        public Guid Id(string identityName)
         {
-            return _databaseGateway.GetScalarUsing<Guid>(_queryFactory.GetId(username));
+            return _databaseGateway.GetScalarUsing<Guid>(_queryFactory.GetId(identityName));
         }
 
         public IEnumerable<string> Permissions(Guid userId)
         {
             return _queryMapper.MapValues<string>(_queryFactory.Permissions(userId));
-        }
-
-        public IEnumerable<string> GetPermissions(string username)
-        {
-            throw new NotImplementedException();
         }
 
         public IEnumerable<DataAccess.Query.Identity> Search(DataAccess.Query.Identity.Specification specification)

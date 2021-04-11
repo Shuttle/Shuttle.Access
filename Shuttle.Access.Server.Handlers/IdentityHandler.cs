@@ -53,26 +53,40 @@ namespace Shuttle.Access.Server.Handlers
                 return;
             }
 
-            var id = Guid.NewGuid();
-
             using (_databaseContextFactory.Create())
             {
-                var key = Identity.Key(message.Name);
+                EventStream stream;
+                Identity identity;
 
-                if (_keyStore.Contains(key))
+                var key = Identity.Key(message.Name);
+                var id = _keyStore.Get(key);
+
+                if (id.HasValue)
                 {
-                    return;
+                    identity = new Identity(id.Value);
+                    stream = _eventStore.Get(id.Value);
+                    
+                    stream.Apply(identity);
+
+                    if (!identity.Removed)
+                    {
+                        return;
+                    }
                 }
+                else
+                {
+                    id = Guid.NewGuid();
+                    identity = new Identity(id.Value);
+
+                    _keyStore.Add(id.Value, key);
+
+                    stream = _eventStore.CreateEventStream(id.Value);
+                }
+
+                var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
                 var count = _identityQuery.Count(
                     new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
-
-                _keyStore.Add(id, key);
-
-                var identity = new Identity(id);
-                var stream = _eventStore.CreateEventStream(id);
-
-                var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
                 if (count == 0)
                 {
@@ -111,7 +125,8 @@ namespace Shuttle.Access.Server.Handlers
             {
                 Name = message.Name,
                 RegisteredBy = message.RegisteredBy,
-                GeneratedPassword = message.GeneratedPassword
+                GeneratedPassword = message.GeneratedPassword,
+                System = message.System
             });
         }
 
@@ -131,8 +146,6 @@ namespace Shuttle.Access.Server.Handlers
                 stream.AddEvent(identity.Remove());
 
                 _eventStore.Save(stream);
-
-                _keyStore.Remove(message.Id);
             }
         }
 

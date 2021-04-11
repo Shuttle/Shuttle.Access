@@ -124,33 +124,6 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The session has expired for identity &apos;{0}&apos;..
-        /// </summary>
-        public static string RequesterSessionRegisterExpired {
-            get {
-                return ResourceManager.GetString("RequesterSessionRegisterExpired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid token &apos;{0}&apos; specified..
-        /// </summary>
-        public static string RequesterSessionRegisterInvalidToken {
-            get {
-                return ResourceManager.GetString("RequesterSessionRegisterInvalidToken", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The session has been renewed for identity &apos;{0}&apos;..
-        /// </summary>
-        public static string RequesterSessionRegisterRenewed {
-            get {
-                return ResourceManager.GetString("RequesterSessionRegisterRenewed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Role &apos;{0}&apos; does not exist on user &apos;{1}&apos;..
         /// </summary>
         public static string RoleNotFoundException {
@@ -201,6 +174,42 @@ namespace Shuttle.Access {
         public static string SessionRegisterRenewed {
             get {
                 return ResourceManager.GetString("SessionRegisterRenewed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Session with token &apos;{0}&apos; does not have the required permission &apos;{1}&apos;..
+        /// </summary>
+        public static string SessionRegisterRequestDenied {
+            get {
+                return ResourceManager.GetString("SessionRegisterRequestDenied", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The session has expired for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterRequestExpired {
+            get {
+                return ResourceManager.GetString("SessionRegisterRequestExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid token &apos;{0}&apos; specified..
+        /// </summary>
+        public static string SessionRegisterRequestInvalidToken {
+            get {
+                return ResourceManager.GetString("SessionRegisterRequestInvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The session has been renewed for identity &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegisterRequestRenewed {
+            get {
+                return ResourceManager.GetString("SessionRegisterRequestRenewed", resourceCulture);
             }
         }
         

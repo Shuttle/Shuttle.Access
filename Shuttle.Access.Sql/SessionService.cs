@@ -44,27 +44,23 @@ namespace Shuttle.Access.Sql
 
             if (requesterSession == null)
             {
-                _log.Debug(string.Format(Resources.RequesterSessionRegisterInvalidToken, requesterToken));
+                _log.Debug(string.Format(Resources.SessionRegisterRequestInvalidToken, requesterToken));
 
                 return RegisterSessionResult.Failure();
             }
 
             if (requesterSession.HasExpired)
             {
-                if (requesterSession.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.Now)
-                {
-                    _log.Debug(string.Format(Resources.RequesterSessionRegisterRenewed, requesterSession.IdentityName));
+                _log.Debug(string.Format(Resources.SessionRegisterRequestExpired, requesterSession.IdentityName));
 
-                    requesterSession.Renew(DateTime.Now.Add(_configuration.SessionDuration));
+                return RegisterSessionResult.Failure();
+            }
 
-                    _sessionRepository.Renew(requesterSession);
-                }
-                else
-                {
-                    _log.Debug(string.Format(Resources.RequesterSessionRegisterExpired, requesterSession.IdentityName));
+            if (!requesterSession.HasPermission("access://identity/register-session"))
+            {
+                _log.Debug(string.Format(Resources.SessionRegisterRequestDenied, requesterSession.IdentityName, "access://identity/register-session"));
 
-                    return RegisterSessionResult.Failure();
-                }
+                return RegisterSessionResult.Failure();
             }
 
             var session = _sessionRepository.Find(identityName);

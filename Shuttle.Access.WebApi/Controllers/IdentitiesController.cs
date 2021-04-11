@@ -457,7 +457,8 @@ namespace Shuttle.Access.WebApi
                 PasswordHash = _hashingService.Sha256(model.Password),
                 RegisteredBy = registeredBy,
                 GeneratedPassword = generatedPassword,
-                Activated = model.Activated
+                Activated = model.Activated,
+                System = model.System
             });
 
             return Ok();

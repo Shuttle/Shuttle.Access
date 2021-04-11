@@ -26,13 +26,12 @@ namespace Shuttle.Access.WebApi
             _sessionRepository = sessionRepository;
         }
 
-        [HttpPost("requester")]
-        public IActionResult Post([FromBody] RequesterRegisterSessionModel model)
+        [HttpPost("request")]
+        public IActionResult Post([FromBody] RegisterSessionRequestModel model)
         {
             Guard.AgainstNull(model, nameof(model));
 
-            if (string.IsNullOrEmpty(model.IdentityName) ||
-                string.IsNullOrEmpty(model.RequesterToken))
+            if (string.IsNullOrEmpty(model.IdentityName))
             {
                 return Ok(new
                 {
@@ -40,13 +39,18 @@ namespace Shuttle.Access.WebApi
                 });
             }
 
-            Guid.TryParse(model.RequesterToken, out var requesterToken);
+            var sessionTokenResult = HttpContext.GetAccessSessionToken();
+
+            if (!sessionTokenResult.Ok)
+            {
+                return Unauthorized();
+            }
 
             RegisterSessionResult registerSessionResult;
 
             using (_databaseContextFactory.Create())
             {
-                registerSessionResult = _sessionService.Register(model.IdentityName, requesterToken);
+                registerSessionResult = _sessionService.Register(model.IdentityName, sessionTokenResult.SessionToken);
             }
 
             return registerSessionResult.Ok

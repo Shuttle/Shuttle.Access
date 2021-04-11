@@ -17,9 +17,7 @@ namespace Shuttle.Access.Server
     {
         private static void Main(string[] args)
         {
-#if NETCOREAPP
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
-#endif
             
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 

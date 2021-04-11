@@ -22,6 +22,7 @@ namespace Shuttle.Access
         public bool HasPasswordResetToken => PasswordResetToken.HasValue;
         public DateTime? DateActivated { get; private set; }
         public bool Activated => DateActivated.HasValue;
+        public bool Removed { get; private set; }
 
         public Registered Register(string name, byte[] passwordHash, string registeredBy, string generatedPassword,
             bool activated)
@@ -74,6 +75,8 @@ namespace Shuttle.Access
 
             _name = registered.Name;
             _passwordHash = registered.PasswordHash;
+
+            Removed = false;
 
             return registered;
         }
@@ -150,6 +153,8 @@ namespace Shuttle.Access
         private Removed On(Removed removed)
         {
             Guard.AgainstNull(removed, nameof(removed));
+
+            Removed = true;
 
             return removed;
         }

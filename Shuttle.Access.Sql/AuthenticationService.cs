@@ -30,15 +30,15 @@ namespace Shuttle.Access.Sql
             _log = Log.For(this);
         }
 
-        public AuthenticationResult Authenticate(string username, string password)
+        public AuthenticationResult Authenticate(string identityName, string password)
         {
             Guid? userId;
 
-            userId = _keyStore.Get(Identity.Key(username));
+            userId = _keyStore.Get(Identity.Key(identityName));
 
             if (!userId.HasValue)
             {
-                _log.Trace($"[identityName not found] : identityName = '{username}'");
+                _log.Trace($"[identityName not found] : identityName = '{identityName}'");
 
                 return AuthenticationResult.Failure();
             }
@@ -52,12 +52,12 @@ namespace Shuttle.Access.Sql
                 return AuthenticationResult.Success();
             }
 
-            _log.Trace($"[invalid password] : identityName = '{username}'");
+            _log.Trace($"[invalid password] : identityName = '{identityName}'");
 
             return AuthenticationResult.Failure();
         }
 
-        public AuthenticationResult Authenticate(string username)
+        public AuthenticationResult Authenticate(string identityName)
         {
             return AuthenticationResult.Success();
         }

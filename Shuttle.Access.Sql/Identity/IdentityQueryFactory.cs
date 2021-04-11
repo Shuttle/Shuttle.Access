@@ -190,12 +190,12 @@ where
             return RawQuery.Create("delete from [dbo].[Identity] where Id = @Id").AddParameterValue(Columns.Id, id);
         }
 
-        public IQuery GetId(string username)
+        public IQuery GetId(string identityName)
         {
-            Guard.AgainstNullOrEmptyString(username, nameof(username));
+            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
             return RawQuery.Create("select Id from [dbo].[Identity] where Name = @Name")
-                .AddParameterValue(Columns.Name, username);
+                .AddParameterValue(Columns.Name, identityName);
         }
 
         public IQuery Permissions(Guid id)

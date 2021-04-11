@@ -2,7 +2,7 @@ namespace Shuttle.Access
 {
     public interface IAuthenticationService
     {
-        AuthenticationResult Authenticate(string username, string password);
-        AuthenticationResult Authenticate(string username);
+        AuthenticationResult Authenticate(string identityName, string password);
+        AuthenticationResult Authenticate(string identityName);
     }
 }

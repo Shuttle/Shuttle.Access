@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Net;
 using Castle.Windsor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
