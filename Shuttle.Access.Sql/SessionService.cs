@@ -160,7 +160,7 @@ namespace Shuttle.Access.Sql
 
             _log.Debug(string.Format(Resources.SessionRegisterSuccess, identityName));
 
-            return RegisterSessionResult.Success(session.IdentityName, session.Token, session.Permissions);
+            return RegisterSessionResult.Success(session.IdentityName, session.Token, session.ExpiryDate, session.Permissions);
         }
 
         public bool Remove(Guid token)

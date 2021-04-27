@@ -9,9 +9,10 @@ namespace Shuttle.Access.Api
     public class AccessClient : IAccessClient
     {
         private static readonly object Lock = new object();
-        private readonly IClientConfiguration _configuration;
         private readonly IRestClient _client;
+        private readonly IClientConfiguration _configuration;
         private string _token;
+        private DateTime _tokenExpiryDate;
 
         public AccessClient(IClientConfiguration configuration)
         {
@@ -29,23 +30,7 @@ namespace Shuttle.Access.Api
             {
                 Safeguard(request);
 
-                return (T)_client.Execute<T>(request);
-            }
-        }
-
-        private void Safeguard(RestRequest request)
-        {
-            Guard.AgainstNull(request, nameof(request));
-
-            if (!HasSession && !request.Resource.Contains("login"))
-            {
-                Login();
-            }
-
-            if (request.Parameters.Find(item =>
-                (item.Name ?? string.Empty).Equals("access-sessiontoken", StringComparison.InvariantCultureIgnoreCase)) == null)
-            {
-                request.AddHeader("access-sessiontoken", _token);
+                return (T) _client.Execute<T>(request);
             }
         }
 
@@ -57,11 +42,6 @@ namespace Shuttle.Access.Api
 
                 return _client.Execute(request);
             }
-        }
-
-        private void ResetSession()
-        {
-            _token = string.Empty;
         }
 
 
@@ -132,7 +112,7 @@ namespace Shuttle.Access.Api
                     var request = new RestRequest(_configuration.GetApiUrl("sessions"))
                     {
                         Method = Method.POST,
-                        RequestFormat = DataFormat.Json,
+                        RequestFormat = DataFormat.Json
                     };
 
                     request.AddHeader("content-type", "application/json");
@@ -151,7 +131,7 @@ namespace Shuttle.Access.Api
 
                     var result = JsonConvert.DeserializeObject<dynamic>(response.Content);
 
-                    if (result.success == null)
+                    if (result == null || result.success == null)
                     {
                         throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "success"));
                     }
@@ -161,12 +141,14 @@ namespace Shuttle.Access.Api
                         throw new ApiException(Resources.LoginException);
                     }
 
-                    if (result.token == null)
+                    if (result.token == null || result.tokenExpiryDate)
                     {
-                        throw new ApiException(string.Format(Resources.ResponseMissingAttributeException, "token"));
+                        throw new ApiException(string.Format(Resources.ResponseMissingAttributeException,
+                            "token/tokenExpiryDate"));
                     }
 
                     _token = result.token;
+                    _tokenExpiryDate = (DateTime) result.tokenExpiryDate;
                 }
                 catch
                 {
@@ -177,12 +159,12 @@ namespace Shuttle.Access.Api
 
         public void Activate(string name, DateTime dateActivated)
         {
-            Activate(new { name, dateActivated });
+            Activate(new {name, dateActivated});
         }
 
         public void Activate(Guid id, DateTime dateActivated)
         {
-            Activate(new { id, dateActivated });
+            Activate(new {id, dateActivated});
         }
 
         public Guid GetPasswordResetToken(string name)
@@ -194,7 +176,7 @@ namespace Shuttle.Access.Api
             };
 
             request.AddHeader("content-type", "application/json");
-            request.AddJsonBody(new { name });
+            request.AddJsonBody(new {name});
 
             var response = GetResponse(request);
 
@@ -204,8 +186,8 @@ namespace Shuttle.Access.Api
             }
 
             var passwordResetToken = response.AsDynamic().passwordResetToken;
-            
-            return passwordResetToken == null ? Guid.Empty : (Guid)passwordResetToken;
+
+            return passwordResetToken == null ? Guid.Empty : (Guid) passwordResetToken;
         }
 
         public void ResetPassword(string name, Guid passwordResetToken, string password)
@@ -213,11 +195,11 @@ namespace Shuttle.Access.Api
             var request = new RestRequest(_configuration.GetApiUrl("identities/resetpassword"))
             {
                 Method = Method.POST,
-                RequestFormat = DataFormat.Json,
+                RequestFormat = DataFormat.Json
             };
 
             request.AddHeader("content-type", "application/json");
-            request.AddJsonBody(new { name, passwordResetToken, password });
+            request.AddJsonBody(new {name, passwordResetToken, password});
 
             var response = GetResponse(request);
 
@@ -230,16 +212,15 @@ namespace Shuttle.Access.Api
         public RegisterSessionResult RegisterSession(string identityName)
         {
             Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
-            
-            
+
             var request = new RestRequest(_configuration.GetApiUrl("sessions/request"))
             {
                 Method = Method.POST,
-                RequestFormat = DataFormat.Json,
+                RequestFormat = DataFormat.Json
             };
 
             request.AddHeader("content-type", "application/json");
-            request.AddJsonBody(new { identityName });
+            request.AddJsonBody(new {identityName});
 
             var response = GetResponse(request);
 
@@ -250,16 +231,43 @@ namespace Shuttle.Access.Api
 
             var content = response.AsDynamic();
 
-            var permissions = new List<string>();
-
-            foreach (var permission in content.permissions)
+            if (content.success != null && (bool) content.success)
             {
-                permissions.Add(permission);
+                var permissions = new List<string>();
+
+                foreach (var permission in content.permissions)
+                {
+                    permissions.Add(permission.permission.ToString());
+                }
+
+                return RegisterSessionResult.Success(identityName, (Guid) content.token,
+                    (DateTime) content.tokenExpiryDate, permissions);
             }
 
-            return (content.success != null && (bool)content.success)
-                ? RegisterSessionResult.Success(identityName, (Guid)content.token, permissions)
-                : RegisterSessionResult.Failure();
+            return RegisterSessionResult.Failure();
+        }
+
+        private void Safeguard(RestRequest request)
+        {
+            Guard.AgainstNull(request, nameof(request));
+
+            if (!HasSession || DateTime.Now > _tokenExpiryDate && !request.Resource.Contains("login"))
+            {
+                _token = string.Empty;
+                Login();
+            }
+
+            if (request.Parameters.Find(item =>
+                (item.Name ?? string.Empty).Equals("access-sessiontoken",
+                    StringComparison.InvariantCultureIgnoreCase)) == null)
+            {
+                request.AddHeader("access-sessiontoken", _token);
+            }
+        }
+
+        private void ResetSession()
+        {
+            _token = string.Empty;
         }
 
         public void Activate(dynamic model)
@@ -267,7 +275,7 @@ namespace Shuttle.Access.Api
             var request = new RestRequest(_configuration.GetApiUrl("identities/activate"))
             {
                 Method = Method.POST,
-                RequestFormat = DataFormat.Json,
+                RequestFormat = DataFormat.Json
             };
 
             request.AddHeader("content-type", "application/json");
