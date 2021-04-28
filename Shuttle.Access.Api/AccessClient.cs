@@ -141,7 +141,7 @@ namespace Shuttle.Access.Api
                         throw new ApiException(Resources.LoginException);
                     }
 
-                    if (result.token == null || result.tokenExpiryDate)
+                    if (result.token == null || result.tokenExpiryDate == null)
                     {
                         throw new ApiException(string.Format(Resources.ResponseMissingAttributeException,
                             "token/tokenExpiryDate"));

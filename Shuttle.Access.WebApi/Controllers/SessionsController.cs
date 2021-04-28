@@ -59,6 +59,7 @@ namespace Shuttle.Access.WebApi
                     Success = true,
                     registerSessionResult.IdentityName,
                     Token = registerSessionResult.Token.ToString("n"),
+                    registerSessionResult.TokenExpiryDate,
                     Permissions = registerSessionResult.Permissions.Select(permission => new
                     {
                         Permission = permission
@@ -100,6 +101,7 @@ namespace Shuttle.Access.WebApi
                     Success = true,
                     registerSessionResult.IdentityName,
                     Token = registerSessionResult.Token.ToString("n"),
+                    registerSessionResult.TokenExpiryDate,
                     Permissions = registerSessionResult.Permissions.Select(permission => new
                     {
                         Permission = permission
