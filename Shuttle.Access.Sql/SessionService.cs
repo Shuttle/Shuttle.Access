@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Logging;
@@ -11,24 +12,24 @@ namespace Shuttle.Access.Sql
         private readonly IAuthorizationService _authorizationService;
         private readonly IAccessConfiguration _configuration;
         private readonly ISessionRepository _sessionRepository;
-        private readonly IIdentityQuery _userQuery;
+        private readonly IIdentityQuery _identityQuery;
         private readonly ILog _log;
 
         public SessionService(IAccessConfiguration configuration, IAuthenticationService authenticationService,
             IAuthorizationService authorizationService, ISessionRepository sessionRepository,
-            IIdentityQuery userQuery)
+            IIdentityQuery identityQuery)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
-            Guard.AgainstNull(userQuery, nameof(userQuery));
+            Guard.AgainstNull(identityQuery, nameof(identityQuery));
 
             _configuration = configuration;
             _authenticationService = authenticationService;
             _authorizationService = authorizationService;
             _sessionRepository = sessionRepository;
-            _userQuery = userQuery;
+            _identityQuery = identityQuery;
 
             _log = Log.For(this);
         }
@@ -63,6 +64,12 @@ namespace Shuttle.Access.Sql
                 return RegisterSessionResult.Failure();
             }
 
+            if (_identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(identityName))
+                .SingleOrDefault() == null)
+            {
+                return RegisterSessionResult.Failure();
+            }
+            
             var session = _sessionRepository.Find(identityName);
 
             if (session != null && 
@@ -79,7 +86,7 @@ namespace Shuttle.Access.Sql
             {
                 var now = DateTime.Now;
 
-                session = new Session(Guid.NewGuid(), _userQuery.Id(identityName), identityName, now,
+                session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now,
                     now.Add(_configuration.SessionDuration));
 
                 foreach (var permission in _authorizationService.Permissions(identityName))
@@ -117,7 +124,7 @@ namespace Shuttle.Access.Sql
 
                 var now = DateTime.Now;
 
-                session = new Session(Guid.NewGuid(), _userQuery.Id(identityName), identityName, now, now.Add(_configuration.SessionDuration));
+                session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now, now.Add(_configuration.SessionDuration));
 
                 foreach (var permission in _authorizationService.Permissions(identityName))
                 {
