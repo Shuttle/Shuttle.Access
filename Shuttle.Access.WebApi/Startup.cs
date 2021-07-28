@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using Castle.Windsor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -140,6 +141,8 @@ namespace Shuttle.Access.WebApi
                     {
                         _log.Error(feature.Error.AllMessages());
                     }
+
+                    await Task.CompletedTask;
                 });
             });
 

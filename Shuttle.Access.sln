@@ -23,6 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests", "Shu
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9721FF0E-91D7-43E1-88A0-2DFF02AC2A66}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		package.msbuild = package.msbuild
 		README.md = README.md
 	EndProjectSection
@@ -57,6 +58,18 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Api", "Shuttle.Access.Api\Shuttle.Access.Api.csproj", "{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests.Console", "Shuttle.Access.Tests.Console\Shuttle.Access.Tests.Console.csproj", "{4BBAFAD1-A37E-49D4-8362-14AE49087B32}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{5417FE2A-8368-4E91-B58D-CF4DE6AA596C}"
+	ProjectSection(SolutionItems) = preProject
+		.package\docker-compose.yml = .package\docker-compose.yml
+		.package\docker.msbuild = .package\docker.msbuild
+		.package\dockerfile-projection = .package\dockerfile-projection
+		.package\dockerfile-server = .package\dockerfile-server
+		.package\dockerfile-webapi = .package\dockerfile-webapi
+		.package\Shuttle.Access.Projection.config = .package\Shuttle.Access.Projection.config
+		.package\Shuttle.Access.Server.config = .package\Shuttle.Access.Server.config
+		.package\Shuttle.Access.WebApi.config = .package\Shuttle.Access.WebApi.config
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

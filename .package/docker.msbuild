@@ -1,0 +1,28 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Package" ToolsVersion="15">
+  <PropertyGroup>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Shuttle.Access.Projection/Shuttle.Access.Projection.csproj" />
+    <ProjectReference Include="../Shuttle.Access.Server/Shuttle.Access.Server.csproj" />
+    <ProjectReference Include="../Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj" />
+    <DockerFile Include="dockerfile-projection">
+      <Name>shuttle.access.projection</Name>
+    </DockerFile>
+    <DockerFile Include="dockerfile-server">
+      <Name>shuttle.access.server</Name>
+    </DockerFile>
+    <DockerFile Include="dockerfile-webapi">
+      <Name>shuttle.access.webapi</Name>
+    </DockerFile>
+  </ItemGroup>
+
+  <Target Name="Package">
+    <Exec
+      Command="dotnet publish %(ProjectReference.Identity) -c Release -f net50 -r $(RuntimeIdentifier) --self-contained false --output $(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)" />
+    <Exec
+      Command="docker build -t %(DockerFile.Name):latest -f %(DockerFile.Identity) ." />
+  </Target>
+
+</Project>

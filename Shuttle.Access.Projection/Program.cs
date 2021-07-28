@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using System.Configuration;
+using System.Data.Common;
 using System.Data.SqlClient;
 using Castle.Windsor;
 using log4net;
@@ -33,6 +34,8 @@ namespace Shuttle.Access.Projection
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
 
             Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
+            
+            Log.Information(ConfigurationManager.ConnectionStrings["Access"].ConnectionString);
 
             _container = new WindsorContainer();
 

@@ -1,0 +1,5 @@
+﻿FROM mcr.microsoft.com/dotnet/aspnet:5.0
+
+COPY ./deployment/Shuttle.Access.WebApi/. /opt/shuttle.access.webapi/.
+
+ENTRYPOINT ["/opt/shuttle.access.webapi/Shuttle.Access.WebApi"]

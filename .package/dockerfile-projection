@@ -1,0 +1,5 @@
+﻿FROM mcr.microsoft.com/dotnet/runtime:5.0
+
+COPY ./deployment/Shuttle.Access.Projection/. /opt/shuttle.access.projection/.
+
+ENTRYPOINT ["/opt/shuttle.access.projection/Shuttle.Access.Projection"]
