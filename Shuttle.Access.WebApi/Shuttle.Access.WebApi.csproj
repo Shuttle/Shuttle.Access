@@ -27,7 +27,7 @@
   <ItemGroup>
     <PackageReference Include="Shuttle.Access.Messages" Version="1.1.3" />
     <PackageReference Include="Shuttle.Access" Version="3.0.0" />
-    <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="2.0.0" />
+    <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="3.0.0" />
     <PackageReference Include="Shuttle.Access.Sql" Version="3.0.0" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />

@@ -15,7 +15,7 @@
 		<copyright>Copyright (c) 2021, Eben Roux</copyright>
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
-      <dependency id="RestSharp" version="106.11.7" />
+      <dependency id="RestSharp" version="106.12.0" />
       <dependency id="Shuttle.Access" version="3.0.0" />
 		</dependencies>
 	</metadata>
