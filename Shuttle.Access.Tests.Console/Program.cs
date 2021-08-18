@@ -1,5 +1,5 @@
 ﻿using System;
-using Shuttle.Access.Api;
+using Shuttle.Access.Application;
 
 namespace Shuttle.Access.Tests.Console
 {
@@ -8,13 +8,14 @@ namespace Shuttle.Access.Tests.Console
         static void Main(string[] args)
         {
             var client = new AccessClient(new ClientConfiguration("http://localhost:5599/", "system://access", "Vgy)Hbt5"));
-            
-            client.Activate("fidelior://user/1962bda6-30f4-4e70-825a-cfdc3d833eb1", DateTime.Now);
 
-            var passwordResetToken = client.GetPasswordResetToken("fidelior://user/1962bda6-30f4-4e70-825a-cfdc3d833eb1");
-            
-            client.ResetPassword("fidelior://user/1962bda6-30f4-4e70-825a-cfdc3d833eb1", passwordResetToken, "new-password");
-            
+            var registerSessionResult = client.RegisterSession("access://test-user");
+
+            if (registerSessionResult.Ok)
+            {
+                var session = client.GetSession(registerSessionResult.Token);
+            }
+
             client.Logout();
         }
     }

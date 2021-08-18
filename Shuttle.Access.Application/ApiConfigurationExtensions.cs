@@ -1,7 +1,7 @@
 ﻿using System;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.Api
+namespace Shuttle.Access.Application
 {
     public static class ApiConfigurationExtensions
     {

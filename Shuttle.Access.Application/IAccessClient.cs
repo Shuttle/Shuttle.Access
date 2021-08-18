@@ -1,7 +1,7 @@
 ﻿using System;
 using RestSharp;
 
-namespace Shuttle.Access.Api
+namespace Shuttle.Access.Application
 {
     public interface IAccessClient
     {
@@ -16,5 +16,6 @@ namespace Shuttle.Access.Api
         Guid GetPasswordResetToken(string name);
         void ResetPassword(string name, Guid passwordResetToken, string password);
         RegisterSessionResult RegisterSession(string identityName);
+        GetDataResult<DataAccess.Query.Session> GetSession(Guid token);
     }
 }

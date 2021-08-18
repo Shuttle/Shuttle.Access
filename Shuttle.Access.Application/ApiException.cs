@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shuttle.Access.Api
+namespace Shuttle.Access.Application
 {
     public class ApiException : Exception
     {

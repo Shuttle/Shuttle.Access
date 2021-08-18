@@ -18,7 +18,7 @@
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 		<PackageReference Include="RestSharp" Version="106.11.7" />
-		<PackageReference Include="Shuttle.Access" Version="2.0.0" />
+		<PackageReference Include="Shuttle.Access" Version="3.0.0" />
 		<PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
 		<PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />

@@ -1,6 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Version" ToolsVersion="15">
   <PropertyGroup>
-    <PackageName>Shuttle.Access.Api</PackageName>
+    <PackageName>Shuttle.Access.Application</PackageName>
     <PackageSource Condition="$(PackageSource) == ''">https://www.nuget.org</PackageSource>
     <Configuration Condition="$(Configuration) == ''">Release</Configuration>
   </PropertyGroup>

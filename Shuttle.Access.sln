@@ -55,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc.DataStor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc.Rest", "Shuttle.Access.Mvc.Rest\Shuttle.Access.Mvc.Rest.csproj", "{CFDA6059-0EF1-48D2-8FBE-D28A3298475A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Api", "Shuttle.Access.Api\Shuttle.Access.Api.csproj", "{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Application", "Shuttle.Access.Application\Shuttle.Access.Application.csproj", "{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests.Console", "Shuttle.Access.Tests.Console\Shuttle.Access.Tests.Console.csproj", "{4BBAFAD1-A37E-49D4-8362-14AE49087B32}"
 EndProject

@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Access.Mvc.Rest</id>
-		<version>2.0.0</version>
+		<version>3.0.0</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -16,7 +16,7 @@
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
       <dependency id="RestSharp" version="106.11.7" />
-      <dependency id="Shuttle.Access" version="2.0.0" />
+      <dependency id="Shuttle.Access" version="3.0.0" />
 		</dependencies>
 	</metadata>
 	<files>

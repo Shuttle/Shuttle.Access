@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Mvc;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -12,18 +13,21 @@ namespace Shuttle.Access.WebApi
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly ISessionRepository _sessionRepository;
+        private readonly ISessionQuery _sessionQuery;
         private readonly ISessionService _sessionService;
 
         public SessionsController(IDatabaseContextFactory databaseContextFactory, ISessionService sessionService,
-            ISessionRepository sessionRepository)
+            ISessionRepository sessionRepository, ISessionQuery sessionQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(sessionService, nameof(sessionService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
+            Guard.AgainstNull(sessionQuery, nameof(sessionQuery));
 
             _databaseContextFactory = databaseContextFactory;
             _sessionService = sessionService;
             _sessionRepository = sessionRepository;
+            _sessionQuery = sessionQuery;
         }
 
         [HttpPost("request")]
@@ -113,7 +117,7 @@ namespace Shuttle.Access.WebApi
                 });
         }
 
-        [RequiresSession]
+        [RequiresPermission(Permissions.View.Sessions)]
         [HttpDelete]
         public IActionResult Delete()
         {
@@ -133,8 +137,25 @@ namespace Shuttle.Access.WebApi
             }
         }
 
-        [HttpGet]
+        [RequiresPermission(Permissions.View.Sessions)]
+        [HttpGet("{token}")]
         public IActionResult Get(Guid token)
+        {
+            using (_databaseContextFactory.Create())
+            {
+                var session = _sessionQuery.Get(token);
+
+                if (session == null)
+                {
+                    return BadRequest();
+                }
+
+                return Ok(session);
+            }
+        }
+
+        [HttpGet("{id}/permissions")]
+        public IActionResult GetPermission(Guid token)
         {
             using (_databaseContextFactory.Create())
             {

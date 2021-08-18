@@ -7,6 +7,7 @@
             public const string Role = "access://role/view";
             public const string Identity = "access://identity/view";
             public const string Permission = "access://permissions/view";
+            public const string Sessions = "access://sessions/view";
         }
 
         public static class Register

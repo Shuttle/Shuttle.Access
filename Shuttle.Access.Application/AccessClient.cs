@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using RestSharp;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.Api
+namespace Shuttle.Access.Application
 {
     public class AccessClient : IAccessClient
     {
@@ -245,6 +245,27 @@ namespace Shuttle.Access.Api
             }
 
             return RegisterSessionResult.Failure();
+        }
+
+        public GetDataResult<DataAccess.Query.Session> GetSession(Guid token)
+        {
+            try
+            {
+                var request = new RestRequest(_configuration.GetApiUrl($"sessions/{token}"), Method.GET, DataFormat.Json);
+
+                var response = GetResponse(request);
+
+                if (!response.IsSuccessful)
+                {
+                    throw new ApiException($@"[{response.StatusDescription}] : {response.Content}");
+                }
+
+                return GetDataResult<DataAccess.Query.Session>.Success(JsonConvert.DeserializeObject<DataAccess.Query.Session>(response.Content));
+            }
+            catch (Exception ex)
+            {
+                return GetDataResult<DataAccess.Query.Session>.Failure(ex.Message);
+            }
         }
 
         private void Safeguard(RestRequest request)

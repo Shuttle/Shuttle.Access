@@ -29,6 +29,7 @@ namespace Shuttle.Access.WebApi
     public class Startup
     {
         private IServiceBus _bus;
+        
         private readonly ILog _log;
 
         public Startup(IConfiguration configuration)

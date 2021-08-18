@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -8,25 +9,39 @@ namespace Shuttle.Access.Sql
     public class SessionQuery : ISessionQuery
     {
         private readonly IDatabaseGateway _databaseGateway;
-        private readonly ISessionQueryFactory _sessionQueryFactory;
+        private readonly IQueryMapper _queryMapper;
+        private readonly ISessionQueryFactory _queryFactory;
 
-        public SessionQuery(IDatabaseGateway databaseGateway, ISessionQueryFactory sessionQueryFactory)
+        public SessionQuery(IDatabaseGateway databaseGateway, IQueryMapper queryMapper, ISessionQueryFactory queryFactory)
         {
             Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(sessionQueryFactory, nameof(sessionQueryFactory));
+            Guard.AgainstNull(queryMapper, nameof(queryMapper));
+            Guard.AgainstNull(queryFactory, nameof(queryFactory));
 
             _databaseGateway = databaseGateway;
-            _sessionQueryFactory = sessionQueryFactory;
+            _queryMapper = queryMapper;
+            _queryFactory = queryFactory;
         }
 
         public bool Contains(Guid token)
         {
-            return _databaseGateway.GetScalarUsing<int>(_sessionQueryFactory.Contains(token)) == 1;
+            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Contains(token)) == 1;
         }
 
         public bool Contains(Guid token, string permission)
         {
-            return _databaseGateway.GetScalarUsing<int>(_sessionQueryFactory.Contains(token, permission)) == 1;
+            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Contains(token, permission)) == 1;
+        }
+
+        public DataAccess.Query.Session Get(Guid token)
+        {
+            var result = _queryMapper.MapObject<DataAccess.Query.Session>(_queryFactory.Get(token));
+
+            result.GuardAgainstRecordNotFound(token);
+
+            result.Permissions = _queryMapper.MapValues<string>(_queryFactory.GetPermissions(token)).ToList();
+
+            return result;
         }
     }
 }

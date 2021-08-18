@@ -1,7 +1,7 @@
 ﻿using System.Configuration;
 using Shuttle.Core.Configuration;
 
-namespace Shuttle.Access.Api
+namespace Shuttle.Access.Application
 {
     public class AccessClientSection : ConfigurationSection
     {

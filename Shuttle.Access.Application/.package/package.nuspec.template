@@ -2,7 +2,7 @@
 
 <package>
 	<metadata>
-		<id>Shuttle.Access.Api</id>
+		<id>Shuttle.Access.Application</id>
 		<version>#{SemanticVersion}#</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
@@ -11,7 +11,7 @@
 		<icon>images\logo.png</icon>
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
 		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
-		<description>An API that calls the Shuttle.Access.WebApi to interact with the Shuttle.Access Identity and Access Management domain.</description>
+		<description>A client component that calls the Shuttle.Access.WebApi to interact with the Shuttle.Access Identity and Access Management domain.</description>
 		<copyright>Copyright (c) #{Year}#, Eben Roux</copyright>
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>

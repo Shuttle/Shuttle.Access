@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shuttle.Access.Api\Shuttle.Access.Api.csproj" />
+    <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
   </ItemGroup>
 
 </Project>

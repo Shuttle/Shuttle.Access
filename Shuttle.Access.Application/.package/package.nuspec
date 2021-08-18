@@ -2,8 +2,8 @@
 
 <package>
 	<metadata>
-		<id>Shuttle.Access.Api</id>
-		<version>2.0.0</version>
+		<id>Shuttle.Access.Application</id>
+		<version>3.0.0</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -11,14 +11,14 @@
 		<icon>images\logo.png</icon>
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
 		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
-		<description>An API that calls the Shuttle.Access.WebApi to interact with the Shuttle.Access Identity and Access Management domain.</description>
+		<description>A client component that calls the Shuttle.Access.WebApi to interact with the Shuttle.Access Identity and Access Management domain.</description>
 		<copyright>Copyright (c) 2021, Eben Roux</copyright>
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
       <dependency id="Microsoft.CSharp" version="4.7.0" />
       <dependency id="Newtonsoft.Json" version="13.0.1" />
       <dependency id="RestSharp" version="106.11.7" />
-      <dependency id="Shuttle.Access" version="2.0.0" />
+      <dependency id="Shuttle.Access" version="3.0.0" />
       <dependency id="Shuttle.Core.Configuration" version="10.0.4" />
       <dependency id="Shuttle.Core.Contract" version="10.0.3" />
       <dependency id="System.Configuration.ConfigurationManager" version="5.0.0" />
