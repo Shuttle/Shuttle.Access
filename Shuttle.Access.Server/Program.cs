@@ -33,6 +33,8 @@ namespace Shuttle.Access.Server
         public void Start()
         {
             Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
+            
+            Log.Information("[starting]");
 
             _container = new WindsorContainer();
 
@@ -46,11 +48,15 @@ namespace Shuttle.Access.Server
             container.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 
             _bus = ServiceBus.Create(container).Start();
+
+            Log.Information("[started]");
         }
 
         public void Stop()
         {
+            Log.Information("[stopping]");
             _bus?.Dispose();
+            Log.Information("[stopped]");
         }
     }
 }
