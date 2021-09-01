@@ -7,7 +7,7 @@ services:
             - "10000-10002:10000-10002"
     server:
         image:
-            shuttle.access.server
+            shuttle/access/server
         volumes:
             - type: bind
               source: ./Shuttle.Access.Server.config
@@ -19,7 +19,7 @@ services:
             dockerfile: dockerfile-server
     projection:
         image:
-            shuttle.access.projection
+            shuttle/access/projection
         volumes:
             - type: bind
               source: ./Shuttle.Access.Projection.config
@@ -29,7 +29,7 @@ services:
             dockerfile: dockerfile-projection
     web-api:
         image:
-            shuttle.access.webapi
+            shuttle/access/webapi
         ports:
             - "5599:5599"
         volumes:
@@ -44,3 +44,8 @@ services:
         build:
             context: .
             dockerfile: dockerfile-webapi   
+    front-end:
+        image:
+            shuttle/access/vue
+        ports:
+            - "8080:80"

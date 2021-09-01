@@ -2,7 +2,7 @@
 
 namespace Shuttle.Access.Application
 {
-    public interface IClientConfiguration
+    public interface IAccessClientConfiguration
     {
         Uri Url { get; }
         string IdentityName { get; }

@@ -155,6 +155,7 @@ namespace Shuttle.Access.WebApi
         }
 
         [HttpGet("{id}/permissions")]
+        [RequiresPermission(Permissions.View.Sessions)]
         public IActionResult GetPermission(Guid token)
         {
             using (_databaseContextFactory.Create())

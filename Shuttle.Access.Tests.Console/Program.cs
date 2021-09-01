@@ -7,7 +7,7 @@ namespace Shuttle.Access.Tests.Console
     {
         static void Main(string[] args)
         {
-            var client = new AccessClient(new ClientConfiguration("http://localhost:5599/", "access://system", "Vgy)Hbt5"));
+            var client = new AccessClient(new AccessClientConfiguration("http://localhost:5599/", "access://system", "Vgy)Hbt5"));
 
             var registerSessionResult = client.RegisterSession("access://test-user");
 

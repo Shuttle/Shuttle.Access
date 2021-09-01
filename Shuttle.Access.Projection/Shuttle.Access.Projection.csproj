@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shuttle.Access" Version="3.0.0" />
+    <PackageReference Include="Shuttle.Access" Version="4.0.0" />
     <PackageReference Include="Shuttle.Access.Sql" Version="3.0.0" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />

@@ -5,9 +5,9 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access
 {
-    public abstract class CachedAccessService
+    public abstract class CachedAccessService 
     {
-        private readonly MemoryCache _sessions = new MemoryCache(new MemoryCacheOptions());
+        private MemoryCache _sessions = new MemoryCache(new MemoryCacheOptions());
         private readonly object _lock = new object();
 
         protected bool Contains(Guid token)
@@ -52,6 +52,15 @@ namespace Shuttle.Access
             lock (_lock)
             {
                 _sessions.Remove(token);
+            }
+        }
+
+        public void Flush()
+        {
+            lock (_lock)
+            {
+                _sessions.Dispose();
+                _sessions = new MemoryCache(new MemoryCacheOptions());
             }
         }
     }

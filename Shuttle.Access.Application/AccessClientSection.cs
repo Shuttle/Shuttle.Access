@@ -14,7 +14,7 @@ namespace Shuttle.Access.Application
         [ConfigurationProperty("password", IsRequired = true)]
         public string Password => (string)this["password"];
 
-        public static IClientConfiguration GetConfiguration()
+        public static IAccessClientConfiguration GetConfiguration()
         {
             var section =
                 ConfigurationSectionProvider.Open<AccessClientSection>("shuttle", "accessClient");
@@ -24,7 +24,7 @@ namespace Shuttle.Access.Application
                 throw new ConfigurationErrorsException(Resources.ClientSectionException);
             }
 
-            return new ClientConfiguration(section.Url, section.IdentityName, section.Password);
+            return new AccessClientConfiguration(section.Url, section.IdentityName, section.Password);
         }
     }
 }

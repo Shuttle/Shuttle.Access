@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-    <PackageReference Include="Shuttle.Access" Version="3.0.0" />
+    <PackageReference Include="Shuttle.Access" Version="4.0.0" />
     <PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
   </ItemGroup>
 

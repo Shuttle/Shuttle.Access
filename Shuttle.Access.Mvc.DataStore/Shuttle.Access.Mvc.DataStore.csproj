@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shuttle.Access" Version="3.0.0" />
+    <PackageReference Include="Shuttle.Access" Version="4.0.0" />
   </ItemGroup>
 
 </Project>

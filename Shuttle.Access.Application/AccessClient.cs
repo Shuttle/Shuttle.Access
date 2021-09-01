@@ -10,11 +10,11 @@ namespace Shuttle.Access.Application
     {
         private static readonly object Lock = new object();
         private readonly IRestClient _client;
-        private readonly IClientConfiguration _configuration;
+        private readonly IAccessClientConfiguration _configuration;
         private string _token;
         private DateTime _tokenExpiryDate;
 
-        public AccessClient(IClientConfiguration configuration)
+        public AccessClient(IAccessClientConfiguration configuration)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using Shuttle.Access.Application;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Mvc.Rest
@@ -6,15 +7,15 @@ namespace Shuttle.Access.Mvc.Rest
     public class RestAccessService : CachedAccessService, IAccessService
     {
         private readonly IAccessConfiguration _configuration;
-        private readonly IRestService _restService;
+        private readonly IAccessClient _accessClient;
 
-        public RestAccessService(IAccessConfiguration configuration, IRestService restService)
+        public RestAccessService(IAccessConfiguration configuration, IAccessClient accessClient)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
-            Guard.AgainstNull(restService, nameof(restService));
+            Guard.AgainstNull(accessClient, nameof(accessClient));
 
             _configuration = configuration;
-            _restService = restService;
+            _accessClient = accessClient;
         }
 
         public new bool Contains(Guid token)
@@ -53,11 +54,11 @@ namespace Shuttle.Access.Mvc.Rest
                 return;
             }
 
-            var permissions = _restService.GetPermissions(token);
+            var session = _accessClient.GetSession(token);
 
-            if (permissions != null)
+            if (session != null)
             {
-                Cache(token, permissions, _configuration.SessionDuration);
+                Cache(token, session.Data.Permissions, _configuration.SessionDuration);
             }
         }
     }

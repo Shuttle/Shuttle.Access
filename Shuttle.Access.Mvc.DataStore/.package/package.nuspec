@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Access.Mvc.DataStore</id>
-		<version>3.0.0</version>
+		<version>4.0.0</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -15,7 +15,7 @@
 		<copyright>Copyright (c) 2021, Eben Roux</copyright>
     <tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
-      <dependency id="Shuttle.Access" version="3.0.0" />
+      <dependency id="Shuttle.Access" version="4.0.0" />
 		</dependencies>
 	</metadata>
 	<files>
