@@ -27,8 +27,8 @@
   <ItemGroup>
     <PackageReference Include="Shuttle.Access.Messages" Version="1.1.3" />
     <PackageReference Include="Shuttle.Access" Version="4.0.0" />
-    <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="3.0.0" />
-    <PackageReference Include="Shuttle.Access.Sql" Version="3.0.0" />
+    <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="4.0.0" />
+    <PackageReference Include="Shuttle.Access.Sql" Version="4.0.0" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
     <PackageReference Include="Shuttle.Core.Data.Http" Version="11.0.0" />
@@ -39,10 +39,6 @@
     <PackageReference Include="Shuttle.Recall.Sql.Storage" Version="12.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.2" />
   </ItemGroup>
 
   <ItemGroup>

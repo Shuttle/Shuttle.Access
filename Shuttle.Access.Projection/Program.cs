@@ -19,6 +19,10 @@ namespace Shuttle.Access.Projection
     {
         private static void Main(string[] args)
         {
+            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
             ServiceHost.Run<Host>();
         }
     }
@@ -31,11 +35,9 @@ namespace Shuttle.Access.Projection
 
         public void Start()
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
-
             Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
-            
-            Log.Information(ConfigurationManager.ConnectionStrings["Access"].ConnectionString);
+
+            Log.Information("[starting]");
 
             _container = new WindsorContainer();
 
@@ -62,13 +64,19 @@ namespace Shuttle.Access.Projection
             }
 
             _eventProcessor.Start();
+
+            Log.Information("[started]");
         }
 
         public void Stop()
         {
+            Log.Information("[stopping]");
+
             _container?.Dispose();
             _eventProcessor?.Dispose();
             _eventStore?.AttemptDispose();
+
+            Log.Information("[stopped]");
         }
     }
 }

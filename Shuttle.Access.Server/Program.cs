@@ -55,7 +55,9 @@ namespace Shuttle.Access.Server
         public void Stop()
         {
             Log.Information("[stopping]");
+            
             _bus?.Dispose();
+            
             Log.Information("[stopped]");
         }
     }
