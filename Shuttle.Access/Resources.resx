@@ -195,7 +195,4 @@
   <data name="SessionTokenExpiredException" xml:space="preserve">
     <value>The session token has expired.  Please log in again.</value>
   </data>
-  <data name="SetPasswordException" xml:space="preserve">
-    <value>In order to set the password either the 'OldPassword' or a 'Token' should be specified.</value>
-  </data>
 </root>

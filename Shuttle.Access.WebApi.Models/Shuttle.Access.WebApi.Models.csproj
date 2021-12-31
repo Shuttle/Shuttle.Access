@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+	<ItemGroup>
+    <None Include=".package\AssemblyInfo.cs.template" />
+    <None Include=".package\package.msbuild" />
+    <None Include=".package\package.nuspec.template" />
+    <None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
+    <None Include=".package\Shuttle.NuGetPackager.targets" />
+  </ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Resources.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resources.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Resources.resx">
+	    <Generator>PublicResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+</Project>

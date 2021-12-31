@@ -57,8 +57,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc.Rest", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Application", "Shuttle.Access.Application\Shuttle.Access.Application.csproj", "{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests.Console", "Shuttle.Access.Tests.Console\Shuttle.Access.Tests.Console.csproj", "{4BBAFAD1-A37E-49D4-8362-14AE49087B32}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{5417FE2A-8368-4E91-B58D-CF4DE6AA596C}"
 	ProjectSection(SolutionItems) = preProject
 		.package\docker-compose.yml = .package\docker-compose.yml
@@ -70,6 +68,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{54
 		.package\Shuttle.Access.Server.config = .package\Shuttle.Access.Server.config
 		.package\Shuttle.Access.WebApi.config = .package\Shuttle.Access.WebApi.config
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.RestClient", "Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj", "{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.WebApi.Models", "Shuttle.Access.WebApi.Models\Shuttle.Access.WebApi.Models.csproj", "{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -147,10 +149,14 @@ Global
 		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4BBAFAD1-A37E-49D4-8362-14AE49087B32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4BBAFAD1-A37E-49D4-8362-14AE49087B32}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4BBAFAD1-A37E-49D4-8362-14AE49087B32}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4BBAFAD1-A37E-49D4-8362-14AE49087B32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

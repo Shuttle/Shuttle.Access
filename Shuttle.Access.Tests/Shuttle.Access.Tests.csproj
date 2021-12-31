@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net5</TargetFrameworks>
   </PropertyGroup>
 
     <ItemGroup>
@@ -12,19 +12,13 @@
         <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
         <PackageReference Include="Shuttle.Core.Transactions" Version="10.0.3" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
-        <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Shuttle.Access.Mvc.DataStore\Shuttle.Access.Mvc.DataStore.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Mvc.Rest\Shuttle.Access.Mvc.Rest.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj" />
-      <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
     </ItemGroup>
     
-    <ItemGroup>
-        <Reference Include="System.Transactions" Condition="'$(TargetFramework)' != 'netstandard2.0'" />
-    </ItemGroup>
-
 </Project>

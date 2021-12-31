@@ -117,7 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="IdentityInactiveException" xml:space="preserve">
-    <value>The identity is inactive.</value>
+  <data name="IdentityActivateModelException" xml:space="preserve">
+    <value>Please specify either the 'Id' or the 'Name' to activate.</value>
+  </data>
+  <data name="SetPasswordException" xml:space="preserve">
+    <value>In order to set the password either the 'OldPassword' or a 'Token' should be specified.</value>
   </data>
 </root>

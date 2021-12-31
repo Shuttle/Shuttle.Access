@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Shuttle.Access.WebApi {
+namespace Shuttle.Access.WebApi.Models {
     using System;
     
     
@@ -22,7 +22,7 @@ namespace Shuttle.Access.WebApi {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    public class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,10 +36,10 @@ namespace Shuttle.Access.WebApi {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager {
+        public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Shuttle.Access.WebApi.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Shuttle.Access.WebApi.Models.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -51,7 +51,7 @@ namespace Shuttle.Access.WebApi {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture {
+        public static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
@@ -61,11 +61,20 @@ namespace Shuttle.Access.WebApi {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The identity is inactive..
+        ///   Looks up a localized string similar to Please specify either the &apos;Id&apos; or the &apos;Name&apos; to activate..
         /// </summary>
-        internal static string IdentityInactiveException {
+        public static string IdentityActivateModelException {
             get {
-                return ResourceManager.GetString("IdentityInactiveException", resourceCulture);
+                return ResourceManager.GetString("IdentityActivateModelException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In order to set the password either the &apos;OldPassword&apos; or a &apos;Token&apos; should be specified..
+        /// </summary>
+        public static string SetPasswordException {
+            get {
+                return ResourceManager.GetString("SetPasswordException", resourceCulture);
             }
         }
     }

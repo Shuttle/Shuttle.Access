@@ -248,14 +248,5 @@ namespace Shuttle.Access {
                 return ResourceManager.GetString("SessionTokenExpiredException", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to In order to set the password either the &apos;OldPassword&apos; or a &apos;Token&apos; should be specified..
-        /// </summary>
-        public static string SetPasswordException {
-            get {
-                return ResourceManager.GetString("SetPasswordException", resourceCulture);
-            }
-        }
     }
 }

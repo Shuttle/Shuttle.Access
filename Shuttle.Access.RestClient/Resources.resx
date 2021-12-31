@@ -117,7 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="IdentityInactiveException" xml:space="preserve">
-    <value>The identity is inactive.</value>
+  <data name="ClientSectionException" xml:space="preserve">
+    <value>Could not find a configuration section with name "accessClient" or "shuttle/accessClient".</value>
+  </data>
+  <data name="LoginException" xml:space="preserve">
+    <value>[AccessClient] : Could not log in.</value>
+  </data>
+  <data name="LogoutException" xml:space="preserve">
+    <value>[AccessClient] : Could not log out.</value>
   </data>
 </root>
