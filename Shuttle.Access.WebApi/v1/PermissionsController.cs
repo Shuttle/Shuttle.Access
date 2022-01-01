@@ -93,13 +93,17 @@ namespace Shuttle.Access.WebApi.v1
             return Ok();
         }
 
-        [HttpDelete]
+        [HttpDelete("{permission}")]
         [RequiresPermission(Permissions.Remove.Permission)]
-        public IActionResult Delete([FromBody] PermissionModel model)
+        public IActionResult Delete(string permission)
         {
+            string decoded;
+
             try
             {
-                model.ApplyInvariants();
+                Guard.AgainstNullOrEmptyString(permission, nameof(permission));
+
+                decoded = Uri.UnescapeDataString(permission);
             }
             catch (Exception ex)
             {
@@ -108,7 +112,7 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                _permissionQuery.Remove(model.Permission);
+                _permissionQuery.Remove(decoded);
             }
 
             return Ok();

@@ -16,7 +16,7 @@ namespace Shuttle.Access.RestClient.v1
         [Post("/permissions")]
         Task<ApiResponse<object>> Post(PermissionModel model);
 
-        [Delete("/permissions")]
-        Task<ApiResponse<object>> Delete(PermissionModel model);
+        [Delete("/permissions/{permission}")]
+        Task<ApiResponse<object>> Delete(string permission);
     }
 }

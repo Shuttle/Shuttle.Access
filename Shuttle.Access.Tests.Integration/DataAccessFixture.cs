@@ -1,15 +1,13 @@
 ﻿using System;
+using System.Data.Common;
+using System.Data.SqlClient;
 using System.Transactions;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Data;
 using Shuttle.Core.Transactions;
-#if (NETCOREAPP2_1)
-using System.Data.Common;
-using System.Data.SqlClient;
-#endif
 
-namespace Shuttle.Access.Tests.DataAccess
+namespace Shuttle.Access.Tests.Integration
 {
     [TestFixture]
     public class DataAccessFixture
@@ -17,9 +15,7 @@ namespace Shuttle.Access.Tests.DataAccess
         [SetUp]
         public void DataAccessSetUp()
         {
-#if (NETCOREAPP2_1)
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
-#endif
 
             TransactionScopeFactory =
                 new DefaultTransactionScopeFactory(true, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(120));
@@ -33,7 +29,7 @@ namespace Shuttle.Access.Tests.DataAccess
                 new ConnectionConfiguration(
                     "Access",
                     "System.Data.SqlClient",
-                    "Data Source=.\\sqlexpress;Initial Catalog=Access;Integrated Security=SSPI;"));
+                    "Server=.;Database=Access;User ID=sa;Password=Pass!000"));
 
             DatabaseContextFactory = new DatabaseContextFactory(
                 connectionConfigurationProvider.Object,

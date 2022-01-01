@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
 using NUnit.Framework;
 using Shuttle.Access.Sql;
-using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Tests.DataAccess.Sql
+namespace Shuttle.Access.Tests.Integration.DataAccess.Sql
 {
     public class IdentityQueryFixture : DataAccessFixture
     {
