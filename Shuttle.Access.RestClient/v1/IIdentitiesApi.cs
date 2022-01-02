@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Refit;
-using Shuttle.Access.WebApi.Models.v1;
 
 namespace Shuttle.Access.RestClient.v1
 {

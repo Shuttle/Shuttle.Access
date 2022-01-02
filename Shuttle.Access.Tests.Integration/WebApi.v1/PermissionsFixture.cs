@@ -5,8 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.DataAccess;
-using Shuttle.Access.WebApi.Models.v1;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
+using Shuttle.Esb;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1
 {
@@ -39,7 +40,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content, Is.Not.Null);
-                Assert.That(response.Content.Permissions.Find(item => item.Permission == permission), Is.Not.Null);
+                Assert.That(response.Content.Permissions.Find(item => item == permission), Is.Not.Null);
             }
         }
 
@@ -71,7 +72,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content, Is.Not.Null);
-                Assert.That(response.Content.Find(item => item.Permission == permission), Is.Not.Null);
+                Assert.That(response.Content.Find(item => item == permission), Is.Not.Null);
             }
         }
 
@@ -80,20 +81,16 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         {
             const string permission = "integration://available-permission";
 
-            var permissionQuery = new Mock<IPermissionQuery>();
-            var permissions = new List<string>();
+            var serviceBus = new Mock<IServiceBus>();
 
-            permissionQuery.Setup(m => m.Available()).Returns(permissions);
-            permissionQuery.Setup(m => m.Register(It.IsAny<string>()))
-                .Callback((string registerPermission) => { permissions.Add(registerPermission); });
+            serviceBus.Setup(m => m.Send(It.Is<RegisterPermission>(message => message.Permission.Equals(permission)))).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
                        builder.ConfigureTestServices(services =>
                        {
-                           services.AddSingleton(new Mock<IAuthorizationService>().Object);
-                           services.AddSingleton(new Mock<IDatabaseContextFactory>().Object);
-                           services.AddSingleton(permissionQuery.Object);
+                           services.AddSingleton(serviceBus.Object);
+                           services.AddSingleton(new Mock<IPermissionQuery>().Object);
                        });
                    }).CreateDefaultClient())
             {
@@ -101,14 +98,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
                 client.Login();
 
-                var getResponse = client.Permissions.Get().Result;
-
-                Assert.That(getResponse, Is.Not.Null);
-                Assert.That(getResponse.IsSuccessStatusCode, Is.True);
-                Assert.That(getResponse.Content, Is.Not.Null);
-                Assert.That(getResponse.Content.Find(item => item.Permission == permission), Is.Null);
-
-                var postResponse = client.Permissions.Post(new PermissionModel
+                var postResponse = client.Permissions.Post(new RegisterPermission
                 {
                     Permission = permission
                 }).Result;
@@ -116,12 +106,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(postResponse, Is.Not.Null);
                 Assert.That(postResponse.IsSuccessStatusCode, Is.True);
 
-                getResponse = client.Permissions.Get().Result;
-
-                Assert.That(getResponse, Is.Not.Null);
-                Assert.That(getResponse.IsSuccessStatusCode, Is.True);
-                Assert.That(getResponse.Content, Is.Not.Null);
-                Assert.That(getResponse.Content.Find(item => item.Permission == permission), Is.Not.Null);
+                serviceBus.VerifyAll();
             }
         }
 
@@ -130,20 +115,16 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         {
             const string permission = "integration://available-permission";
 
-            var permissionQuery = new Mock<IPermissionQuery>();
-            var permissions = new List<string> { permission };
+            var serviceBus = new Mock<IServiceBus>();
 
-            permissionQuery.Setup(m => m.Available()).Returns(permissions);
-            permissionQuery.Setup(m => m.Remove(It.IsAny<string>()))
-                .Callback((string deletePermission) => { permissions.Remove(deletePermission); });
+            serviceBus.Setup(m=>m.Send(It.Is<RemovePermission>(message => message.Permission.Equals(permission)))).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
                        builder.ConfigureTestServices(services =>
                        {
-                           services.AddSingleton(new Mock<IAuthorizationService>().Object);
-                           services.AddSingleton(new Mock<IDatabaseContextFactory>().Object);
-                           services.AddSingleton(permissionQuery.Object);
+                           services.AddSingleton(serviceBus.Object);
+                           services.AddSingleton(new Mock<IPermissionQuery>().Object);
                        });
                    }).CreateDefaultClient())
             {
@@ -151,24 +132,12 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
                 client.Login();
 
-                var getResponse = client.Permissions.Get().Result;
+                var getResponse = client.Permissions.Delete(Uri.EscapeDataString(permission)).Result;
 
                 Assert.That(getResponse, Is.Not.Null);
                 Assert.That(getResponse.IsSuccessStatusCode, Is.True);
-                Assert.That(getResponse.Content, Is.Not.Null);
-                Assert.That(getResponse.Content.Find(item => item.Permission == permission), Is.Not.Null);
 
-                var postResponse = client.Permissions.Delete(Uri.EscapeDataString(permission)).Result;
-
-                Assert.That(postResponse, Is.Not.Null);
-                Assert.That(postResponse.IsSuccessStatusCode, Is.True);
-
-                getResponse = client.Permissions.Get().Result;
-
-                Assert.That(getResponse, Is.Not.Null);
-                Assert.That(getResponse.IsSuccessStatusCode, Is.True);
-                Assert.That(getResponse.Content, Is.Not.Null);
-                Assert.That(getResponse.Content.Find(item => item.Permission == permission), Is.Null);
+                serviceBus.VerifyAll();
             }
         }
     }

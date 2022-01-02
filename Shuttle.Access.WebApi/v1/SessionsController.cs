@@ -40,10 +40,7 @@ namespace Shuttle.Access.WebApi.v1
 
             if (string.IsNullOrEmpty(message.IdentityName))
             {
-                return Ok(new
-                {
-                    Success = false
-                });
+                return BadRequest();
             }
 
             var sessionTokenResult = HttpContext.GetAccessSessionToken();
@@ -61,21 +58,14 @@ namespace Shuttle.Access.WebApi.v1
             }
 
             return registerSessionResult.Ok
-                ? Ok(new
+                ? Ok(new SessionRegistered
                 {
-                    Success = true,
-                    registerSessionResult.IdentityName,
-                    Token = registerSessionResult.Token.ToString("n"),
-                    registerSessionResult.TokenExpiryDate,
-                    Permissions = registerSessionResult.Permissions.Select(permission => new
-                    {
-                        Permission = permission
-                    }).ToList()
+                    IdentityName = registerSessionResult.IdentityName,
+                    Token = registerSessionResult.Token,
+                    TokenExpiryDate = registerSessionResult.TokenExpiryDate,
+                    Permissions = registerSessionResult.Permissions.ToList()
                 })
-                : Ok(new
-                {
-                    Success = false
-                });
+                : Problem();
         }
 
 
@@ -87,10 +77,7 @@ namespace Shuttle.Access.WebApi.v1
             if (string.IsNullOrEmpty(message.IdentityName) ||
                 string.IsNullOrEmpty(message.Password) && string.IsNullOrEmpty(message.Token))
             {
-                return Ok(new
-                {
-                    Success = false
-                });
+                return BadRequest();
             }
 
             Guid.TryParse(message.Token, out var token);
@@ -103,21 +90,14 @@ namespace Shuttle.Access.WebApi.v1
             }
 
             return registerSessionResult.Ok
-                ? Ok(new
+                ? Ok(new SessionRegistered
                 {
-                    Success = true,
-                    registerSessionResult.IdentityName,
-                    registerSessionResult.Token,
-                    registerSessionResult.TokenExpiryDate,
-                    Permissions = registerSessionResult.Permissions.Select(permission => new
-                    {
-                        Permission = permission
-                    }).ToList()
+                    IdentityName = registerSessionResult.IdentityName,
+                    Token = registerSessionResult.Token,
+                    TokenExpiryDate = registerSessionResult.TokenExpiryDate,
+                    Permissions = registerSessionResult.Permissions.ToList()
                 })
-                : Ok(new
-                {
-                    Success = false
-                });
+                : Problem();
         }
 
         [RequiresPermission(Permissions.View.Sessions)]
@@ -147,12 +127,9 @@ namespace Shuttle.Access.WebApi.v1
             {
                 var session = _sessionQuery.Get(token);
 
-                if (session == null)
-                {
-                    return BadRequest();
-                }
-
-                return Ok(session);
+                return session == null 
+                    ? BadRequest() 
+                    : Ok(session);
             }
         }
 
@@ -164,15 +141,9 @@ namespace Shuttle.Access.WebApi.v1
             {
                 var session = _sessionRepository.Find(token);
 
-                if (session == null)
-                {
-                    return BadRequest();
-                }
-
-                return Ok(new
-                {
-                    session.Permissions
-                });
+                return session == null
+                    ? BadRequest()
+                    : Ok(session.Permissions);
             }
         }
     }

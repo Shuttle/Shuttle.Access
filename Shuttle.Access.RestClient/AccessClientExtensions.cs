@@ -8,7 +8,7 @@ namespace Shuttle.Access.RestClient
         {
             Guard.AgainstNull(accessClient, nameof(accessClient));
 
-            return accessClient.RegisterSessionResponse != null && accessClient.RegisterSessionResponse.Success;
+            return !string.IsNullOrWhiteSpace(accessClient.Token);
         }
     }
 }

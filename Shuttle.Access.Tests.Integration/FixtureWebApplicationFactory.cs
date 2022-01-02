@@ -7,6 +7,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Shuttle.Access.DataAccess;
+using Shuttle.Core.Data;
+using Shuttle.Esb;
 
 namespace Shuttle.Access.Tests.Integration
 {
@@ -25,8 +27,12 @@ namespace Shuttle.Access.Tests.Integration
                     hostBuilder.ConfigureTestServices(services =>
                     {
                         services.AddSingleton<ISessionService>(new SessionService());
+                        services.AddSingleton(new Mock<IDatabaseContextFactory>().Object);
+                        services.AddSingleton(new Mock<IAuthenticationService>().Object);
+                        services.AddSingleton(new Mock<IAuthorizationService>().Object);
                         services.AddSingleton(new Mock<ISessionRepository>().Object);
                         services.AddSingleton(new Mock<ISessionQuery>().Object);
+                        services.AddSingleton(new Mock<IServiceBus>().Object);
                         services.AddSingleton(accessService.Object);
                     });
                     hostBuilder.UseStartup<TStartup>().UseTestServer();

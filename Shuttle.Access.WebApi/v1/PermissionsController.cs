@@ -16,12 +16,12 @@ namespace Shuttle.Access.WebApi.v1
     [ApiVersion("1")]
     public class PermissionsController : Controller
     {
-        private readonly IServiceBus _serviceBus;
         private readonly IAuthorizationService _authorizationService;
         private readonly IDatabaseContextFactory _databaseContextFactory;
 
         private readonly List<string> _emptyAnonymousPermissions = new();
         private readonly IPermissionQuery _permissionQuery;
+        private readonly IServiceBus _serviceBus;
 
         public PermissionsController(IServiceBus serviceBus, IAuthorizationService authorizationService,
             IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery)
@@ -49,12 +49,13 @@ namespace Shuttle.Access.WebApi.v1
                     : _emptyAnonymousPermissions;
             }
 
-            return Ok(new
+            return Ok(new AnonymousPermissions
             {
                 IsIdentityRequired = permissions.Contains(Permissions.Register.IdentityRequired),
-                Permissions =
+                Permissions = (
                     from permission in permissions
                     select permission
+                ).ToList()
             });
         }
 
@@ -110,6 +111,5 @@ namespace Shuttle.Access.WebApi.v1
 
             return Accepted();
         }
-
     }
 }

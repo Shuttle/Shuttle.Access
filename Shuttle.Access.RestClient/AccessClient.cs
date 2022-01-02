@@ -2,8 +2,8 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Refit;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Access.RestClient.v1;
-using Shuttle.Access.WebApi.Models.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient
@@ -90,25 +90,24 @@ namespace Shuttle.Access.RestClient
                     return;
                 }
 
-                var response = Sessions.Post(new RegisterSessionRequest
+                var response = Sessions.Post(new RegisterSession
                 {
                     IdentityName = _configuration.IdentityName, 
                     Password = _configuration.Password
                 }).Result;
 
-                RegisterSessionResponse = response.Content;
-
                 if (!response.IsSuccessStatusCode ||
-                    RegisterSessionResponse == null ||
-                    !RegisterSessionResponse.Success ||
-                    !RegisterSessionResponse.Token.HasValue)
+                    response.Content == null)
                 {
                     throw new ApiException(Resources.LoginException);
                 }
 
-                _handler.Token = RegisterSessionResponse.Token.ToString();
+                Token = response.Content.Token;
+                _handler.Token = Token;
             }
         }
+
+        public string Token { get; private set; }
 
         public void Activate(string name, DateTime dateActivated)
         {
@@ -163,8 +162,6 @@ namespace Shuttle.Access.RestClient
             //}
         }
 
-        public RegisterSessionResponse RegisterSessionResponse { get; private set; }
-
         public IServerApi Server { get; }
         public IPermissionsApi Permissions { get; }
 
@@ -208,7 +205,7 @@ namespace Shuttle.Access.RestClient
 
         private void ResetSession()
         {
-            RegisterSessionResponse = null;
+            Token = null;
         }
 
         public void Activate(dynamic model)

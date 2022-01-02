@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Refit;
-using Shuttle.Access.WebApi.Models.v1;
+using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access.RestClient.v1
 {
     public interface ISessionsApi
     {
         [Post("/sessions")]
-        Task<ApiResponse<RegisterSessionResponse>> Post(RegisterSessionRequest request);
+        Task<ApiResponse<RegisterSession>> Post(RegisterSession message);
 
         [Post("/sessions/delegated")]
-        Task<ApiResponse<RegisterSessionResponse>> Post(RegisterDelegatedSessionRequest request);
+        Task<ApiResponse<SessionRegistered>> Post(RegisterDelegatedSession message);
 
         [Delete("/sessions")]
         Task<ApiResponse<object>> Delete();

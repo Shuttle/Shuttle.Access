@@ -12,12 +12,12 @@
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
 		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
 		<description>Infrastructure components for use in Mvc/Web-Api Shuttle.Access implementations that retrieve the session information from the rest api.</description>
-		<copyright>Copyright (c) 2021, Eben Roux</copyright>
+		<copyright>Copyright (c) 2022, Eben Roux</copyright>
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
       <dependency id="RestSharp" version="106.12.0" />
       <dependency id="Shuttle.Access" version="4.0.0" />
-      <dependency id="Shuttle.Access.Application" version="3.0.1" />
+      <dependency id="Shuttle.Access.Application" version="4.0.0" />
 		</dependencies>
 	</metadata>
 	<files>
