@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
-using Shuttle.Access.WebApi.Models.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
+using Shuttle.Esb;
 
 namespace Shuttle.Access.WebApi.v1
 {
@@ -15,19 +16,22 @@ namespace Shuttle.Access.WebApi.v1
     [ApiVersion("1")]
     public class PermissionsController : Controller
     {
+        private readonly IServiceBus _serviceBus;
         private readonly IAuthorizationService _authorizationService;
         private readonly IDatabaseContextFactory _databaseContextFactory;
 
-        private readonly List<string> _emptyAnonymousPermissions = new List<string>();
+        private readonly List<string> _emptyAnonymousPermissions = new();
         private readonly IPermissionQuery _permissionQuery;
 
-        public PermissionsController(IAuthorizationService authorizationService,
+        public PermissionsController(IServiceBus serviceBus, IAuthorizationService authorizationService,
             IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery)
         {
+            Guard.AgainstNull(serviceBus, nameof(serviceBus));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(permissionQuery, nameof(permissionQuery));
 
+            _serviceBus = serviceBus;
             _authorizationService = authorizationService;
             _databaseContextFactory = databaseContextFactory;
             _permissionQuery = permissionQuery;
@@ -50,10 +54,7 @@ namespace Shuttle.Access.WebApi.v1
                 IsIdentityRequired = permissions.Contains(Permissions.Register.IdentityRequired),
                 Permissions =
                     from permission in permissions
-                    select new PermissionModel
-                    {
-                        Permission = permission
-                    }
+                    select permission
             });
         }
 
@@ -63,34 +64,26 @@ namespace Shuttle.Access.WebApi.v1
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(_permissionQuery.Available()
-                    .Select(permission => new PermissionModel
-                    {
-                        Permission = permission
-                    }).ToList()
-                );
+                return Ok(_permissionQuery.Available().ToList());
             }
         }
 
         [HttpPost]
         [RequiresPermission(Permissions.Register.Permission)]
-        public IActionResult Post([FromBody] PermissionModel model)
+        public IActionResult Post([FromBody] RegisterPermission message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
 
-            using (_databaseContextFactory.Create())
-            {
-                _permissionQuery.Register(model.Permission);
-            }
+            _serviceBus.Send(message);
 
-            return Ok();
+            return Accepted();
         }
 
         [HttpDelete("{permission}")]
@@ -110,12 +103,12 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(ex.Message);
             }
 
-            using (_databaseContextFactory.Create())
+            _serviceBus.Send(new RemovePermission
             {
-                _permissionQuery.Remove(decoded);
-            }
+                Permission = decoded
+            });
 
-            return Ok();
+            return Accepted();
         }
 
     }

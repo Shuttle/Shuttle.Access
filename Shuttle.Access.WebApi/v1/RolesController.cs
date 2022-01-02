@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
-using Shuttle.Access.WebApi.Models.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
@@ -35,34 +34,29 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPost("setpermission")]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult SetPermission([FromBody] SetRolePermissionModel model)
+        public IActionResult SetPermission([FromBody] SetRolePermissionStatus message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
 
-            _bus.Send(new SetRolePermissionCommand
-            {
-                RoleId = model.RoleId,
-                Permission = model.Permission,
-                Active = model.Active
-            });
+            _bus.Send(message);
 
-            return Ok();
+            return Accepted();
         }
 
         [HttpPost("permissionstatus")]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult PermissionStatus([FromBody] RolePermissionStatusModel model)
+        public IActionResult PermissionStatus([FromBody] GetRolePermissionStatus message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -73,12 +67,12 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                permissions = _roleQuery.Permissions(model.RoleId).ToList();
+                permissions = _roleQuery.Permissions(message.RoleId).ToList();
             }
 
             return Ok(
-                from permission in model.Permissions
-                select new
+                from permission in message.Permissions
+                select new RolePermissionStatus
                 {
                     Permission = permission,
                     Active = permissions.Find(item => item.Equals(permission)) != null
@@ -105,7 +99,7 @@ namespace Shuttle.Access.WebApi.v1
                 var role = _roleQuery.Search(new DataAccess.Query.Role.Specification().WithRoleId(id).IncludePermissions()).FirstOrDefault();
 
                 return role != null
-                    ? (IActionResult) Ok(role)
+                    ? Ok(role)
                     : BadRequest();
             }
         }
@@ -114,33 +108,30 @@ namespace Shuttle.Access.WebApi.v1
         [RequiresPermission(Permissions.Remove.Role)]
         public IActionResult Delete(Guid id)
         {
-            _bus.Send(new RemoveRoleCommand
+            _bus.Send(new RemoveRole
             {
                 Id = id
             });
 
-            return Ok();
+            return Accepted();
         }
 
         [HttpPost]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult Post([FromBody] AddRoleModel model)
+        public IActionResult Post([FromBody] AddRole message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
 
-            _bus.Send(new AddRoleCommand
-            {
-                Name = model.Name
-            });
+            _bus.Send(message);
 
-            return Ok();
+            return Accepted();
         }
     }
 }

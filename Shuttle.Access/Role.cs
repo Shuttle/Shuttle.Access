@@ -9,7 +9,7 @@ namespace Shuttle.Access
     {
         private readonly Guid _id;
         private readonly List<string> _permissions = new List<string>();
-        private string _name;
+        public string Name { get; private set; }
 
         public Role(Guid id)
         {
@@ -28,7 +28,7 @@ namespace Shuttle.Access
         {
             Guard.AgainstNull(added, nameof(added));
 
-            _name = added.Name;
+            Name = added.Name;
 
             return added;
         }
@@ -45,7 +45,7 @@ namespace Shuttle.Access
             if (HasPermission(permission))
             {
                 throw new InvalidOperationException(string.Format(Resources.DuplicatePermissionException, permission,
-                    _name));
+                    Name));
             }
 
             return On(new PermissionAdded {Permission = permission});
@@ -72,7 +72,7 @@ namespace Shuttle.Access
             if (!HasPermission(permission))
             {
                 throw new InvalidOperationException(string.Format(Resources.PermissionNotFoundException, permission,
-                    _name));
+                    Name));
             }
 
             return On(new PermissionRemoved {Permission = permission});

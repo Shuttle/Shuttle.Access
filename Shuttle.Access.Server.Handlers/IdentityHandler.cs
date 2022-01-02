@@ -11,11 +11,11 @@ using Shuttle.Recall.Sql.Storage;
 namespace Shuttle.Access.Server.Handlers
 {
     public class IdentityHandler :
-        IMessageHandler<RegisterIdentityCommand>,
-        IMessageHandler<SetIdentityRoleCommand>,
+        IMessageHandler<RegisterIdentity>,
+        IMessageHandler<SetIdentityRoleStatus>,
         IMessageHandler<RemoveIdentityCommand>,
-        IMessageHandler<SetPasswordCommand>,
-        IMessageHandler<ActivateIdentityCommand>
+        IMessageHandler<SetPassword>,
+        IMessageHandler<ActivateIdentity>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
@@ -39,7 +39,7 @@ namespace Shuttle.Access.Server.Handlers
             _roleQuery = roleQuery;
         }
 
-        public void ProcessMessage(IHandlerContext<RegisterIdentityCommand> context)
+        public void ProcessMessage(IHandlerContext<RegisterIdentity> context)
         {
             Guard.AgainstNull(context, nameof(context));
             
@@ -95,7 +95,7 @@ namespace Shuttle.Access.Server.Handlers
 
                     if (roles.Count != 1)
                     {
-                        context.Send(new AddRoleCommand
+                        context.Send(new AddRole
                         {
                             Name = "Administrator"
                         }, c => c.Local());
@@ -121,7 +121,7 @@ namespace Shuttle.Access.Server.Handlers
                 _eventStore.Save(stream);
             }
 
-            context.Publish(new IdentityRegisteredEvent
+            context.Publish(new IdentityRegistered
             {
                 Name = message.Name,
                 RegisteredBy = message.RegisteredBy,
@@ -149,7 +149,7 @@ namespace Shuttle.Access.Server.Handlers
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetIdentityRoleCommand> context)
+        public void ProcessMessage(IHandlerContext<SetIdentityRoleStatus> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -176,7 +176,7 @@ namespace Shuttle.Access.Server.Handlers
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetPasswordCommand> context)
+        public void ProcessMessage(IHandlerContext<SetPassword> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -194,17 +194,39 @@ namespace Shuttle.Access.Server.Handlers
             }
         }
 
-        public void ProcessMessage(IHandlerContext<ActivateIdentityCommand> context)
+        public void ProcessMessage(IHandlerContext<ActivateIdentity> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
             var message = context.Message;
             var now = DateTime.Now;
 
+            var specification = new DataAccess.Query.Identity.Specification();
+
+            if (message.Id.HasValue)
+            {
+                specification.WithIdentityId(message.Id.Value);
+            }
+            else
+            {
+                specification.WithName(message.Name);
+            }
+
+            Guid id;
+
             using (_databaseContextFactory.Create())
             {
-                var identity = new Identity(message.Id);
-                var stream = _eventStore.Get(message.Id);
+                var query = _identityQuery.Search(specification).FirstOrDefault();
+
+                if (query == null)
+                {
+                    return;
+                }
+
+                id = query.Id;
+
+                var identity = new Identity(id);
+                var stream = _eventStore.Get(id);
 
                 stream.Apply(identity);
                 stream.AddEvent(identity.Activate(now));
@@ -212,9 +234,9 @@ namespace Shuttle.Access.Server.Handlers
                 _eventStore.Save(stream);
             }
 
-            context.Publish(new IdentityActivatedEvent
+            context.Publish(new IdentityActivated
             {
-                Id = message.Id,
+                Id = id,
                 DateActivated = now
             });
         }

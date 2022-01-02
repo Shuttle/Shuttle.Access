@@ -29,9 +29,11 @@ namespace Shuttle.Access.RestClient
             Server = RestService.For<IServerApi>(client);
             Permissions = RestService.For<IPermissionsApi>(client);
             Sessions = RestService.For<ISessionsApi>(client);
+            Identities = RestService.For<IIdentitiesApi>(client);
         }
 
         public ISessionsApi Sessions { get; }
+        public IIdentitiesApi Identities { get; }
 
         public void Register(string name, string password, string system)
         {

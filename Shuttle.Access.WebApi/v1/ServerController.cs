@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access.WebApi.v1
 {
@@ -13,7 +14,7 @@ namespace Shuttle.Access.WebApi.v1
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
 
-            return Ok(new ServerConfigurationResponse { Version = $"{version.Major}.{version.Minor}.{version.Build}" });
+            return Ok(new ServerConfiguration { Version = $"{version.Major}.{version.Minor}.{version.Build}" });
         }
     }
 }

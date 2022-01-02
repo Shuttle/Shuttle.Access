@@ -24,5 +24,10 @@
             public const string Identity = "access://identity/remove";
             public const string Permission = "access://permission/remove";
         }
+
+        public static class Activate
+        {
+            public const string Identity = "access://identity/activate";
+        }
     }
 }

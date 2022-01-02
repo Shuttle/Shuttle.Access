@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
-using Shuttle.Access.WebApi.Models.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
@@ -34,11 +34,11 @@ namespace Shuttle.Access.WebApi.v1
         }
 
         [HttpPost("delegated")]
-        public IActionResult Post([FromBody] RegisterDelegatedSessionRequest request)
+        public IActionResult Post([FromBody] RegisterDelegatedSession message)
         {
-            Guard.AgainstNull(request, nameof(request));
+            Guard.AgainstNull(message, nameof(message));
 
-            if (string.IsNullOrEmpty(request.IdentityName))
+            if (string.IsNullOrEmpty(message.IdentityName))
             {
                 return Ok(new
                 {
@@ -57,7 +57,7 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                registerSessionResult = _sessionService.Register(request.IdentityName, sessionTokenResult.SessionToken);
+                registerSessionResult = _sessionService.Register(message.IdentityName, sessionTokenResult.SessionToken);
             }
 
             return registerSessionResult.Ok
@@ -80,12 +80,12 @@ namespace Shuttle.Access.WebApi.v1
 
 
         [HttpPost]
-        public IActionResult Post([FromBody] RegisterSessionRequest request)
+        public IActionResult Post([FromBody] RegisterSession message)
         {
-            Guard.AgainstNull(request, nameof(request));
+            Guard.AgainstNull(message, nameof(message));
 
-            if (string.IsNullOrEmpty(request.IdentityName) ||
-                string.IsNullOrEmpty(request.Password) && string.IsNullOrEmpty(request.Token))
+            if (string.IsNullOrEmpty(message.IdentityName) ||
+                string.IsNullOrEmpty(message.Password) && string.IsNullOrEmpty(message.Token))
             {
                 return Ok(new
                 {
@@ -93,13 +93,13 @@ namespace Shuttle.Access.WebApi.v1
                 });
             }
 
-            Guid.TryParse(request.Token, out var token);
+            Guid.TryParse(message.Token, out var token);
 
             RegisterSessionResult registerSessionResult;
 
             using (_databaseContextFactory.Create())
             {
-                registerSessionResult = _sessionService.Register(request.IdentityName, request.Password, token);
+                registerSessionResult = _sessionService.Register(message.IdentityName, message.Password, token);
             }
 
             return registerSessionResult.Ok

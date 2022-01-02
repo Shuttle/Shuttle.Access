@@ -71,8 +71,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{54
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.RestClient", "Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj", "{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.WebApi.Models", "Shuttle.Access.WebApi.Models\Shuttle.Access.WebApi.Models.csproj", "{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,10 +151,6 @@ Global
 		{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8C0552D8-35B1-41BF-A207-355FC7DBCEDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

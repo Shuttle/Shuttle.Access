@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
-using Shuttle.Access.WebApi.Models.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
@@ -20,7 +19,7 @@ namespace Shuttle.Access.WebApi.v1
     {
         private readonly IAuthenticationService _authenticationService;
         private readonly IAuthorizationService _authorizationService;
-        private readonly IServiceBus _bus;
+        private readonly IServiceBus _serviceBus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
         private readonly IHashingService _hashingService;
@@ -28,15 +27,16 @@ namespace Shuttle.Access.WebApi.v1
         private readonly ISessionRepository _sessionRepository;
         private readonly IRoleQuery _roleQuery;
         private readonly IIdentityQuery _identityQuery;
+        private readonly IAccessService _accessService;
 
-        public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus bus,
+        public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus,
             IHashingService hashingService, ISessionRepository sessionRepository,
             IAuthenticationService authenticationService, IAuthorizationService authorizationService,
             IIdentityQuery identityQuery, IRoleQuery roleQuery, IEventStore eventStore,
-            IPasswordGenerator passwordGenerator)
+            IPasswordGenerator passwordGenerator, IAccessService accessService)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            Guard.AgainstNull(bus, nameof(bus));
+            Guard.AgainstNull(serviceBus, nameof(serviceBus));
             Guard.AgainstNull(hashingService, nameof(hashingService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
@@ -45,9 +45,10 @@ namespace Shuttle.Access.WebApi.v1
             Guard.AgainstNull(roleQuery, nameof(roleQuery));
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(passwordGenerator, nameof(passwordGenerator));
+            Guard.AgainstNull(accessService, nameof(accessService));
 
             _databaseContextFactory = databaseContextFactory;
-            _bus = bus;
+            _serviceBus = serviceBus;
             _hashingService = hashingService;
             _sessionRepository = sessionRepository;
             _authenticationService = authenticationService;
@@ -56,6 +57,7 @@ namespace Shuttle.Access.WebApi.v1
             _roleQuery = roleQuery;
             _eventStore = eventStore;
             _passwordGenerator = passwordGenerator;
+            _accessService = accessService;
         }
 
         [HttpGet]
@@ -98,24 +100,21 @@ namespace Shuttle.Access.WebApi.v1
         [RequiresPermission(Permissions.Remove.Identity)]
         public IActionResult Delete(Guid id)
         {
-            _bus.Send(new RemoveIdentityCommand
+            _serviceBus.Send(new RemoveIdentityCommand
             {
                 Id = id
             });
 
-            return Ok(new
-            {
-                Success = true
-            });
+            return Accepted();
         }
 
-        [HttpPost("setrole")]
+        [HttpPost("setrolestatus")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult SetRole([FromBody] SetIdentityRoleModel model)
+        public IActionResult SetRole([FromBody] SetIdentityRoleStatus message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -131,40 +130,28 @@ namespace Shuttle.Access.WebApi.v1
                 {
                     var role = roles[0];
 
-                    if (model.RoleId.Equals(role.Id)
+                    if (message.RoleId.Equals(role.Id)
                         &&
-                        !model.Active
+                        !message.Active
                         &&
                         _identityQuery.AdministratorCount() == 1)
                     {
-                        return Ok(new
-                        {
-                            Success = false,
-                            FailureReason = "last-administrator"
-                        });
+                        return BadRequest("last-administrator");
                     }
                 }
             }
 
-            _bus.Send(new SetIdentityRoleCommand
-            {
-                IdentityId = model.IdentityId,
-                RoleId = model.RoleId,
-                Active = model.Active
-            });
+            _serviceBus.Send(message);
 
-            return Ok(new
-            {
-                Success = true
-            });
+            return Accepted();
         }
 
-        [HttpPost("setpassword")]
-        public IActionResult SetPassword([FromBody] SetPasswordModel model)
+        [HttpPost("changepassword")]
+        public IActionResult ChangePassword([FromBody] ChangePassword message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -178,7 +165,7 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(Access.Resources.SessionTokenException);
             }
 
-            var passwordHash = _hashingService.Sha256(model.NewPassword);
+            var passwordHash = _hashingService.Sha256(message.NewPassword);
 
             using (_databaseContextFactory.Create())
             {
@@ -189,9 +176,9 @@ namespace Shuttle.Access.WebApi.v1
                     return BadRequest(Access.Resources.SessionTokenException);
                 }
 
-                if (!string.IsNullOrWhiteSpace(model.OldPassword) && string.IsNullOrWhiteSpace(model.Token))
+                if (!string.IsNullOrWhiteSpace(message.OldPassword) && string.IsNullOrWhiteSpace(message.Token))
                 {
-                    var authenticationResult = _authenticationService.Authenticate(session.IdentityName, model.OldPassword);
+                    var authenticationResult = _authenticationService.Authenticate(session.IdentityName, message.OldPassword);
 
                     if (!authenticationResult.Authenticated)
                     {
@@ -208,19 +195,16 @@ namespace Shuttle.Access.WebApi.v1
                 _eventStore.Save(stream);
             }
 
-            return Ok(new
-            {
-                Success = true
-            });
+            return Accepted();
         }
 
         [HttpPost("resetpassword")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult ResetPassword([FromBody] ResetPasswordModel model)
+        public IActionResult ResetPassword([FromBody] ResetPassword message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -234,11 +218,11 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(Access.Resources.SessionTokenException);
             }
 
-            var passwordHash = _hashingService.Sha256(model.Password);
+            var passwordHash = _hashingService.Sha256(message.Password);
 
             using (_databaseContextFactory.Create())
             {
-                var queryIdentity = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(model.Name)).SingleOrDefault();
+                var queryIdentity = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(message.Name)).SingleOrDefault();
 
                 if (queryIdentity == null)
                 {
@@ -250,7 +234,7 @@ namespace Shuttle.Access.WebApi.v1
 
                 stream.Apply(identity);
 
-                if (identity.HasPasswordResetToken && identity.PasswordResetToken == model.PasswordResetToken)
+                if (identity.HasPasswordResetToken && identity.PasswordResetToken == message.PasswordResetToken)
                 {
                     stream.AddEvent(identity.SetPassword(passwordHash));
 
@@ -262,19 +246,16 @@ namespace Shuttle.Access.WebApi.v1
                 }
             }
 
-            return Ok(new
-            {
-                Success = true
-            });
+            return Ok();
         }
 
         [HttpPost("rolestatus")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult RoleStatus([FromBody] IdentityRoleStatusModel model)
+        public IActionResult RoleStatus([FromBody] GetIdentityRoleStatus message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -285,13 +266,13 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                roles = _identityQuery.RoleIds(new DataAccess.Query.Identity.Specification().WithIdentityId(model.IdentityId))
+                roles = _identityQuery.RoleIds(new DataAccess.Query.Identity.Specification().WithIdentityId(message.IdentityId))
                     .ToList();
             }
 
             return Ok(
-                from roleId in model.RoleIds
-                select new
+                from roleId in message.RoleIds
+                select new IdentityRoleStatus
                 {
                     RoleId = roleId,
                     Active = roles.Any(item => item.Equals(roleId))
@@ -301,11 +282,11 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPost("activate")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult Activate([FromBody] IdentityActivateModel model)
+        public IActionResult Activate([FromBody] ActivateIdentity message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -314,13 +295,13 @@ namespace Shuttle.Access.WebApi.v1
 
             var specification = new DataAccess.Query.Identity.Specification();
 
-            if (model.Id.HasValue)
+            if (message.Id.HasValue)
             {
-                specification.WithIdentityId(model.Id.Value);
+                specification.WithIdentityId(message.Id.Value);
             }
             else
             {
-                specification.WithName(model.Name);
+                specification.WithName(message.Name);
             }
             
             using (_databaseContextFactory.Create())
@@ -332,29 +313,19 @@ namespace Shuttle.Access.WebApi.v1
                     return BadRequest();
                 }
 
-                var stream = _eventStore.Get(query.Id);
-                var identity = new Identity(query.Id);
-                
-                stream.Apply(identity);
-
-                if (!identity.Activated)
-                {
-                    stream.AddEvent(identity.Activate(model.DateActivated));
-
-                    _eventStore.Save(stream);
-                }
+                _serviceBus.Send(message);
             }
 
-            return Ok();
+            return Accepted();
         }
 
         [HttpPost("getpasswordresettoken")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult GetPasswordResetToken([FromBody] GetPasswordResetTokenModel model)
+        public IActionResult GetPasswordResetToken([FromBody] GetPasswordResetToken message)
         {
             try
             {
-                model.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -363,7 +334,7 @@ namespace Shuttle.Access.WebApi.v1
             
             using (_databaseContextFactory.Create())
             {
-                var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(model.Name)).SingleOrDefault();
+                var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(message.Name)).SingleOrDefault();
 
                 if (query == null)
                 {
@@ -384,10 +355,7 @@ namespace Shuttle.Access.WebApi.v1
                         _eventStore.Save(stream);
                     }
 
-                    return Ok(new
-                    {
-                        PasswordResetToken = identity.PasswordResetToken ?? Guid.Empty
-                    });
+                    return Ok(identity.PasswordResetToken);
                 }
                 else
                 {
@@ -397,13 +365,13 @@ namespace Shuttle.Access.WebApi.v1
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody] RegisterIdentityRequest request)
+        public IActionResult Post([FromBody] RegisterIdentity message)
         {
-            Guard.AgainstNull(request, nameof(request));
+            Guard.AgainstNull(message, nameof(message));
 
             try
             {
-                request.ApplyInvariants();
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -448,23 +416,25 @@ namespace Shuttle.Access.WebApi.v1
 
             var generatedPassword = string.Empty;
 
-            if (string.IsNullOrWhiteSpace(request.Password))
+            if (string.IsNullOrWhiteSpace(message.Password))
             {
                 generatedPassword = _passwordGenerator.Generate();
-                request.Password = generatedPassword;
+                message.Password = generatedPassword;
             }
 
-            _bus.Send(new RegisterIdentityCommand
+            var sessionTokenResult = HttpContext.GetAccessSessionToken();
+
+            _serviceBus.Send(new RegisterIdentity
             {
-                Name = request.Name,
-                PasswordHash = _hashingService.Sha256(request.Password),
+                Name = message.Name,
+                PasswordHash = _hashingService.Sha256(message.Password),
                 RegisteredBy = registeredBy,
                 GeneratedPassword = generatedPassword,
-                Activated = request.Activated,
-                System = request.System
+                Activated = message.Activated && sessionTokenResult.Ok && _accessService.HasPermission(sessionTokenResult.SessionToken, Permissions.Activate.Identity),
+                System = message.System
             });
 
-            return Ok();
+            return Accepted();
         }
     }
 }
