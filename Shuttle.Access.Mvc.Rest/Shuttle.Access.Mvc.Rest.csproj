@@ -16,7 +16,7 @@
   <ItemGroup>
     <PackageReference Include="RestSharp" Version="106.12.0" />
     <PackageReference Include="Shuttle.Access" Version="4.0.0" />
-    <PackageReference Include="Shuttle.Access.Application" Version="4.0.0" />
+    <PackageReference Include="Shuttle.Access.RestClient" Version="1.0.0" />
   </ItemGroup>
 
 </Project>

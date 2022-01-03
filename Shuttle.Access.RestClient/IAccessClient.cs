@@ -12,6 +12,6 @@ namespace Shuttle.Access.RestClient
         IPermissionsApi Permissions { get; }
         ISessionsApi Sessions { get; }
         IIdentitiesApi Identities { get; }
-        string Token { get; }
+        Guid? Token { get; }
     }
 }

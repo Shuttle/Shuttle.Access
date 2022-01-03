@@ -28,7 +28,6 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        builder.ConfigureTestServices(services =>
                        {
                            services.AddSingleton(authorizationService.Object);
-                           services.AddSingleton(new Mock<IDatabaseContextFactory>().Object);
                            services.AddSingleton(new Mock<IPermissionQuery>().Object);
                        });
                    }).CreateClient())

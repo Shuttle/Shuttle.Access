@@ -6,12 +6,12 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application
 {
-    public class IdentityRoleStatusParticipant : IParticipant<RequestResponse<SetIdentityRoleStatus, ReviewResponse>>
+    public class ReviewSetIdentityRoleStatusParticipant : IParticipant<ReviewRequest<SetIdentityRoleStatus>>
     {
         private readonly IRoleQuery _roleQuery;
         private readonly IIdentityQuery _identityQuery;
 
-        public IdentityRoleStatusParticipant(IRoleQuery roleQuery, IIdentityQuery identityQuery)
+        public ReviewSetIdentityRoleStatusParticipant(IRoleQuery roleQuery, IIdentityQuery identityQuery)
         {
             Guard.AgainstNull(roleQuery, nameof(roleQuery));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
@@ -20,7 +20,7 @@ namespace Shuttle.Access.Application
             _identityQuery = identityQuery;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponse<SetIdentityRoleStatus, ReviewResponse>> context)
+        public void ProcessMessage(IParticipantContext<ReviewRequest<SetIdentityRoleStatus>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -41,7 +41,7 @@ namespace Shuttle.Access.Application
                 &&
                 _identityQuery.AdministratorCount() == 1)
             {
-                context.Message.Response.Failed("last-administrator");
+                context.Message.Failed("last-administrator");
             }
         }
     }

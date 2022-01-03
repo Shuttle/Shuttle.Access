@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
+using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
+using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
@@ -21,22 +23,25 @@ namespace Shuttle.Access.Server.Handlers
         private readonly IEventStore _eventStore;
         private readonly IKeyStore _keyStore;
         private readonly IRoleQuery _roleQuery;
+        private readonly IMediator _mediator;
         private readonly IIdentityQuery _identityQuery;
 
         public IdentityHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore,
-            IIdentityQuery identityQuery, IRoleQuery roleQuery)
+            IIdentityQuery identityQuery, IRoleQuery roleQuery, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(keyStore, nameof(keyStore));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
             Guard.AgainstNull(roleQuery, nameof(roleQuery));
+            Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
             _eventStore = eventStore;
             _keyStore = keyStore;
             _identityQuery = identityQuery;
             _roleQuery = roleQuery;
+            _mediator = mediator;
         }
 
         public void ProcessMessage(IHandlerContext<RegisterIdentity> context)
@@ -157,22 +162,16 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var identity = new Identity(message.IdentityId);
-                var stream = _eventStore.Get(message.IdentityId);
+                var reviewRequest = new ReviewRequest<SetIdentityRoleStatus>(message);
 
-                stream.Apply(identity);
+                _mediator.Send(reviewRequest);
 
-                if (message.Active && !identity.IsInRole(message.RoleId))
+                if (!reviewRequest.Ok)
                 {
-                    stream.AddEvent(identity.AddRole(message.RoleId));
+                    return;
                 }
 
-                if (!message.Active && identity.IsInRole(message.RoleId))
-                {
-                    stream.AddEvent(identity.RemoveRole(message.RoleId));
-                }
-
-                _eventStore.Save(stream);
+                _mediator.Send(message);
             }
         }
 

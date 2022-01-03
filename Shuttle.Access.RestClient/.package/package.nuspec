@@ -12,12 +12,13 @@
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
 		<projectUrl>https://github.com/Shuttle/Shuttle.Access</projectUrl>
 		<description>A client used to interact with the restful Shuttle.Access web API.</description>
-		<copyright>Copyright (c) 2021, Eben Roux</copyright>
+		<copyright>Copyright (c) 2022, Eben Roux</copyright>
 		<tags>rest iam identity access</tags>
 		<dependencies>
       <dependency id="Refit" version="6.1.15" />
+      <dependency id="Refit.HttpClientFactory" version="6.1.15" />
       <dependency id="Shuttle.Access" version="4.0.0" />
-      <dependency id="Shuttle.Access.WebApi.Models" version="1.0.0" />
+      <dependency id="Shuttle.Access.Messages" version="2.0.0" />
       <dependency id="Shuttle.Core.Configuration" version="10.0.4" />
       <dependency id="Shuttle.Core.Contract" version="10.0.3" />
       <dependency id="System.Configuration.ConfigurationManager" version="5.0.0" />

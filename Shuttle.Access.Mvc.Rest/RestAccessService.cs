@@ -1,5 +1,5 @@
 ﻿using System;
-using Shuttle.Access.Application;
+using Shuttle.Access.RestClient;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Mvc.Rest
@@ -54,11 +54,12 @@ namespace Shuttle.Access.Mvc.Rest
                 return;
             }
 
-            var session = _accessClient.GetSession(token);
+            var session = _accessClient.Sessions.Get(token).Result;
 
-            if (session != null)
+            if (session.IsSuccessStatusCode &&
+                session.Content != null)
             {
-                Cache(token, session.Data.Permissions, _configuration.SessionDuration);
+                Cache(token, session.Content.Permissions, _configuration.SessionDuration);
             }
         }
     }

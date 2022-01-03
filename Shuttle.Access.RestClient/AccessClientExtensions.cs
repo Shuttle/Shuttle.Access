@@ -1,4 +1,5 @@
-﻿using Shuttle.Core.Contract;
+﻿using System;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient
 {
@@ -8,7 +9,7 @@ namespace Shuttle.Access.RestClient
         {
             Guard.AgainstNull(accessClient, nameof(accessClient));
 
-            return !string.IsNullOrWhiteSpace(accessClient.Token);
+            return accessClient.Token.HasValue && !accessClient.Token.Equals(Guid.Empty);
         }
     }
 }

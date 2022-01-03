@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
+using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 using Shuttle.Recall;
+using SetIdentityRoleStatus = Shuttle.Access.Messages.v1.SetIdentityRoleStatus;
 
 namespace Shuttle.Access.WebApi.v1
 {
@@ -28,12 +31,13 @@ namespace Shuttle.Access.WebApi.v1
         private readonly IRoleQuery _roleQuery;
         private readonly IIdentityQuery _identityQuery;
         private readonly IAccessService _accessService;
+        private readonly IMediator _mediator;
 
         public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus,
             IHashingService hashingService, ISessionRepository sessionRepository,
             IAuthenticationService authenticationService, IAuthorizationService authorizationService,
             IIdentityQuery identityQuery, IRoleQuery roleQuery, IEventStore eventStore,
-            IPasswordGenerator passwordGenerator, IAccessService accessService)
+            IPasswordGenerator passwordGenerator, IAccessService accessService, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(serviceBus, nameof(serviceBus));
@@ -46,6 +50,7 @@ namespace Shuttle.Access.WebApi.v1
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(passwordGenerator, nameof(passwordGenerator));
             Guard.AgainstNull(accessService, nameof(accessService));
+            Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
             _serviceBus = serviceBus;
@@ -58,6 +63,7 @@ namespace Shuttle.Access.WebApi.v1
             _eventStore = eventStore;
             _passwordGenerator = passwordGenerator;
             _accessService = accessService;
+            _mediator = mediator;
         }
 
         [HttpGet]
@@ -123,21 +129,13 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                var roles = _roleQuery.Search(
-                    new DataAccess.Query.Role.Specification().WithRoleName("Administrator")).ToList();
+                var reviewRequest = new ReviewRequest<SetIdentityRoleStatus>(message);
 
-                if (roles.Count == 1)
+                _mediator.Send(reviewRequest);
+
+                if (!reviewRequest.Ok)
                 {
-                    var role = roles[0];
-
-                    if (message.RoleId.Equals(role.Id)
-                        &&
-                        !message.Active
-                        &&
-                        _identityQuery.AdministratorCount() == 1)
-                    {
-                        return BadRequest("last-administrator");
-                    }
+                    return BadRequest(reviewRequest.Message);
                 }
             }
 

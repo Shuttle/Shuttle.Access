@@ -103,11 +103,11 @@ namespace Shuttle.Access.RestClient
                 }
 
                 Token = response.Content.Token;
-                _handler.Token = Token;
+                _handler.Token = Token.Value.ToString("n");
             }
         }
 
-        public string Token { get; private set; }
+        public Guid? Token { get; private set; }
 
         public void Activate(string name, DateTime dateActivated)
         {

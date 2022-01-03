@@ -9,7 +9,7 @@ namespace Shuttle.Access.RestClient.v1
     public interface ISessionsApi
     {
         [Post("/sessions")]
-        Task<ApiResponse<RegisterSession>> Post(RegisterSession message);
+        Task<ApiResponse<SessionRegistered>> Post(RegisterSession message);
 
         [Post("/sessions/delegated")]
         Task<ApiResponse<SessionRegistered>> Post(RegisterDelegatedSession message);
