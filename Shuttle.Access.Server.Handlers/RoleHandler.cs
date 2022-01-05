@@ -86,7 +86,7 @@ namespace Shuttle.Access.Server.Handlers
             }
 
             context.Publish(new RoleRemoved
-            {
+            {   
                 Id = message.Id,
                 Name = role.Name
             });

@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net5</TargetFrameworks>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
     <ItemGroup>
@@ -15,10 +15,11 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj"/>
       <ProjectReference Include="..\Shuttle.Access.Mvc.DataStore\Shuttle.Access.Mvc.DataStore.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Mvc.Rest\Shuttle.Access.Mvc.Rest.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj" />
-      <ProjectReference Include="..\Shuttle.Access.Server.Handlers\Shuttle.Access.Server.Handlers.csproj" />
+      <ProjectReference Include="..\Shuttle.Access.Server.Handlers\Shuttle.Access.Server.Handlers.csproj"/>
       <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
     </ItemGroup>
 

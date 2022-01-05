@@ -5,11 +5,11 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application
 {
-    public class SetIdentityStatusRoleParticipant : IParticipant<SetIdentityRoleStatus>
+    public class SetIdentityRoleStatusParticipant : IParticipant<SetIdentityRoleStatus>
     {
         private readonly IEventStore _eventStore;
 
-        public SetIdentityStatusRoleParticipant(IEventStore eventStore)
+        public SetIdentityRoleStatusParticipant(IEventStore eventStore)
         {
             Guard.AgainstNull(eventStore, nameof(eventStore));
 

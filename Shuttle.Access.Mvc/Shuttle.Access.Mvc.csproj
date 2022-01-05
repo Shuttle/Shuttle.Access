@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include=".package\AssemblyInfo.cs.template" />
-    <None Include=".package\package.msbuild" />
-    <None Include=".package\package.nuspec.template" />
-    <None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
-    <None Include=".package\Shuttle.NuGetPackager.targets" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include=".package\AssemblyInfo.cs.template" />
+		<None Include=".package\package.msbuild" />
+		<None Include=".package\package.nuspec.template" />
+		<None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
+		<None Include=".package\Shuttle.NuGetPackager.targets" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
-    <PackageReference Include="Shuttle.Access" Version="4.0.0" />
-    <PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+		<PackageReference Include="Shuttle.Access" Version="4.0.0" />
+		<PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
+	</ItemGroup>
 
 </Project>

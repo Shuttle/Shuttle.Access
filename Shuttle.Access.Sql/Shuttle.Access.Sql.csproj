@@ -1,23 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Shuttle.Access" Version="4.0.0" />
-    <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
-    <PackageReference Include="Shuttle.Recall" Version="12.0.3" />
-    <PackageReference Include="Shuttle.Recall.Sql.Storage" Version="12.0.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Shuttle.Access" Version="4.0.0" />
+		<PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
+		<PackageReference Include="Shuttle.Recall" Version="12.0.3" />
+		<PackageReference Include="Shuttle.Recall.Sql.Storage" Version="12.0.2" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include=".package\AssemblyInfo.cs.template" />
-    <None Include=".package\package.msbuild" />
-    <None Include=".package\package.nuspec.template" />
-    <None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
-    <None Include=".package\Shuttle.NuGetPackager.targets" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include=".package\AssemblyInfo.cs.template" />
+		<None Include=".package\package.msbuild" />
+		<None Include=".package\package.nuspec.template" />
+		<None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
+		<None Include=".package\Shuttle.NuGetPackager.targets" />
+	</ItemGroup>
 
 </Project>

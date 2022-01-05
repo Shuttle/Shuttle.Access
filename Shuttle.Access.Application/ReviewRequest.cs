@@ -13,7 +13,7 @@ namespace Shuttle.Access.Application
 
         public T Request { get; }
 
-        public bool Ok => !string.IsNullOrWhiteSpace(Message);
+        public bool Ok => string.IsNullOrWhiteSpace(Message);
 
         public string Message { get; private set; }
 
