@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
+using Shuttle.Esb;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1
 {
@@ -101,5 +103,34 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             }
         }
 
+        [Test]
+        public void Should_be_able_to_delete_identity()
+        {
+            var id = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+
+            serviceBus.Setup(m => m.Send(It.Is<RemoveIdentity>(message => message.Id.Equals(id)))).Verifiable();
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                client.Login();
+
+                var getResponse = client.Identities.Delete(id).Result;
+
+                Assert.That(getResponse, Is.Not.Null);
+                Assert.That(getResponse.IsSuccessStatusCode, Is.True);
+
+                serviceBus.VerifyAll();
+            }
+        }
    }
 }

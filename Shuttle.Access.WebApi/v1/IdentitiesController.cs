@@ -103,7 +103,7 @@ namespace Shuttle.Access.WebApi.v1
         [RequiresPermission(Permissions.Remove.Identity)]
         public IActionResult Delete(Guid id)
         {
-            _serviceBus.Send(new RemoveIdentityCommand
+            _serviceBus.Send(new RemoveIdentity
             {
                 Id = id
             });
@@ -373,14 +373,21 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(ex.Message);
             }
 
-            var registeredBy = "system";
             var result = HttpContext.GetAccessSessionToken();
+            var registeredBy = "system";
             var ok = false;
 
-            if (result.Ok)
+            using (_databaseContextFactory.Create())
             {
-                using (_databaseContextFactory.Create())
+                var identityRegistrationRequested = new IdentityRegistrationRequested
                 {
+                    SessionToken = result.Ok ? result.SessionToken : null
+                };
+
+                if (result.Ok)
+                {
+                    _mediator.Send(identityRegistrationRequested);
+
                     var session = _sessionRepository.Find(result.SessionToken);
 
                     if (session != null)
@@ -390,11 +397,10 @@ namespace Shuttle.Access.WebApi.v1
                         ok = session.HasPermission(Permissions.Register.Identity);
                     }
                 }
-            }
-            else
-            {
-                using (_databaseContextFactory.Create())
+                else
                 {
+                    _mediator.Send(identityRegistrationRequested);
+
                     if (_identityQuery.Count(new DataAccess.Query.Identity.Specification()) == 0 &&
                         _authorizationService is IAnonymousPermissions anonymousPermissions)
                     {

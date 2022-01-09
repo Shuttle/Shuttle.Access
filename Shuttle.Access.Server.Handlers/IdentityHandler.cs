@@ -15,7 +15,7 @@ namespace Shuttle.Access.Server.Handlers
     public class IdentityHandler :
         IMessageHandler<RegisterIdentity>,
         IMessageHandler<SetIdentityRoleStatus>,
-        IMessageHandler<RemoveIdentityCommand>,
+        IMessageHandler<RemoveIdentity>,
         IMessageHandler<SetPassword>,
         IMessageHandler<ActivateIdentity>
     {
@@ -124,33 +124,27 @@ namespace Shuttle.Access.Server.Handlers
                 }
 
                 _eventStore.Save(stream);
-            }
 
-            context.Publish(new IdentityRegistered
-            {
-                Name = message.Name,
-                RegisteredBy = message.RegisteredBy,
-                GeneratedPassword = message.GeneratedPassword,
-                System = message.System
-            });
+                context.Publish(new IdentityRegistered
+                {
+                    Name = message.Name,
+                    RegisteredBy = message.RegisteredBy,
+                    GeneratedPassword = message.GeneratedPassword,
+                    System = message.System
+                });
+            }
         }
 
-        public void ProcessMessage(IHandlerContext<RemoveIdentityCommand> context)
+        public void ProcessMessage(IHandlerContext<RemoveIdentity> context)
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            var message = context.Message;
-
             using (_databaseContextFactory.Create())
             {
-                var identity = new Identity(message.Id);
-                var stream = _eventStore.Get(message.Id);
+                _mediator.Send(context.Message);
 
-                stream.Apply(identity);
-
-                stream.AddEvent(identity.Remove());
-
-                _eventStore.Save(stream);
+                context.Publish(new IdentityRemoved
+                {
+                    Id = context.Message.Id
+                });
             }
         }
 
