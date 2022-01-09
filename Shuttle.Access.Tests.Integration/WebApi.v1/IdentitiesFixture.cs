@@ -14,26 +14,9 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         [Test]
         public void Should_be_able_to_get_all_identities()
         {
-            var now = DateTime.Now;
             var identityQuery = new Mock<IIdentityQuery>();
 
-            var identity = new Access.DataAccess.Query.Identity
-            {
-                Id = Guid.NewGuid(),
-                Name = "name",
-                DateRegistered = now,
-                DateActivated = now,
-                GeneratedPassword = "generated-password",
-                RegisteredBy = "system",
-                Roles = new List<Access.DataAccess.Query.Identity.Role>
-                {
-                    new()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "role"
-                    }
-                }
-            };
+            var identity = CreateIdentity();
 
             identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(new List<Access.DataAccess.Query.Identity>
             {
@@ -64,35 +47,59 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             }
         }
 
-        [Test]
-        public void Should_be_able_to_get_available_permissions()
+        private static Access.DataAccess.Query.Identity CreateIdentity()
         {
-            const string permission = "integration://available-permission";
+            var now = DateTime.Now;
 
-            var permissionQuery = new Mock<IPermissionQuery>();
+            return new Access.DataAccess.Query.Identity
+            {
+                Id = Guid.NewGuid(),
+                Name = "name",
+                DateRegistered = now,
+                DateActivated = now,
+                GeneratedPassword = "generated-password",
+                RegisteredBy = "system",
+                Roles = new List<Access.DataAccess.Query.Identity.Role>
+                {
+                    new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "role"
+                    }
+                }
+            };
+        }
 
-            permissionQuery.Setup(m => m.Available()).Returns(new List<string> { permission });
+        [Test]
+        public void Should_be_able_to_get_identity_by_value()
+        {
+            var identityQuery = new Mock<IIdentityQuery>();
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(new Mock<IAuthorizationService>().Object);
-                           services.AddSingleton(new Mock<IDatabaseContextFactory>().Object);
-                           services.AddSingleton(permissionQuery.Object);
-                       });
-                   }).CreateDefaultClient())
+            var identity = CreateIdentity();
+
+            identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(new List<Access.DataAccess.Query.Identity>
+            {
+                identity
+            });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder => { builder.ConfigureTestServices(services => { services.AddSingleton(identityQuery.Object); }); }).CreateClient())
             {
                 var client = GetClient(httpClient);
 
-                client.Login();
-
-                var response = client.Permissions.Get().Result;
+                var response = client.Identities.Get("some-value").Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content, Is.Not.Null);
+                Assert.That(response.Content.Id, Is.EqualTo(identity.Id));
+                Assert.That(response.Content.Name, Is.EqualTo(identity.Name));
+                Assert.That(response.Content.DateRegistered, Is.EqualTo(identity.DateRegistered));
+                Assert.That(response.Content.DateActivated, Is.EqualTo(identity.DateActivated));
+                Assert.That(response.Content.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
+                Assert.That(response.Content.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
+                Assert.That(response.Content.Roles.Find(item => item.Id == identity.Roles[0].Id), Is.Not.Null);
             }
         }
-    }
+
+   }
 }

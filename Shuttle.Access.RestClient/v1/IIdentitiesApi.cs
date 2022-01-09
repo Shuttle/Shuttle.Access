@@ -8,5 +8,7 @@ namespace Shuttle.Access.RestClient.v1
     {
         [Get("/identities")]
         Task<ApiResponse<List<DataAccess.Query.Identity>>> Get();
+        [Get("/identities/{value}")]
+        Task<ApiResponse<DataAccess.Query.Identity>> Get(string value);
     }
 }
