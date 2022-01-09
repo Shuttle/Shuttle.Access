@@ -21,7 +21,6 @@ namespace Shuttle.Access.WebApi.v1
     public class IdentitiesController : Controller
     {
         private readonly IAuthenticationService _authenticationService;
-        private readonly IAuthorizationService _authorizationService;
         private readonly IServiceBus _serviceBus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
@@ -34,7 +33,7 @@ namespace Shuttle.Access.WebApi.v1
 
         public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus,
             IHashingService hashingService, ISessionRepository sessionRepository,
-            IAuthenticationService authenticationService, IAuthorizationService authorizationService,
+            IAuthenticationService authenticationService,
             IIdentityQuery identityQuery, IEventStore eventStore,
             IPasswordGenerator passwordGenerator, IAccessService accessService, IMediator mediator)
         {
@@ -43,7 +42,6 @@ namespace Shuttle.Access.WebApi.v1
             Guard.AgainstNull(hashingService, nameof(hashingService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
-            Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(passwordGenerator, nameof(passwordGenerator));
@@ -55,7 +53,6 @@ namespace Shuttle.Access.WebApi.v1
             _hashingService = hashingService;
             _sessionRepository = sessionRepository;
             _authenticationService = authenticationService;
-            _authorizationService = authorizationService;
             _identityQuery = identityQuery;
             _eventStore = eventStore;
             _passwordGenerator = passwordGenerator;
@@ -379,34 +376,15 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                var identityRegistrationRequested = new IdentityRegistrationRequested
-                {
-                    SessionToken = result.Ok ? result.SessionToken : null
-                };
+                var identityRegistrationRequested = new IdentityRegistrationRequested(result.Ok ? result.SessionToken : null);
 
                 if (result.Ok)
                 {
                     _mediator.Send(identityRegistrationRequested);
-
-                    var session = _sessionRepository.Find(result.SessionToken);
-
-                    if (session != null)
-                    {
-                        registeredBy = session.IdentityName;
-
-                        ok = session.HasPermission(Permissions.Register.Identity);
-                    }
                 }
                 else
                 {
                     _mediator.Send(identityRegistrationRequested);
-
-                    if (_identityQuery.Count(new DataAccess.Query.Identity.Specification()) == 0 &&
-                        _authorizationService is IAnonymousPermissions anonymousPermissions)
-                    {
-                        ok = anonymousPermissions.AnonymousPermissions()
-                            .Any(item => item.Equals(Permissions.Register.Identity));
-                    }
                 }
             }
 

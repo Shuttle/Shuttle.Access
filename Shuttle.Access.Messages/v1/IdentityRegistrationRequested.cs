@@ -1,4 +1,5 @@
 ﻿using System;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Messages.v1
 {
@@ -10,11 +11,16 @@ namespace Shuttle.Access.Messages.v1
         }
 
         public Guid? SessionToken { get; }
-        public bool IsAllowed { get; private set; } = false;
+        public bool IsAllowed { get; private set; }
 
-        public void Allowed()
+        public string RegisteredBy { get; private set; }
+
+        public void Allowed(string registeredBy)
         {
+            Guard.AgainstNullOrEmptyString(registeredBy, nameof(registeredBy));
+
             IsAllowed = true;
+            RegisteredBy = registeredBy;
         }
     }
 }
