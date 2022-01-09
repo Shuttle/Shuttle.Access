@@ -8,7 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Data;
+using Shuttle.Core.Mediator;
 using Shuttle.Esb;
+using Shuttle.Recall;
 
 namespace Shuttle.Access.Tests.Integration
 {
@@ -33,7 +35,12 @@ namespace Shuttle.Access.Tests.Integration
                         services.AddSingleton(new Mock<ISessionRepository>().Object);
                         services.AddSingleton(new Mock<ISessionQuery>().Object);
                         services.AddSingleton(new Mock<IServiceBus>().Object);
+                        services.AddSingleton(new Mock<IMediator>().Object);
                         services.AddSingleton(accessService.Object);
+                        // check if still required after refactor:
+                        services.AddSingleton(new Mock<IHashingService>().Object);
+                        services.AddSingleton(new Mock<IEventStore>().Object);
+                        services.AddSingleton(new Mock<IPasswordGenerator>().Object);
                     });
                     hostBuilder.UseStartup<TStartup>().UseTestServer();
                 });

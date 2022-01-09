@@ -14,14 +14,33 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         [Test]
         public void Should_be_able_to_get_all_identities()
         {
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(new Mock<IDatabaseContextFactory>().Object);
-                           services.AddSingleton(new Mock<IPermissionQuery>().Object);
-                       });
-                   }).CreateClient())
+            var now = DateTime.Now;
+            var identityQuery = new Mock<IIdentityQuery>();
+
+            var identity = new Access.DataAccess.Query.Identity
+            {
+                Id = Guid.NewGuid(),
+                Name = "name",
+                DateRegistered = now,
+                DateActivated = now,
+                GeneratedPassword = "generated-password",
+                RegisteredBy = "system",
+                Roles = new List<Access.DataAccess.Query.Identity.Role>
+                {
+                    new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = "role"
+                    }
+                }
+            };
+
+            identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(new List<Access.DataAccess.Query.Identity>
+            {
+                identity
+            });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder => { builder.ConfigureTestServices(services => { services.AddSingleton(identityQuery.Object); }); }).CreateClient())
             {
                 var client = GetClient(httpClient);
 
@@ -30,7 +49,18 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content, Is.Not.Null);
-                //Assert.That(response.Content.Permissions.Find(item => item.Permission == permission), Is.Not.Null);
+
+                Assert.That(response.Content.Count, Is.EqualTo(1));
+
+                var responseIdentity = response.Content[0];
+
+                Assert.That(responseIdentity.Id, Is.EqualTo(identity.Id));
+                Assert.That(responseIdentity.Name, Is.EqualTo(identity.Name));
+                Assert.That(responseIdentity.DateRegistered, Is.EqualTo(identity.DateRegistered));
+                Assert.That(responseIdentity.DateActivated, Is.EqualTo(identity.DateActivated));
+                Assert.That(responseIdentity.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
+                Assert.That(responseIdentity.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
+                Assert.That(responseIdentity.Roles.Find(item => item.Id == identity.Roles[0].Id), Is.Not.Null);
             }
         }
 

@@ -28,7 +28,6 @@ namespace Shuttle.Access.WebApi.v1
         private readonly IHashingService _hashingService;
         private readonly IPasswordGenerator _passwordGenerator;
         private readonly ISessionRepository _sessionRepository;
-        private readonly IRoleQuery _roleQuery;
         private readonly IIdentityQuery _identityQuery;
         private readonly IAccessService _accessService;
         private readonly IMediator _mediator;
@@ -36,7 +35,7 @@ namespace Shuttle.Access.WebApi.v1
         public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus,
             IHashingService hashingService, ISessionRepository sessionRepository,
             IAuthenticationService authenticationService, IAuthorizationService authorizationService,
-            IIdentityQuery identityQuery, IRoleQuery roleQuery, IEventStore eventStore,
+            IIdentityQuery identityQuery, IEventStore eventStore,
             IPasswordGenerator passwordGenerator, IAccessService accessService, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
@@ -46,7 +45,6 @@ namespace Shuttle.Access.WebApi.v1
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
-            Guard.AgainstNull(roleQuery, nameof(roleQuery));
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(passwordGenerator, nameof(passwordGenerator));
             Guard.AgainstNull(accessService, nameof(accessService));
@@ -59,7 +57,6 @@ namespace Shuttle.Access.WebApi.v1
             _authenticationService = authenticationService;
             _authorizationService = authorizationService;
             _identityQuery = identityQuery;
-            _roleQuery = roleQuery;
             _eventStore = eventStore;
             _passwordGenerator = passwordGenerator;
             _accessService = accessService;
