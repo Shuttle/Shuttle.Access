@@ -70,6 +70,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find a configuration section with name &quot;accessClient&quot; or &quot;shuttle/accessClient&quot;..
+        /// </summary>
+        public static string ClientSectionException {
+            get {
+                return ResourceManager.GetString("ClientSectionException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find a connection string with name &apos;{0}&apos;..
         /// </summary>
         public static string ConnectionStringMissing {
@@ -88,11 +97,38 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Identity with name &apos;{0}&apos; is inactive..
+        /// </summary>
+        public static string IdentityInactiveException {
+            get {
+                return ResourceManager.GetString("IdentityInactiveException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid credentials..
         /// </summary>
         public static string InvalidCredentialsException {
             get {
                 return ResourceManager.GetString("InvalidCredentialsException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not log in..
+        /// </summary>
+        public static string LoginException {
+            get {
+                return ResourceManager.GetString("LoginException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not log out..
+        /// </summary>
+        public static string LogoutException {
+            get {
+                return ResourceManager.GetString("LogoutException", resourceCulture);
             }
         }
         
@@ -246,6 +282,15 @@ namespace Shuttle.Access {
         public static string SessionTokenExpiredException {
             get {
                 return ResourceManager.GetString("SessionTokenExpiredException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find an identity with name &apos;{0}&apos;..
+        /// </summary>
+        public static string UnknownIdentityException {
+            get {
+                return ResourceManager.GetString("UnknownIdentityException", resourceCulture);
             }
         }
     }

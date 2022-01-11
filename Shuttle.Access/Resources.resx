@@ -120,16 +120,29 @@
   <data name="AdministratorRoleMissingException" xml:space="preserve">
     <value>The 'Administrator' role could not be found.</value>
   </data>
+  <data name="ClientSectionException" xml:space="preserve">
+    <value>Could not find a configuration section with name "accessClient" or "shuttle/accessClient".</value>
+  </data>
   <data name="ConnectionStringMissing" xml:space="preserve">
     <value>Could not find a connection string with name '{0}'.</value>
-    <comment>{0} = the name of the missing connection string</comment>
+    <comment>0 = the name of the missing connection string</comment>
   </data>
   <data name="DuplicatePermissionException" xml:space="preserve">
     <value>Permission '{0}' already exists on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
   </data>
+  <data name="IdentityInactiveException" xml:space="preserve">
+    <value>Identity with name '{0}' is inactive.</value>
+    <comment>0 = identity name</comment>
+  </data>
   <data name="InvalidCredentialsException" xml:space="preserve">
     <value>Invalid credentials.</value>
+  </data>
+  <data name="LoginException" xml:space="preserve">
+    <value>Could not log in.</value>
+  </data>
+  <data name="LogoutException" xml:space="preserve">
+    <value>Could not log out.</value>
   </data>
   <data name="PasswordHashException" xml:space="preserve">
     <value>The 'PasswordHash' may not be empty.</value>
@@ -194,5 +207,9 @@
   </data>
   <data name="SessionTokenExpiredException" xml:space="preserve">
     <value>The session token has expired.  Please log in again.</value>
+  </data>
+  <data name="UnknownIdentityException" xml:space="preserve">
+    <value>Could not find an identity with name '{0}'.</value>
+    <comment>0 = identity name</comment>
   </data>
 </root>

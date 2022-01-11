@@ -22,9 +22,9 @@ namespace Shuttle.Access.Tests.Participants
             roleQuery.Setup(m => m.Search(It.IsAny<DataAccess.Query.Role.Specification>())).Returns(Enumerable.Empty<DataAccess.Query.Role>());
 
             var participant = new ReviewSetIdentityRoleStatusParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
-            var reviewRequest = new ReviewRequest<SetIdentityRoleStatus>(new SetIdentityRoleStatus());
+            var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new SetIdentityRoleStatus());
 
-            participant.ProcessMessage(new ParticipantContext<ReviewRequest<SetIdentityRoleStatus>>(reviewRequest, new CancellationToken()));
+            participant.ProcessMessage(new ParticipantContext<RequestMessage<SetIdentityRoleStatus>>(reviewRequest, new CancellationToken()));
 
             Assert.That(reviewRequest.Ok, Is.True);
         }
@@ -49,9 +49,9 @@ namespace Shuttle.Access.Tests.Participants
             identityQuery.Setup(m => m.AdministratorCount()).Returns(1);
 
             var participant = new ReviewSetIdentityRoleStatusParticipant(roleQuery.Object, identityQuery.Object);
-            var reviewRequest = new ReviewRequest<SetIdentityRoleStatus>(new SetIdentityRoleStatus { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
+            var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new SetIdentityRoleStatus { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
 
-            participant.ProcessMessage(new ParticipantContext<ReviewRequest<SetIdentityRoleStatus>>(reviewRequest, new CancellationToken()));
+            participant.ProcessMessage(new ParticipantContext<RequestMessage<SetIdentityRoleStatus>>(reviewRequest, new CancellationToken()));
 
             Assert.That(reviewRequest.Ok, Is.False);
             Assert.That(reviewRequest.Message, Is.EqualTo("last-administrator"));

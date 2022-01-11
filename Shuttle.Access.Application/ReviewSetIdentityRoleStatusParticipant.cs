@@ -6,7 +6,7 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application
 {
-    public class ReviewSetIdentityRoleStatusParticipant : IParticipant<ReviewRequest<SetIdentityRoleStatus>>
+    public class ReviewSetIdentityRoleStatusParticipant : IParticipant<RequestMessage<SetIdentityRoleStatus>>
     {
         private readonly IRoleQuery _roleQuery;
         private readonly IIdentityQuery _identityQuery;
@@ -20,7 +20,7 @@ namespace Shuttle.Access.Application
             _identityQuery = identityQuery;
         }
 
-        public void ProcessMessage(IParticipantContext<ReviewRequest<SetIdentityRoleStatus>> context)
+        public void ProcessMessage(IParticipantContext<RequestMessage<SetIdentityRoleStatus>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 

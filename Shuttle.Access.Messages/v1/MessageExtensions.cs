@@ -42,7 +42,7 @@ namespace Shuttle.Access.Messages.v1
             Guard.AgainstNull(message, nameof(message));
             Guard.AgainstNull(message.NewPassword, nameof(message.NewPassword));
 
-            if (string.IsNullOrWhiteSpace(message.OldPassword) && string.IsNullOrWhiteSpace(message.Token))
+            if (string.IsNullOrWhiteSpace(message.OldPassword))
             {
                 throw new InvalidOperationException(Resources.SetPasswordException);
             }

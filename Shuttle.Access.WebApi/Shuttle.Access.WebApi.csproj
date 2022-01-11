@@ -29,6 +29,7 @@
     <PackageReference Include="Shuttle.Access.Application" Version="4.0.0" />
     <PackageReference Include="Shuttle.Access.Messages" Version="2.0.0" />
     <PackageReference Include="Shuttle.Access" Version="4.0.0" />
+    <PackageReference Include="Shuttle.Access.Mvc" Version="4.0.1" />
     <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="4.0.0" />
     <PackageReference Include="Shuttle.Access.Sql" Version="4.0.0" />
     <PackageReference Include="Shuttle.Core.Castle" Version="10.0.7" />
@@ -43,25 +44,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

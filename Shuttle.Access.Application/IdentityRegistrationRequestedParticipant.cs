@@ -34,7 +34,7 @@ namespace Shuttle.Access.Application
                 _authorizationService is IAnonymousPermissions anonymousPermissions &&
                 anonymousPermissions.AnonymousPermissions().Any(item => item.Equals(Permissions.Register.Identity)))
             {
-                context.Message.Allowed("system");
+                context.Message.Allowed("system", true);
             }
         }
     }

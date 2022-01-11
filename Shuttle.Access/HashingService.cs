@@ -5,10 +5,9 @@ namespace Shuttle.Access
 {
     public class HashingService : IHashingService
     {
-        public byte[] Sha256(string password)
+        public byte[] Sha256(string value)
         {
-            return new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(password), 0,
-                Encoding.UTF8.GetByteCount(password));
+            return new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(value), 0, Encoding.UTF8.GetByteCount(value));
         }
     }
 }

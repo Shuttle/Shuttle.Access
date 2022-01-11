@@ -156,7 +156,7 @@ namespace Shuttle.Access.Server.Handlers
 
             using (_databaseContextFactory.Create())
             {
-                var reviewRequest = new ReviewRequest<SetIdentityRoleStatus>(message);
+                var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(message);
 
                 _mediator.Send(reviewRequest);
 

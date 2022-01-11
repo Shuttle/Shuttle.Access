@@ -2,6 +2,6 @@
 {
     public interface IHashingService
     {
-        byte[] Sha256(string password);
+        byte[] Sha256(string value);
     }
 }

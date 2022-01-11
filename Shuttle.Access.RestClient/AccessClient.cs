@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Refit;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.RestClient.v1;
@@ -74,7 +73,7 @@ namespace Shuttle.Access.RestClient
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new ApiException(Resources.LogoutException); 
+                    throw new ApiException(Access.Resources.LogoutException); 
                 }
 
                 ResetSession();
@@ -99,7 +98,7 @@ namespace Shuttle.Access.RestClient
                 if (!response.IsSuccessStatusCode ||
                     response.Content == null)
                 {
-                    throw new ApiException(Resources.LoginException);
+                    throw new ApiException(Access.Resources.LoginException);
                 }
 
                 Token = response.Content.Token;

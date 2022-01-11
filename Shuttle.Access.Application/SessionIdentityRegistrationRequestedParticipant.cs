@@ -29,7 +29,7 @@ namespace Shuttle.Access.Application
 
             if (session != null && session.HasPermission(Permissions.Register.Identity))
             {
-                context.Message.Allowed(session.IdentityName);
+                context.Message.Allowed(session.IdentityName, session.HasPermission(Permissions.Activate.Identity));
             }
         }
     }

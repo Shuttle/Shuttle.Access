@@ -2,22 +2,25 @@
 
 namespace Shuttle.Access.Application
 {
-    public class ReviewRequest<T> where T : class
+    public class RequestMessage<TRequest>
     {
-        public ReviewRequest(T request)
+        public RequestMessage(TRequest request)
         {
-            Guard.AgainstNull(request, nameof(request));
+            if (!typeof(TRequest).IsValueType)
+            {
+                Guard.AgainstNull(request, nameof(request));
+            }
 
             Request = request;
         }
 
-        public T Request { get; }
+        public TRequest Request { get; }
 
         public bool Ok => string.IsNullOrWhiteSpace(Message);
 
         public string Message { get; private set; }
 
-        public ReviewRequest<T> Failed(string message)
+        public RequestMessage<TRequest> Failed(string message)
         {
             Guard.AgainstNullOrEmptyString(message, nameof(message));
 

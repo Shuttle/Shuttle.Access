@@ -11,7 +11,6 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 using Shuttle.Recall;
-using SetIdentityRoleStatus = Shuttle.Access.Messages.v1.SetIdentityRoleStatus;
 
 namespace Shuttle.Access.WebApi.v1
 {
@@ -21,21 +20,18 @@ namespace Shuttle.Access.WebApi.v1
     public class IdentitiesController : Controller
     {
         private readonly IAuthenticationService _authenticationService;
-        private readonly IServiceBus _serviceBus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
         private readonly IHashingService _hashingService;
-        private readonly IPasswordGenerator _passwordGenerator;
-        private readonly ISessionRepository _sessionRepository;
         private readonly IIdentityQuery _identityQuery;
-        private readonly IAccessService _accessService;
         private readonly IMediator _mediator;
+        private readonly IServiceBus _serviceBus;
+        private readonly ISessionRepository _sessionRepository;
 
         public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus,
             IHashingService hashingService, ISessionRepository sessionRepository,
             IAuthenticationService authenticationService,
-            IIdentityQuery identityQuery, IEventStore eventStore,
-            IPasswordGenerator passwordGenerator, IAccessService accessService, IMediator mediator)
+            IIdentityQuery identityQuery, IEventStore eventStore, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(serviceBus, nameof(serviceBus));
@@ -44,8 +40,6 @@ namespace Shuttle.Access.WebApi.v1
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
             Guard.AgainstNull(eventStore, nameof(eventStore));
-            Guard.AgainstNull(passwordGenerator, nameof(passwordGenerator));
-            Guard.AgainstNull(accessService, nameof(accessService));
             Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
@@ -55,8 +49,6 @@ namespace Shuttle.Access.WebApi.v1
             _authenticationService = authenticationService;
             _identityQuery = identityQuery;
             _eventStore = eventStore;
-            _passwordGenerator = passwordGenerator;
-            _accessService = accessService;
             _mediator = mediator;
         }
 
@@ -70,7 +62,7 @@ namespace Shuttle.Access.WebApi.v1
             }
         }
 
-        
+
         [HttpGet("{value}")]
         [RequiresPermission(Permissions.View.Identity)]
         public IActionResult Get(string value)
@@ -123,7 +115,7 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                var reviewRequest = new ReviewRequest<SetIdentityRoleStatus>(message);
+                var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(message);
 
                 _mediator.Send(reviewRequest);
 
@@ -154,37 +146,21 @@ namespace Shuttle.Access.WebApi.v1
 
             if (!sessionTokenResult.Ok)
             {
-                return BadRequest(Access.Resources.SessionTokenException);
+                return BadRequest(Resources.SessionTokenException);
             }
 
-            var passwordHash = _hashingService.Sha256(message.NewPassword);
+            message.Token = sessionTokenResult.SessionToken;
 
             using (_databaseContextFactory.Create())
             {
-                var session = _sessionRepository.Find(sessionTokenResult.SessionToken);
+                var changePassword = new RequestMessage<ChangePassword>(message);
 
-                if (session == null)
+                _mediator.Send(changePassword);
+
+                if (!changePassword.Ok)
                 {
-                    return BadRequest(Access.Resources.SessionTokenException);
+                    return BadRequest(changePassword.Message);
                 }
-
-                if (!string.IsNullOrWhiteSpace(message.OldPassword) && string.IsNullOrWhiteSpace(message.Token))
-                {
-                    var authenticationResult = _authenticationService.Authenticate(session.IdentityName, message.OldPassword);
-
-                    if (!authenticationResult.Authenticated)
-                    {
-                        return BadRequest(Access.Resources.InvalidCredentialsException);
-                    }
-                }
-
-                var user = new Identity(session.IdentityId);
-                var stream = _eventStore.Get(session.IdentityId);
-
-                stream.Apply(user);
-                stream.AddEvent(user.SetPassword(passwordHash));
-
-                _eventStore.Save(stream);
             }
 
             return Accepted();
@@ -207,7 +183,7 @@ namespace Shuttle.Access.WebApi.v1
 
             if (!sessionTokenResult.Ok)
             {
-                return BadRequest(Access.Resources.SessionTokenException);
+                return BadRequest(Resources.SessionTokenException);
             }
 
             var passwordHash = _hashingService.Sha256(message.Password);
@@ -295,7 +271,7 @@ namespace Shuttle.Access.WebApi.v1
             {
                 specification.WithName(message.Name);
             }
-            
+
             using (_databaseContextFactory.Create())
             {
                 var query = _identityQuery.Search(specification).FirstOrDefault();
@@ -323,36 +299,14 @@ namespace Shuttle.Access.WebApi.v1
             {
                 return BadRequest(ex.Message);
             }
-            
+
             using (_databaseContextFactory.Create())
             {
-                var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(message.Name)).SingleOrDefault();
+                var requestResponse = new RequestResponseMessage<GetPasswordResetToken, Guid>(message);
 
-                if (query == null)
-                {
-                    return BadRequest();
-                }
+                _mediator.Send(requestResponse);
 
-                var stream = _eventStore.Get(query.Id);
-                var identity = new Identity(query.Id);
-                
-                stream.Apply(identity);
-
-                if (identity.Activated)
-                {
-                    if (!identity.HasPasswordResetToken)
-                    {
-                        stream.AddEvent(identity.RegisterPasswordResetToken());
-
-                        _eventStore.Save(stream);
-                    }
-
-                    return Ok(identity.PasswordResetToken);
-                }
-                else
-                {
-                    return BadRequest(Resources.IdentityInactiveException);
-                }
+                return !requestResponse.Ok ? BadRequest(requestResponse.Message) : Ok(requestResponse.Response);
             }
         }
 
@@ -370,25 +324,15 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(ex.Message);
             }
 
-            var result = HttpContext.GetAccessSessionToken();
-            var registeredBy = "system";
-            var ok = false;
+            var sessionTokenResult = HttpContext.GetAccessSessionToken();
+            var identityRegistrationRequested = new IdentityRegistrationRequested(sessionTokenResult.Ok ? sessionTokenResult.SessionToken : null);
 
             using (_databaseContextFactory.Create())
             {
-                var identityRegistrationRequested = new IdentityRegistrationRequested(result.Ok ? result.SessionToken : null);
-
-                if (result.Ok)
-                {
-                    _mediator.Send(identityRegistrationRequested);
-                }
-                else
-                {
-                    _mediator.Send(identityRegistrationRequested);
-                }
+                _mediator.Send(identityRegistrationRequested);
             }
 
-            if (!ok)
+            if (!identityRegistrationRequested.IsAllowed)
             {
                 return Unauthorized();
             }
@@ -397,19 +341,25 @@ namespace Shuttle.Access.WebApi.v1
 
             if (string.IsNullOrWhiteSpace(message.Password))
             {
-                generatedPassword = _passwordGenerator.Generate();
-                message.Password = generatedPassword;
+                var generatePassword = new GeneratePassword();
+
+                _mediator.Send(generatePassword);
+
+                message.Password = generatePassword.GeneratedPassword;
             }
 
-            var sessionTokenResult = HttpContext.GetAccessSessionToken();
+            var generateHash = new GenerateHash { Value = message.Password };
+
+            _mediator.Send(generateHash);
+
+            message.Password = string.Empty;
+            message.PasswordHash = generateHash.Hash;
+            message.RegisteredBy = identityRegistrationRequested.RegisteredBy;
 
             _serviceBus.Send(new RegisterIdentity
             {
                 Name = message.Name,
-                PasswordHash = _hashingService.Sha256(message.Password),
-                RegisteredBy = registeredBy,
-                GeneratedPassword = generatedPassword,
-                Activated = message.Activated && sessionTokenResult.Ok && _accessService.HasPermission(sessionTokenResult.SessionToken, Permissions.Activate.Identity),
+                Activated = message.Activated && sessionTokenResult.Ok && identityRegistrationRequested.IsActivationAllowed,
                 System = message.System
             });
 

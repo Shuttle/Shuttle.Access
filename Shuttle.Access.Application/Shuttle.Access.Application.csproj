@@ -26,18 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="Resources.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>Resources.resx</DependentUpon>
-	  </Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <EmbeddedResource Update="Resources.resx">
-	    <Generator>PublicResXFileCodeGenerator</Generator>
-	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-	  </EmbeddedResource>
+	  <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
 	</ItemGroup>
 
 </Project>

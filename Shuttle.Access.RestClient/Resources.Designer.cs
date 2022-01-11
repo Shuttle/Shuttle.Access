@@ -68,23 +68,5 @@ namespace Shuttle.Access.RestClient {
                 return ResourceManager.GetString("ClientSectionException", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [AccessClient] : Could not log in..
-        /// </summary>
-        public static string LoginException {
-            get {
-                return ResourceManager.GetString("LoginException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [AccessClient] : Could not log out..
-        /// </summary>
-        public static string LogoutException {
-            get {
-                return ResourceManager.GetString("LogoutException", resourceCulture);
-            }
-        }
     }
 }

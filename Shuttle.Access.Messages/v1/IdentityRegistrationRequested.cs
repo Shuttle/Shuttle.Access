@@ -15,12 +15,15 @@ namespace Shuttle.Access.Messages.v1
 
         public string RegisteredBy { get; private set; }
 
-        public void Allowed(string registeredBy)
+        public bool IsActivationAllowed { get; private set; }
+
+        public void Allowed(string registeredBy, bool activationAllowed)
         {
             Guard.AgainstNullOrEmptyString(registeredBy, nameof(registeredBy));
 
             IsAllowed = true;
             RegisteredBy = registeredBy;
+            IsActivationAllowed = activationAllowed;
         }
     }
 }
