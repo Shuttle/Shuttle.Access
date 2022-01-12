@@ -19,36 +19,22 @@ namespace Shuttle.Access.WebApi.v1
     [ApiVersion("1")]
     public class IdentitiesController : Controller
     {
-        private readonly IAuthenticationService _authenticationService;
         private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly IEventStore _eventStore;
-        private readonly IHashingService _hashingService;
         private readonly IIdentityQuery _identityQuery;
         private readonly IMediator _mediator;
         private readonly IServiceBus _serviceBus;
-        private readonly ISessionRepository _sessionRepository;
 
         public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus,
-            IHashingService hashingService, ISessionRepository sessionRepository,
-            IAuthenticationService authenticationService,
-            IIdentityQuery identityQuery, IEventStore eventStore, IMediator mediator)
+            IIdentityQuery identityQuery, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(serviceBus, nameof(serviceBus));
-            Guard.AgainstNull(hashingService, nameof(hashingService));
-            Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
-            Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
-            Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
             _serviceBus = serviceBus;
-            _hashingService = hashingService;
-            _sessionRepository = sessionRepository;
-            _authenticationService = authenticationService;
             _identityQuery = identityQuery;
-            _eventStore = eventStore;
             _mediator = mediator;
         }
 
@@ -186,35 +172,14 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(Resources.SessionTokenException);
             }
 
-            var passwordHash = _hashingService.Sha256(message.Password);
+            var requestMessage = new RequestMessage<ResetPassword>(message);
 
             using (_databaseContextFactory.Create())
             {
-                var queryIdentity = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(message.Name)).SingleOrDefault();
-
-                if (queryIdentity == null)
-                {
-                    return BadRequest();
-                }
-
-                var identity = new Identity(queryIdentity.Id);
-                var stream = _eventStore.Get(queryIdentity.Id);
-
-                stream.Apply(identity);
-
-                if (identity.HasPasswordResetToken && identity.PasswordResetToken == message.PasswordResetToken)
-                {
-                    stream.AddEvent(identity.SetPassword(passwordHash));
-
-                    _eventStore.Save(stream);
-                }
-                else
-                {
-                    return BadRequest();
-                }
+                _mediator.Send(requestMessage);
             }
 
-            return Ok();
+            return !requestMessage.Ok ? BadRequest(requestMessage.Message) : Ok();
         }
 
         [HttpPost("rolestatus")]
@@ -336,8 +301,6 @@ namespace Shuttle.Access.WebApi.v1
             {
                 return Unauthorized();
             }
-
-            var generatedPassword = string.Empty;
 
             if (string.IsNullOrWhiteSpace(message.Password))
             {
