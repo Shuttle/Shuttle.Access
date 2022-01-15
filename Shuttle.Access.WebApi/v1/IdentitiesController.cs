@@ -10,7 +10,6 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
-using Shuttle.Recall;
 
 namespace Shuttle.Access.WebApi.v1
 {
@@ -88,7 +87,7 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPost("setrolestatus")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult SetRole([FromBody] SetIdentityRoleStatus message)
+        public IActionResult SetIdentityRoleStatus([FromBody] SetIdentityRoleStatus message)
         {
             try
             {
@@ -184,7 +183,7 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPost("rolestatus")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult RoleStatus([FromBody] GetIdentityRoleStatus message)
+        public IActionResult GetIdentityRoleStatus([FromBody] GetIdentityRoleStatus message)
         {
             try
             {

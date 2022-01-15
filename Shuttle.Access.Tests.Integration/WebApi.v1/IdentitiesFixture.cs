@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Threading;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
+using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Data;
+using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1
@@ -124,13 +127,215 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
                 client.Login();
 
-                var getResponse = client.Identities.Delete(id).Result;
+                var response = client.Identities.Delete(id).Result;
 
-                Assert.That(getResponse, Is.Not.Null);
-                Assert.That(getResponse.IsSuccessStatusCode, Is.True);
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
 
                 serviceBus.VerifyAll();
             }
         }
-   }
+
+        [Test]
+        public void Should_be_able_to_set_identity_role_status()
+        {
+            var roleId = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+
+            serviceBus.Setup(m => m.Send(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)))).Verifiable();
+
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None)).Verifiable();
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                client.Login();
+
+                var response = client.Identities.SetRoleStatus(new SetIdentityRoleStatus
+                {
+                    RoleId = roleId,
+                    Active = true,
+                    IdentityId = Guid.NewGuid()
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+                serviceBus.VerifyAll();
+                mediator.VerifyAll();
+            }
+        }
+
+        [Test]
+        public void Should_not_be_able_to_set_identity_role_status_when_mediator_call_fails()
+        {
+            var roleId = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None))
+                .Callback<object, CancellationToken>((message, _) => { ((RequestMessage<SetIdentityRoleStatus>)message).Failed("reason"); });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                client.Login();
+
+                var response = client.Identities.SetRoleStatus(new SetIdentityRoleStatus
+                {
+                    RoleId = roleId,
+                    Active = true,
+                    IdentityId = Guid.NewGuid()
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.False);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+                serviceBus.Verify(m=>m.Send(It.IsAny<object>()), Times.Never);
+            }
+        }
+
+        [Test]
+        public void Should_not_be_able_to_change_password_when_no_session_token_is_provided()
+        {
+            var token = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+            var mediator = new Mock<IMediator>();
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                httpClient.DefaultRequestHeaders.Remove("access-sessiontoken");
+
+                client.Login();
+
+                var response = client.Identities.ChangePassword(new ChangePassword
+                {
+                    OldPassword = "old-password",
+                    NewPassword = "new=password",
+                    Token = token
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.False);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+                mediator.Verify(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m=>m.Send(It.IsAny<object>()), Times.Never);
+            }
+        }
+
+        [Test]
+        public void Should_not_be_able_to_change_password_when_mediator_call_fails()
+        {
+            var token = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None))
+                .Callback<object, CancellationToken>((message, _) => { ((RequestMessage<ChangePassword>)message).Failed("reason"); });
+            
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                client.Login();
+
+                var response = client.Identities.ChangePassword(new ChangePassword
+                {
+                    OldPassword = "old-password",
+                    NewPassword = "new=password",
+                    Token = token
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.False);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+                mediator.Verify(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m=>m.Send(It.IsAny<object>()), Times.Never);
+            }
+        }
+
+        [Test]
+        public void Should_be_able_to_change_password()
+        {
+            var token = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+
+            serviceBus.Setup(m => m.Send(It.Is<ChangePassword>(message => message.Token.Equals(token)))).Verifiable();
+
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None)).Verifiable();
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                client.Login();
+
+                var response = client.Identities.ChangePassword(new ChangePassword
+                {
+                    OldPassword = "old-password",
+                    NewPassword = "new=password",
+                    Token = token
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+                mediator.Verify(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m=>m.Send(It.IsAny<object>()), Times.Never);
+            }
+        }
+    }
 }
