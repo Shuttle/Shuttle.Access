@@ -93,17 +93,15 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient);
+                var client = GetClient(httpClient).Login();
 
-                client.Login();
-
-                var postResponse = client.Permissions.Post(new RegisterPermission
+                var response = client.Permissions.Post(new RegisterPermission
                 {
                     Permission = permission
                 }).Result;
 
-                Assert.That(postResponse, Is.Not.Null);
-                Assert.That(postResponse.IsSuccessStatusCode, Is.True);
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
 
                 serviceBus.VerifyAll();
             }
@@ -127,14 +125,12 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient);
+                var client = GetClient(httpClient).Login();
 
-                client.Login();
+                var response = client.Permissions.Delete(Uri.EscapeDataString(permission)).Result;
 
-                var getResponse = client.Permissions.Delete(Uri.EscapeDataString(permission)).Result;
-
-                Assert.That(getResponse, Is.Not.Null);
-                Assert.That(getResponse.IsSuccessStatusCode, Is.True);
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
 
                 serviceBus.VerifyAll();
             }

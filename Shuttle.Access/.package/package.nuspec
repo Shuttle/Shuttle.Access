@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Access</id>
-		<version>4.0.0</version>
+		<version>4.0.1</version>
 		<authors>Eben Roux</authors>
 		<owners></owners>
 		<license type="expression">BSD-3-Clause</license>

@@ -28,7 +28,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
     <PackageReference Include="Shuttle.Access.Application" Version="4.0.0" />
     <PackageReference Include="Shuttle.Access.Messages" Version="2.0.0" />
-    <PackageReference Include="Shuttle.Access" Version="4.0.0" />
+    <PackageReference Include="Shuttle.Access" Version="4.0.1" />
     <PackageReference Include="Shuttle.Access.Mvc" Version="4.0.1" />
     <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="4.0.0" />
     <PackageReference Include="Shuttle.Access.Sql" Version="4.0.0" />

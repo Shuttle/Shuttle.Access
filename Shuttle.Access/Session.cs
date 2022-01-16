@@ -21,7 +21,6 @@ namespace Shuttle.Access
         }
 
         public DateTime ExpiryDate { get; private set; }
-
         public Guid Token { get; private set; }
         public Guid IdentityId { get; }
         public string IdentityName { get; }
@@ -31,22 +30,22 @@ namespace Shuttle.Access
 
         public IEnumerable<string> Permissions => new ReadOnlyCollection<string>(_permissions);
 
-        public void AddPermission(string permission)
+        public Session AddPermission(string permission)
         {
             Guard.AgainstNullOrEmptyString(permission, "permission");
 
-            if (_permissions.Find(
-                    candidate => candidate.Equals(permission, StringComparison.InvariantCultureIgnoreCase)) != null)
+            if (!HasPermission(permission))
             {
-                return;
+                _permissions.Add(permission);
             }
 
-            _permissions.Add(permission);
+            return this;
         }
 
         public bool HasPermission(string permission)
         {
-            return _permissions.Contains(permission) || _permissions.Contains("*");
+            return _permissions.Find(
+                candidate => candidate.Equals(permission, StringComparison.InvariantCultureIgnoreCase)) != null || _permissions.Contains("*");
         }
 
         public void Renew(DateTime expiryDate)

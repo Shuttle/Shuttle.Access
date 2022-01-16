@@ -21,6 +21,6 @@ namespace Shuttle.Access.RestClient.v1
         Task<ApiResponse<DataAccess.Query.Session>> Get(Guid token);
 
         [Get("/sessions/{token}/permissions")]
-        Task<ApiResponse<List<DataAccess.Query.Session>>> GetPermissions(Guid token);
+        Task<ApiResponse<List<string>>> GetPermissions(Guid token);
     }
 }

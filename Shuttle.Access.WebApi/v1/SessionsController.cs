@@ -15,8 +15,8 @@ namespace Shuttle.Access.WebApi.v1
     public class SessionsController : Controller
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly ISessionRepository _sessionRepository;
         private readonly ISessionQuery _sessionQuery;
+        private readonly ISessionRepository _sessionRepository;
         private readonly ISessionService _sessionService;
 
         public SessionsController(IDatabaseContextFactory databaseContextFactory, ISessionService sessionService,
@@ -75,18 +75,17 @@ namespace Shuttle.Access.WebApi.v1
             Guard.AgainstNull(message, nameof(message));
 
             if (string.IsNullOrEmpty(message.IdentityName) ||
-                string.IsNullOrEmpty(message.Password) && string.IsNullOrEmpty(message.Token))
+                string.IsNullOrEmpty(message.Password) && 
+                Guid.Empty.Equals(message.Token))
             {
                 return BadRequest();
             }
-
-            Guid.TryParse(message.Token, out var token);
 
             RegisterSessionResult registerSessionResult;
 
             using (_databaseContextFactory.Create())
             {
-                registerSessionResult = _sessionService.Register(message.IdentityName, message.Password, token);
+                registerSessionResult = _sessionService.Register(message.IdentityName, message.Password, message.Token);
             }
 
             return registerSessionResult.Ok
@@ -127,8 +126,8 @@ namespace Shuttle.Access.WebApi.v1
             {
                 var session = _sessionQuery.Get(token);
 
-                return session == null 
-                    ? BadRequest() 
+                return session == null
+                    ? BadRequest()
                     : Ok(session);
             }
         }
