@@ -23,12 +23,19 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
             var identity = CreateIdentity();
 
-            identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(new List<Access.DataAccess.Query.Identity>
-            {
-                identity
-            });
+            identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+                new List<Access.DataAccess.Query.Identity>
+                {
+                    identity
+                });
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder => { builder.ConfigureTestServices(services => { services.AddSingleton(identityQuery.Object); }); }).CreateClient())
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(identityQuery.Object);
+                       });
+                   }).CreateClient())
             {
                 var client = GetClient(httpClient);
 
@@ -82,12 +89,19 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
             var identity = CreateIdentity();
 
-            identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(new List<Access.DataAccess.Query.Identity>
-            {
-                identity
-            });
+            identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+                new List<Access.DataAccess.Query.Identity>
+                {
+                    identity
+                });
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder => { builder.ConfigureTestServices(services => { services.AddSingleton(identityQuery.Object); }); }).CreateClient())
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(identityQuery.Object);
+                       });
+                   }).CreateClient())
             {
                 var client = GetClient(httpClient);
 
@@ -142,11 +156,13 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var roleId = Guid.NewGuid();
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)))).Verifiable();
+            serviceBus.Setup(m => m.Send(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId))))
+                .Verifiable();
 
             var mediator = new Mock<IMediator>();
 
-            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None)).Verifiable();
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None))
+                .Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -186,7 +202,10 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var mediator = new Mock<IMediator>();
 
             mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None))
-                .Callback<object, CancellationToken>((message, _) => { ((RequestMessage<SetIdentityRoleStatus>)message).Failed("reason"); });
+                .Callback<object, CancellationToken>((message, _) =>
+                {
+                    ((RequestMessage<SetIdentityRoleStatus>)message).Failed("reason");
+                });
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -213,7 +232,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.IsSuccessStatusCode, Is.False);
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-                serviceBus.Verify(m=>m.Send(It.IsAny<object>()), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
             }
         }
 
@@ -251,8 +270,8 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.IsSuccessStatusCode, Is.False);
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-                mediator.Verify(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m=>m.Send(It.IsAny<object>()), Times.Never);
+                mediator.Verify(m => m.Send(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
             }
         }
 
@@ -264,8 +283,11 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var mediator = new Mock<IMediator>();
 
             mediator.Setup(m => m.Send(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None))
-                .Callback<object, CancellationToken>((message, _) => { ((RequestMessage<ChangePassword>)message).Failed("reason"); });
-            
+                .Callback<object, CancellationToken>((message, _) =>
+                {
+                    ((RequestMessage<ChangePassword>)message).Failed("reason");
+                });
+
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
                        builder.ConfigureTestServices(services =>
@@ -291,8 +313,8 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.IsSuccessStatusCode, Is.False);
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-                mediator.Verify(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m=>m.Send(It.IsAny<object>()), Times.Never);
+                mediator.Verify(m => m.Send(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
             }
         }
 
@@ -306,7 +328,8 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
             var mediator = new Mock<IMediator>();
 
-            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None)).Verifiable();
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None))
+                .Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -333,8 +356,377 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-                mediator.Verify(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m=>m.Send(It.IsAny<object>()), Times.Never);
+                mediator.Verify(m => m.Send(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+            }
+        }
+
+        [Test]
+        public void Should_not_be_able_to_reset_password_when_no_session_token_is_provided()
+        {
+            var token = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+            var mediator = new Mock<IMediator>();
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                httpClient.DefaultRequestHeaders.Remove("access-sessiontoken");
+
+                client.Login();
+
+                var response = client.Identities.ResetPassword(new ResetPassword
+                {
+                    Name = "identity",
+                    Password = "password",
+                    PasswordResetToken = token
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.False);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+                mediator.Verify(m => m.Send(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+            }
+        }
+
+        [Test]
+        public void Should_not_be_able_to_reset_password_when_mediator_call_fails()
+        {
+            var token = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<ResetPassword>>(), CancellationToken.None))
+                .Callback<object, CancellationToken>((message, _) =>
+                {
+                    ((RequestMessage<ResetPassword>)message).Failed("reason");
+                });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                client.Login();
+
+                var response = client.Identities.ResetPassword(new ResetPassword
+                {
+                    Name = "identity",
+                    Password = "password",
+                    PasswordResetToken = token
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.False);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+                mediator.Verify(m => m.Send(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+            }
+        }
+
+        [Test]
+        public void Should_be_able_to_reset_password()
+        {
+            var token = Guid.NewGuid();
+            var serviceBus = new Mock<IServiceBus>();
+
+            serviceBus.Setup(m => m.Send(It.Is<ResetPassword>(message => message.PasswordResetToken.Equals(token))))
+                .Verifiable();
+
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<ResetPassword>>(), CancellationToken.None)).Verifiable();
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient);
+
+                client.Login();
+
+                var response = client.Identities.ResetPassword(new ResetPassword
+                {
+                    Name = "identity",
+                    Password = "password",
+                    PasswordResetToken = token
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+                mediator.Verify(m => m.Send(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+            }
+        }
+
+        [Test]
+        public void Should_be_able_to_get_role_status()
+        {
+            var activeRoleId = Guid.NewGuid();
+            var inactiveRoleId = Guid.NewGuid();
+            var identityQuery = new Mock<IIdentityQuery>();
+
+            identityQuery.Setup(m => m.RoleIds(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+                new List<Guid>
+                {
+                    activeRoleId
+                });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                       {
+                           builder.ConfigureTestServices(services =>
+                           {
+                               services.AddSingleton(identityQuery.Object);
+                           });
+                       })
+                       .CreateClient())
+            {
+                var client = GetClient(httpClient);
+
+                var response = client.Identities.GetRoleStatus(new GetIdentityRoleStatus
+                {
+                    IdentityId = Guid.NewGuid(),
+                    RoleIds = new List<Guid>
+                    {
+                        activeRoleId,
+                        inactiveRoleId
+                    }
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
+                Assert.That(response.Content, Is.Not.Null);
+
+                Assert.That(response.Content.Count, Is.EqualTo(2));
+
+                var identityRoleStatus = response.Content.Find(item => item.RoleId == activeRoleId);
+
+                Assert.That(identityRoleStatus, Is.Not.Null);
+                Assert.That(identityRoleStatus.RoleId, Is.EqualTo(activeRoleId));
+
+                identityRoleStatus = response.Content.Find(item => item.RoleId == inactiveRoleId);
+
+                Assert.That(identityRoleStatus, Is.Not.Null);
+                Assert.That(identityRoleStatus.RoleId, Is.EqualTo(inactiveRoleId));
+            }
+        }
+
+        [Test]
+        public void Should_not_be_able_to_activate_unknown_identity()
+        {
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                       });
+                   }).CreateClient())
+            {
+                var client = GetClient(httpClient).Login();
+
+                var response = client.Identities.Activate(new ActivateIdentity
+                {
+                    Name = "unknown"
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.False);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            }
+        }
+
+        [Test]
+        public void Should_be_able_to_activate_identity()
+        {
+            var serviceBus = new Mock<IServiceBus>();
+            var identityQuery = new Mock<IIdentityQuery>();
+
+            var identity = CreateIdentity();
+
+            identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+                new List<Access.DataAccess.Query.Identity>
+                {
+                    identity
+                });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(identityQuery.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateClient())
+            {
+                var client = GetClient(httpClient).Login();
+
+                var response = client.Identities.Activate(new ActivateIdentity
+                {
+                    Name = "known"
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+                serviceBus.Verify(m => m.Send(It.IsAny<ActivateIdentity>()), Times.Once);
+            }
+        }
+
+        [Test]
+        public void Should_be_able_to_get_password_reset_token()
+        {
+            var token = Guid.NewGuid();
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m =>
+                    m.Send(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), CancellationToken.None))
+                .Callback<object, CancellationToken>((message, _) =>
+                {
+                    ((RequestResponseMessage<GetPasswordResetToken, Guid>)message).WithResponse(token);
+                });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient).Login();
+
+                var response = client.Identities.GetPasswordResetToken(new GetPasswordResetToken
+                {
+                    Name = "identity"
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+                Assert.That(response.Content, Is.EqualTo(token));
+
+                mediator.Verify(
+                    m => m.Send(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(),
+                        CancellationToken.None), Times.Once);
+            }
+        }
+
+        [Test]
+        public void Should_not_be_able_to_get_password_reset_token_when_mediator_call_fails()
+        {
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m =>
+                    m.Send(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), CancellationToken.None))
+                .Callback<object, CancellationToken>((message, _) =>
+                {
+                    ((RequestResponseMessage<GetPasswordResetToken, Guid>)message).Failed("reason");
+                });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient).Login();
+
+                var response = client.Identities.GetPasswordResetToken(new GetPasswordResetToken
+                {
+                    Name = "identity"
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.False);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+                mediator.Verify(
+                    m => m.Send(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(),
+                        CancellationToken.None), Times.Once);
+            }
+        }
+
+        [Test]
+        public void Should_be_able_to_register_identity()
+        {
+            var serviceBus = new Mock<IServiceBus>();
+            var mediator = new Mock<IMediator>();
+
+            mediator.Setup(m => m.Send(It.IsAny<IdentityRegistrationRequested>(), CancellationToken.None))
+                .Callback<object, CancellationToken>((message, _) =>
+                {
+                    ((IdentityRegistrationRequested)message).Allowed("test", true);
+                });
+
+            mediator.Setup(m => m.Send(It.IsAny<GeneratePassword>(), CancellationToken.None))
+                .Callback<object, CancellationToken>((message, _) =>
+                {
+                    ((GeneratePassword)message).GeneratedPassword = "generated-password";
+                });
+
+            mediator.Setup(m => m.Send(It.IsAny<GenerateHash>(), CancellationToken.None))
+                .Callback<object, CancellationToken>((message, _) =>
+                {
+                    ((GenerateHash)message).Hash = new byte[] { 0, 1, 2, 3, 4 };
+                });
+
+            using (var httpClient = Factory.WithWebHostBuilder(builder =>
+                   {
+                       builder.ConfigureTestServices(services =>
+                       {
+                           services.AddSingleton(new Mock<IIdentityQuery>().Object);
+                           services.AddSingleton(mediator.Object);
+                           services.AddSingleton(serviceBus.Object);
+                       });
+                   }).CreateDefaultClient())
+            {
+                var client = GetClient(httpClient).Login();
+
+                var response = client.Identities.Register(new RegisterIdentity
+                {
+                    Name = "identity"
+                }).Result;
+
+                Assert.That(response, Is.Not.Null);
+                Assert.That(response.IsSuccessStatusCode, Is.True);
+                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+                mediator.Verify(m => m.Send(It.IsAny<IdentityRegistrationRequested>(), CancellationToken.None), Times.Once);
+                mediator.Verify(m => m.Send(It.IsAny<GeneratePassword>(), CancellationToken.None), Times.Once);
+                mediator.Verify(m => m.Send(It.IsAny<GenerateHash>(), CancellationToken.None), Times.Once);
+                serviceBus.Verify(m => m.Send(It.IsAny<RegisterIdentity>()), Times.Once);
             }
         }
     }

@@ -60,13 +60,13 @@ namespace Shuttle.Access.RestClient
             //}
         }
 
-        public void Logout()
+        public IAccessClient Logout()
         {
             lock (Lock)
             {
                 if (!this.HasSession())
                 {
-                    return;
+                    return this;
                 }
 
                 var response = Sessions.Delete().Result;
@@ -78,15 +78,17 @@ namespace Shuttle.Access.RestClient
 
                 ResetSession();
             }
+
+            return this;
         }
 
-        public void Login()
+        public IAccessClient Login()
         {
             lock (Lock)
             {
                 if (this.HasSession())
                 {
-                    return;
+                    return this;
                 }
 
                 var response = Sessions.Post(new RegisterSession
@@ -104,6 +106,8 @@ namespace Shuttle.Access.RestClient
                 Token = response.Content.Token;
                 _handler.Token = Token.Value.ToString("n");
             }
+
+            return this;
         }
 
         public Guid? Token { get; private set; }

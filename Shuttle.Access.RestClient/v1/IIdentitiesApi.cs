@@ -22,5 +22,20 @@ namespace Shuttle.Access.RestClient.v1
 
         [Post("/identities/changepassword")]
         Task<ApiResponse<object>> ChangePassword(ChangePassword message);
+
+        [Post("/identities/resetpassword")]
+        Task<ApiResponse<object>> ResetPassword(ResetPassword message);
+
+        [Post("/identities/rolestatus")]
+        Task<ApiResponse<List<IdentityRoleStatus>>> GetRoleStatus(GetIdentityRoleStatus message);
+
+        [Post("/identities/activate")]
+        Task<ApiResponse<object>> Activate(ActivateIdentity message);
+
+        [Post("/identities/getpasswordresettoken")]
+        Task<ApiResponse<Guid>> GetPasswordResetToken(GetPasswordResetToken message);
+
+        [Post("/identities")]
+        Task<ApiResponse<Guid>> Register(RegisterIdentity message);
     }
 }
