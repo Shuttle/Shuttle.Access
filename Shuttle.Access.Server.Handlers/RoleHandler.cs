@@ -1,7 +1,9 @@
 ﻿using System;
+using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
+using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
@@ -16,16 +18,19 @@ namespace Shuttle.Access.Server.Handlers
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
         private readonly IKeyStore _keyStore;
+        private readonly IMediator _mediator;
 
-        public RoleHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore)
+        public RoleHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(keyStore, nameof(keyStore));
+            Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
             _eventStore = eventStore;
             _keyStore = keyStore;
+            _mediator = mediator;
         }
 
         public void ProcessMessage(IHandlerContext<AddRole> context)
@@ -37,34 +42,14 @@ namespace Shuttle.Access.Server.Handlers
                 return;
             }
 
-            Guid id;
+            var requestResponse = new RequestResponseMessage<AddRole, RoleAdded>(message);
 
             using (_databaseContextFactory.Create())
             {
-                var key = Role.Key(message.Name);
-
-                if (_keyStore.Contains(key))
-                {
-                    return;
-                }
-
-                id = Guid.NewGuid();
-
-                _keyStore.Add(id, key);
-
-                var role = new Role(id);
-                var stream = _eventStore.CreateEventStream(id);
-
-                stream.AddEvent(role.Add(message.Name));
-
-                _eventStore.Save(stream);
+                _mediator.Send(requestResponse);
             }
 
-            context.Publish(new RoleAdded
-            {
-                Id = id,
-                Name = message.Name
-            });
+            context.Publish(requestResponse.Response);
         }
 
         public void ProcessMessage(IHandlerContext<RemoveRole> context)
