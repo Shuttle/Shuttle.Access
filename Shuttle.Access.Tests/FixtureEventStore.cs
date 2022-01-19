@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Tests
@@ -43,6 +44,37 @@ namespace Shuttle.Access.Tests
         public void Remove(Guid id)
         {
             _eventStreams.Remove(id);
+        }
+
+        public T FindEvent<T>(Guid id, int index = -1) where T: class
+        {
+            var events = Get(id).GetEvents();
+
+            try
+            {
+                if (index > -1)
+                {
+                    return (T)events.ElementAtOrDefault(index)?.Event;
+                }
+
+                var type = typeof(T);
+
+                foreach (var domainEvent in events)
+                {
+                    if (domainEvent.Event.GetType() != type)
+                    {
+                        continue;
+                    }
+
+                    return (T)domainEvent.Event;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            return null;
         }
     }
 }

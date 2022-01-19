@@ -29,7 +29,6 @@ namespace Shuttle.Access.Application
             _keyStore = keyStore;
             _identityQuery = identityQuery;
             _roleQuery = roleQuery;
-            _mediator = mediator;
         }
 
         public void ProcessMessage(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)

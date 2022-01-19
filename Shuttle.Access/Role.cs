@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Shuttle.Access.Events;
 using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Contract;
 
@@ -89,10 +90,7 @@ namespace Shuttle.Access
 
         public Removed Remove()
         {
-            return On(new Removed
-            {
-                Id = _id
-            });
+            return On(new Removed());
         }
 
         private Removed On(Removed removed)

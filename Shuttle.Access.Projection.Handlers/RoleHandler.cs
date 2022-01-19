@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Events.Role.v1;
+﻿using Shuttle.Access.Events;
+using Shuttle.Access.Events.Role.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
@@ -37,7 +38,7 @@ namespace Shuttle.Access.Projection.Handlers
 
         public void ProcessEvent(IEventHandlerContext<Removed> context)
         {
-            _query.Removed(context.PrimitiveEvent, context.Event);
+            _query.Removed(context.PrimitiveEvent);
         }
     }
 }

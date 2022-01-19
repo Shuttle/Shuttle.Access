@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Shuttle.Access.Events;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Contract;
 
@@ -64,7 +65,6 @@ namespace Shuttle.Access
         {
             return On(new Activated
             {
-                Id = _id,
                 DateActivated = dateActivated
             });
         }
@@ -161,10 +161,7 @@ namespace Shuttle.Access
 
         public Removed Remove()
         {
-            return On(new Removed
-            {
-                Id = _id
-            });
+            return On(new Removed());
         }
 
         public PasswordSet SetPassword(byte[] passwordHash)

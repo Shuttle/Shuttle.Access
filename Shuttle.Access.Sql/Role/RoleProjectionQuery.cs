@@ -35,9 +35,9 @@ namespace Shuttle.Access.Sql
             _databaseGateway.ExecuteUsing(_queryFactory.PermissionRemoved(primitiveEvent.Id, domainEvent));
         }
 
-        public void Removed(PrimitiveEvent primitiveEvent, Removed domainEvent)
+        public void Removed(PrimitiveEvent primitiveEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Removed(primitiveEvent.Id, domainEvent));
+            _databaseGateway.ExecuteUsing(_queryFactory.Removed(primitiveEvent.Id));
         }
     }
 }

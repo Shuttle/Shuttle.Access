@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using NUnit.Framework;
 using Shuttle.Access.Application;
+using Shuttle.Access.Events;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
@@ -25,14 +26,11 @@ namespace Shuttle.Access.Tests.Participants
 
             participant.ProcessMessage(new ParticipantContext<RemoveIdentity>(removeIdentity, CancellationToken.None));
 
-            var eventStream = eventStore.Get(removeIdentity.Id);
+            Assert.That(eventStore.Get(removeIdentity.Id).Count, Is.EqualTo(1));
 
-            Assert.That(eventStream.Count, Is.EqualTo(1));
-
-            var removed = eventStream.GetEvents().First().Event;
+            var removed = eventStore.FindEvent<Removed>(removeIdentity.Id);
 
             Assert.That(removed, Is.TypeOf<Removed>());
-            Assert.That(((Removed)removed).Id, Is.EqualTo(removeIdentity.Id));
         }
     }
 }

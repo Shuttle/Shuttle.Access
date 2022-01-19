@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Events.Identity.v1;
+﻿using Shuttle.Access.Events;
+using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
@@ -46,7 +47,7 @@ namespace Shuttle.Access.Projection.Handlers
         {
             Guard.AgainstNull(context, nameof(context));
 
-            _query.Removed(context.PrimitiveEvent, context.Event);
+            _query.Removed(context.PrimitiveEvent);
         }
 
         public void ProcessEvent(IEventHandlerContext<Activated> context)

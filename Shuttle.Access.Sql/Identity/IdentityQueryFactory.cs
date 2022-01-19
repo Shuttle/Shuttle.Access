@@ -179,13 +179,13 @@ where
 ");
         }
 
-        public IQuery RemoveRoles(Guid id, Removed domainEvent)
+        public IQuery RemoveRoles(Guid id)
         {
             return RawQuery.Create("delete from IdentityRole where IdentityId = @IdentityId")
                 .AddParameterValue(Columns.IdentityId, id);
         }
 
-        public IQuery Remove(Guid id, Removed domainEvent)
+        public IQuery Remove(Guid id)
         {
             return RawQuery.Create("delete from [dbo].[Identity] where Id = @Id").AddParameterValue(Columns.Id, id);
         }

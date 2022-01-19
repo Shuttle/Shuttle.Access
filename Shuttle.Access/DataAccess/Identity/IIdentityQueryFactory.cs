@@ -1,4 +1,5 @@
 ﻿using System;
+using Shuttle.Access.Events;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Data;
 
@@ -15,8 +16,8 @@ namespace Shuttle.Access.DataAccess
         IQuery Roles(Guid userId);
         IQuery RoleRemoved(Guid id, RoleRemoved domainEvent);
         IQuery AdministratorCount();
-        IQuery RemoveRoles(Guid id, Removed domainEvent);
-        IQuery Remove(Guid id, Removed domainEvent);
+        IQuery RemoveRoles(Guid id);
+        IQuery Remove(Guid id);
         IQuery GetId(string identityName);
         IQuery Permissions(Guid id);
         IQuery Activated(Guid id, Activated domainEvent);

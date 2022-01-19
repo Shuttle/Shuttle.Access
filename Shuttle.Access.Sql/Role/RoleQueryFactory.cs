@@ -113,7 +113,7 @@ and
                 .AddParameterValue(Columns.Permission, domainEvent.Permission);
         }
 
-        public IQuery Removed(Guid id, Removed domainEvent)
+        public IQuery Removed(Guid id)
         {
             return RawQuery.Create(@"
 delete 
