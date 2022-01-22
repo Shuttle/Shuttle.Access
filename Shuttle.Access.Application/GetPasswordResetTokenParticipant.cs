@@ -9,8 +9,8 @@ namespace Shuttle.Access.Application
 {
     public class GetPasswordResetTokenParticipant : IParticipant<RequestResponseMessage<GetPasswordResetToken, Guid>>
     {
-        private readonly IIdentityQuery _identityQuery;
         private readonly IEventStore _eventStore;
+        private readonly IIdentityQuery _identityQuery;
 
         public GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEventStore eventStore)
         {
@@ -21,7 +21,8 @@ namespace Shuttle.Access.Application
         public void ProcessMessage(IParticipantContext<RequestResponseMessage<GetPasswordResetToken, Guid>> context)
         {
             var identityName = context.Message.Request.Name;
-            var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(identityName)).SingleOrDefault();
+            var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(identityName))
+                .SingleOrDefault();
 
             if (query == null)
             {
@@ -48,7 +49,7 @@ namespace Shuttle.Access.Application
             }
             else
             {
-                 context.Message.Failed(string.Format(Resources.IdentityInactiveException, identityName));
+                context.Message.Failed(string.Format(Resources.IdentityInactiveException, identityName));
             }
         }
     }
