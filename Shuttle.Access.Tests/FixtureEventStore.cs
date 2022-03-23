@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Tests
@@ -35,10 +36,14 @@ namespace Shuttle.Access.Tests
 
         public void Save(EventStream eventStream)
         {
+            Save(eventStream, null);
         }
 
         public void Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configurator)
         {
+            Guard.AgainstNull(eventStream, nameof(eventStream));
+
+            eventStream.Commit();
         }
 
         public void Remove(Guid id)

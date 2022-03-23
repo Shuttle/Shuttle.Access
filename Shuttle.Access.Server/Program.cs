@@ -42,12 +42,12 @@ namespace Shuttle.Access.Server
 
             container.RegisterSuffixed("Shuttle.Access.Sql");
 
-            EventStore.Register(container);
-            ServiceBus.Register(container);
+            container.RegisterEventStore();
+            container.RegisterServiceBus();
 
             container.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 
-            _bus = ServiceBus.Create(container).Start();
+            _bus = container.Resolve<IServiceBus>().Start();
 
             Log.Information("[started]");
         }

@@ -39,9 +39,9 @@ namespace Shuttle.Access.Projection.WebJob
 
             container.RegisterSuffixed("Shuttle.Access.Sql");
 
-            EventStore.Register(container);
+            container.RegisterEventStore();
 
-            _eventStore = EventStore.Create(container);
+            _eventStore = container.Resolve<IEventStore>();
 
             container.Register<IdentityHandler>();
             container.Register<RoleHandler>();

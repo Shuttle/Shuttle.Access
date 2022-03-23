@@ -20,10 +20,10 @@
 		<PackageReference Include="Shuttle.Access.Messages" Version="2.0.0" />
 		<PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
 		<PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
-		<PackageReference Include="Shuttle.Core.Mediator" Version="11.0.1" />
-		<PackageReference Include="Shuttle.Recall" Version="12.0.4" />
-		<PackageReference Include="Shuttle.Recall.Sql.Storage" Version="12.0.2" />
-		<PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
+		<PackageReference Include="Shuttle.Core.Mediator" Version="12.0.0" />
+		<PackageReference Include="Shuttle.Recall" Version="13.0.0" />
+		<PackageReference Include="Shuttle.Recall.Sql.Storage" Version="13.0.0" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

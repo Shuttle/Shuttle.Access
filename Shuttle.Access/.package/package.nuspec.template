@@ -5,7 +5,7 @@
 		<id>Shuttle.Access</id>
 		<version>#{SemanticVersion}#</version>
 		<authors>Eben Roux</authors>
-		<owners></owners>
+		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<icon>images\logo.png</icon>

@@ -5,21 +5,21 @@
   </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-        <PackageReference Include="Moq" Version="4.16.1" />
-        <PackageReference Include="NUnit" Version="3.13.2" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
+        <PackageReference Include="Moq" Version="4.17.2" />
+        <PackageReference Include="NUnit" Version="3.13.3" />
         <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
-        <PackageReference Include="Shuttle.Core.Data" Version="11.0.4" />
+        <PackageReference Include="Shuttle.Core.Data" Version="12.0.0" />
         <PackageReference Include="Shuttle.Core.Transactions" Version="10.0.3" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj"/>
+      <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Mvc.DataStore\Shuttle.Access.Mvc.DataStore.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Mvc.Rest\Shuttle.Access.Mvc.Rest.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj" />
-      <ProjectReference Include="..\Shuttle.Access.Server.Handlers\Shuttle.Access.Server.Handlers.csproj"/>
+      <ProjectReference Include="..\Shuttle.Access.Server.Handlers\Shuttle.Access.Server.Handlers.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
     </ItemGroup>
 

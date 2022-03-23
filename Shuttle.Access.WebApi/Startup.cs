@@ -111,15 +111,17 @@ namespace Shuttle.Access.WebApi
                 componentContainer.Register(type, type);
             }
 
-            ServiceBus.Register(componentContainer);
-            EventStore.Register(componentContainer);
+            componentContainer.RegisterServiceBus();
+            componentContainer.RegisterEventStore();
+
+            ((IComponentRegistry)componentContainer).RegisterEventStore();
 
             var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>();
             var roleQuery = componentContainer.Resolve<IRoleQuery>();
 
             databaseContextFactory.ConfigureWith("Access");
 
-            _bus = ServiceBus.Create(componentContainer).Start();
+            _bus = componentContainer.Resolve<IServiceBus>().Start();
 
             bool administratorExists;
 
@@ -172,9 +174,7 @@ namespace Shuttle.Access.WebApi
             );
 
             app.UseRouting();
-
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
 
             app.UseSwagger();

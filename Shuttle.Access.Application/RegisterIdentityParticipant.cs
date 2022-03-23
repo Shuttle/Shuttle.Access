@@ -17,13 +17,12 @@ namespace Shuttle.Access.Application
         private readonly IRoleQuery _roleQuery;
         private readonly IIdentityQuery _identityQuery;
 
-        public RegisterIdentityParticipant(IEventStore eventStore, IKeyStore keyStore, IIdentityQuery identityQuery, IRoleQuery roleQuery, IMediator mediator)
+        public RegisterIdentityParticipant(IEventStore eventStore, IKeyStore keyStore, IIdentityQuery identityQuery, IRoleQuery roleQuery)
         {
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(keyStore, nameof(keyStore));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
             Guard.AgainstNull(roleQuery, nameof(roleQuery));
-            Guard.AgainstNull(mediator, nameof(mediator));
 
             _eventStore = eventStore;
             _keyStore = keyStore;
@@ -99,6 +98,7 @@ namespace Shuttle.Access.Application
 
             context.Message.WithResponse(new IdentityRegistered
             {
+                Id = id.Value,
                 Name = message.Name,
                 RegisteredBy = message.RegisteredBy,
                 GeneratedPassword = message.GeneratedPassword,
