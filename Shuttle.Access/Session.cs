@@ -26,7 +26,7 @@ namespace Shuttle.Access
         public string IdentityName { get; }
         public DateTime DateRegistered { get; set; }
 
-        public bool HasExpired => DateTime.Now >= ExpiryDate;
+        public bool HasExpired => DateTime.UtcNow >= ExpiryDate;
 
         public IEnumerable<string> Permissions => new ReadOnlyCollection<string>(_permissions);
 

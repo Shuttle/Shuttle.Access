@@ -14,7 +14,7 @@ namespace Shuttle.Access.Tests.Participants
         [Test]
         public void Should_be_able_to_request_identity_registration_using_a_session()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", now, now.AddSeconds(5))
                 .AddPermission(Permissions.Register.Identity)
                 .AddPermission(Permissions.Activate.Identity);

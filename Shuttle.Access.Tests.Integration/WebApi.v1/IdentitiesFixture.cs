@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
@@ -61,7 +61,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
         private static Access.DataAccess.Query.Identity CreateIdentity()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             return new Access.DataAccess.Query.Identity
             {
@@ -137,9 +137,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient);
-
-                client.Login();
+                var client = GetClient(httpClient).Login();
 
                 var response = client.Identities.Delete(id).Result;
 
@@ -174,15 +172,11 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient);
+                var client = GetClient(httpClient).Login();
 
-                client.Login();
-
-                var response = client.Identities.SetRoleStatus(new SetIdentityRoleStatus
+                var response = client.Identities.SetRoleStatus(Guid.NewGuid(), roleId, new SetIdentityRoleStatus
                 {
-                    RoleId = roleId,
-                    Active = true,
-                    IdentityId = Guid.NewGuid()
+                    Active = true
                 }).Result;
 
                 Assert.That(response, Is.Not.Null);
@@ -217,14 +211,10 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient);
+                var client = GetClient(httpClient).Login();
 
-                client.Login();
-
-                var response = client.Identities.SetRoleStatus(new SetIdentityRoleStatus
+                var response = client.Identities.SetRoleStatus(Guid.NewGuid(), roleId, new SetIdentityRoleStatus
                 {
-                    RoleId = roleId,
-                    Active = true,
                     IdentityId = Guid.NewGuid()
                 }).Result;
 
@@ -255,14 +245,14 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                httpClient.DefaultRequestHeaders.Remove("access-sessiontoken");
+                httpClient.DefaultRequestHeaders.Remove("access-session-token");
 
                 client.Login();
 
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
                     OldPassword = "old-password",
-                    NewPassword = "new=password",
+                    NewPassword = "new-password",
                     Token = token
                 }).Result;
 
@@ -305,7 +295,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
                     OldPassword = "old-password",
-                    NewPassword = "new=password",
+                    NewPassword = "new-password",
                     Token = token
                 }).Result;
 
@@ -348,7 +338,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
                     OldPassword = "old-password",
-                    NewPassword = "new=password",
+                    NewPassword = "new-password",
                     Token = token
                 }).Result;
 
@@ -380,7 +370,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                httpClient.DefaultRequestHeaders.Remove("access-sessiontoken");
+                httpClient.DefaultRequestHeaders.Remove("access-session-token");
 
                 client.Login();
 
@@ -423,9 +413,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient);
-
-                client.Login();
+                var client = GetClient(httpClient).Login();
 
                 var response = client.Identities.ResetPassword(new ResetPassword
                 {
@@ -510,31 +498,20 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Identities.GetRoleStatus(new GetIdentityRoleStatus
-                {
-                    IdentityId = Guid.NewGuid(),
-                    RoleIds = new List<Guid>
-                    {
-                        activeRoleId,
-                        inactiveRoleId
-                    }
-                }).Result;
+                var response = client.Identities.GetRoles(Guid.NewGuid(), DateTime.UtcNow).Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content, Is.Not.Null);
 
-                Assert.That(response.Content.Count, Is.EqualTo(2));
+                Assert.That(response.Content.Count, Is.EqualTo(1));
 
-                var identityRoleStatus = response.Content.Find(item => item.RoleId == activeRoleId);
+                var roleId = response.Content.Find(item => item == activeRoleId);
 
-                Assert.That(identityRoleStatus, Is.Not.Null);
-                Assert.That(identityRoleStatus.RoleId, Is.EqualTo(activeRoleId));
+                Assert.That(roleId, Is.Not.Null);
+                Assert.That(roleId, Is.EqualTo(activeRoleId));
 
-                identityRoleStatus = response.Content.Find(item => item.RoleId == inactiveRoleId);
-
-                Assert.That(identityRoleStatus, Is.Not.Null);
-                Assert.That(identityRoleStatus.RoleId, Is.EqualTo(inactiveRoleId));
+                Assert.That(response.Content.Any(item => item == inactiveRoleId), Is.False);
             }
         }
 
@@ -624,10 +601,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).Login();
 
-                var response = client.Identities.GetPasswordResetToken(new GetPasswordResetToken
-                {
-                    Name = "identity"
-                }).Result;
+                var response = client.Identities.GetPasswordResetToken("identity").Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -663,10 +637,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).Login();
 
-                var response = client.Identities.GetPasswordResetToken(new GetPasswordResetToken
-                {
-                    Name = "identity"
-                }).Result;
+                var response = client.Identities.GetPasswordResetToken("identity").Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -723,7 +694,8 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-                mediator.Verify(m => m.Send(It.IsAny<IdentityRegistrationRequested>(), CancellationToken.None), Times.Once);
+                mediator.Verify(m => m.Send(It.IsAny<IdentityRegistrationRequested>(), CancellationToken.None),
+                    Times.Once);
                 mediator.Verify(m => m.Send(It.IsAny<GeneratePassword>(), CancellationToken.None), Times.Once);
                 mediator.Verify(m => m.Send(It.IsAny<GenerateHash>(), CancellationToken.None), Times.Once);
                 serviceBus.Verify(m => m.Send(It.IsAny<RegisterIdentity>()), Times.Once);

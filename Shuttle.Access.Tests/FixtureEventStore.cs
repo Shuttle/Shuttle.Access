@@ -53,7 +53,7 @@ namespace Shuttle.Access.Tests
 
         public T FindEvent<T>(Guid id, int index = -1) where T: class
         {
-            var events = Get(id).GetEvents();
+            var events = Get(id).GetEvents(EventStream.EventRegistrationType.All);
 
             try
             {

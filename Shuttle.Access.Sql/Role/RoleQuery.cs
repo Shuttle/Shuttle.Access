@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
@@ -10,20 +9,16 @@ namespace Shuttle.Access.Sql
     public class RoleQuery : IRoleQuery
     {
         private readonly IDatabaseGateway _databaseGateway;
-        private readonly IDataRowMapper _dataRowMapper;
         private readonly IRoleQueryFactory _queryFactory;
         private readonly IQueryMapper _queryMapper;
 
-        public RoleQuery(IDatabaseGateway databaseGateway, IDataRowMapper dataRowMapper,
-            IQueryMapper queryMapper, IRoleQueryFactory queryFactory)
+        public RoleQuery(IDatabaseGateway databaseGateway, IQueryMapper queryMapper, IRoleQueryFactory queryFactory)
         {
             Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
             Guard.AgainstNull(queryFactory, nameof(queryFactory));
             Guard.AgainstNull(queryMapper, nameof(queryMapper));
 
             _databaseGateway = databaseGateway;
-            _dataRowMapper = dataRowMapper;
             _queryFactory = queryFactory;
             _queryMapper = queryMapper;
         }
@@ -62,9 +57,9 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public IEnumerable<string> Permissions(Guid id)
+        public IEnumerable<DataAccess.Query.Role.RolePermission> Permissions(DataAccess.Query.Role.Specification specification)
         {
-            return _queryMapper.MapValues<string>(_queryFactory.Permissions(id));
+            return _queryMapper.MapObjects<DataAccess.Query.Role.RolePermission>(_queryFactory.Permissions(specification));
         }
 
         public int Count(DataAccess.Query.Role.Specification specification)

@@ -10,6 +10,6 @@ namespace Shuttle.Access.DataAccess
         IEnumerable<Guid> RoleIds(Query.Identity.Specification specification);
         int AdministratorCount();
         Guid Id(string identityName);
-        IEnumerable<string> Permissions(Guid userId);
+        IEnumerable<string> Permissions(Guid id);
     }
 }

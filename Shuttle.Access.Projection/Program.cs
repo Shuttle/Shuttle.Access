@@ -12,6 +12,8 @@ using Shuttle.Core.Logging;
 using Shuttle.Core.Reflection;
 using Shuttle.Core.ServiceHost;
 using Shuttle.Recall;
+using Shuttle.Recall.Sql.EventProcessing;
+using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Projection
 {
@@ -43,9 +45,13 @@ namespace Shuttle.Access.Projection
 
             var container = new WindsorComponentContainer(_container);
 
+            container.RegisterDataAccess();
             container.RegisterSuffixed("Shuttle.Access.Sql");
-
             container.RegisterEventStore();
+            container.RegisterEventStoreStorage();
+            container.RegisterEventProcessing();
+
+            _ = container.Resolve<EventProcessingModule>();
 
             _eventStore = container.Resolve<IEventStore>();
 

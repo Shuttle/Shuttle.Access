@@ -96,7 +96,7 @@ namespace Shuttle.Access.WebApi.v1
                     TokenExpiryDate = registerSessionResult.TokenExpiryDate,
                     Permissions = registerSessionResult.Permissions.ToList()
                 })
-                : Problem();
+                : BadRequest();
         }
 
         [RequiresPermission(Permissions.View.Sessions)]

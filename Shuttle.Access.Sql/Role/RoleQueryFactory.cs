@@ -22,19 +22,6 @@ where
                 .AddParameterValue(Columns.RoleName, roleName);
         }
 
-        public IQuery Permissions(Guid roleId)
-        {
-            return RawQuery.Create(@"
-select 
-    Permission
-from
-    RolePermission
-where
-    RoleId = @RoleId
-")
-                .AddParameterValue(Columns.RoleId, roleId);
-        }
-
         public IQuery Search(DataAccess.Query.Role.Specification specification)
         {
             return Specification(specification, true);
@@ -86,16 +73,19 @@ where
 insert into [dbo].[RolePermission]
 (
 	[RoleId],
-	[Permission]
+	[Permission],
+    [DateRegistered]
 )
 values
 (
 	@RoleId,
-	@Permission
+	@Permission,
+    @DateRegistered
 )
 ")
                 .AddParameterValue(Columns.RoleId, id)
-                .AddParameterValue(Columns.Permission, domainEvent.Permission);
+                .AddParameterValue(Columns.Permission, domainEvent.Permission)
+                .AddParameterValue(Columns.DateRegistered, DateTime.UtcNow);
         }
 
         public IQuery PermissionRemoved(Guid id, PermissionRemoved domainEvent)
@@ -160,10 +150,17 @@ and
     or
     Id = @RoleId
 )
+and
+(
+    @DateRegistered is null
+    or
+    DateRegistered >= @DateRegistered
+)
 ")
                 .AddParameterValue(Columns.RoleNameMatch, specification.RoleNameMatch)
                 .AddParameterValue(Columns.RoleName, specification.RoleName)
-                .AddParameterValue(Columns.RoleId, specification.RoleId);
+                .AddParameterValue(Columns.RoleId, specification.RoleId)
+                .AddParameterValue(Columns.DateRegistered, specification.StartDateRegistered);
 
         }
 

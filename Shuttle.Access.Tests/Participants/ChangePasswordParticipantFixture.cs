@@ -14,7 +14,7 @@ namespace Shuttle.Access.Tests.Participants
         [Test]
         public void Should_be_able_to_change_password()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var hash = new byte[] { 0, 1, 2, 3, 4 };
             var changePassword = new ChangePassword { Token = Guid.NewGuid(), NewPassword = "new-password", OldPassword = "old-password"};
             var session = new Session(changePassword.Token, Guid.NewGuid(), "identity-name", now, now.AddSeconds(5));

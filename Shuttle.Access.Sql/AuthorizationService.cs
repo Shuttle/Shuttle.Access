@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
@@ -9,10 +10,10 @@ namespace Shuttle.Access.Sql
     public class AuthorizationService : IAuthorizationService, IAnonymousPermissions
     {
         private static readonly string AdministratorRoleName = "Administrator";
-        private static readonly List<string> AdministratorPermissions = new List<string> {"*"};
+        private static readonly List<string> AdministratorPermissions = new List<string> { "*" };
+        private readonly IIdentityQuery _identityQuery;
 
         private readonly IRoleQuery _roleQuery;
-        private readonly IIdentityQuery _identityQuery;
 
         public AuthorizationService(IRoleQuery roleQuery, IIdentityQuery identityQuery)
         {
@@ -29,7 +30,8 @@ namespace Shuttle.Access.Sql
 
             var count = _identityQuery.Count(new DataAccess.Query.Identity.Specification());
 
-            result.AddRange(_roleQuery.Permissions("Anonymous"));
+            result.AddRange(_roleQuery.Permissions(new DataAccess.Query.Role.Specification().WithRoleName("Anonymous"))
+                .Select(item => item.Permission));
 
             if (count == 0)
             {

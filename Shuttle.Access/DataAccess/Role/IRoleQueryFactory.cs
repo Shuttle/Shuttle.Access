@@ -7,7 +7,6 @@ namespace Shuttle.Access.DataAccess
     public interface IRoleQueryFactory
     {
         IQuery Permissions(string roleName);
-        IQuery Permissions(Guid roleId);
         IQuery Search(Query.Role.Specification specification);
         IQuery Added(Guid id, Added domainEvent);
         IQuery Get(Guid id);

@@ -1,5 +1,6 @@
 ﻿using System.Data.Common;
 using System.Data.SqlClient;
+using System.Reflection;
 using Castle.Windsor;
 using log4net;
 using Shuttle.Core.Castle;
@@ -7,9 +8,13 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Container;
 using Shuttle.Core.Log4Net;
 using Shuttle.Core.Logging;
+using Shuttle.Core.Mediator;
 using Shuttle.Core.ServiceHost;
 using Shuttle.Esb;
+using Shuttle.Esb.AzureMQ;
+using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
+using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Server
 {
@@ -40,10 +45,17 @@ namespace Shuttle.Access.Server
 
             var container = new WindsorComponentContainer(_container);
 
-            container.RegisterSuffixed("Shuttle.Access.Sql");
+            container.Register<IAzureStorageConfiguration, DefaultAzureStorageConfiguration>();
 
+            container.RegisterDataAccess();
+            container.RegisterSuffixed("Shuttle.Access.Sql");
             container.RegisterEventStore();
+            container.RegisterEventStoreStorage();
+            container.RegisterSubscription();
             container.RegisterServiceBus();
+            container.RegisterMessageHandlers(Assembly.Load("Shuttle.Access.Server.Handlers"));
+            container.RegisterMediator();
+            container.RegisterMediatorParticipants(Assembly.Load("Shuttle.Access.Application"));
 
             container.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 

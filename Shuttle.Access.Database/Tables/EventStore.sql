@@ -6,10 +6,12 @@
     [EventTypeId]    UNIQUEIDENTIFIER NOT NULL,
     [IsSnapshot]     BIT              NOT NULL,
     [SequenceNumber] BIGINT           IDENTITY (1, 1) NOT NULL,
-    [DateRegistered] DATETIME         CONSTRAINT [DF_EventStore_DateRegistered] DEFAULT (getdate()) NOT NULL,
+    [DateRegistered] DATETIME2 (7)    CONSTRAINT [DF_EventStore_DateRegistered] DEFAULT (getutcdate()) NOT NULL,
     CONSTRAINT [PK_EventStore] PRIMARY KEY CLUSTERED ([Id] ASC, [Version] ASC),
     CONSTRAINT [FK_EventStore_EventType] FOREIGN KEY ([EventTypeId]) REFERENCES [dbo].[EventType] ([Id])
 );
+
+
 
 
 

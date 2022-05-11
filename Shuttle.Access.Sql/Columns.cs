@@ -13,9 +13,9 @@ namespace Shuttle.Access.Sql
         public static readonly MappedColumn<string> Permission = new MappedColumn<string>("Permission", DbType.String);
         public static readonly MappedColumn<string> IdentityName = new MappedColumn<string>("IdentityName", DbType.String);
         public static readonly MappedColumn<string> Name = new MappedColumn<string>("Name", DbType.String);
-        public static readonly MappedColumn<DateTime> DateActivated = new MappedColumn<DateTime>("DateActivated", DbType.DateTime);
-        public static readonly MappedColumn<DateTime> DateRegistered = new MappedColumn<DateTime>("DateRegistered", DbType.DateTime);
-        public static readonly MappedColumn<DateTime> ExpiryDate = new MappedColumn<DateTime>("ExpiryDate", DbType.DateTime);
+        public static readonly MappedColumn<DateTime> DateActivated = new MappedColumn<DateTime>("DateActivated", DbType.DateTime2);
+        public static readonly MappedColumn<DateTime> DateRegistered = new MappedColumn<DateTime>("DateRegistered", DbType.DateTime2);
+        public static readonly MappedColumn<DateTime> ExpiryDate = new MappedColumn<DateTime>("ExpiryDate", DbType.DateTime2);
         public static readonly MappedColumn<string> RegisteredBy = new MappedColumn<string>("RegisteredBy", DbType.String);
         public static readonly MappedColumn<string> GeneratedPassword = new MappedColumn<string>("GeneratedPassword", DbType.String);
         public static readonly MappedColumn<Guid> IdentityId = new MappedColumn<Guid>("IdentityId", DbType.Guid);

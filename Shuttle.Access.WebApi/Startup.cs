@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Castle.Windsor;
 using Microsoft.AspNetCore.Builder;
@@ -23,9 +24,12 @@ using Shuttle.Core.Container;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Http;
 using Shuttle.Core.Logging;
+using Shuttle.Core.Mediator;
 using Shuttle.Core.Reflection;
 using Shuttle.Esb;
+using Shuttle.Esb.AzureMQ;
 using Shuttle.Recall;
+using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.WebApi
 {
@@ -111,10 +115,14 @@ namespace Shuttle.Access.WebApi
                 componentContainer.Register(type, type);
             }
 
+            componentContainer.RegisterDataAccess();
             componentContainer.RegisterServiceBus();
             componentContainer.RegisterEventStore();
+            componentContainer.RegisterEventStoreStorage();
+            componentContainer.RegisterMediator();
+            componentContainer.RegisterMediatorParticipants(Assembly.Load("Shuttle.Access.Application"));
 
-            ((IComponentRegistry)componentContainer).RegisterEventStore();
+            componentContainer.Register<IAzureStorageConfiguration, DefaultAzureStorageConfiguration>();
 
             var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>();
             var roleQuery = componentContainer.Resolve<IRoleQuery>();

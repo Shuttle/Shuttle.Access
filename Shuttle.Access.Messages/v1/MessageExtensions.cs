@@ -55,12 +55,6 @@ namespace Shuttle.Access.Messages.v1
             Guard.AgainstNullOrEmptyString(message.Password, nameof(message.Password));
         }
         
-        public static void ApplyInvariants(this GetIdentityRoleStatus message)
-        {
-            Guard.AgainstNull(message, nameof(message));
-            Guard.AgainstNull(message.RoleIds, nameof(message.RoleIds));
-        }
-        
         public static void ApplyInvariants(this ActivateIdentity message)
         {
             Guard.AgainstNull(message, nameof(message));

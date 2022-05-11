@@ -38,10 +38,10 @@ values
 )
 ")
                 .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Sql.Columns.Name, domainEvent.Name)
-                .AddParameterValue(Sql.Columns.DateRegistered, domainEvent.DateRegistered)
-                .AddParameterValue(Sql.Columns.RegisteredBy, domainEvent.RegisteredBy)
-                .AddParameterValue(Sql.Columns.GeneratedPassword, domainEvent.GeneratedPassword);
+                .AddParameterValue(Columns.Name, domainEvent.Name)
+                .AddParameterValue(Columns.DateRegistered, domainEvent.DateRegistered)
+                .AddParameterValue(Columns.RegisteredBy, domainEvent.RegisteredBy)
+                .AddParameterValue(Columns.GeneratedPassword, domainEvent.GeneratedPassword);
         }
 
         public IQuery Count(DataAccess.Query.Identity.Specification specification)
@@ -93,16 +93,19 @@ if not exists(select null from [dbo].[IdentityRole] where IdentityId = @Identity
     insert into [dbo].[IdentityRole]
     (
 	    [IdentityId],
-	    [RoleId]
+	    [RoleId],
+        [DateRegistered]
     )
     values
     (
 	    @IdentityId,
-	    @RoleId
+	    @RoleId,
+        @DateRegistered
     )
 ")
                 .AddParameterValue(Columns.IdentityId, id)
-                .AddParameterValue(Columns.RoleId, domainEvent.RoleId);
+                .AddParameterValue(Columns.RoleId, domainEvent.RoleId)
+                .AddParameterValue(Columns.DateRegistered, DateTime.UtcNow);
         }
 
         public IQuery Search(DataAccess.Query.Identity.Specification specification)
@@ -137,11 +140,20 @@ from
 inner join
     dbo.Role r on (r.Id = ir.RoleId)
 where 
+(
     @IdentityId is null
     or
     IdentityId = @IdentityId
+)
+and
+(
+    @DateRegistered is null
+    or
+    DateRegistered >= @DateRegistered
+)
 ")
-                .AddParameterValue(Columns.IdentityId, specification.Id);
+                .AddParameterValue(Columns.IdentityId, specification.Id)
+                .AddParameterValue(Columns.DateRegistered, specification.StartDateRegistered);
         }
 
         public IQuery Roles(Guid userId)

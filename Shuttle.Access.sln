@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32414.318
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access", "Shuttle.Access\Shuttle.Access.csproj", "{199AE83F-04AB-4624-AF81-51D3173CBD14}"
 EndProject
@@ -33,10 +33,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Projection.Handlers", "Shuttle.Access.Projection.Handlers\Shuttle.Access.Projection.Handlers.csproj", "{4E8BC6E0-9FA8-41CE-9124-696B07995BA7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Server.Handlers", "Shuttle.Access.Server.Handlers\Shuttle.Access.Server.Handlers.csproj", "{47F868BE-81EC-40D7-8E82-2C2BFCBB0BEB}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Projection.WebJob", "Shuttle.Access.Projection.WebJob\Shuttle.Access.Projection.WebJob.csproj", "{7CBA8394-DCB0-4F4E-AE8A-E1DAE6E418BE}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Server.WebJob", "Shuttle.Access.Server.WebJob\Shuttle.Access.Server.WebJob.csproj", "{91932970-BCB4-4347-AC3B-7E4D43C4A3D6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".azure", ".azure", "{D53FEDEF-EE4C-4F47-8248-F3C8AB932585}"
 	ProjectSection(SolutionItems) = preProject
@@ -127,14 +123,6 @@ Global
 		{47F868BE-81EC-40D7-8E82-2C2BFCBB0BEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47F868BE-81EC-40D7-8E82-2C2BFCBB0BEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47F868BE-81EC-40D7-8E82-2C2BFCBB0BEB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7CBA8394-DCB0-4F4E-AE8A-E1DAE6E418BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7CBA8394-DCB0-4F4E-AE8A-E1DAE6E418BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7CBA8394-DCB0-4F4E-AE8A-E1DAE6E418BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7CBA8394-DCB0-4F4E-AE8A-E1DAE6E418BE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{91932970-BCB4-4347-AC3B-7E4D43C4A3D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{91932970-BCB4-4347-AC3B-7E4D43C4A3D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{91932970-BCB4-4347-AC3B-7E4D43C4A3D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{91932970-BCB4-4347-AC3B-7E4D43C4A3D6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}.Release|Any CPU.ActiveCfg = Release|Any CPU

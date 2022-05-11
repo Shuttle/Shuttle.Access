@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net50</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
   </PropertyGroup>
@@ -13,12 +13,12 @@
 
   <ItemGroup>
     <PackageReference Include="Shuttle.Access" Version="4.0.1" />
-    <PackageReference Include="Shuttle.Access.Sql" Version="4.0.0" />
-    <PackageReference Include="Shuttle.Core.Castle" Version="10.1.0" />
+    <PackageReference Include="Shuttle.Access.Sql" Version="4.0.1" />
+    <PackageReference Include="Shuttle.Core.Castle" Version="10.1.1" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.Log4Net" Version="10.0.4" />
     <PackageReference Include="Shuttle.Core.ServiceHost" Version="10.1.1" />
-    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="13.0.0" />
+    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="13.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />

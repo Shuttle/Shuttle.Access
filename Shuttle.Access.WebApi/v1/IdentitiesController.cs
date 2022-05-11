@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
@@ -46,8 +44,7 @@ namespace Shuttle.Access.WebApi.v1
                 return Ok(_identityQuery.Search(new DataAccess.Query.Identity.Specification()));
             }
         }
-
-
+        
         [HttpGet("{value}")]
         [RequiresPermission(Permissions.View.Identity)]
         public IActionResult Get(string value)
@@ -85,10 +82,16 @@ namespace Shuttle.Access.WebApi.v1
             return Accepted();
         }
 
-        [HttpPost("setrolestatus")]
+        [HttpPatch("{id}/roles/{roleId}")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult SetIdentityRoleStatus([FromBody] SetIdentityRoleStatus message)
+        public IActionResult SetIdentityRoleStatus(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message)
         {
+            if (message != null)
+            {
+                message.IdentityId = id;
+                message.RoleId = roleId;
+            }
+
             try
             {
                 message.ApplyInvariants();
@@ -115,7 +118,7 @@ namespace Shuttle.Access.WebApi.v1
             return Accepted();
         }
 
-        [HttpPost("changepassword")]
+        [HttpPut("password/change")]
         public IActionResult ChangePassword([FromBody] ChangePassword message)
         {
             try
@@ -151,7 +154,7 @@ namespace Shuttle.Access.WebApi.v1
             return Accepted();
         }
 
-        [HttpPost("resetpassword")]
+        [HttpPut("password/reset")]
         [RequiresPermission(Permissions.Register.Identity)]
         public IActionResult ResetPassword([FromBody] ResetPassword message)
         {
@@ -181,38 +184,20 @@ namespace Shuttle.Access.WebApi.v1
             return !requestMessage.Ok ? BadRequest(requestMessage.Message) : Ok();
         }
 
-        [HttpPost("rolestatus")]
+        [HttpGet("{id}/roles")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult GetIdentityRoleStatus([FromBody] GetIdentityRoleStatus message)
+        public IActionResult GetRoles(Guid id, DateTime startDateRegistered)
         {
-            try
-            {
-                message.ApplyInvariants();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
-            List<Guid> roles;
-
             using (_databaseContextFactory.Create())
             {
-                roles = _identityQuery.RoleIds(new DataAccess.Query.Identity.Specification().WithIdentityId(message.IdentityId))
-                    .ToList();
+                return Ok(_identityQuery.RoleIds(
+                    new DataAccess.Query.Identity.Specification()
+                        .WithIdentityId(id)
+                        .WithStartDateRegistered(startDateRegistered)).ToList());
             }
-
-            return Ok(
-                from roleId in message.RoleIds
-                select new IdentityRoleStatus
-                {
-                    RoleId = roleId,
-                    Active = roles.Any(item => item.Equals(roleId))
-                }
-            );
         }
 
-        [HttpPost("activate")]
+        [HttpPut("activate")]
         [RequiresPermission(Permissions.Register.Identity)]
         public IActionResult Activate([FromBody] ActivateIdentity message)
         {
@@ -251,10 +236,15 @@ namespace Shuttle.Access.WebApi.v1
             return Accepted();
         }
 
-        [HttpPost("getpasswordresettoken")]
+        [HttpGet("{name}/password/reset-token")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult GetPasswordResetToken([FromBody] GetPasswordResetToken message)
+        public IActionResult GetPasswordResetToken(string name)
         {
+            var message = new GetPasswordResetToken
+            {
+                Name = name
+            };
+
             try
             {
                 message.ApplyInvariants();
@@ -289,7 +279,8 @@ namespace Shuttle.Access.WebApi.v1
             }
 
             var sessionTokenResult = HttpContext.GetAccessSessionToken();
-            var identityRegistrationRequested = new IdentityRegistrationRequested(sessionTokenResult.Ok ? sessionTokenResult.SessionToken : null);
+            var identityRegistrationRequested =
+                new IdentityRegistrationRequested(sessionTokenResult.Ok ? sessionTokenResult.SessionToken : null);
 
             using (_databaseContextFactory.Create())
             {
@@ -317,13 +308,11 @@ namespace Shuttle.Access.WebApi.v1
             message.Password = string.Empty;
             message.PasswordHash = generateHash.Hash;
             message.RegisteredBy = identityRegistrationRequested.RegisteredBy;
+            message.Activated = message.Activated && sessionTokenResult.Ok &&
+                                identityRegistrationRequested.IsActivationAllowed;
+            message.System = message.System;
 
-            _serviceBus.Send(new RegisterIdentity
-            {
-                Name = message.Name,
-                Activated = message.Activated && sessionTokenResult.Ok && identityRegistrationRequested.IsActivationAllowed,
-                System = message.System
-            });
+            _serviceBus.Send(message);
 
             return Accepted();
         }

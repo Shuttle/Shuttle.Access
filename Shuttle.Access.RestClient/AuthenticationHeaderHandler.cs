@@ -30,7 +30,7 @@ namespace Shuttle.Access.RestClient
 
             if (!string.IsNullOrEmpty(Token))
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("access-sessiontoken", Token);
+                request.Headers.Authorization = new AuthenticationHeaderValue("access-session-token", Token);
             }
 
             return base.SendAsync(request, cancellationToken);

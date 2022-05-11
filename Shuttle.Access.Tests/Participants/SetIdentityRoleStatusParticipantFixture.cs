@@ -7,6 +7,7 @@ using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
+using Shuttle.Recall;
 using RoleAdded = Shuttle.Access.Events.Identity.v1.RoleAdded;
 
 namespace Shuttle.Access.Tests.Participants
@@ -34,7 +35,7 @@ namespace Shuttle.Access.Tests.Participants
             var eventStream = eventStore.Get(identityId);
 
             Assert.That(eventStream.Count, Is.EqualTo(1));
-            Assert.That(((RoleAdded)eventStream.GetEvents().First().Event).RoleId, Is.EqualTo(setIdentityRoleStatus.RoleId));
+            Assert.That(((RoleAdded)eventStream.GetEvents(EventStream.EventRegistrationType.All).First().Event).RoleId, Is.EqualTo(setIdentityRoleStatus.RoleId));
         }
     }
 }

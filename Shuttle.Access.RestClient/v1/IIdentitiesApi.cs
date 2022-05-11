@@ -17,23 +17,23 @@ namespace Shuttle.Access.RestClient.v1
         [Delete("/identities/{id}")]
         Task<ApiResponse<object>> Delete(Guid id);
         
-        [Post("/identities/setrolestatus")]
-        Task<ApiResponse<object>> SetRoleStatus(SetIdentityRoleStatus message);
+        [Patch("/identities/{id}/roles/{roleId}")]
+        Task<ApiResponse<object>> SetRoleStatus(Guid id, Guid roleId, SetIdentityRoleStatus message);
 
-        [Post("/identities/changepassword")]
+        [Put("/identities/password/change")]
         Task<ApiResponse<object>> ChangePassword(ChangePassword message);
 
-        [Post("/identities/resetpassword")]
+        [Put("/identities/password/reset")]
         Task<ApiResponse<object>> ResetPassword(ResetPassword message);
 
-        [Post("/identities/rolestatus")]
-        Task<ApiResponse<List<IdentityRoleStatus>>> GetRoleStatus(GetIdentityRoleStatus message);
+        [Get("/identities/{id}/roles")]
+        Task<ApiResponse<List<Guid>>> GetRoles(Guid id, DateTime startDateRegistered);
 
-        [Post("/identities/activate")]
+        [Put("/identities/activate")]
         Task<ApiResponse<object>> Activate(ActivateIdentity message);
 
-        [Post("/identities/getpasswordresettoken")]
-        Task<ApiResponse<Guid>> GetPasswordResetToken(GetPasswordResetToken message);
+        [Get("/identities/{name}/password/reset-token")]
+        Task<ApiResponse<Guid>> GetPasswordResetToken(string name);
 
         [Post("/identities")]
         Task<ApiResponse<Guid>> Register(RegisterIdentity message);

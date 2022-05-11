@@ -7,7 +7,7 @@ namespace Shuttle.Access.Mvc
 {
     public static class HttpContextExtensions
     {
-        public static readonly string AccessSessionTokenHeaderName = "access-sessiontoken";
+        public static readonly string AccessSessionTokenHeaderName = "access-session-token";
 
         public static SessionTokenResult GetAccessSessionToken(this HttpContext context)
         {

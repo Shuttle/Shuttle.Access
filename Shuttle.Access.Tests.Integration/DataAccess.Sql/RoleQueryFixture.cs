@@ -9,7 +9,7 @@ namespace Shuttle.Access.Tests.Integration.DataAccess.Sql
         [Test]
         public void Should_be_able_perform_all_queries()
         {
-            var query = new RoleQuery(DatabaseGateway, DataRowMapper, QueryMapper, new RoleQueryFactory());
+            var query = new RoleQuery(DatabaseGateway, QueryMapper, new RoleQueryFactory());
 
             using (TransactionScopeFactory.Create())
             using (DatabaseContextFactory.Create())

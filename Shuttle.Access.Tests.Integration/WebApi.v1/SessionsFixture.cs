@@ -47,7 +47,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         public void Should_be_able_to_get_session_permissions()
         {
             var sessionRepository = new Mock<ISessionRepository>();
-            var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.Now, DateTime.Now.AddSeconds(15))
+            var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
                 .AddPermission(permission);
 
             sessionRepository.Setup(m => m.Find(It.IsAny<Guid>())).Returns(session);

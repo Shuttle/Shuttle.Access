@@ -25,6 +25,7 @@ namespace Shuttle.Access.DataAccess.Query
             public string RoleName { get; private set; }
             public bool RolesIncluded { get; set; }
             public Guid? Id { get; private set; }
+            public DateTime? StartDateRegistered { get; private set; }
 
             public Specification WithIdentityId(Guid id)
             {
@@ -50,6 +51,13 @@ namespace Shuttle.Access.DataAccess.Query
             public Specification IncludeRoles()
             {
                 RolesIncluded = true;
+
+                return this;
+            }
+
+            public Specification WithStartDateRegistered(DateTime date)
+            {
+                StartDateRegistered = date;
 
                 return this;
             }

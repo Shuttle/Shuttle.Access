@@ -36,7 +36,7 @@ namespace Shuttle.Access.Tests.Integration
                         services.AddSingleton(new Mock<ISessionQuery>().Object);
                         services.AddSingleton(new Mock<IServiceBus>().Object);
                         services.AddSingleton(new Mock<IMediator>().Object);
-                        services.AddSingleton(accessService.Object);
+                        services.AddSingleton<IAccessService>(accessService.Object);
                         // check if still required after refactor:
                         services.AddSingleton(new Mock<IHashingService>().Object);
                         services.AddSingleton(new Mock<IEventStore>().Object);
@@ -49,7 +49,7 @@ namespace Shuttle.Access.Tests.Integration
 
         protected override void ConfigureClient(HttpClient client)
         {
-            client.DefaultRequestHeaders.Add("access-sessiontoken", Guid.NewGuid().ToString());
+            client.DefaultRequestHeaders.Add("access-session-token", Guid.NewGuid().ToString());
 
             base.ConfigureClient(client);
         }

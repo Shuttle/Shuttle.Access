@@ -15,8 +15,8 @@ namespace Shuttle.Access.Tests
     [TestFixture]
     public class RestAccessServiceFixture
     {
-        private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.Now,
-            DateTime.Now.AddHours(1));
+        private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow,
+            DateTime.UtcNow.AddHours(1));
 
         [Test]
         public void Should_be_able_check_for_non_existent_session()

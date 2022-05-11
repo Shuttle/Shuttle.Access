@@ -74,17 +74,17 @@ namespace Shuttle.Access.Sql
 
             if (session != null && 
                 session.HasExpired &&
-                session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.Now)
+                session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.UtcNow)
             {
                     _log.Debug(string.Format(Resources.SessionRegisterRenewed, identityName));
 
-                    session.Renew(DateTime.Now.Add(_configuration.SessionDuration));
+                    session.Renew(DateTime.UtcNow.Add(_configuration.SessionDuration));
 
                     _sessionRepository.Renew(session);
             }
             else
             {
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
 
                 session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now,
                     now.Add(_configuration.SessionDuration));
@@ -122,7 +122,7 @@ namespace Shuttle.Access.Sql
                     return RegisterSessionResult.Failure();
                 }
 
-                var now = DateTime.Now;
+                var now = DateTime.UtcNow;
 
                 session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now, now.Add(_configuration.SessionDuration));
 
@@ -148,11 +148,11 @@ namespace Shuttle.Access.Sql
 
                 if (session.HasExpired)
                 {
-                    if (session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.Now)
+                    if (session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.UtcNow)
                     {
                         _log.Debug(string.Format(Resources.SessionRegisterRenewed, identityName));
 
-                        session.Renew(DateTime.Now.Add(_configuration.SessionDuration));
+                        session.Renew(DateTime.UtcNow.Add(_configuration.SessionDuration));
 
                         _sessionRepository.Renew(session);
                     }

@@ -25,7 +25,7 @@ namespace Shuttle.Access
 
         public bool HasExpired()
         {
-            return HasExpired(DateTime.Now);
+            return HasExpired(DateTime.UtcNow);
         }
         
         public bool HasExpired(DateTime date)

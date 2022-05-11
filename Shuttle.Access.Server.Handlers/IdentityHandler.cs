@@ -61,7 +61,10 @@ namespace Shuttle.Access.Server.Handlers
                 _mediator.Send(requestResponse);
             }
 
-            context.Publish(requestResponse.Response);
+            if (requestResponse.Response != null)
+            {
+                context.Publish(requestResponse.Response);
+            }
         }
 
         public void ProcessMessage(IHandlerContext<RemoveIdentity> context)

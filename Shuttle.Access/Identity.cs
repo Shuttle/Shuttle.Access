@@ -34,7 +34,7 @@ namespace Shuttle.Access
                 PasswordHash = passwordHash,
                 RegisteredBy = registeredBy,
                 GeneratedPassword = generatedPassword ?? string.Empty,
-                DateRegistered = DateTime.Now,
+                DateRegistered = DateTime.UtcNow,
                 Activated = activated
             });
         }

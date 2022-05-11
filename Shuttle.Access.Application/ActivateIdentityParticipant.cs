@@ -27,7 +27,7 @@ namespace Shuttle.Access.Application
             Guard.AgainstNull(context, nameof(context));
 
             var message = context.Message.Request;
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
 
             var specification = new DataAccess.Query.Identity.Specification();
 
