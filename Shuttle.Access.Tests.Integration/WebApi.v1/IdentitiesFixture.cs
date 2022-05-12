@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
@@ -498,20 +499,30 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Identities.GetRoles(Guid.NewGuid(), DateTime.UtcNow).Result;
+                var response = client.Identities.GetRoleStatus(Guid.NewGuid(), new Identifiers<Guid>
+                {
+                    Values = new List<Guid>
+                    {
+                        activeRoleId,
+                        inactiveRoleId
+                    }
+                }).Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content, Is.Not.Null);
 
-                Assert.That(response.Content.Count, Is.EqualTo(1));
+                Assert.That(response.Content.Count, Is.EqualTo(2));
 
-                var roleId = response.Content.Find(item => item == activeRoleId);
+                var identityRoleStatus = response.Content.Find(item => item.RoleId == activeRoleId);
 
-                Assert.That(roleId, Is.Not.Null);
-                Assert.That(roleId, Is.EqualTo(activeRoleId));
+                Assert.That(identityRoleStatus, Is.Not.Null);
+                Assert.That(identityRoleStatus.Active, Is.True);
 
-                Assert.That(response.Content.Any(item => item == inactiveRoleId), Is.False);
+                identityRoleStatus = response.Content.Find(item => item.RoleId == inactiveRoleId);
+
+                Assert.That(identityRoleStatus, Is.Not.Null);
+                Assert.That(identityRoleStatus.Active, Is.False);
             }
         }
 

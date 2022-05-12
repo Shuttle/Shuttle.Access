@@ -5,7 +5,7 @@ namespace Shuttle.Access.Messages.v1
 {
     public static class MessageExtensions
     {
-        public static void ApplyInvariants(this AddRole message)
+        public static void ApplyInvariants(this RegisterRole message)
         {
             Guard.AgainstNull(message, nameof(message));
             Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
@@ -84,10 +84,10 @@ namespace Shuttle.Access.Messages.v1
             Guard.AgainstNullOrEmptyString(message.Permission, nameof(message.Permission));
         }
 
-        public static void ApplyInvariants(this GetRolePermissionStatus message)
+        public static void ApplyInvariants<T>(this Identifiers<T> message)
         {
             Guard.AgainstNull(message, nameof(message));
-            Guard.AgainstNull(message.Permissions, nameof(message.Permissions));
+            Guard.AgainstNull(message.Values, nameof(message.Values));
         }
     }
 }

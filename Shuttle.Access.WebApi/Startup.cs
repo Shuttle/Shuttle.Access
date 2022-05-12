@@ -140,7 +140,7 @@ namespace Shuttle.Access.WebApi
 
                 if (!administratorExists)
                 {
-                    _bus.Send(new AddRole
+                    _bus.Send(new RegisterRole
                     {
                         Name = "Administrator"
                     });

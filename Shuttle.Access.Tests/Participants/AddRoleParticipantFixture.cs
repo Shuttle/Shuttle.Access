@@ -23,13 +23,13 @@ namespace Shuttle.Access.Tests.Participants
             var participant =
                 new AddRoleParticipant(eventStore, keyStore.Object);
 
-            var addRole = new AddRole { Name = "role-name" };
+            var addRole = new RegisterRole { Name = "role-name" };
 
             var requestResponseMessage =
-                new RequestResponseMessage<AddRole, RoleAdded>(addRole);
+                new RequestResponseMessage<RegisterRole, RoleRegistered>(addRole);
 
             participant.ProcessMessage(
-                new ParticipantContext<RequestResponseMessage<AddRole, RoleAdded>>(
+                new ParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>>(
                     requestResponseMessage, CancellationToken.None));
 
             Assert.That(requestResponseMessage.Response, Is.Not.Null);

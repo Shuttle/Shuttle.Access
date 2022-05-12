@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
 using Shuttle.Core.Contract;
@@ -84,17 +86,13 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPatch("{id}/roles/{roleId}")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult SetIdentityRoleStatus(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message)
+        public IActionResult SetRoleStatus(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message)
         {
-            if (message != null)
-            {
-                message.IdentityId = id;
-                message.RoleId = roleId;
-            }
-
             try
             {
                 message.ApplyInvariants();
+                message.IdentityId = id;
+                message.RoleId = roleId;
             }
             catch (Exception ex)
             {
@@ -134,7 +132,7 @@ namespace Shuttle.Access.WebApi.v1
 
             if (!sessionTokenResult.Ok)
             {
-                return BadRequest(Resources.SessionTokenException);
+                return BadRequest(Access.Resources.SessionTokenException);
             }
 
             message.Token = sessionTokenResult.SessionToken;
@@ -171,7 +169,7 @@ namespace Shuttle.Access.WebApi.v1
 
             if (!sessionTokenResult.Ok)
             {
-                return BadRequest(Resources.SessionTokenException);
+                return BadRequest(Access.Resources.SessionTokenException);
             }
 
             var requestMessage = new RequestMessage<ResetPassword>(message);
@@ -184,16 +182,32 @@ namespace Shuttle.Access.WebApi.v1
             return !requestMessage.Ok ? BadRequest(requestMessage.Message) : Ok();
         }
 
-        [HttpGet("{id}/roles")]
+        [HttpPost("{id}/role-status")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult GetRoles(Guid id, DateTime startDateRegistered)
+        public IActionResult GetRoleStatus(Guid id, [FromBody] Identifiers<Guid> identifiers)
         {
+            try
+            {
+                identifiers.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            List<Guid> roles;
+
             using (_databaseContextFactory.Create())
             {
-                return Ok(_identityQuery.RoleIds(
-                    new DataAccess.Query.Identity.Specification()
-                        .WithIdentityId(id)
-                        .WithStartDateRegistered(startDateRegistered)).ToList());
+                roles = _identityQuery.RoleIds(new DataAccess.Query.Identity.Specification().WithIdentityId(id))
+                    .ToList();
+
+                return Ok(from roleId in identifiers.Values
+                    select new IdentityRoleStatus
+                    {
+                        RoleId = roleId,
+                        Active = roles.Any(item => item.Equals(roleId))
+                    });
             }
         }
 

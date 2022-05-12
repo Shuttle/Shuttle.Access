@@ -1,39 +1,33 @@
-﻿using System;
-using Shuttle.Access.Application;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Server.Handlers
 {
     public class RoleHandler :
-        IMessageHandler<AddRole>,
+        IMessageHandler<RegisterRole>,
         IMessageHandler<RemoveRole>,
         IMessageHandler<SetRolePermissionStatus>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
-        private readonly IKeyStore _keyStore;
         private readonly IMediator _mediator;
 
-        public RoleHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IKeyStore keyStore, IMediator mediator)
+        public RoleHandler(IDatabaseContextFactory databaseContextFactory, IEventStore eventStore, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(eventStore, nameof(eventStore));
-            Guard.AgainstNull(keyStore, nameof(keyStore));
             Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
             _eventStore = eventStore;
-            _keyStore = keyStore;
             _mediator = mediator;
         }
 
-        public void ProcessMessage(IHandlerContext<AddRole> context)
+        public void ProcessMessage(IHandlerContext<RegisterRole> context)
         {
             var message = context.Message;
 
@@ -42,7 +36,7 @@ namespace Shuttle.Access.Server.Handlers
                 return;
             }
 
-            var requestResponse = new RequestResponseMessage<AddRole, RoleAdded>(message);
+            var requestResponse = new RequestResponseMessage<RegisterRole, RoleRegistered>(message);
 
             using (_databaseContextFactory.Create())
             {

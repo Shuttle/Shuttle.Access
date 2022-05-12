@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Refit;
+using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access.RestClient.v1
@@ -26,8 +27,8 @@ namespace Shuttle.Access.RestClient.v1
         [Put("/identities/password/reset")]
         Task<ApiResponse<object>> ResetPassword(ResetPassword message);
 
-        [Get("/identities/{id}/roles")]
-        Task<ApiResponse<List<Guid>>> GetRoles(Guid id, DateTime startDateRegistered);
+        [Post("/identities/{id}/role-status")]
+        Task<ApiResponse<List<IdentityRoleStatus>>> GetRoleStatus(Guid id, Identifiers<Guid> identifiers);
 
         [Put("/identities/activate")]
         Task<ApiResponse<object>> Activate(ActivateIdentity message);

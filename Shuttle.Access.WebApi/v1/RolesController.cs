@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc;
 using Shuttle.Core.Contract;
@@ -33,16 +35,12 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPatch("{id}/permissions")]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult SetPermission(Guid id, [FromBody] SetRolePermissionStatus message)
+        public IActionResult SetPermissionStatus(Guid id, [FromBody] SetRolePermissionStatus message)
         {
-            if (message != null)
-            {
-                message.RoleId = id;
-            }
-
             try
             {
                 message.ApplyInvariants();
+                message.RoleId = id;
             }
             catch (Exception ex)
             {
@@ -54,15 +52,31 @@ namespace Shuttle.Access.WebApi.v1
             return Accepted();
         }
 
-        [HttpGet("{id}/permissions")]
+        [HttpPost("{id}/permission-status")]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult GetPermissions(Guid id, DateTime startDateRegistered)
+        public IActionResult GetPermissionStatus(Guid id, [FromBody] Identifiers<string> identifiers)
         {
+            try
+            {
+                identifiers.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            List<DataAccess.Query.Role.RolePermission> permissions;
+
             using (_databaseContextFactory.Create())
             {
-                return Ok(_roleQuery.Permissions(new DataAccess.Query.Role.Specification()
-                    .WithRoleId(id)
-                    .WithStartDateRegistered(startDateRegistered)).Select(item => item.Permission).ToList());
+                permissions = _roleQuery.Permissions(new DataAccess.Query.Role.Specification().WithRoleId(id)).ToList();
+
+                return Ok(from permission in identifiers.Values
+                    select new RolePermissionStatus
+                    {
+                        Permission = permission,
+                        Active = permissions.Find(item => item.Permission.Equals(permission)) != null
+                    });
             }
         }
 
@@ -76,14 +90,25 @@ namespace Shuttle.Access.WebApi.v1
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{value}")]
         [RequiresPermission(Permissions.View.Role)]
-        public IActionResult Get(Guid id)
+        public IActionResult Get(string value)
         {
             using (_databaseContextFactory.Create())
             {
+                var specification = new DataAccess.Query.Role.Specification();
+
+                if (Guid.TryParse(value, out var id))
+                {
+                    specification.WithRoleId(id);
+                }
+                else
+                {
+                    specification.WithRoleName(value);
+                }
+                
                 var role = _roleQuery
-                    .Search(new DataAccess.Query.Role.Specification().WithRoleId(id).IncludePermissions())
+                    .Search(specification.IncludePermissions())
                     .FirstOrDefault();
 
                 return role != null
@@ -106,7 +131,7 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPost]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult Post([FromBody] AddRole message)
+        public IActionResult Post([FromBody] RegisterRole message)
         {
             try
             {
