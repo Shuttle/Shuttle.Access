@@ -9,5 +9,6 @@ namespace Shuttle.Access.Sql
         void PermissionAdded(PrimitiveEvent primitiveEvent, PermissionAdded domainEvent);
         void PermissionRemoved(PrimitiveEvent primitiveEvent, PermissionRemoved domainEvent);
         void Removed(PrimitiveEvent primitiveEvent);
+        void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent);
     }
 }

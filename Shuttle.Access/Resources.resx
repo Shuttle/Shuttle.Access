@@ -151,6 +151,10 @@
     <value>Permission '{0}' does not exist on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
   </data>
+  <data name="PropertyUnchangedException" xml:space="preserve">
+    <value>Property '{0}' has not changed.  Cannot apply value of '{1}'.</value>
+    <comment>0 = property name, 1 = unchanged value</comment>
+  </data>
   <data name="RegisterPasswordResetTokenException" xml:space="preserve">
     <value>There is already a password reset token registered.</value>
   </data>

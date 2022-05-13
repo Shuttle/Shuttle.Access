@@ -10,7 +10,8 @@ namespace Shuttle.Access.Projection.Handlers
         IEventHandler<Added>,
         IEventHandler<Removed>,
         IEventHandler<PermissionAdded>,
-        IEventHandler<PermissionRemoved>
+        IEventHandler<PermissionRemoved>, 
+        IEventHandler<NameSet>
     {
         private readonly IRoleProjectionQuery _query;
 
@@ -39,6 +40,13 @@ namespace Shuttle.Access.Projection.Handlers
         public void ProcessEvent(IEventHandlerContext<Removed> context)
         {
             _query.Removed(context.PrimitiveEvent);
+        }
+
+        public void ProcessEvent(IEventHandlerContext<NameSet> context)
+        {
+            Guard.AgainstNull(context, nameof(context));
+
+            _query.NameSet(context.PrimitiveEvent, context.Event);
         }
     }
 }

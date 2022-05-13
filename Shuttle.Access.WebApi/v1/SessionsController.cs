@@ -132,7 +132,7 @@ namespace Shuttle.Access.WebApi.v1
             }
         }
 
-        [HttpGet("{id}/permissions")]
+        [HttpGet("{token}/permissions")]
         [RequiresPermission(Permissions.View.Sessions)]
         public IActionResult GetPermission(Guid token)
         {

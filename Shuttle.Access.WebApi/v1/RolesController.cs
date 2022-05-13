@@ -17,20 +17,39 @@ namespace Shuttle.Access.WebApi.v1
     [ApiVersion("1")]
     public class RolesController : Controller
     {
-        private readonly IServiceBus _bus;
+        private readonly IServiceBus _serviceBus;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IRoleQuery _roleQuery;
 
-        public RolesController(IServiceBus bus, IDatabaseContextFactory databaseContextFactory,
+        public RolesController(IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory,
             IRoleQuery roleQuery)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            Guard.AgainstNull(bus, nameof(bus));
+            Guard.AgainstNull(serviceBus, nameof(serviceBus));
             Guard.AgainstNull(roleQuery, nameof(roleQuery));
 
             _databaseContextFactory = databaseContextFactory;
-            _bus = bus;
+            _serviceBus = serviceBus;
             _roleQuery = roleQuery;
+        }
+
+        [HttpPatch("{id}/name")]
+        [RequiresPermission(Permissions.Register.Role)]
+        public IActionResult SetName(Guid id, [FromBody] SetRoleName message)
+        {
+            try
+            {
+                message.ApplyInvariants();
+                message.Id = id;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            _serviceBus.Send(message);
+
+            return Accepted();
         }
 
         [HttpPatch("{id}/permissions")]
@@ -47,7 +66,7 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(ex.Message);
             }
 
-            _bus.Send(message);
+            _serviceBus.Send(message);
 
             return Accepted();
         }
@@ -121,7 +140,7 @@ namespace Shuttle.Access.WebApi.v1
         [RequiresPermission(Permissions.Remove.Role)]
         public IActionResult Delete(Guid id)
         {
-            _bus.Send(new RemoveRole
+            _serviceBus.Send(new RemoveRole
             {
                 Id = id
             });
@@ -142,7 +161,7 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(ex.Message);
             }
 
-            _bus.Send(message);
+            _serviceBus.Send(message);
 
             return Accepted();
         }

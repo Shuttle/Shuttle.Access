@@ -10,7 +10,8 @@ namespace Shuttle.Access.Server.Handlers
     public class RoleHandler :
         IMessageHandler<RegisterRole>,
         IMessageHandler<RemoveRole>,
-        IMessageHandler<SetRolePermissionStatus>
+        IMessageHandler<SetRolePermissionStatus>,
+        IMessageHandler<SetRoleName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
@@ -101,6 +102,30 @@ namespace Shuttle.Access.Server.Handlers
                 Permission = message.Permission,
                 Active = message.Active
             });
+        }
+
+        public void ProcessMessage(IHandlerContext<SetRoleName> context)
+        {
+            var message = context.Message;
+
+            if (string.IsNullOrEmpty(message.Name))
+            {
+                return;
+            }
+
+            var requestResponse = new RequestResponseMessage<SetRoleName, RoleNameSet>(message);
+
+            using (_databaseContextFactory.Create())
+            {
+                _mediator.Send(requestResponse);
+            }
+
+            if (requestResponse.Response == null)
+            {
+                return;
+            }
+
+            context.Publish(requestResponse.Response);
         }
     }
 }

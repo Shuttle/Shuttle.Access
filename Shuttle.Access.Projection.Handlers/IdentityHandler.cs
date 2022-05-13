@@ -11,7 +11,8 @@ namespace Shuttle.Access.Projection.Handlers
         IEventHandler<RoleAdded>,
         IEventHandler<RoleRemoved>,
         IEventHandler<Removed>,
-        IEventHandler<Activated>
+        IEventHandler<Activated>,
+        IEventHandler<NameSet>
     {
         private readonly IIdentityProjectionQuery _query;
 
@@ -55,6 +56,13 @@ namespace Shuttle.Access.Projection.Handlers
             Guard.AgainstNull(context, nameof(context));
 
             _query.Activated(context.PrimitiveEvent, context.Event);
+        }
+
+        public void ProcessEvent(IEventHandlerContext<NameSet> context)
+        {
+            Guard.AgainstNull(context, nameof(context));
+
+            _query.NameSet(context.PrimitiveEvent, context.Event);
         }
     }
 }

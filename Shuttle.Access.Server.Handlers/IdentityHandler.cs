@@ -1,5 +1,4 @@
-﻿using Shuttle.Access.Application;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
@@ -12,7 +11,8 @@ namespace Shuttle.Access.Server.Handlers
         IMessageHandler<SetIdentityRoleStatus>,
         IMessageHandler<RemoveIdentity>,
         IMessageHandler<SetPassword>,
-        IMessageHandler<ActivateIdentity>
+        IMessageHandler<ActivateIdentity>,
+        IMessageHandler<SetIdentityName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IMediator _mediator;
@@ -109,6 +109,30 @@ namespace Shuttle.Access.Server.Handlers
             {
                 _mediator.Send(context.Message);
             }
+        }
+
+        public void ProcessMessage(IHandlerContext<SetIdentityName> context)
+        {
+            var message = context.Message;
+
+            if (string.IsNullOrEmpty(message.Name))
+            {
+                return;
+            }
+
+            var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
+
+            using (_databaseContextFactory.Create())
+            {
+                _mediator.Send(requestResponse);
+            }
+
+            if (requestResponse.Response == null)
+            {
+                return;
+            }
+
+            context.Publish(requestResponse.Response);
         }
     }
 }

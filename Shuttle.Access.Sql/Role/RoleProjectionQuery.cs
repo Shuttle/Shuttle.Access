@@ -39,5 +39,10 @@ namespace Shuttle.Access.Sql
         {
             _databaseGateway.ExecuteUsing(_queryFactory.Removed(primitiveEvent.Id));
         }
+
+        public void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent)
+        {
+            _databaseGateway.ExecuteUsing(_queryFactory.NameSet(primitiveEvent.Id, domainEvent));
+        }
     }
 }

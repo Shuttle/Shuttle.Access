@@ -164,6 +164,20 @@ and
 
         }
 
+        public IQuery NameSet(Guid id, NameSet domainEvent)
+        {
+            return RawQuery.Create(@"
+update
+    Role
+set
+    RoleName = @RoleName
+where
+    Id = @Id
+")
+                .AddParameterValue(Columns.Id, id)
+                .AddParameterValue(Columns.RoleName, domainEvent.Name);
+        }
+
         private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
         {
             Guard.AgainstNull(specification, nameof(specification));

@@ -34,9 +34,31 @@ namespace Shuttle.Access
             return added;
         }
 
+        public NameSet SetName(string name)
+        {
+            if (name.Equals(Name))
+            {
+                throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
+            }
+
+            return On(new NameSet
+            {
+                Name = name
+            });
+        }
+
+        private NameSet On(NameSet nameSet)
+        {
+            Guard.AgainstNull(nameSet, nameof(nameSet));
+
+            Name = nameSet.Name;
+
+            return nameSet;
+        }
+
         public static string Key(string name)
         {
-            return string.Format("[role]:name={0};", name);
+            return $"[role]:name={name};";
         }
 
         public PermissionAdded AddPermission(string permission)

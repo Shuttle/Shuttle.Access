@@ -1,5 +1,4 @@
 ﻿using System;
-using Shuttle.Access.Events;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Data;
 
@@ -21,5 +20,6 @@ namespace Shuttle.Access.DataAccess
         IQuery GetId(string identityName);
         IQuery Permissions(Guid id);
         IQuery Activated(Guid id, Activated domainEvent);
+        IQuery NameSet(Guid id, NameSet domainEvent);
     }
 }

@@ -238,5 +238,20 @@ where
                 .AddParameterValue(Columns.Id, id)
                 .AddParameterValue(Columns.DateActivated, domainEvent.DateActivated);
         }
+
+        public IQuery NameSet(Guid id, NameSet domainEvent)
+        {
+            return RawQuery.Create(@"
+update
+    [dbo].[Identity]
+set
+    [Name] = @Name
+where
+    Id = @Id
+")
+                .AddParameterValue(Columns.Id, id)
+                .AddParameterValue(Columns.Name, domainEvent.Name);
+
+        }
     }
 }

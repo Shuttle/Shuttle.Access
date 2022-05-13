@@ -11,7 +11,6 @@ namespace Shuttle.Access
     {
         private readonly Guid _id;
         private readonly List<Guid> _roles = new List<Guid>();
-        private string _name;
         private byte[] _passwordHash;
 
         public Identity(Guid id)
@@ -19,6 +18,7 @@ namespace Shuttle.Access
             _id = id;
         }
 
+        public string Name { get; private set; }
         public Guid? PasswordResetToken { get; private set; }
         public bool HasPasswordResetToken => PasswordResetToken.HasValue;
         public DateTime? DateActivated { get; private set; }
@@ -73,7 +73,7 @@ namespace Shuttle.Access
         {
             Guard.AgainstNull(registered, nameof(registered));
 
-            _name = registered.Name;
+            Name = registered.Name;
             _passwordHash = registered.PasswordHash;
 
             Removed = false;
@@ -100,6 +100,28 @@ namespace Shuttle.Access
             return passwordSet;
         }
 
+        public NameSet SetName(string name)
+        {
+            if (name.Equals(Name))
+            {
+                throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
+            }
+
+            return On(new NameSet
+            {
+                Name = name
+            });
+        }
+
+        private NameSet On(NameSet nameSet)
+        {
+            Guard.AgainstNull(nameSet, nameof(nameSet));
+
+            Name = nameSet.Name;
+
+            return nameSet;
+        }
+
         public static string Key(string name)
         {
             return $"[identity]:name={name};";
@@ -114,7 +136,7 @@ namespace Shuttle.Access
 
         public RoleAdded AddRole(Guid roleId)
         {
-            return On(new RoleAdded {RoleId = roleId});
+            return On(new RoleAdded { RoleId = roleId });
         }
 
         private RoleAdded On(RoleAdded roleAdded)
@@ -135,10 +157,10 @@ namespace Shuttle.Access
         {
             if (!IsInRole(roleId))
             {
-                throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, roleId, _name));
+                throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, roleId, Name));
             }
 
-            return On(new RoleRemoved {RoleId = roleId});
+            return On(new RoleRemoved { RoleId = roleId });
         }
 
         private RoleRemoved On(RoleRemoved roleRemoved)

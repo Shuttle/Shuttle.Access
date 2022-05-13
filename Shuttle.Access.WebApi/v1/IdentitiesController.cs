@@ -37,6 +37,25 @@ namespace Shuttle.Access.WebApi.v1
             _mediator = mediator;
         }
 
+        [HttpPatch("{id}/name")]
+        [RequiresPermission(Permissions.Register.Role)]
+        public IActionResult SetName(Guid id, [FromBody] SetIdentityName message)
+        {
+            try
+            {
+                message.ApplyInvariants();
+                message.Id = id;
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            _serviceBus.Send(message);
+
+            return Accepted();
+        }
+
         [HttpGet]
         [RequiresPermission(Permissions.View.Identity)]
         public IActionResult Get()

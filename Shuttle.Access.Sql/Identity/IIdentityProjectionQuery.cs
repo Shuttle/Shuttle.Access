@@ -10,5 +10,6 @@ namespace Shuttle.Access.Sql
         void RoleRemoved(PrimitiveEvent primitiveEvent, RoleRemoved domainEvent);
         void Removed(PrimitiveEvent primitiveEvent);
         void Activated(PrimitiveEvent primitiveEvent, Activated domainEvent);
+        void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent);
     }
 }

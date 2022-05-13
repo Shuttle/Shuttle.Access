@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Castle.Windsor;
@@ -75,9 +76,35 @@ namespace Shuttle.Access.WebApi
             services.AddSingleton(typeof(IDataRepository<>), typeof(DataRepository<>));
             services.AddSingleton<IAccessService, DataStoreAccessService>();
 
-            services.AddSwaggerGen(c =>
+            services.AddSwaggerGen(options =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Shuttle.Access.WebApi", Version = "v1" });
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Shuttle.Access.WebApi", Version = "v1" });
+
+                options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme()
+                {
+                    Name = "access-session-token",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Description = "Shuttle.Access token security",
+                    Scheme = "ApiKeyScheme"
+                });
+
+                var key = new OpenApiSecurityScheme()
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "ApiKey"
+                    },
+                    In = ParameterLocation.Header
+                };
+
+                var requirement = new OpenApiSecurityRequirement
+                {
+                    { key, new List<string>() }
+                };
+
+                options.AddSecurityRequirement(requirement);
             });
             
             services.AddControllers();
