@@ -40,5 +40,10 @@ namespace Shuttle.Access.Sql
 
             _databaseGateway.ExecuteUsing(_queryFactory.Remove(permission));
         }
+
+        public int Count()
+        {
+            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count());
+        }
     }
 }

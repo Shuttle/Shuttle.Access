@@ -55,5 +55,15 @@ where
 ")
                 .AddParameterValue(Columns.Permission, permission);
         }
+
+        public IQuery Count()
+        {
+            return RawQuery.Create(@"
+select
+    count(*)
+from
+    Permission
+");
+        }
     }
 }

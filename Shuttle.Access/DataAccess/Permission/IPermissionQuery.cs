@@ -7,5 +7,6 @@ namespace Shuttle.Access.DataAccess
         IEnumerable<string> Available();
         void Register(string permission);
         void Remove(string permission);
+        int Count();
     }
 }

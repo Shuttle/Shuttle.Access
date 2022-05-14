@@ -7,5 +7,6 @@ namespace Shuttle.Access.DataAccess
         IQuery Available();
         IQuery Register(string permission);
         IQuery Remove(string permission);
+        IQuery Count();
     }
 }
