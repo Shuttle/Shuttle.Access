@@ -19,7 +19,7 @@ namespace Shuttle.Access.RestClient.v1
         Task<ApiResponse<object>> Delete(Guid id);
         
         [Patch("/identities/{id}/roles/{roleId}")]
-        Task<ApiResponse<object>> SetRoleStatus(Guid id, Guid roleId, SetIdentityRoleStatus message);
+        Task<ApiResponse<object>> SetRole(Guid id, Guid roleId, SetIdentityRole message);
 
         [Put("/identities/password/change")]
         Task<ApiResponse<object>> ChangePassword(ChangePassword message);
@@ -27,8 +27,8 @@ namespace Shuttle.Access.RestClient.v1
         [Put("/identities/password/reset")]
         Task<ApiResponse<object>> ResetPassword(ResetPassword message);
 
-        [Post("/identities/{id}/role-status")]
-        Task<ApiResponse<List<IdentityRoleStatus>>> GetRoleStatus(Guid id, Identifiers<Guid> identifiers);
+        [Post("/identities/{id}/roles/availability")]
+        Task<ApiResponse<List<IdentifierAvailability<Guid>>>> RoleAvailability(Guid id, Identifiers<Guid> identifiers);
 
         [Put("/identities/activate")]
         Task<ApiResponse<object>> Activate(ActivateIdentity message);

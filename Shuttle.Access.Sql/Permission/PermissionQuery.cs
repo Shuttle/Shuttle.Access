@@ -22,28 +22,14 @@ namespace Shuttle.Access.Sql
             _queryFactory = queryFactory;
         }
 
-        public IEnumerable<string> Available()
+        public IEnumerable<DataAccess.Query.Permission> Search(DataAccess.Query.Permission.Specification specification)
         {
-            return _queryMapper.MapValues<string>(_queryFactory.Available());
+            return _queryMapper.MapObjects<DataAccess.Query.Permission>(_queryFactory.Search(specification));
         }
 
-        public void Register(string permission)
+        public int Count(DataAccess.Query.Permission.Specification specification)
         {
-            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
-
-            _databaseGateway.ExecuteUsing(_queryFactory.Register(permission));
-        }
-
-        public void Remove(string permission)
-        {
-            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
-
-            _databaseGateway.ExecuteUsing(_queryFactory.Remove(permission));
-        }
-
-        public int Count()
-        {
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count());
+            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count(specification));
         }
     }
 }

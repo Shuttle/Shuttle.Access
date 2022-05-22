@@ -1,6 +1,5 @@
 ﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
@@ -22,7 +21,7 @@ namespace Shuttle.Access.Application
             Guard.AgainstNull(context, nameof(context));
 
             var request = context.Message.Request;
-            var role = new Role(request.Id);
+            var role = new Role();
             var stream = _eventStore.Get(request.Id);
 
             stream.Apply(role);

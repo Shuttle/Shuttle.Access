@@ -9,14 +9,8 @@ namespace Shuttle.Access
 {
     public class Identity
     {
-        private readonly Guid _id;
         private readonly List<Guid> _roles = new List<Guid>();
         private byte[] _passwordHash;
-
-        public Identity(Guid id)
-        {
-            _id = id;
-        }
 
         public string Name { get; private set; }
         public Guid? PasswordResetToken { get; private set; }

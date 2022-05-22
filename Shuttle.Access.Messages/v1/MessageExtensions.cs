@@ -22,7 +22,7 @@ namespace Shuttle.Access.Messages.v1
             Guard.AgainstNull(message, nameof(message));
         }
         
-        public static void ApplyInvariants(this SetIdentityRoleStatus message)
+        public static void ApplyInvariants(this SetIdentityRole message)
         {
             Guard.AgainstNull(message, nameof(message));
         }
@@ -72,16 +72,15 @@ namespace Shuttle.Access.Messages.v1
             Guard.AgainstNull(message.Name, nameof(message.Name));
         }
 
-        public static void ApplyInvariants(this SetRolePermissionStatus message)
+        public static void ApplyInvariants(this SetRolePermission message)
         {
             Guard.AgainstNull(message, nameof(message));
-            Guard.AgainstNullOrEmptyString(message.Permission, nameof(message.Permission));
         }
 
         public static void ApplyInvariants(this RegisterPermission message)
         {
             Guard.AgainstNull(message, nameof(message));
-            Guard.AgainstNullOrEmptyString(message.Permission, nameof(message.Permission));
+            Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
         }
 
         public static void ApplyInvariants(this SetIdentityName message)

@@ -37,7 +37,7 @@ namespace Shuttle.Access.Application
                 return;
             }
 
-            var identity = new Identity(queryIdentity.Id);
+            var identity = new Identity();
             var stream = _eventStore.Get(queryIdentity.Id);
 
             stream.Apply(identity);

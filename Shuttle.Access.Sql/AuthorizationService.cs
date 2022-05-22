@@ -30,8 +30,8 @@ namespace Shuttle.Access.Sql
 
             var count = _identityQuery.Count(new DataAccess.Query.Identity.Specification());
 
-            result.AddRange(_roleQuery.Permissions(new DataAccess.Query.Role.Specification().WithRoleName("Anonymous"))
-                .Select(item => item.Permission));
+            result.AddRange(_roleQuery.Permissions(new DataAccess.Query.Role.Specification().AddName("Anonymous"))
+                .Select(item => item.Name));
 
             if (count == 0)
             {

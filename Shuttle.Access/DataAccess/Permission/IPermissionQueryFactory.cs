@@ -1,12 +1,17 @@
-﻿using Shuttle.Core.Data;
+﻿using System;
+using Shuttle.Access.Events;
+using Shuttle.Access.Events.Permission.v1;
+using Shuttle.Core.Data;
 
 namespace Shuttle.Access.DataAccess
 {
     public interface IPermissionQueryFactory
     {
-        IQuery Available();
-        IQuery Register(string permission);
-        IQuery Remove(string permission);
-        IQuery Count();
+        IQuery Search(Query.Permission.Specification specification);
+        IQuery Count (Query.Permission.Specification specification);
+        IQuery Added(Guid id, Added domainEvent);
+        IQuery Activated(Guid id, Activated domainEvent);
+        IQuery Deactivated(Guid id, Deactivated domainEvent);
+        IQuery Removed(Guid id, Removed domainEvent);
     }
 }

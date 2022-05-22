@@ -1,7 +1,9 @@
-﻿namespace Shuttle.Access.Messages.v1
+﻿using System;
+
+namespace Shuttle.Access.Messages.v1
 {
     public class RemovePermission
     {
-        public string Permission { get; set; }
+        public Guid Id { get; set; }
     }
 }

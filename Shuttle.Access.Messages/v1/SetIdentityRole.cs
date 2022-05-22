@@ -2,7 +2,7 @@
 
 namespace Shuttle.Access.Messages.v1
 {
-    public class SetIdentityRoleStatus
+    public class SetIdentityRole
     {
         public Guid IdentityId { get; set; }
         public Guid RoleId { get; set; }

@@ -88,7 +88,7 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Permission &apos;{0}&apos; already exists on role &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Permission with Id &apos;{0}&apos; already exists on role &apos;{1}&apos;..
         /// </summary>
         public static string DuplicatePermissionException {
             get {
@@ -142,7 +142,7 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Permission &apos;{0}&apos; does not exist on role &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Permission with Id &apos;{0}&apos; does not exist on role &apos;{1}&apos;..
         /// </summary>
         public static string PermissionNotFoundException {
             get {

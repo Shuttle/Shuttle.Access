@@ -1,11 +1,11 @@
 ﻿CREATE TABLE [dbo].[Role] (
     [Id]       UNIQUEIDENTIFIER NOT NULL DEFAULT newid(),
-    [RoleName] VARCHAR (130)    NOT NULL,
+    [Name] VARCHAR (130)    NOT NULL,
     CONSTRAINT [PK_Role] PRIMARY KEY NONCLUSTERED ([Id] ASC)
 );
 
 
 GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_Role]
-    ON [dbo].[Role]([RoleName] ASC);
+    ON [dbo].[Role]([Name] ASC);
 

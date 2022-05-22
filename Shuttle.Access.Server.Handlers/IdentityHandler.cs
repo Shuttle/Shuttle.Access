@@ -8,7 +8,7 @@ namespace Shuttle.Access.Server.Handlers
 {
     public class IdentityHandler :
         IMessageHandler<RegisterIdentity>,
-        IMessageHandler<SetIdentityRoleStatus>,
+        IMessageHandler<SetIdentityRole>,
         IMessageHandler<RemoveIdentity>,
         IMessageHandler<SetPassword>,
         IMessageHandler<ActivateIdentity>,
@@ -37,7 +37,10 @@ namespace Shuttle.Access.Server.Handlers
                 _mediator.Send(requestResponse);
             }
 
-            context.Publish(requestResponse.Response);
+            if (requestResponse.Response != null)
+            {
+                context.Publish(requestResponse.Response);
+            }
         }
 
         public void ProcessMessage(IHandlerContext<RegisterIdentity> context)
@@ -80,16 +83,16 @@ namespace Shuttle.Access.Server.Handlers
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetIdentityRoleStatus> context)
+        public void ProcessMessage(IHandlerContext<SetIdentityRole> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
             var message = context.Message;
+            var reviewRequest = new RequestMessage<SetIdentityRole>(message);
+            var requestResponse = new RequestResponseMessage<SetIdentityRole, IdentityRoleSet>(message);
 
             using (_databaseContextFactory.Create())
             {
-                var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(message);
-
                 _mediator.Send(reviewRequest);
 
                 if (!reviewRequest.Ok)
@@ -97,7 +100,12 @@ namespace Shuttle.Access.Server.Handlers
                     return;
                 }
 
-                _mediator.Send(message);
+                _mediator.Send(requestResponse);
+
+                if (requestResponse.Response != null)
+                {
+                    context.Publish(requestResponse.Response);
+                }
             }
         }
 
@@ -127,12 +135,10 @@ namespace Shuttle.Access.Server.Handlers
                 _mediator.Send(requestResponse);
             }
 
-            if (requestResponse.Response == null)
+            if (requestResponse.Response != null)
             {
-                return;
+                context.Publish(requestResponse.Response);
             }
-
-            context.Publish(requestResponse.Response);
         }
     }
 }

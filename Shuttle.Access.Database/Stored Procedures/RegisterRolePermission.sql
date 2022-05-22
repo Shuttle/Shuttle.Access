@@ -1,24 +1,40 @@
 ﻿CREATE PROCEDURE [dbo].[RegisterRolePermission]
 	@RoleName varchar(130),
-	@Permission varchar(130)
+	@PermissionName varchar(130)
 AS
-	declare @Id uniqueidentifier
+	declare @RoleId uniqueidentifier
+	declare @PermissionId uniqueidentifier
 
-	select @Id = Id from Role where RoleName = @RoleName
+	select @RoleId = Id from Role where [Name] = @RoleName
 
-	if (@Id is null)
+	if (@RoleId is null)
 		return 0;
 
-	if exists (select null from RolePermission where RoleId = @Id and Permission = @Permission)
+	select @PermissionId = Id from Permission where [Name] = @PermissionName
+
+	if (@PermissionId is null)
+		return 0;
+
+	if exists 
+	(
+		select 
+			null 
+		from 
+			RolePermission
+		where 
+			RoleId = @RoleId 
+		and 
+			@PermissionId = @PermissionId
+	)
 		return;
 
 	insert into RolePermission
 	(
 		RoleId,
-		Permission
+		PermissionId
 	)
 	values
 	(
-		@id,
-		@Permission
+		@RoleId,
+		@PermissionId
 	)

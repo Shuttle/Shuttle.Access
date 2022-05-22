@@ -2,6 +2,7 @@
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
+using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 
 namespace Shuttle.Access.Server.Handlers
@@ -12,14 +13,18 @@ namespace Shuttle.Access.Server.Handlers
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IPermissionQuery _permissionQuery;
+        private readonly IMediator _mediator;
 
-        public PermissionHandler(IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery)
+        public PermissionHandler(IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery,
+            IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(permissionQuery, nameof(permissionQuery));
+            Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
             _permissionQuery = permissionQuery;
+            _mediator = mediator;
         }
 
         public void ProcessMessage(IHandlerContext<RegisterPermission> context)
@@ -28,15 +33,17 @@ namespace Shuttle.Access.Server.Handlers
 
             var message = context.Message;
 
+            var requestResponse = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(message);
+
             using (_databaseContextFactory.Create())
             {
-                _permissionQuery.Register(message.Permission);
+                _mediator.Send(requestResponse);
             }
 
-            context.Publish(new PermissionRegistered
+            if (requestResponse.Response != null)
             {
-                Permission = message.Permission
-            });
+                context.Publish(requestResponse.Response);
+            }
         }
 
         public void ProcessMessage(IHandlerContext<RemovePermission> context)
@@ -45,15 +52,17 @@ namespace Shuttle.Access.Server.Handlers
 
             var message = context.Message;
 
+            var requestResponse = new RequestResponseMessage<RemovePermission, PermissionRemoved>(message);
+
             using (_databaseContextFactory.Create())
             {
-                _permissionQuery.Remove(message.Permission);
+                _mediator.Send(requestResponse);
             }
 
-            context.Publish(new PermissionRemoved
+            if (requestResponse.Response != null)
             {
-                Permission = message.Permission
-            });
+                context.Publish(requestResponse.Response);
+            }
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Shuttle.Access.Application
 
             var message = context.Message;
             var id = message.Id;
-            var identity = new Identity(id);
+            var identity = new Identity();
             var stream = _eventStore.Get(id);
 
             stream.Apply(identity);

@@ -10,7 +10,7 @@ using Shuttle.Recall.Sql.Storage;
 namespace Shuttle.Access.Tests.Participants
 {
     [TestFixture]
-    public class AddRoleParticipantFixture
+    public class RegisterRoleParticipantFixture
     {
         [Test]
         public void Should_be_able_to_add_role()
@@ -21,7 +21,7 @@ namespace Shuttle.Access.Tests.Participants
             keyStore.Setup(m => m.Contains(It.IsAny<string>())).Returns(false);
 
             var participant =
-                new AddRoleParticipant(eventStore, keyStore.Object);
+                new RegisterRoleParticipant(eventStore, keyStore.Object);
 
             var addRole = new RegisterRole { Name = "role-name" };
 

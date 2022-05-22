@@ -65,7 +65,7 @@ namespace Shuttle.Access.WebApi.v1
         {
             using (_databaseContextFactory.Create())
             {
-                return Ok(_permissionQuery.Available().ToList());
+                return Ok(_permissionQuery.Search(new DataAccess.Query.Permission.Specification()).ToList());
             }
         }
 
@@ -87,26 +87,13 @@ namespace Shuttle.Access.WebApi.v1
             return Accepted();
         }
 
-        [HttpDelete("{permission}")]
+        [HttpDelete("{id}")]
         [RequiresPermission(Permissions.Remove.Permission)]
-        public IActionResult Delete(string permission)
+        public IActionResult Delete(Guid id)
         {
-            string decoded;
-
-            try
-            {
-                Guard.AgainstNullOrEmptyString(permission, nameof(permission));
-
-                decoded = Uri.UnescapeDataString(permission);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
             _serviceBus.Send(new RemovePermission
             {
-                Permission = decoded
+                Id = id
             });
 
             return Accepted();

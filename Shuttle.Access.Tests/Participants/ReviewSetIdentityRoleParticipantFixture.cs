@@ -12,7 +12,7 @@ using Shuttle.Core.Mediator;
 namespace Shuttle.Access.Tests.Participants
 {
     [TestFixture]
-    public class ReviewSetIdentityRoleStatusParticipantFixture
+    public class ReviewSetIdentityRoleParticipantFixture
     {
         [Test]
         public void Should_be_able_to_review_with_no_administrator_role()
@@ -21,10 +21,10 @@ namespace Shuttle.Access.Tests.Participants
 
             roleQuery.Setup(m => m.Search(It.IsAny<DataAccess.Query.Role.Specification>())).Returns(Enumerable.Empty<DataAccess.Query.Role>());
 
-            var participant = new ReviewSetIdentityRoleStatusParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
-            var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new SetIdentityRoleStatus());
+            var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
+            var reviewRequest = new RequestMessage<SetIdentityRole>(new SetIdentityRole());
 
-            participant.ProcessMessage(new ParticipantContext<RequestMessage<SetIdentityRoleStatus>>(reviewRequest, new CancellationToken()));
+            participant.ProcessMessage(new ParticipantContext<RequestMessage<SetIdentityRole>>(reviewRequest, new CancellationToken()));
 
             Assert.That(reviewRequest.Ok, Is.True);
         }
@@ -40,7 +40,7 @@ namespace Shuttle.Access.Tests.Participants
                 new()
                 {
                     Id = roleId,
-                    RoleName = "Administrator"
+                    Name = "Administrator"
                 }
             });
 
@@ -48,10 +48,10 @@ namespace Shuttle.Access.Tests.Participants
 
             identityQuery.Setup(m => m.AdministratorCount()).Returns(1);
 
-            var participant = new ReviewSetIdentityRoleStatusParticipant(roleQuery.Object, identityQuery.Object);
-            var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new SetIdentityRoleStatus { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
+            var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, identityQuery.Object);
+            var reviewRequest = new RequestMessage<SetIdentityRole>(new SetIdentityRole { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
 
-            participant.ProcessMessage(new ParticipantContext<RequestMessage<SetIdentityRoleStatus>>(reviewRequest, new CancellationToken()));
+            participant.ProcessMessage(new ParticipantContext<RequestMessage<SetIdentityRole>>(reviewRequest, new CancellationToken()));
 
             Assert.That(reviewRequest.Ok, Is.False);
             Assert.That(reviewRequest.Message, Is.EqualTo("last-administrator"));

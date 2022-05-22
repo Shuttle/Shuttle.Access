@@ -22,9 +22,5 @@
       <ProjectReference Include="..\Shuttle.Access.Server.Handlers\Shuttle.Access.Server.Handlers.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Handlers\" />
-    </ItemGroup>
     
 </Project>

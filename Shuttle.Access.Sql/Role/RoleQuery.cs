@@ -11,24 +11,19 @@ namespace Shuttle.Access.Sql
         private readonly IDatabaseGateway _databaseGateway;
         private readonly IRoleQueryFactory _queryFactory;
         private readonly IQueryMapper _queryMapper;
+        private readonly IDataRowMapper _dataRowMapper;
 
-        public RoleQuery(IDatabaseGateway databaseGateway, IQueryMapper queryMapper, IRoleQueryFactory queryFactory)
+        public RoleQuery(IDatabaseGateway databaseGateway, IQueryMapper queryMapper, IDataRowMapper dataRowMapper, IRoleQueryFactory queryFactory)
         {
             Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
             Guard.AgainstNull(queryFactory, nameof(queryFactory));
             Guard.AgainstNull(queryMapper, nameof(queryMapper));
+            Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
 
             _databaseGateway = databaseGateway;
             _queryFactory = queryFactory;
             _queryMapper = queryMapper;
-        }
-
-        public IEnumerable<string> Permissions(string roleName)
-        {
-            return
-                _databaseGateway.GetRowsUsing(_queryFactory.Permissions(roleName))
-                    .Select(row => Columns.Permission.MapFrom(row))
-                    .ToList();
+            _dataRowMapper = dataRowMapper;
         }
 
         public IEnumerable<DataAccess.Query.Role> Search(DataAccess.Query.Role.Specification specification)
@@ -50,16 +45,16 @@ namespace Shuttle.Access.Sql
                         continue;
                     }
 
-                    role.Permissions = permissionGroup.Select(row => Columns.Permission.MapFrom(row)).ToList();
+                    role.Permissions = _dataRowMapper.MapObjects<DataAccess.Query.Role.Permission>(permissionGroup).ToList();
                 }
             }
 
             return result;
         }
 
-        public IEnumerable<DataAccess.Query.Role.RolePermission> Permissions(DataAccess.Query.Role.Specification specification)
+        public IEnumerable<DataAccess.Query.Role.Permission> Permissions(DataAccess.Query.Role.Specification specification)
         {
-            return _queryMapper.MapObjects<DataAccess.Query.Role.RolePermission>(_queryFactory.Permissions(specification));
+            return _queryMapper.MapObjects<DataAccess.Query.Role.Permission>(_queryFactory.Permissions(specification));
         }
 
         public int Count(DataAccess.Query.Role.Specification specification)

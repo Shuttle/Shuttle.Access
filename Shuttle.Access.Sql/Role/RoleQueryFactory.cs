@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Contract;
@@ -18,8 +19,8 @@ from
 inner join
     Role r on (rp.RoleId = r.Id)
 where
-    r.RoleName = @RoleName")
-                .AddParameterValue(Columns.RoleName, roleName);
+    r.Name = @Name")
+                .AddParameterValue(Columns.Name, roleName);
         }
 
         public IQuery Search(DataAccess.Query.Role.Specification specification)
@@ -29,6 +30,8 @@ where
 
         public IQuery Added(Guid id, Added domainEvent)
         {
+            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+
             return RawQuery.Create(@"
 if not exists
 (
@@ -37,28 +40,28 @@ if not exists
     from
         [dbo].[Role]
     where
-        RoleName = @RoleName
+        [Name] = @Name
 )
     insert into [dbo].[Role]
     (
 	    [Id],
-	    [RoleName]
+	    [Name]
     )
     values
     (
 	    @Id,
-	    @RoleName
+	    @Name
     )
 ")
                 .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.RoleName, domainEvent.Name);
+                .AddParameterValue(Columns.Name, domainEvent.Name);
         }
 
         public IQuery Get(Guid id)
         {
             return RawQuery.Create(@"
 select
-    RoleName as Name
+    Name
 from
     Role
 where
@@ -73,18 +76,18 @@ where
 insert into [dbo].[RolePermission]
 (
 	[RoleId],
-	[Permission],
+	[PermissionId],
     [DateRegistered]
 )
 values
 (
 	@RoleId,
-	@Permission,
+	@PermissionId,
     @DateRegistered
 )
 ")
                 .AddParameterValue(Columns.RoleId, id)
-                .AddParameterValue(Columns.Permission, domainEvent.Permission)
+                .AddParameterValue(Columns.PermissionId, domainEvent.PermissionId)
                 .AddParameterValue(Columns.DateRegistered, DateTime.UtcNow);
         }
 
@@ -97,10 +100,10 @@ from
 where	
     [RoleId] = @RoleId
 and
-	[Permission] = @Permission
+	[PermissionId] = @PermissionId
 ")
                 .AddParameterValue(Columns.RoleId, id)
-                .AddParameterValue(Columns.Permission, domainEvent.Permission);
+                .AddParameterValue(Columns.PermissionId, domainEvent.PermissionId);
         }
 
         public IQuery Removed(Guid id)
@@ -124,7 +127,7 @@ where
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return RawQuery.Create(@"
+            return RawQuery.Create($@"
 select 
     RoleId,
     Permission
@@ -134,22 +137,18 @@ inner join
     Role r on (rp.RoleId = r.Id)
 where
 (
-    isnull(@RoleNameMatch, '') = ''
+    isnull(@NameMatch, '') = ''
     or
-    RoleName like '%' + @RoleNameMatch + '%'
+    Name like '%' + @NameMatch + '%'
 )
+{(!specification.Names.Any() ? string.Empty : $@"
 and
-(
-    isnull(@RoleName, '') = ''
-    or
-    RoleName = @RoleName
-)
+    Name in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+")}
+{(!specification.Ids.Any() ? string.Empty : $@"
 and
-(
-    @RoleId is null
-    or
-    Id = @RoleId
-)
+    RoleId in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+")}
 and
 (
     @DateRegistered is null
@@ -157,9 +156,7 @@ and
     DateRegistered >= @DateRegistered
 )
 ")
-                .AddParameterValue(Columns.RoleNameMatch, specification.RoleNameMatch)
-                .AddParameterValue(Columns.RoleName, specification.RoleName)
-                .AddParameterValue(Columns.RoleId, specification.RoleId)
+                .AddParameterValue(Columns.NameMatch, specification.NameMatch)
                 .AddParameterValue(Columns.DateRegistered, specification.StartDateRegistered);
 
         }
@@ -170,12 +167,12 @@ and
 update
     Role
 set
-    RoleName = @RoleName
+    [Name] = @Name
 where
     Id = @Id
 ")
                 .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.RoleName, domainEvent.Name);
+                .AddParameterValue(Columns.Name, domainEvent.Name);
         }
 
         private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
@@ -185,7 +182,7 @@ where
             var what = columns
                 ? @"
     Id,
-    RoleName
+    [Name]
 "
                 : "count(*)";
 
@@ -196,26 +193,20 @@ from
     Role
 where
 (
-    isnull(@RoleNameMatch, '') = ''
+    isnull(@NameMatch, '') = ''
     or
-    RoleName like '%' + @RoleNameMatch + '%'
+    [Name] like '%' + @NameMatch + '%'
 )
+{(!specification.Names.Any() ? string.Empty : $@"
 and
-(
-    isnull(@RoleName, '') = ''
-    or
-    RoleName = @RoleName
-)
+    [Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+")}
+{(!specification.Ids.Any() ? string.Empty : $@"
 and
-(
-    @Id is null
-    or
-    Id = @Id
-)
+    Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+")}
 ")
-                .AddParameterValue(Columns.RoleNameMatch, specification.RoleNameMatch)
-                .AddParameterValue(Columns.RoleName, specification.RoleName)
-                .AddParameterValue(Columns.Id, specification.RoleId);
+                .AddParameterValue(Columns.NameMatch, specification.NameMatch);
         }
     }
 }

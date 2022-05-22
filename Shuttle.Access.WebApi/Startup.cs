@@ -163,7 +163,7 @@ namespace Shuttle.Access.WebApi
             using (databaseContextFactory.Create())
             {
                 administratorExists =
-                    roleQuery.Count(new DataAccess.Query.Role.Specification().WithRoleName("Administrator")) > 0;
+                    roleQuery.Count(new DataAccess.Query.Role.Specification().AddName("Administrator")) > 0;
 
                 if (!administratorExists)
                 {

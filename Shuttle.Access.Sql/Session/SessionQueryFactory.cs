@@ -86,13 +86,30 @@ values
 
 		public IQuery Remove(Guid token)
 		{
-			return RawQuery.Create("delete from [dbo].[Session] where Token = @Token")
+			return RawQuery.Create(@"
+delete 
+from 
+	[dbo].[Session] 
+here 
+	Token = @Token
+")
 				.AddParameterValue(Columns.Token, token);
 		}
 
 	    public IQuery Contains(Guid token)
 	    {
-            return RawQuery.Create("if exists (select null from [dbo].[Session] where Token = @Token) select 1 else select 0")
+            return RawQuery.Create(@"
+if exists 
+(
+	select 
+		null 
+	from 
+		[dbo].[Session] 
+where 
+	Token = @Token
+) 
+	select 1 else select 0
+")
                 .AddParameterValue(Columns.Token, token);
         }
 
@@ -100,7 +117,20 @@ values
 	    {
             Guard.AgainstNullOrEmptyString(permission, nameof(permission));
 
-            return RawQuery.Create("if exists (select null from [dbo].[SessionPermission] where Token = @Token and Permission = @Permission) select 1 else select 0")
+            return RawQuery.Create(@"
+if exists 
+(
+	select 
+		null 
+	from 
+		[dbo].[SessionPermission] 
+	where 
+		Token = @Token 
+	and 
+		Permission = @Permission
+) 
+	select 1 else select 0
+")
                 .AddParameterValue(Columns.Token, token)
                 .AddParameterValue(Columns.Permission, permission);
         }

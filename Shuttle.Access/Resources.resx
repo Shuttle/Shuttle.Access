@@ -128,7 +128,7 @@
     <comment>0 = the name of the missing connection string</comment>
   </data>
   <data name="DuplicatePermissionException" xml:space="preserve">
-    <value>Permission '{0}' already exists on role '{1}'.</value>
+    <value>Permission with Id '{0}' already exists on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
   </data>
   <data name="IdentityInactiveException" xml:space="preserve">
@@ -148,7 +148,7 @@
     <value>The 'PasswordHash' may not be empty.</value>
   </data>
   <data name="PermissionNotFoundException" xml:space="preserve">
-    <value>Permission '{0}' does not exist on role '{1}'.</value>
+    <value>Permission with Id '{0}' does not exist on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
   </data>
   <data name="PropertyUnchangedException" xml:space="preserve">

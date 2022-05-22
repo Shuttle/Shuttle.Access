@@ -44,7 +44,7 @@ namespace Shuttle.Access.Application
 
             if (id.HasValue)
             {
-                identity = new Identity(id.Value);
+                identity = new Identity();
                 stream = _eventStore.Get(id.Value);
 
                 stream.Apply(identity);
@@ -57,7 +57,7 @@ namespace Shuttle.Access.Application
             else
             {
                 id = Guid.NewGuid();
-                identity = new Identity(id.Value);
+                identity = new Identity();
 
                 _keyStore.Add(id.Value, key);
 
@@ -72,7 +72,7 @@ namespace Shuttle.Access.Application
             if (count == 0)
             {
                 var roles = _roleQuery
-                    .Search(new DataAccess.Query.Role.Specification().WithRoleName("Administrator")).ToList();
+                    .Search(new DataAccess.Query.Role.Specification().AddName("Administrator")).ToList();
 
                 if (roles.Count != 1)
                 {
@@ -81,7 +81,7 @@ namespace Shuttle.Access.Application
 
                 var role = roles[0];
 
-                if (role.RoleName.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
+                if (role.Name.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
                 {
                     stream.AddEvent(identity.AddRole(role.Id));
                 }

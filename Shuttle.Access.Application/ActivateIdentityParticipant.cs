@@ -51,7 +51,7 @@ namespace Shuttle.Access.Application
 
             id = query.Id;
 
-            var identity = new Identity(id);
+            var identity = new Identity();
             var stream = _eventStore.Get(id);
 
             stream.Apply(identity);

@@ -8,14 +8,8 @@ namespace Shuttle.Access
 {
     public class Role
     {
-        private readonly Guid _id;
-        private readonly List<string> _permissions = new List<string>();
+        private readonly List<Guid> _permissionIds = new List<Guid>();
         public string Name { get; private set; }
-
-        public Role(Guid id)
-        {
-            _id = id;
-        }
 
         public Added Add(string name)
         {
@@ -61,51 +55,47 @@ namespace Shuttle.Access
             return $"[role]:name={name};";
         }
 
-        public PermissionAdded AddPermission(string permission)
+        public PermissionAdded AddPermission(Guid permissionId)
         {
-            Guard.AgainstNullOrEmptyString(permission, "permission");
-
-            if (HasPermission(permission))
+            if (HasPermission(permissionId))
             {
-                throw new InvalidOperationException(string.Format(Resources.DuplicatePermissionException, permission,
+                throw new InvalidOperationException(string.Format(Resources.DuplicatePermissionException, permissionId,
                     Name));
             }
 
-            return On(new PermissionAdded {Permission = permission});
+            return On(new PermissionAdded {PermissionId = permissionId});
         }
 
         private PermissionAdded On(PermissionAdded permissionAdded)
         {
             Guard.AgainstNull(permissionAdded, nameof(permissionAdded));
 
-            _permissions.Add(permissionAdded.Permission);
+            _permissionIds.Add(permissionAdded.PermissionId);
 
             return permissionAdded;
         }
 
-        public bool HasPermission(string permission)
+        public bool HasPermission(Guid permissionId)
         {
-            return _permissions.Contains(permission);
+            return _permissionIds.Contains(permissionId);
         }
 
-        public PermissionRemoved RemovePermission(string permission)
+        public PermissionRemoved RemovePermission(Guid permissionId)
         {
-            Guard.AgainstNullOrEmptyString(permission, "permission");
-
-            if (!HasPermission(permission))
+            if (!HasPermission(permissionId))
             {
-                throw new InvalidOperationException(string.Format(Resources.PermissionNotFoundException, permission,
+                throw new InvalidOperationException(string.Format(Resources.PermissionNotFoundException, permissionId,
                     Name));
             }
 
-            return On(new PermissionRemoved {Permission = permission});
+            return On(new PermissionRemoved {PermissionId = permissionId});
         }
 
         private PermissionRemoved On(PermissionRemoved permissionRemoved)
         {
             Guard.AgainstNull(permissionRemoved, nameof(permissionRemoved));
 
-            _permissions.Remove(permissionRemoved.Permission);
+            _permissionIds.Remove(permissionRemoved.PermissionId);
 
             return permissionRemoved;
         }

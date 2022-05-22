@@ -54,7 +54,7 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPatch("{id}/permissions")]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult SetPermissionStatus(Guid id, [FromBody] SetRolePermissionStatus message)
+        public IActionResult SetPermissionStatus(Guid id, [FromBody] SetRolePermission message)
         {
             try
             {
@@ -71,9 +71,9 @@ namespace Shuttle.Access.WebApi.v1
             return Accepted();
         }
 
-        [HttpPost("{id}/permission-status")]
+        [HttpPost("{id}/permissions/availability")]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult GetPermissionStatus(Guid id, [FromBody] Identifiers<string> identifiers)
+        public IActionResult PermissionsSearch(Guid id, [FromBody] Identifiers<Guid> identifiers)
         {
             try
             {
@@ -84,17 +84,15 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(ex.Message);
             }
 
-            List<DataAccess.Query.Role.RolePermission> permissions;
-
             using (_databaseContextFactory.Create())
             {
-                permissions = _roleQuery.Permissions(new DataAccess.Query.Role.Specification().WithRoleId(id)).ToList();
+                var permissions = _roleQuery.Permissions(new DataAccess.Query.Role.Specification().AddId(id)).ToList();
 
-                return Ok(from permission in identifiers.Values
-                    select new RolePermissionStatus
+                return Ok(from permissionId in identifiers.Values
+                    select new IdentifierAvailability<Guid>()
                     {
-                        Permission = permission,
-                        Active = permissions.Find(item => item.Permission.Equals(permission)) != null
+                        Id = permissionId,
+                        Active = permissions.Any(item => item.Id.Equals(permissionId))
                     });
             }
         }
@@ -119,11 +117,11 @@ namespace Shuttle.Access.WebApi.v1
 
                 if (Guid.TryParse(value, out var id))
                 {
-                    specification.WithRoleId(id);
+                    specification.AddId(id);
                 }
                 else
                 {
-                    specification.WithRoleName(value);
+                    specification.AddName(value);
                 }
                 
                 var role = _roleQuery

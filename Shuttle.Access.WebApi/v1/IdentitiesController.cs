@@ -105,7 +105,7 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPatch("{id}/roles/{roleId}")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult SetRoleStatus(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message)
+        public IActionResult SetRole(Guid id, Guid roleId, [FromBody] SetIdentityRole message)
         {
             try
             {
@@ -120,7 +120,7 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(message);
+                var reviewRequest = new RequestMessage<SetIdentityRole>(message);
 
                 _mediator.Send(reviewRequest);
 
@@ -201,9 +201,9 @@ namespace Shuttle.Access.WebApi.v1
             return !requestMessage.Ok ? BadRequest(requestMessage.Message) : Ok();
         }
 
-        [HttpPost("{id}/role-status")]
+        [HttpPost("{id}/roles/availability")]
         [RequiresPermission(Permissions.Register.Identity)]
-        public IActionResult GetRoleStatus(Guid id, [FromBody] Identifiers<Guid> identifiers)
+        public IActionResult RolesSearch(Guid id, [FromBody] Identifiers<Guid> identifiers)
         {
             try
             {
@@ -222,9 +222,9 @@ namespace Shuttle.Access.WebApi.v1
                     .ToList();
 
                 return Ok(from roleId in identifiers.Values
-                    select new IdentityRoleStatus
+                    select new IdentifierAvailability<Guid>()
                     {
-                        RoleId = roleId,
+                        Id = roleId,
                         Active = roles.Any(item => item.Equals(roleId))
                     });
             }

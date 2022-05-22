@@ -22,7 +22,7 @@ namespace Shuttle.Access.Application
             Guard.AgainstNull(context, nameof(context));
 
             var message = context.Message;
-            var identity = new Identity(message.Id);
+            var identity = new Identity();
             var stream = _eventStore.Get(message.Id);
 
             stream.Apply(identity);

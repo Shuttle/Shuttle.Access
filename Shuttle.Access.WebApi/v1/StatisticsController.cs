@@ -37,7 +37,7 @@ namespace Shuttle.Access.WebApi.v1
                 {
                     IdentityCount = _identityQuery.Count(new DataAccess.Query.Identity.Specification()),
                     RoleCount = _roleQuery.Count(new DataAccess.Query.Role.Specification()),
-                    PermissionCount = _permissionQuery.Count()
+                    PermissionCount = _permissionQuery.Count(new DataAccess.Query.Permission.Specification())
                 });
             }
         }

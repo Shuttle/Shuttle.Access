@@ -46,11 +46,16 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         [Test]
         public void Should_be_able_to_get_available_permissions()
         {
-            const string permission = "integration://available-permission";
+            var permission = new Access.DataAccess.Query.Permission
+            {
+                Id = Guid.NewGuid(),
+                Name = "integration://available-permission",
+                Status = (int)PermissionStatus.Active
+            };
 
             var permissionQuery = new Mock<IPermissionQuery>();
 
-            permissionQuery.Setup(m => m.Available()).Returns(new List<string> { permission });
+            permissionQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Permission.Specification>())).Returns(new List<Access.DataAccess.Query.Permission> { permission });
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -62,16 +67,14 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient);
-
-                client.Login();
+                var client = GetClient(httpClient).Login();
 
                 var response = client.Permissions.Get().Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content, Is.Not.Null);
-                Assert.That(response.Content.Find(item => item == permission), Is.Not.Null);
+                Assert.That(response.Content.Find(item => item.Id == permission.Id), Is.Not.Null);
             }
         }
 
@@ -82,7 +85,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<RegisterPermission>(message => message.Permission.Equals(permission)))).Verifiable();
+            serviceBus.Setup(m => m.Send(It.Is<RegisterPermission>(message => message.Name.Equals(permission)))).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -97,7 +100,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
                 var response = client.Permissions.Post(new RegisterPermission
                 {
-                    Permission = permission
+                    Name = permission
                 }).Result;
 
                 Assert.That(response, Is.Not.Null);
@@ -110,11 +113,11 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         [Test]
         public void Should_be_able_to_delete_permission()
         {
-            const string permission = "integration://available-permission";
+            var permissionId = Guid.NewGuid();
 
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m=>m.Send(It.Is<RemovePermission>(message => message.Permission.Equals(permission)))).Verifiable();
+            serviceBus.Setup(m=>m.Send(It.Is<RemovePermission>(message => message.Id.Equals(permissionId)))).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -127,7 +130,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).Login();
 
-                var response = client.Permissions.Delete(Uri.EscapeDataString(permission)).Result;
+                var response = client.Permissions.Delete(permissionId).Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);

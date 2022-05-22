@@ -1,14 +1,19 @@
 ﻿CREATE PROCEDURE [dbo].[RegisterPermission]
-	@Permission varchar(130)
+	@Name varchar(130),
+	@Status int
 AS
-	if exists (select null from Permission where Permission = @Permission)
+	if exists (select null from Permission where [Name] = @Name)
 		return;
 
 	insert into [Permission]
 	(
-		Permission
+		Id,
+		[Name],
+		[Status]
 	)
 	values
 	(
-		@Permission
+		newid(),
+		@Name,
+		@Status
 	)

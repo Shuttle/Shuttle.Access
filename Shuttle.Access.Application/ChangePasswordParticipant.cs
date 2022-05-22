@@ -46,7 +46,7 @@ namespace Shuttle.Access.Application
                 context.Message.Failed(Resources.InvalidCredentialsException);
             }
 
-            var user = new Identity(session.IdentityId);
+            var user = new Identity();
             var stream = _eventStore.Get(session.IdentityId);
 
             stream.Apply(user);

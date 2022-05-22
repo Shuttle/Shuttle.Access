@@ -21,7 +21,7 @@ namespace Shuttle.Access.Application
             Guard.AgainstNull(context, nameof(context));
 
             var request = context.Message.Request;
-            var aggregate = new Identity(request.Id);
+            var aggregate = new Identity();
             var stream = _eventStore.Get(request.Id);
 
             stream.Apply(aggregate);

@@ -7,12 +7,12 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application
 {
-    public class AddRoleParticipant : IParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
+    public class RegisterRoleParticipant : IParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
     {
         private readonly IEventStore _eventStore;
         private readonly IKeyStore _keyStore;
 
-        public AddRoleParticipant(IEventStore eventStore, IKeyStore keyStore)
+        public RegisterRoleParticipant(IEventStore eventStore, IKeyStore keyStore)
         {
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(keyStore, nameof(keyStore));
@@ -38,7 +38,7 @@ namespace Shuttle.Access.Application
 
             _keyStore.Add(id, key);
 
-            var role = new Role(id);
+            var role = new Role();
             var stream = _eventStore.CreateEventStream(id);
 
             stream.AddEvent(role.Add(message.Name));

@@ -1,7 +1,10 @@
-﻿namespace Shuttle.Access.Messages.v1
+﻿using System;
+
+namespace Shuttle.Access.Messages.v1
 {
     public class PermissionRegistered
     {
-        public string Permission { get; set; }
+        public Guid Id { get; set; }
+        public string Name { get; set; }
     }
 }

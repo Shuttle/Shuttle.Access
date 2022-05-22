@@ -72,7 +72,7 @@ and
 (
     isnull(@RoleName, '') = ''
     or
-    r.RoleName = @RoleName
+    r.Name = @RoleName
 )
 and
 (
@@ -134,7 +134,7 @@ where
 select 
     ir.IdentityId, 
     ir.RoleId, 
-    r.RoleName 
+    r.Name 
 from 
     dbo.IdentityRole ir
 inner join
@@ -154,12 +154,6 @@ and
 ")
                 .AddParameterValue(Columns.IdentityId, specification.Id)
                 .AddParameterValue(Columns.DateRegistered, specification.StartDateRegistered);
-        }
-
-        public IQuery Roles(Guid userId)
-        {
-            return RawQuery.Create(@"select RoleId, RoleName from dbo.IdentityRole where IdentityId = @IdentityId")
-                .AddParameterValue(Columns.IdentityId, userId);
         }
 
         public IQuery RoleRemoved(Guid id, RoleRemoved domainEvent)
@@ -187,7 +181,7 @@ from
 inner join
     dbo.Role r on r.Id = ir.RoleId
 where 
-    r.RoleName = 'administrator'
+    r.Name = 'administrator'
 ");
         }
 

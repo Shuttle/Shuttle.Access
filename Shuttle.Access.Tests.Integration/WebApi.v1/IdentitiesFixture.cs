@@ -155,12 +155,12 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var roleId = Guid.NewGuid();
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId))))
+            serviceBus.Setup(m => m.Send(It.Is<SetIdentityRole>(message => message.RoleId.Equals(roleId))))
                 .Verifiable();
 
             var mediator = new Mock<IMediator>();
 
-            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None))
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRole>>(), CancellationToken.None))
                 .Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
@@ -175,7 +175,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).Login();
 
-                var response = client.Identities.SetRoleStatus(Guid.NewGuid(), roleId, new SetIdentityRoleStatus
+                var response = client.Identities.SetRole(Guid.NewGuid(), roleId, new SetIdentityRole
                 {
                     Active = true
                 }).Result;
@@ -196,10 +196,10 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var serviceBus = new Mock<IServiceBus>();
             var mediator = new Mock<IMediator>();
 
-            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None))
+            mediator.Setup(m => m.Send(It.IsAny<RequestMessage<SetIdentityRole>>(), CancellationToken.None))
                 .Callback<object, CancellationToken>((message, _) =>
                 {
-                    ((RequestMessage<SetIdentityRoleStatus>)message).Failed("reason");
+                    ((RequestMessage<SetIdentityRole>)message).Failed("reason");
                 });
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
@@ -214,7 +214,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).Login();
 
-                var response = client.Identities.SetRoleStatus(Guid.NewGuid(), roleId, new SetIdentityRoleStatus
+                var response = client.Identities.SetRole(Guid.NewGuid(), roleId, new SetIdentityRole
                 {
                     IdentityId = Guid.NewGuid()
                 }).Result;
@@ -499,7 +499,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Identities.GetRoleStatus(Guid.NewGuid(), new Identifiers<Guid>
+                var response = client.Identities.RoleAvailability(Guid.NewGuid(), new Identifiers<Guid>
                 {
                     Values = new List<Guid>
                     {
@@ -514,12 +514,12 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
                 Assert.That(response.Content.Count, Is.EqualTo(2));
 
-                var identityRoleStatus = response.Content.Find(item => item.RoleId == activeRoleId);
+                var identityRoleStatus = response.Content.Find(item => item.Id == activeRoleId);
 
                 Assert.That(identityRoleStatus, Is.Not.Null);
                 Assert.That(identityRoleStatus.Active, Is.True);
 
-                identityRoleStatus = response.Content.Find(item => item.RoleId == inactiveRoleId);
+                identityRoleStatus = response.Content.Find(item => item.Id == inactiveRoleId);
 
                 Assert.That(identityRoleStatus, Is.Not.Null);
                 Assert.That(identityRoleStatus.Active, Is.False);

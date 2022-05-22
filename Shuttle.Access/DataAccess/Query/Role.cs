@@ -5,41 +5,46 @@ namespace Shuttle.Access.DataAccess.Query
 {
     public class Role
     {
-        public string RoleName { get; set; }
+        public string Name { get; set; }
         public Guid Id { get; set; }
-        public List<string> Permissions { get; set; } = new List<string>();
+        public List<Permission> Permissions { get; set; } = new List<Permission>();
 
-        public class RolePermission
+        public class Permission : Query.Permission
         {
             public Guid RoleId { get; set; }
-            public string Permission { get; set; }
         }
 
         public class Specification
         {
-            public string RoleNameMatch { get; private set; }
-            public string RoleName { get; private set; }
-            public Guid? RoleId { get; private set; }
+            public string NameMatch { get; private set; }
+            public List<string> Names { get; } = new List<string>();
+            public List<Guid> Ids { get; } = new List<Guid>();
             public bool PermissionsIncluded { get; private set; }
             public DateTime? StartDateRegistered { get; private set; }
 
-            public Specification WithRoleId(Guid roleId)
+            public Specification AddId(Guid id)
             {
-                RoleId = roleId;
+                if (!Ids.Contains(id))
+                {
+                    Ids.Add(id);
+                }
 
                 return this;
             }
 
-            public Specification WithRoleName(string roleName)
+            public Specification AddName(string name)
             {
-                RoleName = roleName;
+                if (!Names.Contains(name))
+                {
+                    Names.Add(name);
+                }
 
                 return this;
             }
 
-            public Specification WithRoleNameMatch(string roleNameMatch)
+            public Specification WithNameMatch(string nameMatch)
             {
-                RoleNameMatch = roleNameMatch;
+                NameMatch = nameMatch;
 
                 return this;
             }

@@ -19,10 +19,10 @@ namespace Shuttle.Access.RestClient.v1
         Task<ApiResponse<object>> Delete(Guid id);
         
         [Patch("/roles/{id}/permissions")]
-        Task<ApiResponse<object>> SetPermissionStatus(Guid id, SetRolePermissionStatus message);
+        Task<ApiResponse<object>> SetPermission(Guid id, SetRolePermission message);
 
-        [Post("/roles/{id}/permission-status")]
-        Task<ApiResponse<List<RolePermissionStatus>>> GetPermissionStatus(Guid id, Identifiers<string> identifiers);
+        [Post("/roles/{id}/permissions/availability")]
+        Task<ApiResponse<List<IdentifierAvailability<Guid>>>> PermissionAvailability(Guid id, Identifiers<Guid> identifiers);
 
         [Post("/roles")]
         Task<ApiResponse<Guid>> Register(RegisterRole message);

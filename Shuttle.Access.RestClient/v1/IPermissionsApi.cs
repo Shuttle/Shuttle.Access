@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Refit;
 using Shuttle.Access.Messages.v1;
@@ -11,12 +12,12 @@ namespace Shuttle.Access.RestClient.v1
         Task<ApiResponse<AnonymousPermissions>> GetAnonymous();
 
         [Get("/permissions")]
-        Task<ApiResponse<List<string>>> Get();
+        Task<ApiResponse<List<DataAccess.Query.Permission>>> Get();
 
         [Post("/permissions")]
         Task<ApiResponse<object>> Post(RegisterPermission message);
 
-        [Delete("/permissions/{permission}")]
-        Task<ApiResponse<object>> Delete(string permission);
+        [Delete("/permissions/{id}")]
+        Task<ApiResponse<object>> Delete(Guid id);
     }
 }

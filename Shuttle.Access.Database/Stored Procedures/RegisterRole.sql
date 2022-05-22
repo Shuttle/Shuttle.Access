@@ -1,16 +1,16 @@
 ﻿CREATE PROCEDURE [dbo].[RegisterRole]
-	@RoleName varchar(130)
+	@Name varchar(130)
 AS
-	if exists (select null from [Role] where RoleName = @RoleName)
+	if exists (select null from [Role] where [Name] = @Name)
 		return;
 
 	insert into [Role]
 	(
 		Id,
-		RoleName
+		[Name]
 	)
 	values
 	(
 		newid(),
-		@RoleName
+		@Name
 	)

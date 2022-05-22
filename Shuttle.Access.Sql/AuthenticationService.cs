@@ -43,7 +43,7 @@ namespace Shuttle.Access.Sql
                 return AuthenticationResult.Failure();
             }
 
-            var identity = new Identity(userId.Value);
+            var identity = new Identity();
 
             _eventStore.Get(userId.Value).Apply(identity);
 
