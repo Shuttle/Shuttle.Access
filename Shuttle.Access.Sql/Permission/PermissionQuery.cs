@@ -31,5 +31,10 @@ namespace Shuttle.Access.Sql
         {
             return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count(specification));
         }
+
+        public bool Contains(DataAccess.Query.Permission.Specification specification)
+        {
+            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Contains(specification)) == 1;
+        }
     }
 }

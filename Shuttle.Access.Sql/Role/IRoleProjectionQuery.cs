@@ -5,7 +5,7 @@ namespace Shuttle.Access.Sql
 {
     public interface IRoleProjectionQuery
     {
-        void Added(PrimitiveEvent primitiveEvent, Added domainEvent);
+        void Registered(PrimitiveEvent primitiveEvent, Registered domainEvent);
         void PermissionAdded(PrimitiveEvent primitiveEvent, PermissionAdded domainEvent);
         void PermissionRemoved(PrimitiveEvent primitiveEvent, PermissionRemoved domainEvent);
         void Removed(PrimitiveEvent primitiveEvent);

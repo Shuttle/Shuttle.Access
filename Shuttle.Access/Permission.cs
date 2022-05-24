@@ -21,23 +21,23 @@ namespace Shuttle.Access
             return $"[permission]:name={name};";
         }
 
-        public Added Add(string name, PermissionStatus status)
+        public Registered Register(string name, PermissionStatus status)
         {
-            return On(new Added
+            return On(new Registered
             {
                 Name = name,
                 Status = status
             });
         }
 
-        private Added On(Added added)
+        private Registered On(Registered registered)
         {
-            Guard.AgainstNull(added, nameof(added));
+            Guard.AgainstNull(registered, nameof(registered));
 
-            Name = added.Name;
-            Status = added.Status;
+            Name = registered.Name;
+            Status = registered.Status;
 
-            return added;
+            return registered;
         }
 
         public Deactivated Deactivate()

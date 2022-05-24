@@ -3,6 +3,7 @@ using System.Data.SqlClient;
 using System.Reflection;
 using Castle.Windsor;
 using log4net;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Castle;
 using Shuttle.Core.Data;
 using Shuttle.Core.Container;
@@ -56,10 +57,16 @@ namespace Shuttle.Access.Server
             container.RegisterMessageHandlers(Assembly.Load("Shuttle.Access.Server.Handlers"));
             container.RegisterMediator();
             container.RegisterMediatorParticipants(Assembly.Load("Shuttle.Access.Application"));
+            container.Register<IHashingService, HashingService>();
 
-            container.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
+            var databaseContextFactory = container.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 
             _bus = container.Resolve<IServiceBus>().Start();
+
+            using (databaseContextFactory.Create())
+            {
+                container.Resolve<IMediator>().Send(new ConfigureApplication());
+            }
 
             Log.Information("[started]");
         }

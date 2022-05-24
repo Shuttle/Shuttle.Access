@@ -9,26 +9,12 @@ namespace Shuttle.Access.Sql
 {
     public class RoleQueryFactory : IRoleQueryFactory
     {
-        public IQuery Permissions(string roleName)
-        {
-            return RawQuery.Create(@"
-select 
-    Permission
-from
-    RolePermission rp
-inner join
-    Role r on (rp.RoleId = r.Id)
-where
-    r.Name = @Name")
-                .AddParameterValue(Columns.Name, roleName);
-        }
-
         public IQuery Search(DataAccess.Query.Role.Specification specification)
         {
             return Specification(specification, true);
         }
 
-        public IQuery Added(Guid id, Added domainEvent)
+        public IQuery Registered(Guid id, Registered domainEvent)
         {
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
@@ -129,21 +115,24 @@ where
 
             return RawQuery.Create($@"
 select 
-    RoleId,
-    Permission
+    rp.RoleId,
+    rp.PermissionId,
+    p.Name
 from
     RolePermission rp
 inner join
     Role r on (rp.RoleId = r.Id)
+inner join
+    Permission p on (rp.PermissionId = p.Id)
 where
 (
     isnull(@NameMatch, '') = ''
     or
-    Name like '%' + @NameMatch + '%'
+    r.Name like '%' + @NameMatch + '%'
 )
 {(!specification.Names.Any() ? string.Empty : $@"
 and
-    Name in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+    r.Name in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
 ")}
 {(!specification.Ids.Any() ? string.Empty : $@"
 and

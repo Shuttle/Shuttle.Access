@@ -26,7 +26,7 @@ namespace Shuttle.Access.Application
 
             if (query == null)
             {
-                context.Message.Failed(string.Format(Resources.UnknownIdentityException, identityName));
+                context.Message.Failed(string.Format(Access.Resources.UnknownIdentityException, identityName));
 
                 return;
             }
@@ -49,7 +49,7 @@ namespace Shuttle.Access.Application
             }
             else
             {
-                context.Message.Failed(string.Format(Resources.IdentityInactiveException, identityName));
+                context.Message.Failed(string.Format(Access.Resources.IdentityInactiveException, identityName));
             }
         }
     }

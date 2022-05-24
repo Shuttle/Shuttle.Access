@@ -6,7 +6,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Shuttle.Access" Version="4.0.1" />
 		<PackageReference Include="Shuttle.Core.Data" Version="12.0.2" />
 		<PackageReference Include="Shuttle.Recall" Version="13.0.1" />
 		<PackageReference Include="Shuttle.Recall.Sql.Storage" Version="13.0.2" />
@@ -18,6 +17,10 @@
 		<None Include=".package\package.nuspec.template" />
 		<None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
 		<None Include=".package\Shuttle.NuGetPackager.targets" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
 	</ItemGroup>
 
 </Project>

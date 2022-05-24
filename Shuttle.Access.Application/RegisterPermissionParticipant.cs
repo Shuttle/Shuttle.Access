@@ -47,7 +47,7 @@ namespace Shuttle.Access.Application
                 status = (int)PermissionStatus.Active;
             }
 
-            stream.AddEvent(aggregate.Add(message.Name, (PermissionStatus)status));
+            stream.AddEvent(aggregate.Register(message.Name, (PermissionStatus)status));
 
             _eventStore.Save(stream);
 

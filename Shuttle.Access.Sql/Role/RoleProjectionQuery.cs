@@ -20,9 +20,9 @@ namespace Shuttle.Access.Sql
             _queryFactory = queryFactory;
         }
 
-        public void Added(PrimitiveEvent primitiveEvent, Added domainEvent)
+        public void Registered(PrimitiveEvent primitiveEvent, Registered domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Added(primitiveEvent.Id, domainEvent));
+            _databaseGateway.ExecuteUsing(_queryFactory.Registered(primitiveEvent.Id, domainEvent));
         }
 
         public void PermissionAdded(PrimitiveEvent primitiveEvent, PermissionAdded domainEvent)

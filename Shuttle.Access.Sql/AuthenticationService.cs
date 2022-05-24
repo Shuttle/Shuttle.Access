@@ -8,21 +8,17 @@ namespace Shuttle.Access.Sql
 {
     public class AuthenticationService : IAuthenticationService
     {
-        private readonly IAccessConfiguration _configuration;
         private readonly IEventStore _eventStore;
         private readonly IHashingService _hashingService;
         private readonly IKeyStore _keyStore;
         private readonly ILog _log;
 
-        public AuthenticationService(IAccessConfiguration configuration,
-            IEventStore eventStore, IKeyStore keyStore, IHashingService hashingService)
+        public AuthenticationService(IEventStore eventStore, IKeyStore keyStore, IHashingService hashingService)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
             Guard.AgainstNull(eventStore, nameof(eventStore));
             Guard.AgainstNull(keyStore, nameof(keyStore));
             Guard.AgainstNull(hashingService, nameof(hashingService));
 
-            _configuration = configuration;
             _eventStore = eventStore;
             _keyStore = keyStore;
             _hashingService = hashingService;

@@ -7,7 +7,7 @@ using Shuttle.Recall;
 namespace Shuttle.Access.Projection.Handlers
 {
     public class RoleHandler :
-        IEventHandler<Added>,
+        IEventHandler<Registered>,
         IEventHandler<Removed>,
         IEventHandler<PermissionAdded>,
         IEventHandler<PermissionRemoved>, 
@@ -22,9 +22,9 @@ namespace Shuttle.Access.Projection.Handlers
             _query = query;
         }
 
-        public void ProcessEvent(IEventHandlerContext<Added> context)
+        public void ProcessEvent(IEventHandlerContext<Registered> context)
         {
-            _query.Added(context.PrimitiveEvent, context.Event);
+            _query.Registered(context.PrimitiveEvent, context.Event);
         }
 
         public void ProcessEvent(IEventHandlerContext<PermissionAdded> context)

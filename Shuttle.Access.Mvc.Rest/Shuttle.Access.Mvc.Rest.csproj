@@ -14,8 +14,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Shuttle.Access" Version="4.0.1" />
-		<PackageReference Include="Shuttle.Access.RestClient" Version="1.0.0" />
+	  <ProjectReference Include="..\Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj" />
+	  <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
 	</ItemGroup>
 
 </Project>

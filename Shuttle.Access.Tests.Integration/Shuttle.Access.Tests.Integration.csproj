@@ -12,6 +12,7 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
         <PackageReference Include="Moq" Version="4.17.2" />
         <PackageReference Include="NUnit" Version="3.13.3" />
+        <PackageReference Include="Shuttle.Access.RestClient" Version="1.0.0" />
         <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
         <PackageReference Include="Shuttle.Core.Data" Version="12.0.2" />
         <PackageReference Include="Shuttle.Core.Transactions" Version="10.0.3" />
@@ -19,7 +20,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj" />
       <ProjectReference Include="..\Shuttle.Access.WebApi\Shuttle.Access.WebApi.csproj" />
     </ItemGroup>
 

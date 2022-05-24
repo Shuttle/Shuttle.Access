@@ -6,5 +6,6 @@ namespace Shuttle.Access.DataAccess
     {
         IEnumerable<Query.Permission> Search(Query.Permission.Specification specification);
         int Count(Query.Permission.Specification specification);
+        bool Contains(Query.Permission.Specification specification);
     }
 }

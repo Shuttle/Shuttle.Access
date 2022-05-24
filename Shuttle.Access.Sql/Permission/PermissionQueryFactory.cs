@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Shuttle.Access.DataAccess;
-using Shuttle.Access.Events;
 using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -10,29 +9,6 @@ namespace Shuttle.Access.Sql
 {
     public class PermissionQueryFactory : IPermissionQueryFactory
     {
-        public IQuery Remove(string permission)
-        {
-            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
-
-            return RawQuery.Create(@"
-delete from
-    Permission
-where
-    Permission = @Permission
-")
-                .AddParameterValue(Columns.Permission, permission);
-        }
-
-        public IQuery Count()
-        {
-            return RawQuery.Create(@"
-select
-    count(*)
-from
-    Permission
-");
-        }
-
         public IQuery Search(DataAccess.Query.Permission.Specification specification)
         {
             return Specification(specification, true);
@@ -59,25 +35,31 @@ select
 {what}
 from
     Permission
-where
-(
-    isnull(@NameMatch, '') = ''
-    or
-    Name like '%' + @NameMatch + '%'
-)
-{(!specification.Names.Any() ? string.Empty : $@"
-and
-    Name in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
-")}
-{(!specification.Ids.Any() ? string.Empty : $@"
-and
-    Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
-")}
+{Where(specification)}
 ")
                 .AddParameterValue(Columns.NameMatch, specification.NameMatch);
         }
 
-        public IQuery Added(Guid id, Added domainEvent)
+        private string Where(DataAccess.Query.Permission.Specification specification)
+        {
+            return $@"
+where
+(
+    isnull(@NameMatch, '') = ''
+    or
+    [Name] like '%' + @NameMatch + '%'
+)
+{(!specification.Names.Any() ? string.Empty : $@"
+and
+    [Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+")}
+{(!specification.Ids.Any() ? string.Empty : $@"
+and
+    Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+")}";
+        }
+
+        public IQuery Registered(Guid id, Registered domainEvent)
         {
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
@@ -142,6 +124,26 @@ where
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
             return SetStatus(id, (int)PermissionStatus.Removed);
+        }
+
+        public IQuery Contains(DataAccess.Query.Permission.Specification specification)
+        {
+            Guard.AgainstNull(specification, nameof(specification));
+
+            return RawQuery.Create($@"
+if exists
+(
+select
+    null
+from
+    Permission
+{Where(specification)}
+)
+    select 1
+else
+    select 0
+")
+                .AddParameterValue(Columns.NameMatch, specification.NameMatch);
         }
     }
 }

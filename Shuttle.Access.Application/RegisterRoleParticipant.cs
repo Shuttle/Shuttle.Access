@@ -41,7 +41,7 @@ namespace Shuttle.Access.Application
             var role = new Role();
             var stream = _eventStore.CreateEventStream(id);
 
-            stream.AddEvent(role.Add(message.Name));
+            stream.AddEvent(role.Register(message.Name));
 
             _eventStore.Save(stream);
 

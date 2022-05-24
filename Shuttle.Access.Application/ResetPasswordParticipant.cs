@@ -32,7 +32,7 @@ namespace Shuttle.Access.Application
 
             if (queryIdentity == null)
             {
-                context.Message.Failed(Resources.InvalidCredentialsException);
+                context.Message.Failed(Access.Resources.InvalidCredentialsException);
 
                 return;
             }
@@ -44,7 +44,7 @@ namespace Shuttle.Access.Application
 
             if (!identity.HasPasswordResetToken || identity.PasswordResetToken != context.Message.Request.PasswordResetToken)
             {
-                context.Message.Failed(Resources.InvalidCredentialsException);
+                context.Message.Failed(Access.Resources.InvalidCredentialsException);
 
                 return;
             }

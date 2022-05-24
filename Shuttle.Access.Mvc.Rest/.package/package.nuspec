@@ -15,8 +15,7 @@
 		<copyright>Copyright (c) 2022, Eben Roux</copyright>
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
-      <dependency id="Shuttle.Access" version="4.0.1" />
-      <dependency id="Shuttle.Access.RestClient" version="1.0.0" />
+
 		</dependencies>
 	</metadata>
 	<files>

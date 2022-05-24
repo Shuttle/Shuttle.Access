@@ -56,6 +56,7 @@ namespace Shuttle.Access.Projection
             _eventStore = container.Resolve<IEventStore>();
 
             container.Register<IdentityHandler>();
+            container.Register<PermissionHandler>();
             container.Register<RoleHandler>();
 
             _eventProcessor = container.Resolve<IEventProcessor>();
@@ -63,9 +64,11 @@ namespace Shuttle.Access.Projection
             using (container.Resolve<IDatabaseContextFactory>().Create("Access"))
             {
                 _eventProcessor.AddProjection("Identity");
+                _eventProcessor.AddProjection("Permission");
                 _eventProcessor.AddProjection("Role");
                 
                 container.AddEventHandler<IdentityHandler>("Identity");
+                container.AddEventHandler<PermissionHandler>("Permission");
                 container.AddEventHandler<RoleHandler>("Role");
             }
 

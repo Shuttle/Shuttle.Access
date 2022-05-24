@@ -16,8 +16,6 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-		<PackageReference Include="Shuttle.Access" Version="4.0.1" />
-		<PackageReference Include="Shuttle.Access.Messages" Version="2.0.0" />
 		<PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
 		<PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
 		<PackageReference Include="Shuttle.Core.Mediator" Version="13.0.0" />
@@ -28,6 +26,22 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
+	  <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Resources.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resources.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Resources.resx">
+	    <Generator>PublicResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
 	</ItemGroup>
 
 </Project>

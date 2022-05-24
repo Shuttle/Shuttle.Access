@@ -16,8 +16,6 @@
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
       <dependency id="Microsoft.CSharp" version="4.7.0" />
-      <dependency id="Shuttle.Access" version="4.0.1" />
-      <dependency id="Shuttle.Access.Messages" version="2.0.0" />
       <dependency id="Shuttle.Core.Configuration" version="10.0.4" />
       <dependency id="Shuttle.Core.Contract" version="10.0.3" />
       <dependency id="Shuttle.Core.Mediator" version="13.0.0" />

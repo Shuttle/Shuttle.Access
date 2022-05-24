@@ -34,7 +34,7 @@ namespace Shuttle.Access.Application
 
             if (session == null)
             {
-                context.Message.Failed(Resources.SessionTokenExpiredException);
+                context.Message.Failed(Access.Resources.SessionTokenExpiredException);
 
                 return;
             }
@@ -43,7 +43,7 @@ namespace Shuttle.Access.Application
 
             if (!authenticationResult.Authenticated)
             {
-                context.Message.Failed(Resources.InvalidCredentialsException);
+                context.Message.Failed(Access.Resources.InvalidCredentialsException);
             }
 
             var user = new Identity();

@@ -152,30 +152,10 @@ namespace Shuttle.Access.WebApi
             componentContainer.Register<IAzureStorageConfiguration, DefaultAzureStorageConfiguration>();
 
             var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>();
-            var roleQuery = componentContainer.Resolve<IRoleQuery>();
 
             databaseContextFactory.ConfigureWith("Access");
 
             _bus = componentContainer.Resolve<IServiceBus>().Start();
-
-            bool administratorExists;
-
-            using (databaseContextFactory.Create())
-            {
-                administratorExists =
-                    roleQuery.Count(new DataAccess.Query.Role.Specification().AddName("Administrator")) > 0;
-
-                if (!administratorExists)
-                {
-                    _bus.Send(new RegisterRole
-                    {
-                        Name = "Administrator"
-                    });
-                }
-            }
-
-            _log.Information(
-                $"[role] : name = 'Administrator' / exists = {administratorExists}{(administratorExists ? string.Empty : " / add role command sent")}");
 
             applicationLifetime.ApplicationStopping.Register(OnShutdown);
 

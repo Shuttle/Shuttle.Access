@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Shuttle.Access.Events;
 using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Contract;
 
@@ -11,21 +10,21 @@ namespace Shuttle.Access
         private readonly List<Guid> _permissionIds = new List<Guid>();
         public string Name { get; private set; }
 
-        public Added Add(string name)
+        public Registered Register(string name)
         {
-            return On(new Added
+            return On(new Registered
             {
                 Name = name
             });
         }
 
-        private Added On(Added added)
+        private Registered On(Registered registered)
         {
-            Guard.AgainstNull(added, nameof(added));
+            Guard.AgainstNull(registered, nameof(registered));
 
-            Name = added.Name;
+            Name = registered.Name;
 
-            return added;
+            return registered;
         }
 
         public NameSet SetName(string name)

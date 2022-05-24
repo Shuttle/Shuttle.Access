@@ -76,7 +76,7 @@ namespace Shuttle.Access.Application
 
                 if (roles.Count != 1)
                 {
-                    throw new InvalidOperationException(Resources.AdministratorRoleMissingException);
+                    throw new InvalidOperationException(Access.Resources.AdministratorRoleMissingException);
                 }
 
                 var role = roles[0];

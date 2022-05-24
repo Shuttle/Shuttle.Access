@@ -8,8 +8,6 @@
 	<ItemGroup>
 		<PackageReference Include="Refit" Version="6.3.2" />
 		<PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
-		<PackageReference Include="Shuttle.Access" Version="4.0.1" />
-		<PackageReference Include="Shuttle.Access.Messages" Version="2.0.0" />
 		<PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
 		<PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
@@ -21,6 +19,11 @@
 		<None Include=".package\package.nuspec.template" />
 		<None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
 		<None Include=".package\Shuttle.NuGetPackager.targets" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
+	  <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
