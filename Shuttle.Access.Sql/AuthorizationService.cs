@@ -7,7 +7,7 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Sql
 {
-    public class AuthorizationService : IAuthorizationService, IAnonymousPermissions
+    public class AuthorizationService : IAuthorizationService
     {
         private static readonly string AdministratorRoleName = "Administrator";
         private static readonly List<string> AdministratorPermissions = new List<string> { "*" };
@@ -22,24 +22,6 @@ namespace Shuttle.Access.Sql
 
             _roleQuery = roleQuery;
             _identityQuery = identityQuery;
-        }
-
-        public IEnumerable<string> AnonymousPermissions()
-        {
-            var result = new List<string>();
-
-            var count = _identityQuery.Count(new DataAccess.Query.Identity.Specification());
-
-            result.AddRange(_roleQuery.Permissions(new DataAccess.Query.Role.Specification().AddName("Anonymous"))
-                .Select(item => item.Name));
-
-            if (count == 0)
-            {
-                result.Add(Access.Permissions.Register.Identity);
-                result.Add(Access.Permissions.Register.IdentityRequired);
-            }
-
-            return result;
         }
 
         public IEnumerable<string> Permissions(string identityName)

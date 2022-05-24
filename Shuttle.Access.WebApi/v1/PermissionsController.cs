@@ -37,28 +37,6 @@ namespace Shuttle.Access.WebApi.v1
             _permissionQuery = permissionQuery;
         }
 
-        [HttpGet("anonymous")]
-        public IActionResult AnonymousPermissions()
-        {
-            List<string> permissions;
-
-            using (_databaseContextFactory.Create())
-            {
-                permissions = _authorizationService is IAnonymousPermissions anonymousPermissions
-                    ? new List<string>(anonymousPermissions.AnonymousPermissions())
-                    : _emptyAnonymousPermissions;
-            }
-
-            return Ok(new AnonymousPermissions
-            {
-                IsIdentityRequired = permissions.Contains(Permissions.Register.IdentityRequired),
-                Permissions = (
-                    from permission in permissions
-                    select permission
-                ).ToList()
-            });
-        }
-
         [HttpGet]
         [RequiresSession]
         public IActionResult Get()

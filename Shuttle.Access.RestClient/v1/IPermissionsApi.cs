@@ -8,9 +8,6 @@ namespace Shuttle.Access.RestClient.v1
 {
     public interface IPermissionsApi
     {
-        [Get("/permissions/anonymous")]
-        Task<ApiResponse<AnonymousPermissions>> GetAnonymous();
-
         [Get("/permissions")]
         Task<ApiResponse<List<DataAccess.Query.Permission>>> Get();
 

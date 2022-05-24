@@ -10,6 +10,7 @@
         <PackageReference Include="NUnit" Version="3.13.3" />
         <PackageReference Include="Shuttle.Access" Version="4.0.1" />
         <PackageReference Include="Shuttle.Access.Application" Version="4.0.0" />
+        <PackageReference Include="Shuttle.Access.Messages" Version="2.0.0" />
         <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="4.0.0" />
         <PackageReference Include="Shuttle.Access.Mvc.Rest" Version="4.0.0" />
         <PackageReference Include="Shuttle.Access.RestClient" Version="1.0.0" />

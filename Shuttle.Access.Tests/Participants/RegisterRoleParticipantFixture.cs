@@ -34,7 +34,7 @@ namespace Shuttle.Access.Tests.Participants
 
             Assert.That(requestResponseMessage.Response, Is.Not.Null);
 
-            var @event = eventStore.FindEvent<Added>(requestResponseMessage.Response.Id);
+            var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response.Id);
 
             Assert.That(@event, Is.Not.Null);
             Assert.That(@event.Name, Is.EqualTo(addRole.Name));
