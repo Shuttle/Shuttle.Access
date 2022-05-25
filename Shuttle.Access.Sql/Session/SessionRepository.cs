@@ -66,7 +66,7 @@ namespace Shuttle.Access.Sql
 
             foreach (var row in _databaseGateway.GetRowsUsing(_queryFactory.GetPermissions(token)))
             {
-                session.AddPermission(Columns.Permission.MapFrom(row));
+                session.AddPermission(Columns.PermissionName.MapFrom(row));
             }
 
             return session;
@@ -83,7 +83,7 @@ namespace Shuttle.Access.Sql
 
             foreach (var row in _databaseGateway.GetRowsUsing(_queryFactory.GetPermissions(session.Token)))
             {
-                session.AddPermission(Columns.Permission.MapFrom(row));
+                session.AddPermission(Columns.PermissionName.MapFrom(row));
             }
 
             return session;

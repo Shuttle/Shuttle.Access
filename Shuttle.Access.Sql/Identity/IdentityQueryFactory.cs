@@ -133,7 +133,7 @@ where
             return RawQuery.Create(@"
 select 
     ir.IdentityId, 
-    ir.RoleId, 
+    ir.RoleId Id, 
     r.Name 
 from 
     dbo.IdentityRole ir

@@ -26,7 +26,8 @@ namespace Shuttle.Access.Sql
             var what = columns
                 ? @"
     Id,
-    [Name]
+    [Name],
+    [Status]
 "
                 : "count(*)";
 

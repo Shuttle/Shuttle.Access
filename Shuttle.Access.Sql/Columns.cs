@@ -10,7 +10,7 @@ namespace Shuttle.Access.Sql
         public static readonly MappedColumn<string> RoleName = new MappedColumn<string>("RoleName", DbType.String);
         public static readonly MappedColumn<Guid> PermissionId = new MappedColumn<Guid>("PermissionId", DbType.Guid);
         public static readonly MappedColumn<Guid> RoleId = new MappedColumn<Guid>("RoleId", DbType.Guid);
-        public static readonly MappedColumn<string> Permission = new MappedColumn<string>("Permission", DbType.String);
+        public static readonly MappedColumn<string> PermissionName = new MappedColumn<string>("PermissionName", DbType.String);
         public static readonly MappedColumn<string> IdentityName = new MappedColumn<string>("IdentityName", DbType.String);
         public static readonly MappedColumn<string> Name = new MappedColumn<string>("Name", DbType.String);
         public static readonly MappedColumn<string> NameMatch = new MappedColumn<string>("NameMatch", DbType.String);

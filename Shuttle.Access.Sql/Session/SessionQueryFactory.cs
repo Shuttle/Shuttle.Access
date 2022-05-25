@@ -9,7 +9,18 @@ namespace Shuttle.Access.Sql
 	{
 		public IQuery Get(Guid token)
 		{
-			return RawQuery.Create("select Token, IdentityId, IdentityName, DateRegistered, ExpiryDate from [dbo].[Session] where Token = @Token")
+			return RawQuery.Create(@"
+select 
+	Token, 
+	IdentityId, 
+	IdentityName, 
+	DateRegistered, 
+	ExpiryDate 
+from 
+	[dbo].[Session] 
+where 
+	Token = @Token
+")
 				.AddParameterValue(Columns.Token, token);
 		}
 
@@ -17,13 +28,31 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
             
-            return RawQuery.Create("select Token, IdentityId, IdentityName, DateRegistered, ExpiryDate from [dbo].[Session] where IdentityName = @IdentityName")
+            return RawQuery.Create(@"
+select 
+	Token, 
+	IdentityId, 
+	IdentityName, 
+	DateRegistered, 
+	ExpiryDate 
+from 
+	[dbo].[Session] 
+where 
+	IdentityName = @IdentityName
+")
                 .AddParameterValue(Columns.IdentityName, identityName);
         }
 
 		public IQuery GetPermissions(Guid token)
 		{
-			return RawQuery.Create("select Permission from [dbo].[SessionPermission] where Token = @Token")
+			return RawQuery.Create(@"
+select 
+	PermissionName 
+from 
+	[dbo].[SessionPermission] 
+where 
+	Token = @Token
+")
 				.AddParameterValue(Columns.Token, token);
 		}
 
@@ -31,7 +60,13 @@ namespace Shuttle.Access.Sql
 		{
             Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
-			return RawQuery.Create("delete from [dbo].[Session] where IdentityName = @IdentityName")
+			return RawQuery.Create(@"
+delete 
+from 
+	[dbo].[Session] 
+where 
+	IdentityName = @IdentityName
+")
 				.AddParameterValue(Columns.IdentityName, identityName);
 		}
 
@@ -72,16 +107,16 @@ values
 insert into [dbo].[SessionPermission]
 (
 	Token,
-	Permission
+	PermissionName
 )
 values
 (
 	@Token,
-	@Permission
+	@PermissionName
 )
 ")
 				.AddParameterValue(Columns.Token, token)
-				.AddParameterValue(Columns.Permission, permission);
+				.AddParameterValue(Columns.PermissionName, permission);
 		}
 
 		public IQuery Remove(Guid token)
@@ -127,12 +162,12 @@ if exists
 	where 
 		Token = @Token 
 	and 
-		Permission = @Permission
+		PermissionName = @PermissionName
 ) 
 	select 1 else select 0
 ")
                 .AddParameterValue(Columns.Token, token)
-                .AddParameterValue(Columns.Permission, permission);
+                .AddParameterValue(Columns.PermissionName, permission);
         }
 
         public IQuery Renew(Session session)

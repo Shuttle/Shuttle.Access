@@ -47,6 +47,19 @@ namespace Shuttle.Access.WebApi.v1
             }
         }
 
+        [HttpGet("{id}")]
+        [RequiresSession]
+        public IActionResult Get(Guid id)
+        {
+            using (_databaseContextFactory.Create())
+            {
+                var permission = _permissionQuery.Search(new DataAccess.Query.Permission.Specification().AddId(id))
+                    .SingleOrDefault();
+
+                return permission != null ? Ok(permission) : BadRequest();
+            }
+        }
+
         [HttpPost]
         [RequiresPermission(Permissions.Register.Permission)]
         public IActionResult Post([FromBody] RegisterPermission message)

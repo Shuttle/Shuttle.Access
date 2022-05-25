@@ -60,7 +60,7 @@ namespace Shuttle.Access.Sql
                     }
 
                     user.Roles = roleGroup.Select(row => new DataAccess.Query.Identity.Role
-                        {Id = Columns.RoleId.MapFrom(row), Name = Columns.RoleName.MapFrom(row)}).ToList();
+                        {Id = Columns.Id.MapFrom(row), Name = Columns.Name.MapFrom(row)}).ToList();
                 }
             }
 
