@@ -39,8 +39,8 @@ namespace Shuttle.Access.WebApi.v1
         {
             try
             {
-                message.ApplyInvariants();
                 message.Id = id;
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -54,12 +54,12 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPatch("{id}/permissions")]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult SetPermissionStatus(Guid id, [FromBody] SetRolePermission message)
+        public IActionResult SetPermission(Guid id, [FromBody] SetRolePermission message)
         {
             try
             {
-                message.ApplyInvariants();
                 message.RoleId = id;
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {
@@ -73,7 +73,7 @@ namespace Shuttle.Access.WebApi.v1
 
         [HttpPost("{id}/permissions/availability")]
         [RequiresPermission(Permissions.Register.Role)]
-        public IActionResult PermissionsSearch(Guid id, [FromBody] Identifiers<Guid> identifiers)
+        public IActionResult PermissionAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers)
         {
             try
             {
@@ -86,7 +86,7 @@ namespace Shuttle.Access.WebApi.v1
 
             using (_databaseContextFactory.Create())
             {
-                var permissions = _roleQuery.Permissions(new DataAccess.Query.Role.Specification().AddId(id)).ToList();
+                var permissions = _roleQuery.Permissions(new DataAccess.Query.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values)).ToList();
 
                 return Ok(from permissionId in identifiers.Values
                     select new IdentifierAvailability<Guid>()
@@ -117,7 +117,7 @@ namespace Shuttle.Access.WebApi.v1
 
                 if (Guid.TryParse(value, out var id))
                 {
-                    specification.AddId(id);
+                    specification.AddRoleId(id);
                 }
                 else
                 {

@@ -13,5 +13,6 @@ namespace Shuttle.Access.DataAccess
         IQuery Deactivated(Guid id, Deactivated domainEvent);
         IQuery Removed(Guid id, Removed domainEvent);
         IQuery Contains(Query.Permission.Specification specification);
+        IQuery NameSet(Guid id, NameSet domainEvent);
     }
 }

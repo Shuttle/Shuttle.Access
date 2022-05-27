@@ -43,8 +43,8 @@ namespace Shuttle.Access.WebApi.v1
         {
             try
             {
-                message.ApplyInvariants();
                 message.Id = id;
+                message.ApplyInvariants();
             }
             catch (Exception ex)
             {

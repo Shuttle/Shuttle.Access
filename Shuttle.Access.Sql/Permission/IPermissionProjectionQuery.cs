@@ -9,5 +9,6 @@ namespace Shuttle.Access.Sql
         void Activated(PrimitiveEvent primitiveEvent, Activated domainEvent);
         void Deactivated(PrimitiveEvent primitiveEvent, Deactivated domainEvent);
         void Removed(PrimitiveEvent primitiveEvent, Removed domainEvent);
+        void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent);
     }
 }

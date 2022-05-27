@@ -8,6 +8,9 @@ namespace Shuttle.Access.RestClient.v1
 {
     public interface IPermissionsApi
     {
+        [Post("/permissions/search")]
+        Task<ApiResponse<List<DataAccess.Query.Permission>>> Search(PermissionSpecification specification);
+
         [Get("/permissions")]
         Task<ApiResponse<List<DataAccess.Query.Permission>>> Get();
 

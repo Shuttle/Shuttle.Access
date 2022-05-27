@@ -8,6 +8,7 @@ namespace Shuttle.Access.DataAccess.Query
         public Guid Id { get; set; }
         public string Name { get; set; }
         public int Status { get; set; }
+        public string StatusName => ((PermissionStatus)Status).ToString();
 
         public class Specification
         {
@@ -38,6 +39,21 @@ namespace Shuttle.Access.DataAccess.Query
                 if (!Ids.Contains(id))
                 {
                     Ids.Add(id);
+                }
+
+                return this;
+            }
+
+            public Specification AddIds(IEnumerable<Guid> ids)
+            {
+                if (ids == null)
+                {
+                    return this;
+                }
+
+                foreach (var id in ids)
+                {
+                    AddId(id);
                 }
 
                 return this;

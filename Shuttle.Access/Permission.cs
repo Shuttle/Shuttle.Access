@@ -81,5 +81,27 @@ namespace Shuttle.Access
 
             return removed;
         }
+
+        public NameSet SetName(string name)
+        {
+            if (name.Equals(Name))
+            {
+                throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
+            }
+
+            return On(new NameSet
+            {
+                Name = name
+            });
+        }
+
+        private NameSet On(NameSet nameSet)
+        {
+            Guard.AgainstNull(nameSet, nameof(nameSet));
+
+            Name = nameSet.Name;
+
+            return nameSet;
+        }
     }
 }

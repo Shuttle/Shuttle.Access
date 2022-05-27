@@ -9,7 +9,7 @@
 		<PackageReference Include="Refit" Version="6.3.2" />
 		<PackageReference Include="Refit.HttpClientFactory" Version="6.3.2" />
 		<PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
-		<PackageReference Include="Shuttle.Core.Contract" Version="10.0.3" />
+		<PackageReference Include="Shuttle.Core.Contract" Version="10.1.0" />
 		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
 	</ItemGroup>
 

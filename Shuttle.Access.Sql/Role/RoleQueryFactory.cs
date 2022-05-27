@@ -116,8 +116,9 @@ where
             return RawQuery.Create($@"
 select 
     rp.RoleId,
-    rp.PermissionId,
-    p.Name
+    p.Id,
+    p.Name,
+    p.Status
 from
     RolePermission rp
 inner join
@@ -134,9 +135,13 @@ where
 and
     r.Name in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
 ")}
-{(!specification.Ids.Any() ? string.Empty : $@"
+{(!specification.RoleIds.Any() ? string.Empty : $@"
 and
-    RoleId in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+    RoleId in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
+")}
+{(!specification.PermissionIds.Any() ? string.Empty : $@"
+and
+    PermissionId in ({string.Join(",", specification.PermissionIds.Select(item => $"'{item}'"))})
 ")}
 and
 (
@@ -190,9 +195,9 @@ where
 and
     [Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
 ")}
-{(!specification.Ids.Any() ? string.Empty : $@"
+{(!specification.RoleIds.Any() ? string.Empty : $@"
 and
-    Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+    Id in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
 ")}
 ")
                 .AddParameterValue(Columns.NameMatch, specification.NameMatch);

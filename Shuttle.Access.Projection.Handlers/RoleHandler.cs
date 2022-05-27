@@ -24,21 +24,29 @@ namespace Shuttle.Access.Projection.Handlers
 
         public void ProcessEvent(IEventHandlerContext<Registered> context)
         {
+            Guard.AgainstNull(context, nameof(context));
+
             _query.Registered(context.PrimitiveEvent, context.Event);
         }
 
         public void ProcessEvent(IEventHandlerContext<PermissionAdded> context)
         {
+            Guard.AgainstNull(context, nameof(context));
+
             _query.PermissionAdded(context.PrimitiveEvent, context.Event);
         }
 
         public void ProcessEvent(IEventHandlerContext<PermissionRemoved> context)
         {
+            Guard.AgainstNull(context, nameof(context));
+
             _query.PermissionRemoved(context.PrimitiveEvent, context.Event);
         }
 
         public void ProcessEvent(IEventHandlerContext<Removed> context)
         {
+            Guard.AgainstNull(context, nameof(context));
+
             _query.Removed(context.PrimitiveEvent);
         }
 

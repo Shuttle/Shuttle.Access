@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="v1\Specifications\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
