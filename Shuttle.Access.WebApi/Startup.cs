@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Castle.Windsor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
@@ -16,16 +15,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using Ninject;
 using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc.DataStore;
 using Shuttle.Access.Sql;
-using Shuttle.Core.Castle;
 using Shuttle.Core.Container;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Http;
 using Shuttle.Core.Logging;
 using Shuttle.Core.Mediator;
+using Shuttle.Core.Ninject;
 using Shuttle.Core.Reflection;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureMQ;
@@ -36,9 +35,8 @@ namespace Shuttle.Access.WebApi
 {
     public class Startup
     {
-        private IServiceBus _bus;
-        
         private readonly ILog _log;
+        private IServiceBus _bus;
 
         public Startup(IConfiguration configuration)
         {
@@ -56,7 +54,7 @@ namespace Shuttle.Access.WebApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IWindsorContainer>(new WindsorContainer());
+            services.AddSingleton<IKernel>(new StandardKernel());
             services.AddSingleton<IControllerActivator, ControllerActivator>();
 
             services.AddSingleton(AccessSection.Configuration());
@@ -80,7 +78,7 @@ namespace Shuttle.Access.WebApi
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "Shuttle.Access.WebApi", Version = "v1" });
 
-                options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme()
+                options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
                 {
                     Name = "access-session-token",
                     In = ParameterLocation.Header,
@@ -89,7 +87,7 @@ namespace Shuttle.Access.WebApi
                     Scheme = "ApiKeyScheme"
                 });
 
-                var key = new OpenApiSecurityScheme()
+                var key = new OpenApiSecurityScheme
                 {
                     Reference = new OpenApiReference
                     {
@@ -106,7 +104,7 @@ namespace Shuttle.Access.WebApi
 
                 options.AddSecurityRequirement(requirement);
             });
-            
+
             services.AddControllers();
             services.AddApiVersioning(options =>
             {
@@ -117,11 +115,12 @@ namespace Shuttle.Access.WebApi
             });
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime applicationLifetime)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            IHostApplicationLifetime applicationLifetime)
         {
-            var container = app.ApplicationServices.GetService<IWindsorContainer>();
+            var container = app.ApplicationServices.GetService<IKernel>();
 
-            var componentContainer = new WindsorComponentContainer(container);
+            var componentContainer = new NinjectComponentContainer(container);
 
             componentContainer.RegisterSuffixed("Shuttle.Access.Sql");
 
@@ -190,7 +189,10 @@ namespace Shuttle.Access.WebApi
 
             app.UseRouting();
             app.UseAuthorization();
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
 
             app.UseSwagger();
 

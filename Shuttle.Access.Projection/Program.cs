@@ -1,14 +1,14 @@
-﻿using System.Configuration;
-using System.Data.Common;
+﻿using System.Data.Common;
 using System.Data.SqlClient;
-using Castle.Windsor;
+using System.Text;
 using log4net;
+using Ninject;
 using Shuttle.Access.Projection.Handlers;
-using Shuttle.Core.Castle;
 using Shuttle.Core.Container;
 using Shuttle.Core.Data;
 using Shuttle.Core.Log4Net;
 using Shuttle.Core.Logging;
+using Shuttle.Core.Ninject;
 using Shuttle.Core.Reflection;
 using Shuttle.Core.ServiceHost;
 using Shuttle.Recall;
@@ -23,7 +23,7 @@ namespace Shuttle.Access.Projection
         {
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
 
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             ServiceHost.Run<Host>();
         }
@@ -31,9 +31,9 @@ namespace Shuttle.Access.Projection
 
     public class Host : IServiceHost
     {
-        private IWindsorContainer _container;
         private IEventProcessor _eventProcessor;
         private IEventStore _eventStore;
+        private IKernel _kernel;
 
         public void Start()
         {
@@ -41,9 +41,9 @@ namespace Shuttle.Access.Projection
 
             Log.Information("[starting]");
 
-            _container = new WindsorContainer();
+            _kernel = new StandardKernel();
 
-            var container = new WindsorComponentContainer(_container);
+            var container = new NinjectComponentContainer(_kernel);
 
             container.RegisterDataAccess();
             container.RegisterSuffixed("Shuttle.Access.Sql");
@@ -55,10 +55,6 @@ namespace Shuttle.Access.Projection
 
             _eventStore = container.Resolve<IEventStore>();
 
-            container.Register<IdentityHandler>();
-            container.Register<PermissionHandler>();
-            container.Register<RoleHandler>();
-
             _eventProcessor = container.Resolve<IEventProcessor>();
 
             using (container.Resolve<IDatabaseContextFactory>().Create("Access"))
@@ -66,7 +62,7 @@ namespace Shuttle.Access.Projection
                 _eventProcessor.AddProjection("Identity");
                 _eventProcessor.AddProjection("Permission");
                 _eventProcessor.AddProjection("Role");
-                
+
                 container.AddEventHandler<IdentityHandler>("Identity");
                 container.AddEventHandler<PermissionHandler>("Permission");
                 container.AddEventHandler<RoleHandler>("Role");
@@ -81,7 +77,7 @@ namespace Shuttle.Access.Projection
         {
             Log.Information("[stopping]");
 
-            _container?.Dispose();
+            _kernel?.Dispose();
             _eventProcessor?.Dispose();
             _eventStore?.AttemptDispose();
 

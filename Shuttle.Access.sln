@@ -67,6 +67,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{54
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.RestClient", "Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj", "{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".scripts", ".scripts", "{6DA5EEC6-8CEE-49FC-9B43-216522860637}"
+	ProjectSection(SolutionItems) = preProject
+		.scripts\truncate.sql = .scripts\truncate.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -86,9 +86,9 @@ namespace Shuttle.Access.Application
                 if (!administratorExists)
                 {
                     // wait for role projection
-                    var timeout = DateTime.Now.AddSeconds(5);
+                    var timeout = DateTime.Now.AddSeconds(15);
 
-                    while (_roleQuery.Count(roleSpecification) == 0 && timeout < DateTime.Now)
+                    while (_roleQuery.Count(roleSpecification) == 0 && DateTime.Now < timeout)
                     {
                         ThreadSleep.While(500, context.CancellationToken);
                     }

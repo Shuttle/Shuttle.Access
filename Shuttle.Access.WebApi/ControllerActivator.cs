@@ -1,29 +1,29 @@
-﻿using Castle.Windsor;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Ninject;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.WebApi
 {
     public class ControllerActivator : IControllerActivator
     {
-        private readonly IWindsorContainer _container;
+        private readonly IKernel _kernel;
 
-        public ControllerActivator(IWindsorContainer container)
+        public ControllerActivator(IKernel kernel)
         {
-            Guard.AgainstNull(container, nameof(container));
+            Guard.AgainstNull(kernel, nameof(kernel));
 
-            _container = container;
+            _kernel = kernel;
         }
 
         public object Create(ControllerContext context)
         {
-            return _container.Resolve(context.ActionDescriptor.ControllerTypeInfo.AsType());
+            return _kernel.Get(context.ActionDescriptor.ControllerTypeInfo.AsType());
         }
 
         public void Release(ControllerContext context, object controller)
         {
-            _container.Release(controller);
+            _kernel.Release(controller);
         }
     }
 }
