@@ -118,7 +118,7 @@ namespace Shuttle.Access
 
         public static string Key(string name)
         {
-            return $"[identity]:name={name};";
+            return $"[identity]:name={name}";
         }
 
         public bool PasswordMatches(byte[] hash)

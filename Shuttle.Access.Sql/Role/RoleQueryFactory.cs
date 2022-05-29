@@ -99,7 +99,13 @@ delete
 from 
     [dbo].[Role]
 where	
-    [Id] = @Id
+    [Id] = @Id;
+
+delete
+from
+    [dbo].[RolePermission]
+where	
+    [RoleId] = @Id;
 ")
                 .AddParameterValue(Columns.Id, id);
         }

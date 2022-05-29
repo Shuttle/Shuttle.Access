@@ -51,7 +51,7 @@ namespace Shuttle.Access
 
         public static string Key(string name)
         {
-            return $"[role]:name={name};";
+            return $"[role]:name={name}";
         }
 
         public PermissionAdded AddPermission(Guid permissionId)

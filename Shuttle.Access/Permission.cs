@@ -18,7 +18,7 @@ namespace Shuttle.Access
 
         public static string Key(string name)
         {
-            return $"[permission]:name={name};";
+            return $"[permission]:name={name}";
         }
 
         public Registered Register(string name, PermissionStatus status)

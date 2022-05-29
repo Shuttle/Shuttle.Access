@@ -25,27 +25,28 @@ namespace Shuttle.Access.Application
             Guard.AgainstNull(context, nameof(context));
 
             var request = context.Message.Request;
-            var key = Identity.Key(request.Name);
-            var id = request.Id;
 
-            if (_keyStore.Contains(key) || !_keyStore.Contains(id))
-            {
-                return;
-            }
-
-            _keyStore.Rekey(id, key);
-
-            var aggregate = new Identity();
+            var identity = new Identity();
             var stream = _eventStore.Get(request.Id);
 
-            stream.Apply(aggregate);
+            stream.Apply(identity);
 
-            if (aggregate.Name.Equals(request.Name))
+            if (identity.Name.Equals(request.Name))
             {
                 return;
             }
 
-            stream.AddEvent(aggregate.SetName(request.Name));
+            var key = Identity.Key(identity.Name);
+            var rekey = Identity.Key(request.Name);
+
+            if (_keyStore.Contains(rekey) || !_keyStore.Contains(key))
+            {
+                return;
+            }
+
+            _keyStore.Rekey(key, rekey);
+
+            stream.AddEvent(identity.SetName(request.Name));
 
             _eventStore.Save(stream);
 

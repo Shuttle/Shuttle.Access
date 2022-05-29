@@ -25,18 +25,9 @@ namespace Shuttle.Access.Application
             Guard.AgainstNull(context, nameof(context));
 
             var request = context.Message.Request;
-            var key = Role.Key(request.Name);
-            var id = request.Id;
-
-            if (_keyStore.Contains(key) || !_keyStore.Contains(id))
-            {
-                return;
-            }
-
-            _keyStore.Rekey(id, key);
 
             var role = new Role();
-            var stream = _eventStore.Get(id);
+            var stream = _eventStore.Get(request.Id);
 
             stream.Apply(role);
 
@@ -45,13 +36,23 @@ namespace Shuttle.Access.Application
                 return;
             }
 
+            var key = Role.Key(role.Name);
+            var rekey = Role.Key(request.Name);
+
+            if (_keyStore.Contains(rekey) || !_keyStore.Contains(key))
+            {
+                return;
+            }
+
+            _keyStore.Rekey(key, rekey);
+
             stream.AddEvent(role.SetName(request.Name));
 
             _eventStore.Save(stream);
 
             context.Message.WithResponse(new RoleNameSet
             {
-                Id = id,
+                Id = request.Id,
                 Name = request.Name
             });
         }
