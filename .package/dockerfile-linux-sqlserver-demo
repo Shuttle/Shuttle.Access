@@ -33,3 +33,5 @@ RUN ( /opt/mssql/bin/sqlservr & ) | grep -q "Service Broker manager has started"
     && rm -r /tmp/db \
     && pkill sqlservr \
     && rm -r /opt/sqlpackage
+
+ENTRYPOINT ["/opt/mssql/bin/sqlservr"]

@@ -1,6 +1,8 @@
-﻿using System.Data.Common;
+﻿using System;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Text;
+using System.Threading;
 using log4net;
 using Ninject;
 using Shuttle.Access.Projection.Handlers;
@@ -11,6 +13,7 @@ using Shuttle.Core.Logging;
 using Shuttle.Core.Ninject;
 using Shuttle.Core.Reflection;
 using Shuttle.Core.ServiceHost;
+using Shuttle.Core.Threading;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
@@ -34,6 +37,7 @@ namespace Shuttle.Access.Projection
         private IEventProcessor _eventProcessor;
         private IEventStore _eventStore;
         private IKernel _kernel;
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public void Start()
         {
@@ -57,7 +61,14 @@ namespace Shuttle.Access.Projection
 
             _eventProcessor = container.Resolve<IEventProcessor>();
 
-            using (container.Resolve<IDatabaseContextFactory>().Create("Access"))
+            var databaseContextFactory = container.Resolve<IDatabaseContextFactory>();
+
+            if (!databaseContextFactory.IsAvailable("Access", _cancellationTokenSource.Token))
+            {
+                throw new ApplicationException("[connection failure]");
+            }
+
+            using (databaseContextFactory.Create("Access"))
             {
                 _eventProcessor.AddProjection("Identity");
                 _eventProcessor.AddProjection("Permission");
@@ -76,6 +87,8 @@ namespace Shuttle.Access.Projection
         public void Stop()
         {
             Log.Information("[stopping]");
+
+            _cancellationTokenSource?.Cancel();
 
             _kernel?.Dispose();
             _eventProcessor?.Dispose();

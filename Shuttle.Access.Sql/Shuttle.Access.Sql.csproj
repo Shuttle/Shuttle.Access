@@ -6,7 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Shuttle.Core.Data" Version="12.0.2" />
+		<PackageReference Include="Shuttle.Core.Data" Version="12.1.0" />
 		<PackageReference Include="Shuttle.Recall" Version="14.0.0" />
 		<PackageReference Include="Shuttle.Recall.Sql.Storage" Version="14.0.0" />
 	</ItemGroup>

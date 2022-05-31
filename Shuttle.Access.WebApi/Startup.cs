@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -37,6 +39,7 @@ namespace Shuttle.Access.WebApi
     {
         private readonly ILog _log;
         private IServiceBus _bus;
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public Startup(IConfiguration configuration)
         {
@@ -49,6 +52,7 @@ namespace Shuttle.Access.WebApi
 
         private void OnShutdown()
         {
+            _cancellationTokenSource?.Cancel();
             _bus?.Dispose();
         }
 
@@ -151,6 +155,11 @@ namespace Shuttle.Access.WebApi
             componentContainer.Register<IAzureStorageConfiguration, DefaultAzureStorageConfiguration>();
 
             var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>();
+
+            if (!databaseContextFactory.IsAvailable("Access", _cancellationTokenSource.Token))
+            {
+                throw new ApplicationException("[connection failure]");
+            }
 
             databaseContextFactory.ConfigureWith("Access");
 

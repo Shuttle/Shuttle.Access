@@ -1,41 +1,31 @@
-version: "3.9"
+﻿version: "3.9"
 services:
     azurite:
         image: mcr.microsoft.com/azure-storage/azurite
         hostname: azurite
-        ports:
-            - "10000-10002:10000-10002"
+    database:
+        image: shuttle/access/linux-sqlserver-demo
+        hostname: database
     server:
         image:
             shuttle/access/server
-        volumes:
-            - type: bind
-              source: ./Shuttle.Access.Server.config
-              target: /opt/shuttle.access.server/Shuttle.Access.Server.dll.config
         depends_on:
             - "azurite"
+            - "database"
         build:
             context: .
             dockerfile: dockerfile-server
     projection:
         image:
             shuttle/access/projection
-        volumes:
-            - type: bind
-              source: ./Shuttle.Access.Projection.config
-              target: /opt/shuttle.access.projection/Shuttle.Access.Projection.dll.config
         build:
             context: .
             dockerfile: dockerfile-projection
+        depends_on:
+            - "database"
     web-api:
         image:
             shuttle/access/webapi
-        ports:
-            - "5599:5599"
-        volumes:
-            - type: bind
-              source: ./Shuttle.Access.WebApi.config
-              target: /opt/shuttle.access.webapi/Shuttle.Access.WebApi.dll.config
         environment:
             - ASPNETCORE_URLS=http://*:5599
         depends_on:
@@ -44,6 +34,8 @@ services:
         build:
             context: .
             dockerfile: dockerfile-webapi   
+        ports:
+            - "5599:5599"
     front-end:
         image:
             shuttle/access/vue

@@ -2,4 +2,4 @@
 
 COPY ./deployment/Shuttle.Access.Server/. /opt/shuttle.access.server/.
 
-ENTRYPOINT ["/opt/shuttle.access.server/Shuttle.Access.Server"]
+ENTRYPOINT ["/opt/shuttle.access.server/Shuttle.Access.Server" ]

@@ -56,14 +56,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{5417FE2A-8368-4E91-B58D-CF4DE6AA596C}"
 	ProjectSection(SolutionItems) = preProject
 		.package\docker-compose.yml = .package\docker-compose.yml
+		.package\dockerfile-linux-sqlserver-demo = .package\dockerfile-linux-sqlserver-demo
 		.package\dockerfile-projection = .package\dockerfile-projection
-		.package\dockerfile-linux-sqlserver-demo. = .package\dockerfile-linux-sqlserver-demo.
 		.package\dockerfile-server = .package\dockerfile-server
 		.package\dockerfile-webapi = .package\dockerfile-webapi
-		.package\Shuttle.Access.Projection.config = .package\Shuttle.Access.Projection.config
 		.package\package.msbuild = .package\package.msbuild
-		.package\Shuttle.Access.Server.config = .package\Shuttle.Access.Server.config
-		.package\Shuttle.Access.WebApi.config = .package\Shuttle.Access.WebApi.config
+		.package\Shuttle.Access.Projection.dll.config = .package\Shuttle.Access.Projection.dll.config
+		.package\Shuttle.Access.Server.dll.config = .package\Shuttle.Access.Server.dll.config
+		.package\Shuttle.Access.WebApi.dll.config = .package\Shuttle.Access.WebApi.dll.config
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.RestClient", "Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj", "{3574746C-1AF7-4BA4-A09B-9BCDEFB33606}"

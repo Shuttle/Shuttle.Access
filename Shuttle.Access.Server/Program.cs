@@ -1,7 +1,9 @@
-﻿using System.Data.Common;
+﻿using System;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using log4net;
 using Ninject;
 using Shuttle.Access.Messages.v1;
@@ -36,6 +38,7 @@ namespace Shuttle.Access.Server
     {
         private IServiceBus _bus;
         private IKernel _kernel;
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public void Start()
         {
@@ -62,6 +65,11 @@ namespace Shuttle.Access.Server
 
             var databaseContextFactory = container.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 
+            if (!databaseContextFactory.IsAvailable("Access", _cancellationTokenSource.Token))
+            {
+                throw new ApplicationException("[connection failure]");
+            }
+
             _bus = container.Resolve<IServiceBus>().Start();
 
             using (databaseContextFactory.Create())
@@ -75,6 +83,8 @@ namespace Shuttle.Access.Server
         public void Stop()
         {
             Log.Information("[stopping]");
+
+            _cancellationTokenSource?.Cancel();
 
             _bus?.Dispose();
 
