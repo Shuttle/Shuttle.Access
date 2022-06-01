@@ -15,16 +15,16 @@
 		</ProjectReference>
 		<DatabaseReference Include="../Shuttle.Access.Database/Shuttle.Access.Database.sqlproj" />
 		<DockerFile Include="dockerfile-projection">
-			<Name>shuttle/access/projection</Name>
+			<Name>shuttle/access-projection</Name>
 		</DockerFile>
 		<DockerFile Include="dockerfile-server">
-			<Name>shuttle/access/server</Name>
+			<Name>shuttle/access-server</Name>
 		</DockerFile>
 		<DockerFile Include="dockerfile-webapi">
-			<Name>shuttle/access/webapi</Name>
+			<Name>shuttle/access-webapi</Name>
 		</DockerFile>
 		<DockerFile Include="dockerfile-linux-sqlserver-demo">
-			<Name>shuttle/access/linux-sqlserver-demo</Name>
+			<Name>shuttle/access-sqlserver-linux</Name>
 		</DockerFile>
 	</ItemGroup>
 

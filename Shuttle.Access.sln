@@ -56,6 +56,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{5417FE2A-8368-4E91-B58D-CF4DE6AA596C}"
 	ProjectSection(SolutionItems) = preProject
 		.package\docker-compose.yml = .package\docker-compose.yml
+		.package\docker-push.cmd = .package\docker-push.cmd
 		.package\dockerfile-linux-sqlserver-demo = .package\dockerfile-linux-sqlserver-demo
 		.package\dockerfile-projection = .package\dockerfile-projection
 		.package\dockerfile-server = .package\dockerfile-server
