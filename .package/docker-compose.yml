@@ -4,7 +4,7 @@ services:
         image: mcr.microsoft.com/azure-storage/azurite
         hostname: azurite
     database:
-        image: shuttle/access-sqlserver-linux
+        image: shuttle/access-sqlserver-linux:latest
         hostname: database
     server:
         image:
@@ -12,32 +12,23 @@ services:
         depends_on:
             - "azurite"
             - "database"
-        build:
-            context: .
-            dockerfile: dockerfile-server
     projection:
         image:
-            shuttle/access-projection
-        build:
-            context: .
-            dockerfile: dockerfile-projection
+            shuttle/access-projection:latest
         depends_on:
             - "database"
     web-api:
         image:
-            shuttle/access-webapi
+            shuttle/access-webapi:latest
         environment:
             - ASPNETCORE_URLS=http://*:5599
         depends_on:
             - "azurite"
             - "server"
-        build:
-            context: .
-            dockerfile: dockerfile-webapi   
         ports:
             - "5599:5599"
     front-end:
         image:
-            access-vue
+            shuttle/access-vue:latest
         ports:
             - "8080:80"
