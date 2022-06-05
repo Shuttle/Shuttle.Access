@@ -17,7 +17,7 @@ namespace Shuttle.Access.RestClient.v1
         [Post("/permissions")]
         Task<ApiResponse<object>> Post(RegisterPermission message);
 
-        [Delete("/permissions/{id}")]
-        Task<ApiResponse<object>> Delete(Guid id);
+        [Patch("/permissions/{id}")]
+        Task<ApiResponse<object>> SetStatus(Guid id, SetPermissionStatus message);
     }
 }

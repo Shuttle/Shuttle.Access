@@ -81,13 +81,13 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         }
 
         [Test]
-        public void Should_be_able_to_delete_permission()
+        public void Should_be_able_to_set_permission_status()
         {
             var permissionId = Guid.NewGuid();
 
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m=>m.Send(It.Is<RemovePermission>(message => message.Id.Equals(permissionId)))).Verifiable();
+            serviceBus.Setup(m=>m.Send(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)))).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -100,7 +100,11 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).Login();
 
-                var response = client.Permissions.Delete(permissionId).Result;
+                var response = client.Permissions.SetStatus(permissionId, new SetPermissionStatus
+                {
+                    Id = permissionId,
+                    Status = (int)PermissionStatus.Deactivated
+                }).Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);

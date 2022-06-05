@@ -9,7 +9,7 @@ namespace Shuttle.Access.Server.Handlers
 {
     public class PermissionHandler :
         IMessageHandler<RegisterPermission>,
-        IMessageHandler<RemovePermission>,
+        IMessageHandler<SetPermissionStatus>,
         IMessageHandler<SetPermissionName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
@@ -47,13 +47,13 @@ namespace Shuttle.Access.Server.Handlers
             }
         }
 
-        public void ProcessMessage(IHandlerContext<RemovePermission> context)
+        public void ProcessMessage(IHandlerContext<SetPermissionStatus> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
             var message = context.Message;
 
-            var requestResponse = new RequestResponseMessage<RemovePermission, PermissionRemoved>(message);
+            var requestResponse = new RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>(message);
 
             using (_databaseContextFactory.Create())
             {

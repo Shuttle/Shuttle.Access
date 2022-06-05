@@ -25,7 +25,7 @@ namespace Shuttle.Access.Application
             "access://identity/view",
             "access://permission/view",
             "access://permission/register",
-            "access://permission/remove",
+            "access://permission/status",
             "access://dashboard/view",
             "access://role/view",
             "access://role/register",

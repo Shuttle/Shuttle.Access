@@ -106,6 +106,12 @@ namespace Shuttle.Access.Messages.v1
             Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
         }
 
+        public static void ApplyInvariants(this SetPermissionStatus message)
+        {
+            Guard.AgainstNull(message, nameof(message));
+            Guard.AgainstEmptyGuid(message.Id, nameof(message.Id));
+        }
+
         public static void ApplyInvariants<T>(this Identifiers<T> message)
         {
             Guard.AgainstNull(message, nameof(message));

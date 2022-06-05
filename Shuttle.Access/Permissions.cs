@@ -22,7 +22,11 @@
         {
             public const string Role = "access://role/remove";
             public const string Identity = "access://identity/remove";
-            public const string Permission = "access://permission/remove";
+        }
+
+        public static class Status
+        {
+            public const string Permission = "access://permission/status";
         }
 
         public static class Activate

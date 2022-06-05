@@ -108,14 +108,22 @@ namespace Shuttle.Access.WebApi.v1
             return Accepted();
         }
 
-        [HttpDelete("{id}")]
-        [RequiresPermission(Permissions.Remove.Permission)]
-        public IActionResult Delete(Guid id)
+        [HttpPatch("{id}")]
+        [RequiresPermission(Permissions.Status.Permission)]
+        public IActionResult SetStatus(Guid id, [FromBody] SetPermissionStatus message)
         {
-            _serviceBus.Send(new RemovePermission
+            try
             {
-                Id = id
-            });
+                message.Id = id;
+                message.ApplyInvariants();
+                Guard.AgainstUndefinedEnum<PermissionStatus>(message.Status, nameof(message.Status));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            _serviceBus.Send(message);
 
             return Accepted();
         }
