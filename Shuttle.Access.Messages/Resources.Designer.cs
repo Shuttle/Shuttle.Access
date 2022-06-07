@@ -19,7 +19,7 @@ namespace Shuttle.Access.Messages {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -66,6 +66,15 @@ namespace Shuttle.Access.Messages {
         public static string ActivateIdentityException {
             get {
                 return ResourceManager.GetString("ActivateIdentityException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Either the `Id` or the `Token` should contain a value and both may not be specified together..
+        /// </summary>
+        public static string ChangePasswordException {
+            get {
+                return ResourceManager.GetString("ChangePasswordException", resourceCulture);
             }
         }
         

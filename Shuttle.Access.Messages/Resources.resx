@@ -120,6 +120,9 @@
   <data name="ActivateIdentityException" xml:space="preserve">
     <value>Please specify either the 'Id' or the 'Name' to activate.</value>
   </data>
+  <data name="ChangePasswordException" xml:space="preserve">
+    <value>Either the `Id` or the `Token` should contain a value and both may not be specified together.</value>
+  </data>
   <data name="SetPasswordException" xml:space="preserve">
     <value>In order to set the password either the 'OldPassword' or a 'Token' should be specified.</value>
   </data>

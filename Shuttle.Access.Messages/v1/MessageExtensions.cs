@@ -42,9 +42,10 @@ namespace Shuttle.Access.Messages.v1
             Guard.AgainstNull(message, nameof(message));
             Guard.AgainstNull(message.NewPassword, nameof(message.NewPassword));
 
-            if (string.IsNullOrWhiteSpace(message.OldPassword))
+            if ((!message.Id.HasValue && !message.Token.HasValue) || 
+                (message.Id.HasValue && message.Token.HasValue))
             {
-                throw new InvalidOperationException(Resources.SetPasswordException);
+                throw new InvalidOperationException(Resources.ChangePasswordException);
             }
         }
         

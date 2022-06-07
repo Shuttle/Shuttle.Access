@@ -22,17 +22,20 @@ namespace Shuttle.Access.WebApi.v1
         private readonly IIdentityQuery _identityQuery;
         private readonly IMediator _mediator;
         private readonly IServiceBus _serviceBus;
+        private readonly ISessionRepository _sessionRepository;
 
-        public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus,
+        public IdentitiesController(IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus, ISessionRepository sessionRepository,
             IIdentityQuery identityQuery, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(serviceBus, nameof(serviceBus));
+            Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
             Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
             _serviceBus = serviceBus;
+            _sessionRepository = sessionRepository;
             _identityQuery = identityQuery;
             _mediator = mediator;
         }
@@ -154,10 +157,15 @@ namespace Shuttle.Access.WebApi.v1
                 return BadRequest(Access.Resources.SessionTokenException);
             }
 
-            message.Token = sessionTokenResult.SessionToken;
-
             using (_databaseContextFactory.Create())
             {
+                var session = _sessionRepository.Get(sessionTokenResult.SessionToken);
+
+                if (message.Id.HasValue && !session.HasPermission(Permissions.Register.Identity))
+                {
+                    return Unauthorized();
+                }
+
                 var changePassword = new RequestMessage<ChangePassword>(message);
 
                 _mediator.Send(changePassword);
