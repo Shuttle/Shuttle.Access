@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Events;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
+using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Tests.Participants
 {
@@ -22,7 +24,7 @@ namespace Shuttle.Access.Tests.Participants
                 Id = Guid.NewGuid()
             };
 
-            var participant = new RemoveIdentityParticipant(eventStore);
+            var participant = new RemoveIdentityParticipant(eventStore, new Mock<IKeyStore>().Object);
 
             participant.ProcessMessage(new ParticipantContext<RemoveIdentity>(removeIdentity, CancellationToken.None));
 

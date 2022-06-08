@@ -3,6 +3,7 @@ using System.Threading;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
+using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 
@@ -16,20 +17,24 @@ namespace Shuttle.Access.Tests.Participants
         {
             var now = DateTime.UtcNow;
             var hash = new byte[] { 0, 1, 2, 3, 4 };
-            var changePassword = new ChangePassword { Token = Guid.NewGuid(), NewPassword = "new-password", OldPassword = "old-password"};
-            var session = new Session(changePassword.Token, Guid.NewGuid(), "identity-name", now, now.AddSeconds(5));
+            var changePassword = new ChangePassword { Token = Guid.NewGuid(), NewPassword = "new-password", };
+            var session = new Session(changePassword.Token.Value, Guid.NewGuid(), "identity-name", now, now.AddSeconds(5));
             var eventStore = new FixtureEventStore();
             var sessionRepository = new Mock<ISessionRepository>();
-            var authenticationService = new Mock<IAuthenticationService>();
             var hashingService = new Mock<IHashingService>();
 
             sessionRepository.Setup(m => m.Find(session.Token))
                 .Returns(session);
-            authenticationService.Setup(m => m.Authenticate(session.IdentityName, changePassword.OldPassword))
-                .Returns(AuthenticationResult.Success());
             hashingService.Setup(m => m.Sha256(changePassword.NewPassword)).Returns(hash);
 
-            var participant = new ChangePasswordParticipant(authenticationService.Object, hashingService.Object, sessionRepository.Object, eventStore);
+            var participant = new ChangePasswordParticipant(hashingService.Object, sessionRepository.Object, eventStore);
+
+            eventStore.Get(session.IdentityId).AddEvent(new Registered
+            {
+                Activated = true,
+                DateRegistered = DateTime.Now,
+                Name = "user"
+            });
 
             participant.ProcessMessage(
                 new ParticipantContext<RequestMessage<ChangePassword>>(

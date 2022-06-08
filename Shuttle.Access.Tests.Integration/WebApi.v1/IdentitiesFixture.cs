@@ -252,7 +252,6 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
-                    OldPassword = "old-password",
                     NewPassword = "new-password",
                     Token = token
                 }).Result;
@@ -295,7 +294,6 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
-                    OldPassword = "old-password",
                     NewPassword = "new-password",
                     Token = token
                 }).Result;
@@ -338,7 +336,6 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
-                    OldPassword = "old-password",
                     NewPassword = "new-password",
                     Token = token
                 }).Result;
