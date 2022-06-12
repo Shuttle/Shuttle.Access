@@ -37,7 +37,7 @@ namespace Shuttle.Access.Projection
         private IEventProcessor _eventProcessor;
         private IEventStore _eventStore;
         private IKernel _kernel;
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public void Start()
         {
@@ -58,7 +58,6 @@ namespace Shuttle.Access.Projection
             _ = container.Resolve<EventProcessingModule>();
 
             _eventStore = container.Resolve<IEventStore>();
-
             _eventProcessor = container.Resolve<IEventProcessor>();
 
             var databaseContextFactory = container.Resolve<IDatabaseContextFactory>();

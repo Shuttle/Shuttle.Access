@@ -174,7 +174,7 @@ namespace Shuttle.Access.WebApi
 
             app.UseExceptionHandler(error =>
             {
-                error.Run(async context =>
+                error.Run(context =>
                 {
                     var feature = context.Features.Get<IExceptionHandlerFeature>();
 
@@ -183,7 +183,7 @@ namespace Shuttle.Access.WebApi
                         _log.Error(feature.Error.AllMessages());
                     }
 
-                    await Task.CompletedTask;
+                    return Task.CompletedTask;
                 });
             });
 

@@ -3,7 +3,7 @@
 <package>
 	<metadata>
 		<id>Shuttle.Access.Sql</id>
-		<version>4.0.1</version>
+		<version>4.1.0</version>
 		<authors>Eben Roux</authors>
 		<owners></owners>
 		<license type="expression">BSD-3-Clause</license>
@@ -15,9 +15,9 @@
 		<copyright>Copyright (c) 2022, Eben Roux</copyright>
     <tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
-      <dependency id="Shuttle.Core.Data" version="12.0.2" />
-      <dependency id="Shuttle.Recall" version="13.0.1" />
-      <dependency id="Shuttle.Recall.Sql.Storage" version="13.0.2" />
+      <dependency id="Shuttle.Core.Data" version="12.1.0" />
+      <dependency id="Shuttle.Recall" version="14.0.0" />
+      <dependency id="Shuttle.Recall.Sql.Storage" version="14.0.0" />
 		</dependencies>
 	</metadata>
 	<files>

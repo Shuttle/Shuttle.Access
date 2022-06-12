@@ -28,11 +28,9 @@ namespace Shuttle.Access.Sql
 
         public AuthenticationResult Authenticate(string identityName, string password)
         {
-            Guid? userId;
+            var id = _keyStore.Get(Identity.Key(identityName));
 
-            userId = _keyStore.Get(Identity.Key(identityName));
-
-            if (!userId.HasValue)
+            if (!id.HasValue)
             {
                 _log.Trace($"[identityName not found] : identityName = '{identityName}'");
 
@@ -41,7 +39,7 @@ namespace Shuttle.Access.Sql
 
             var identity = new Identity();
 
-            _eventStore.Get(userId.Value).Apply(identity);
+            _eventStore.Get(id.Value).Apply(identity);
 
             if (identity.PasswordMatches(_hashingService.Sha256(password)))
             {
