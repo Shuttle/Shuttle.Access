@@ -38,7 +38,7 @@ namespace Shuttle.Access.Server
     {
         private IServiceBus _bus;
         private IKernel _kernel;
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public void Start()
         {

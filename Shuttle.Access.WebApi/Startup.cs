@@ -39,7 +39,7 @@ namespace Shuttle.Access.WebApi
     {
         private readonly ILog _log;
         private IServiceBus _bus;
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public Startup(IConfiguration configuration)
         {
@@ -154,14 +154,12 @@ namespace Shuttle.Access.WebApi
 
             componentContainer.Register<IAzureStorageConfiguration, DefaultAzureStorageConfiguration>();
 
-            var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>();
+            var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
 
             if (!databaseContextFactory.IsAvailable("Access", _cancellationTokenSource.Token))
             {
                 throw new ApplicationException("[connection failure]");
             }
-
-            databaseContextFactory.ConfigureWith("Access");
 
             _bus = componentContainer.Resolve<IServiceBus>().Start();
 
