@@ -61,7 +61,8 @@ namespace Shuttle.Access.WebApi
             services.AddSingleton<IKernel>(new StandardKernel());
             services.AddSingleton<IControllerActivator, ControllerActivator>();
 
-            services.AddSingleton(AccessSection.Configuration());
+            services.AddSingleton(AccessConnectionSection.GetConfiguration());
+            services.AddSingleton(AccessSessionSection.GetConfiguration());
             services.AddSingleton<IConnectionConfigurationProvider, ConnectionConfigurationProvider>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IDatabaseContextCache, ContextDatabaseContextCache>();
@@ -133,7 +134,8 @@ namespace Shuttle.Access.WebApi
             componentContainer.Register<IHashingService, HashingService>();
             componentContainer.Register<IPasswordGenerator, DefaultPasswordGenerator>();
 
-            componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessConfiguration>());
+            componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessConnectionConfiguration>());
+            componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessSessionConfiguration>());
 
             var applicationPartManager = app.ApplicationServices.GetRequiredService<ApplicationPartManager>();
             var controllerFeature = new ControllerFeature();

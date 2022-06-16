@@ -18,12 +18,14 @@ namespace Shuttle.Access.RestClient
             Guard.AgainstNull(configuration, nameof(configuration));
 
             _configuration = configuration;
-            _handler = new AuthenticationHeaderHandler();
+            _handler = new AuthenticationHeaderHandler(this);
 
             var client = httpClient ?? new HttpClient(_handler)
             {
                 BaseAddress = configuration.BaseAddress
             };
+
+            client.BaseAddress = configuration.BaseAddress;
 
             Server = RestService.For<IServerApi>(client);
             Permissions = RestService.For<IPermissionsApi>(client);
@@ -36,7 +38,7 @@ namespace Shuttle.Access.RestClient
         public IIdentitiesApi Identities { get; }
         public IRolesApi Roles { get; }
 
-        public IAccessClient Logout()
+        public IAccessClient DeleteSession()
         {
             lock (Lock)
             {
@@ -49,7 +51,7 @@ namespace Shuttle.Access.RestClient
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    throw new ApiException(Access.Resources.LogoutException); 
+                    throw new ApiException(Access.Resources.DeleteSessionException); 
                 }
 
                 ResetSession();
@@ -58,7 +60,7 @@ namespace Shuttle.Access.RestClient
             return this;
         }
 
-        public IAccessClient Login()
+        public IAccessClient RegisterSession()
         {
             lock (Lock)
             {
@@ -76,18 +78,18 @@ namespace Shuttle.Access.RestClient
                 if (!response.IsSuccessStatusCode ||
                     response.Content == null)
                 {
-                    throw new ApiException(Access.Resources.LoginException);
+                    throw new ApiException(Access.Resources.RegisterSessionException);
                 }
 
                 Token = response.Content.Token;
-                _handler.Token = Token.Value.ToString("n");
+                TokenExpiryDate = response.Content.TokenExpiryDate.Subtract(TimeSpan.FromMinutes(1));
             }
 
             return this;
         }
 
+        public DateTime? TokenExpiryDate { get; private set; }
         public Guid? Token { get; private set; }
-
 
         public IServerApi Server { get; }
         public IPermissionsApi Permissions { get; }

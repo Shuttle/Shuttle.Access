@@ -18,7 +18,7 @@ namespace Shuttle.Access.RestClient.v1
         Task<ApiResponse<object>> Delete();
 
         [Get("/sessions/{token}")]
-        Task<ApiResponse<Access.DataAccess.Query.Session>> Get(Guid token);
+        Task<ApiResponse<DataAccess.Query.Session>> Get(Guid token);
 
         [Get("/sessions/{token}/permissions")]
         Task<ApiResponse<List<string>>> GetPermissions(Guid token);

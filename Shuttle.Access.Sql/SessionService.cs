@@ -10,22 +10,23 @@ namespace Shuttle.Access.Sql
     {
         private readonly IAuthenticationService _authenticationService;
         private readonly IAuthorizationService _authorizationService;
-        private readonly IAccessConfiguration _configuration;
+        private readonly IAccessConnectionConfiguration _connectionConfiguration;
+        private readonly IAccessSessionConfiguration _sessionConfiguration;
         private readonly ISessionRepository _sessionRepository;
         private readonly IIdentityQuery _identityQuery;
         private readonly ILog _log;
 
-        public SessionService(IAccessConfiguration configuration, IAuthenticationService authenticationService,
-            IAuthorizationService authorizationService, ISessionRepository sessionRepository,
-            IIdentityQuery identityQuery)
+        public SessionService(IAccessConnectionConfiguration connectionConfiguration, IAccessSessionConfiguration sessionConfiguration, IAuthenticationService authenticationService,  IAuthorizationService authorizationService, ISessionRepository sessionRepository,  IIdentityQuery identityQuery)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(connectionConfiguration, nameof(connectionConfiguration));
+            Guard.AgainstNull(sessionConfiguration, nameof(sessionConfiguration));
             Guard.AgainstNull(authenticationService, nameof(authenticationService));
             Guard.AgainstNull(authorizationService, nameof(authorizationService));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
             Guard.AgainstNull(identityQuery, nameof(identityQuery));
 
-            _configuration = configuration;
+            _connectionConfiguration = connectionConfiguration;
+            _sessionConfiguration = sessionConfiguration;
             _authenticationService = authenticationService;
             _authorizationService = authorizationService;
             _sessionRepository = sessionRepository;
@@ -74,11 +75,11 @@ namespace Shuttle.Access.Sql
 
             if (session != null && 
                 session.HasExpired &&
-                session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.UtcNow)
+                session.ExpiryDate.Subtract(_sessionConfiguration.SessionDuration) < DateTime.UtcNow)
             {
                     _log.Debug(string.Format(Resources.SessionRegisterRenewed, identityName));
 
-                    session.Renew(DateTime.UtcNow.Add(_configuration.SessionDuration));
+                    session.Renew(DateTime.UtcNow.Add(_sessionConfiguration.SessionDuration));
 
                     _sessionRepository.Renew(session);
             }
@@ -87,7 +88,7 @@ namespace Shuttle.Access.Sql
                 var now = DateTime.UtcNow;
 
                 session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now,
-                    now.Add(_configuration.SessionDuration));
+                    now.Add(_sessionConfiguration.SessionDuration));
 
                 foreach (var permission in _authorizationService.Permissions(identityName))
                 {
@@ -122,16 +123,38 @@ namespace Shuttle.Access.Sql
                     return RegisterSessionResult.Failure();
                 }
 
-                var now = DateTime.UtcNow;
+                session = _sessionRepository.Find(identityName);
 
-                session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now, now.Add(_configuration.SessionDuration));
-
-                foreach (var permission in _authorizationService.Permissions(identityName))
+                if (session != null && session.HasExpired)
                 {
-                    session.AddPermission(permission);
+                    if (session.ExpiryDate.Subtract(_sessionConfiguration.SessionDuration) < DateTime.UtcNow)
+                    {
+                        _log.Debug(string.Format(Resources.SessionRegisterRenewed, identityName));
+
+                        session.Renew(DateTime.UtcNow.Add(_sessionConfiguration.SessionDuration));
+
+                        _sessionRepository.Renew(session);
+                    }
+                    else
+                    {
+                        session = null;
+                    }
                 }
 
-                _sessionRepository.Save(session);
+                if (session == null)
+                {
+                    var now = DateTime.UtcNow;
+
+                    session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now,
+                        now.Add(_sessionConfiguration.SessionDuration));
+
+                    foreach (var permission in _authorizationService.Permissions(identityName))
+                    {
+                        session.AddPermission(permission);
+                    }
+
+                    _sessionRepository.Save(session);
+                }
             }
             else
             {
@@ -148,11 +171,11 @@ namespace Shuttle.Access.Sql
 
                 if (session.HasExpired)
                 {
-                    if (session.ExpiryDate.Subtract(_configuration.SessionDuration) < DateTime.UtcNow)
+                    if (session.ExpiryDate.Subtract(_sessionConfiguration.SessionDuration) < DateTime.UtcNow)
                     {
                         _log.Debug(string.Format(Resources.SessionRegisterRenewed, identityName));
 
-                        session.Renew(DateTime.UtcNow.Add(_configuration.SessionDuration));
+                        session.Renew(DateTime.UtcNow.Add(_sessionConfiguration.SessionDuration));
 
                         _sessionRepository.Renew(session);
                     }

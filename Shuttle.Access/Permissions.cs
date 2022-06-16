@@ -12,7 +12,6 @@
 
         public static class Register
         {
-            public const string IdentityRequired = "access://identity/required";
             public const string Role = "access://roles/register";
             public const string Identity = "access://identity/register";
             public const string Permission = "access://permission/register";

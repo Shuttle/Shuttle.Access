@@ -88,6 +88,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not delete the session..
+        /// </summary>
+        public static string DeleteSessionException {
+            get {
+                return ResourceManager.GetString("DeleteSessionException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Permission with Id &apos;{0}&apos; already exists on role &apos;{1}&apos;..
         /// </summary>
         public static string DuplicatePermissionException {
@@ -111,24 +120,6 @@ namespace Shuttle.Access {
         public static string InvalidCredentialsException {
             get {
                 return ResourceManager.GetString("InvalidCredentialsException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not log in..
-        /// </summary>
-        public static string LoginException {
-            get {
-                return ResourceManager.GetString("LoginException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not log out..
-        /// </summary>
-        public static string LogoutException {
-            get {
-                return ResourceManager.GetString("LogoutException", resourceCulture);
             }
         }
         
@@ -165,6 +156,15 @@ namespace Shuttle.Access {
         public static string RegisterPasswordResetTokenException {
             get {
                 return ResourceManager.GetString("RegisterPasswordResetTokenException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not register the session..
+        /// </summary>
+        public static string RegisterSessionException {
+            get {
+                return ResourceManager.GetString("RegisterSessionException", resourceCulture);
             }
         }
         

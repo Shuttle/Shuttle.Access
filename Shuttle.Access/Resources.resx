@@ -127,6 +127,9 @@
     <value>Could not find a connection string with name '{0}'.</value>
     <comment>0 = the name of the missing connection string</comment>
   </data>
+  <data name="DeleteSessionException" xml:space="preserve">
+    <value>Could not delete the session.</value>
+  </data>
   <data name="DuplicatePermissionException" xml:space="preserve">
     <value>Permission with Id '{0}' already exists on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
@@ -137,12 +140,6 @@
   </data>
   <data name="InvalidCredentialsException" xml:space="preserve">
     <value>Invalid credentials.</value>
-  </data>
-  <data name="LoginException" xml:space="preserve">
-    <value>Could not log in.</value>
-  </data>
-  <data name="LogoutException" xml:space="preserve">
-    <value>Could not log out.</value>
   </data>
   <data name="PasswordHashException" xml:space="preserve">
     <value>The 'PasswordHash' may not be empty.</value>
@@ -157,6 +154,9 @@
   </data>
   <data name="RegisterPasswordResetTokenException" xml:space="preserve">
     <value>There is already a password reset token registered.</value>
+  </data>
+  <data name="RegisterSessionException" xml:space="preserve">
+    <value>Could not register the session.</value>
   </data>
   <data name="RoleNotFoundException" xml:space="preserve">
     <value>Role '{0}' does not exist on user '{1}'.</value>

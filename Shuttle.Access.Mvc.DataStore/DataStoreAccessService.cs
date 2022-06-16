@@ -6,18 +6,19 @@ namespace Shuttle.Access.Mvc.DataStore
 {
     public class DataStoreAccessService : CachedAccessService, IAccessService
     {
-        private readonly IAccessConfiguration _configuration;
+        private readonly IAccessConnectionConfiguration _connectionConfiguration;
+        private readonly IAccessSessionConfiguration _sessionConfiguration;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly ISessionRepository _sessionRepository;
 
-        public DataStoreAccessService(IAccessConfiguration configuration,
-            IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository)
-        {
-            Guard.AgainstNull(configuration, nameof(configuration));
+        public DataStoreAccessService(IAccessConnectionConfiguration connectionConfiguration, IAccessSessionConfiguration sessionConfiguration, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) {
+            Guard.AgainstNull(connectionConfiguration, nameof(connectionConfiguration));
+            Guard.AgainstNull(sessionConfiguration, nameof(sessionConfiguration));
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
 
-            _configuration = configuration;
+            _connectionConfiguration = connectionConfiguration;
+            _sessionConfiguration = sessionConfiguration;
             _databaseContextFactory = databaseContextFactory;
             _sessionRepository = sessionRepository;
         }
@@ -58,13 +59,13 @@ namespace Shuttle.Access.Mvc.DataStore
                 return;
             }
 
-            using (_databaseContextFactory.Create(_configuration.ProviderName, _configuration.ConnectionString))
+            using (_databaseContextFactory.Create(_connectionConfiguration.ProviderName, _connectionConfiguration.ConnectionString))
             {
                 var session = _sessionRepository.Find(token);
 
                 if (session != null)
                 {
-                    Cache(token, session.Permissions, _configuration.SessionDuration);
+                    Cache(token, session.Permissions, _sessionConfiguration.SessionDuration);
                 }
             }
         }

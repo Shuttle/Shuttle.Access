@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.NetworkInformation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Core.Contract;
@@ -7,7 +8,8 @@ namespace Shuttle.Access.Mvc
 {
     public static class HttpContextExtensions
     {
-        public static readonly string AccessSessionTokenHeaderName = "access-session-token";
+        public static readonly string AuthorizationScheme = "access-session-token";
+        private static readonly char[] Space = new[] {' '};
 
         public static SessionTokenResult GetAccessSessionToken(this HttpContext context)
         {
@@ -15,18 +17,20 @@ namespace Shuttle.Access.Mvc
 
             try
             {
-                var requestHeaders = context.Request.Headers[AccessSessionTokenHeaderName];
+                var headers = context.Request.Headers["Authorization"];
 
-                if (requestHeaders.Count == 1)
+                if (headers.Count != 1)
                 {
-                    var sessionTokenValue = requestHeaders[0];
-
-                    return !Guid.TryParse(sessionTokenValue, out var sessionToken)
-                        ? SessionTokenResult.Failure(new UnauthorizedResult())
-                        : SessionTokenResult.Success(sessionToken);
+                    return SessionTokenResult.Failure(new UnauthorizedResult());
                 }
 
-                return SessionTokenResult.Failure(new UnauthorizedResult());
+                var values = headers[0].Split(Space);
+
+                return values.Length == 2 &&
+                       values[0].Equals(AuthorizationScheme) &&
+                       Guid.TryParse(values[1], out var sessionToken)
+                    ? SessionTokenResult.Success(sessionToken)
+                    : SessionTokenResult.Failure(new UnauthorizedResult());
             }
             catch
             {

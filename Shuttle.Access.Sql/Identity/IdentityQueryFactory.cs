@@ -208,9 +208,11 @@ where
         {
             return RawQuery.Create(@"
 select
-	Permission
+	p.[Name]
 from
-	RolePermission rp
+	Permission p 
+inner join
+	RolePermission rp on rp.PermissionId = p.Id
 inner join
 	IdentityRole ir on ir.RoleId = rp.RoleId
 where

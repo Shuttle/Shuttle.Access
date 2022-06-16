@@ -6,15 +6,15 @@ namespace Shuttle.Access.Mvc.Rest
 {
     public class RestAccessService : CachedAccessService, IAccessService
     {
-        private readonly IAccessConfiguration _configuration;
+        private readonly IAccessSessionConfiguration _sessionConfiguration;
         private readonly IAccessClient _accessClient;
 
-        public RestAccessService(IAccessConfiguration configuration, IAccessClient accessClient)
+        public RestAccessService(IAccessSessionConfiguration sessionConfiguration, IAccessClient accessClient)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(sessionConfiguration, nameof(sessionConfiguration));
             Guard.AgainstNull(accessClient, nameof(accessClient));
 
-            _configuration = configuration;
+            _sessionConfiguration = sessionConfiguration;
             _accessClient = accessClient;
         }
 
@@ -59,7 +59,7 @@ namespace Shuttle.Access.Mvc.Rest
             if (session.IsSuccessStatusCode &&
                 session.Content != null)
             {
-                Cache(token, session.Content.Permissions, _configuration.SessionDuration);
+                Cache(token, session.Content.Permissions, _sessionConfiguration.SessionDuration);
             }
         }
     }

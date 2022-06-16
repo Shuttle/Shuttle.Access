@@ -5,8 +5,8 @@ namespace Shuttle.Access.RestClient
 {
     public interface IAccessClient
     {
-        IAccessClient Logout();
-        IAccessClient Login();
+        IAccessClient DeleteSession();
+        IAccessClient RegisterSession();
 
         IServerApi Server { get; }
         IPermissionsApi Permissions { get; }
@@ -14,5 +14,6 @@ namespace Shuttle.Access.RestClient
         IIdentitiesApi Identities { get; }
         IRolesApi Roles { get; }
         Guid? Token { get; }
+        DateTime? TokenExpiryDate { get; }
     }
 }
