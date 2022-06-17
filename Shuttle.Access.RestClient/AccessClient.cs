@@ -11,27 +11,19 @@ namespace Shuttle.Access.RestClient
     {
         private static readonly object Lock = new object();
         private readonly IAccessClientConfiguration _configuration;
-        private readonly AuthenticationHeaderHandler _handler;
 
-        public AccessClient(IAccessClientConfiguration configuration, HttpClient httpClient = null)
+        public AccessClient(IAccessClientConfiguration configuration, HttpClient httpClient)
         {
             Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(httpClient, nameof(httpClient));
 
             _configuration = configuration;
-            _handler = new AuthenticationHeaderHandler(this);
 
-            var client = httpClient ?? new HttpClient(_handler)
-            {
-                BaseAddress = configuration.BaseAddress
-            };
-
-            client.BaseAddress = configuration.BaseAddress;
-
-            Server = RestService.For<IServerApi>(client);
-            Permissions = RestService.For<IPermissionsApi>(client);
-            Sessions = RestService.For<ISessionsApi>(client);
-            Identities = RestService.For<IIdentitiesApi>(client);
-            Roles = RestService.For<IRolesApi>(client);
+            Server = RestService.For<IServerApi>(httpClient);
+            Permissions = RestService.For<IPermissionsApi>(httpClient);
+            Sessions = RestService.For<ISessionsApi>(httpClient);
+            Identities = RestService.For<IIdentitiesApi>(httpClient);
+            Roles = RestService.For<IRolesApi>(httpClient);
         }
 
         public ISessionsApi Sessions { get; }

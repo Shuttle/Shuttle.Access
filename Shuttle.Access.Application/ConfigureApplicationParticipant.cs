@@ -17,7 +17,6 @@ namespace Shuttle.Access.Application
 
         private readonly List<string> _permissions = new List<string>
         {
-
             "access://identity/view",
             "access://identity/register",
             "access://identity/register-session",

@@ -9,7 +9,7 @@ namespace Shuttle.Access.Tests
     [TestFixture]
     public class DataStoreAccessServiceFixture
     {
-        private readonly Session _session = new Session(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow,
+        private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow,
             DateTime.UtcNow.AddHours(1));
 
         [Test]
@@ -19,8 +19,9 @@ namespace Shuttle.Access.Tests
 
             repository.Setup(m => m.Find(It.IsAny<Guid>())).Returns(() => null);
 
-            var service = new DataStoreAccessService(new Mock<IAccessConfiguration>().Object,
-                new Mock<IDatabaseContextFactory>().Object, repository.Object);
+            var service = new DataStoreAccessService(new Mock<IAccessConnectionConfiguration>().Object,
+                new Mock<IAccessSessionConfiguration>().Object, new Mock<IDatabaseContextFactory>().Object,
+                repository.Object);
 
             Assert.That(service.Contains(Guid.NewGuid()), Is.False);
         }
@@ -29,12 +30,12 @@ namespace Shuttle.Access.Tests
         public void Should_be_able_check_for_and_cache_existent_session()
         {
             var repository = new Mock<ISessionRepository>();
-            var configuration = new Mock<IAccessConfiguration>();
+            var sessionConfiguration = new Mock<IAccessSessionConfiguration>();
 
             repository.Setup(m => m.Find(It.IsAny<Guid>())).Returns(() => _session);
-            configuration.Setup(m => m.SessionDuration).Returns(TimeSpan.FromHours(1));
+            sessionConfiguration.Setup(m => m.SessionDuration).Returns(TimeSpan.FromHours(1));
 
-            var service = new DataStoreAccessService(configuration.Object,
+            var service = new DataStoreAccessService(new Mock<IAccessConnectionConfiguration>().Object, sessionConfiguration.Object,
                 new Mock<IDatabaseContextFactory>().Object, repository.Object);
 
             Assert.That(service.Contains(_session.Token), Is.True);

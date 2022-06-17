@@ -36,9 +36,9 @@ namespace Shuttle.Access.Server
 
     public class Host : IServiceHost
     {
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
         private IServiceBus _bus;
         private IKernel _kernel;
-        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public void Start()
         {

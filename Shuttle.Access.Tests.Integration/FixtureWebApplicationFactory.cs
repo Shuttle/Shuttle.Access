@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Data;
@@ -36,7 +37,7 @@ namespace Shuttle.Access.Tests.Integration
                         services.AddSingleton(new Mock<ISessionQuery>().Object);
                         services.AddSingleton(new Mock<IServiceBus>().Object);
                         services.AddSingleton(new Mock<IMediator>().Object);
-                        services.AddSingleton<IAccessService>(accessService.Object);
+                        services.AddSingleton(accessService.Object);
                         // check if still required after refactor:
                         services.AddSingleton(new Mock<IHashingService>().Object);
                         services.AddSingleton(new Mock<IEventStore>().Object);
@@ -49,7 +50,8 @@ namespace Shuttle.Access.Tests.Integration
 
         protected override void ConfigureClient(HttpClient client)
         {
-            client.DefaultRequestHeaders.Add("access-session-token", Guid.NewGuid().ToString());
+            client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("access-session-token", Guid.NewGuid().ToString());
 
             base.ConfigureClient(client);
         }

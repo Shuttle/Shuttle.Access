@@ -27,7 +27,7 @@ namespace Shuttle.Access.Tests
             sessionsApi.Setup(m => m.Get(It.IsAny<Guid>()).Result).Returns(new ApiResponse<DataAccess.Query.Session>(new HttpResponseMessage(HttpStatusCode.BadRequest), null, new RefitSettings()));
             accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-            var service = new RestAccessService(new Mock<IAccessConfiguration>().Object, accessClient.Object);
+            var service = new RestAccessService(new Mock<IAccessSessionConfiguration>().Object, accessClient.Object);
 
             Assert.That(service.Contains(Guid.NewGuid()), Is.False);
         }
@@ -35,7 +35,7 @@ namespace Shuttle.Access.Tests
         [Test]
         public void Should_be_able_check_for_and_cache_existing_session()
         {
-            var configuration = new Mock<IAccessConfiguration>();
+            var configuration = new Mock<IAccessSessionConfiguration>();
             var accessClient = new Mock<IAccessClient>();
             var sessionsApi = new Mock<ISessionsApi>();
 

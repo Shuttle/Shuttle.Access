@@ -32,7 +32,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Sessions.Get(session.Token).Result;
 
@@ -60,7 +60,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Sessions.GetPermissions(session.Token).Result;
 

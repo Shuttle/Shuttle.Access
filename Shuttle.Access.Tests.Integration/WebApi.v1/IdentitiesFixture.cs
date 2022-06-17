@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Threading;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -138,7 +140,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.Delete(id).Result;
 
@@ -173,7 +175,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.SetRole(Guid.NewGuid(), roleId, new SetIdentityRole
                 {
@@ -212,7 +214,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.SetRole(Guid.NewGuid(), roleId, new SetIdentityRole
                 {
@@ -246,9 +248,9 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                httpClient.DefaultRequestHeaders.Remove("access-session-token");
+                httpClient.DefaultRequestHeaders.Remove("Authorization");
 
-                client.Login();
+                client.RegisterSession();
 
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
@@ -290,7 +292,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                client.Login();
+                client.RegisterSession();
 
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
@@ -332,7 +334,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                client.Login();
+                client.RegisterSession();
 
                 var response = client.Identities.ChangePassword(new ChangePassword
                 {
@@ -368,9 +370,9 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                httpClient.DefaultRequestHeaders.Remove("access-session-token");
+                httpClient.DefaultRequestHeaders.Remove("Authorization");
 
-                client.Login();
+                client.RegisterSession();
 
                 var response = client.Identities.ResetPassword(new ResetPassword
                 {
@@ -411,7 +413,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.ResetPassword(new ResetPassword
                 {
@@ -454,7 +456,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                client.Login();
+                client.RegisterSession();
 
                 var response = client.Identities.ResetPassword(new ResetPassword
                 {
@@ -534,7 +536,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.Activate(new ActivateIdentity
                 {
@@ -563,14 +565,15 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
-                       builder.ConfigureTestServices(services =>
+                       builder
+                           .ConfigureTestServices(services =>
                        {
                            services.AddSingleton(identityQuery.Object);
                            services.AddSingleton(serviceBus.Object);
                        });
                    }).CreateClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.Activate(new ActivateIdentity
                 {
@@ -607,7 +610,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.GetPasswordResetToken("identity").Result;
 
@@ -643,7 +646,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.GetPasswordResetToken("identity").Result;
 
@@ -691,7 +694,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Identities.Register(new RegisterIdentity
                 {

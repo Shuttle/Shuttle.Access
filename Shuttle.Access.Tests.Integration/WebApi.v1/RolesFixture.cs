@@ -130,7 +130,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Roles.Delete(id).Result;
 
@@ -161,7 +161,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Roles.SetPermission(Guid.NewGuid(), new SetRolePermission
                 {
@@ -246,7 +246,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).Login();
+                var client = GetClient(httpClient).RegisterSession();
 
                 var response = client.Roles.Register(new RegisterRole
                 {
