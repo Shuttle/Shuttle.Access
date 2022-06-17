@@ -13,7 +13,7 @@
         <PackageReference Include="Shuttle.Access.Messages" Version="5.0.0" />
         <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="5.0.0" />
         <PackageReference Include="Shuttle.Access.Mvc.Rest" Version="6.0.0" />
-        <PackageReference Include="Shuttle.Access.RestClient" Version="5.0.0" />
+        <PackageReference Include="Shuttle.Access.RestClient" Version="6.0.0" />
         <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
         <PackageReference Include="Shuttle.Core.Data" Version="12.1.0" />
         <PackageReference Include="Shuttle.Core.Transactions" Version="10.0.3" />

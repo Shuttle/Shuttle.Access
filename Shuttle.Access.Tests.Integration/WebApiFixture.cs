@@ -1,5 +1,4 @@
 ﻿using System.Net.Http;
-using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Testing;
 using NUnit.Framework;
 using Shuttle.Access.RestClient;
@@ -8,7 +7,7 @@ using Shuttle.Core.Contract;
 namespace Shuttle.Access.Tests.Integration
 {
     [TestFixture]
-    public class WebApiFixture
+    public class WebApiFixture 
     {
         public WebApplicationFactory<Startup> Factory { get; private set; }
 
@@ -24,7 +23,22 @@ namespace Shuttle.Access.Tests.Integration
         {
             Guard.AgainstNull(httpClient, nameof(httpClient));
 
-            return new AccessClient(new AccessClientConfiguration("http://localhost/", "identity", "password"), httpClient);
+            return new AccessClient(new AccessClientConfiguration("http://localhost/", "identity", "password"), new HttpClientFactory(httpClient));
+        }
+    }
+
+    internal class HttpClientFactory : IHttpClientFactory
+    {
+        private readonly HttpClient _httpClient;
+
+        public HttpClientFactory(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+
+        public HttpClient CreateClient(string name)
+        {
+            return _httpClient;
         }
     }
 }

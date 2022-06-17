@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using Shuttle.Access.RestClient;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1
 {

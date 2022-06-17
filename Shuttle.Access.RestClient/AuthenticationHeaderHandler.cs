@@ -2,23 +2,23 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Shuttle.Core.Container;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient
 {
-    public class AuthenticationHeaderHandler : HttpClientHandler
+    public class AuthenticationHeaderHandler : DelegatingHandler
     {
-        private readonly IAccessClient _client;
+        private readonly IComponentResolver _resolver;
         private readonly string _userAgent;
 
-        public AuthenticationHeaderHandler(IAccessClient client)
+        public AuthenticationHeaderHandler(IComponentResolver resolver)
         {
-            Guard.AgainstNull(client, nameof(client));
+            Guard.AgainstNull(resolver, nameof(resolver));
 
-            _client = client;
+            _resolver = resolver;
 
             var version = Assembly.GetExecutingAssembly().GetName().Version;
 
@@ -31,16 +31,18 @@ namespace Shuttle.Access.RestClient
 
             request.Headers.Add("User-Agent", _userAgent);
 
-            if ((!_client.Token.HasValue || (_client.TokenExpiryDate ?? DateTime.UtcNow) < DateTime.UtcNow) &&
+            var client = _resolver.Resolve<IAccessClient>();
+
+            if ((!client.Token.HasValue || (client.TokenExpiryDate ?? DateTime.UtcNow) < DateTime.UtcNow) &&
                 !request.RequestUri.PathAndQuery.Equals("/sessions") &&
                 request.Method != HttpMethod.Post)
             {
-                _client.RegisterSession();
+                client.RegisterSession();
             }
 
-            if (_client.Token.HasValue)
+            if (client.Token.HasValue)
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("access-session-token", _client.Token.Value.ToString("n"));
+                request.Headers.Authorization = new AuthenticationHeaderValue("access-session-token", client.Token.Value.ToString("n"));
             }
 
             return base.SendAsync(request, cancellationToken);
