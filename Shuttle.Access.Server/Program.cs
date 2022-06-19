@@ -58,7 +58,6 @@ namespace Shuttle.Access.Server
             container.RegisterEventStoreStorage();
             container.RegisterSubscription();
             container.RegisterServiceBus();
-            container.RegisterMessageHandlers(Assembly.Load("Shuttle.Access.Server.Handlers"));
             container.RegisterMediator();
             container.RegisterMediatorParticipants(Assembly.Load("Shuttle.Access.Application"));
             container.Register<IHashingService, HashingService>();

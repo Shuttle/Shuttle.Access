@@ -24,7 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
     <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.Server.Handlers\Shuttle.Access.Server.Handlers.csproj" />
     <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
     <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
   </ItemGroup>

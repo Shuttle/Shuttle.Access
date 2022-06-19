@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using log4net;
 using Ninject;
-using Shuttle.Access.Projection.Handlers;
+using Shuttle.Access.Projection.v1;
 using Shuttle.Core.Container;
 using Shuttle.Core.Data;
 using Shuttle.Core.Log4Net;
@@ -13,7 +13,6 @@ using Shuttle.Core.Logging;
 using Shuttle.Core.Ninject;
 using Shuttle.Core.Reflection;
 using Shuttle.Core.ServiceHost;
-using Shuttle.Core.Threading;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
@@ -34,10 +33,10 @@ namespace Shuttle.Access.Projection
 
     public class Host : IServiceHost
     {
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
         private IEventProcessor _eventProcessor;
         private IEventStore _eventStore;
         private IKernel _kernel;
-        private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public void Start()
         {
