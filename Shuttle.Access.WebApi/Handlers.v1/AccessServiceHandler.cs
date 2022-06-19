@@ -51,19 +51,28 @@ public class AccessServiceHandler :
     {
         Guard.AgainstNull(context, nameof(context));
 
+        var message = context.Message;
+
         using (_databaseContextFactory.Create())
         {
-            if (_projectionRepository.GetSequenceNumber(ProjectionNames.Identity) < context.Message.SequenceNumber)
+            if (_projectionRepository.GetSequenceNumber(ProjectionNames.Identity) < message.SequenceNumber)
             {
-                context.Send(context.Message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
+                context.Send(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
 
                 return;
             }
 
-            Refresh(new DataAccess.Query.Session.Specification().AddPermissions(
-                _permissionQuery.Search(
-                        new DataAccess.Query.Permission.Specification().AddRoleId(context.Message.RoleId))
-                    .Select(item => item.Name)));
+            if (message.Active)
+            {
+                Refresh(new DataAccess.Query.Identity.Specification().WithRoleId(message.RoleId));
+            }
+            else
+            {
+                Refresh(new DataAccess.Query.Session.Specification().AddPermissions(
+                    _permissionQuery.Search(
+                            new DataAccess.Query.Permission.Specification().AddRoleId(message.RoleId))
+                        .Select(item => item.Name)));
+            }
         }
     }
 
@@ -71,16 +80,25 @@ public class AccessServiceHandler :
     {
         Guard.AgainstNull(context, nameof(context));
 
+        var message = context.Message;
+
         using (_databaseContextFactory.Create())
         {
-            if (_projectionRepository.GetSequenceNumber(ProjectionNames.Permission) < context.Message.SequenceNumber)
+            if (_projectionRepository.GetSequenceNumber(ProjectionNames.Permission) < message.SequenceNumber)
             {
-                context.Send(context.Message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
+                context.Send(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
 
                 return;
             }
 
-            Refresh(new DataAccess.Query.Session.Specification().AddPermission(context.Message.Name));
+            if (message.Status == (int)PermissionStatus.Removed)
+            {
+                Refresh(new DataAccess.Query.Session.Specification().AddPermission(message.Name));
+            }
+            else
+            {
+                Refresh(new DataAccess.Query.Identity.Specification().WithPermissionId(message.Id));
+            }
         }
     }
 
@@ -88,18 +106,27 @@ public class AccessServiceHandler :
     {
         Guard.AgainstNull(context, nameof(context));
 
+        var message = context.Message;
+
         using (_databaseContextFactory.Create())
         {
-            if (_projectionRepository.GetSequenceNumber(ProjectionNames.Role) < context.Message.SequenceNumber)
+            if (_projectionRepository.GetSequenceNumber(ProjectionNames.Role) < message.SequenceNumber)
             {
-                context.Send(context.Message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
+                context.Send(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
 
                 return;
             }
 
-            Refresh(new DataAccess.Query.Session.Specification().AddPermissions(_permissionQuery
-                .Search(new DataAccess.Query.Permission.Specification().AddId(context.Message.PermissionId))
-                .Select(item => item.Name)));
+            if (message.Active)
+            {
+                Refresh(new DataAccess.Query.Identity.Specification().WithRoleId(message.RoleId));
+            }
+            else
+            {
+                Refresh(new DataAccess.Query.Session.Specification().AddPermissions(_permissionQuery
+                    .Search(new DataAccess.Query.Permission.Specification().AddId(message.PermissionId))
+                    .Select(item => item.Name)));
+            }
         }
     }
 
@@ -107,6 +134,22 @@ public class AccessServiceHandler :
     {
         foreach (var session in _sessionQuery.Search(specification))
         {
+            _accessService.Flush(session.Token);
+            _sessionService.Refresh(session.Token);
+        }
+    }
+
+    private void Refresh(DataAccess.Query.Identity.Specification specification)
+    {
+        foreach (var identity in _identityQuery.Search(specification))
+        {
+            var session = _sessionRepository.Find(identity.Name);
+
+            if (session == null)
+            {
+                continue;
+            }
+
             _accessService.Flush(session.Token);
             _sessionService.Refresh(session.Token);
         }
