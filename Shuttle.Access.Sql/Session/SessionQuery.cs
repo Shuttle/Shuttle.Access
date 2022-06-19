@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
@@ -42,6 +43,13 @@ namespace Shuttle.Access.Sql
             result.Permissions = _queryMapper.MapValues<string>(_queryFactory.GetPermissions(token)).ToList();
 
             return result;
+        }
+
+        public IEnumerable<DataAccess.Query.Session> Search(DataAccess.Query.Session.Specification specification)
+        {
+            Guard.AgainstNull(specification, nameof(specification));
+
+            return _queryMapper.MapObjects<DataAccess.Query.Session>(_queryFactory.Search(specification));
         }
     }
 }

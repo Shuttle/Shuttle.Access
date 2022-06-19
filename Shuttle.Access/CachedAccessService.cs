@@ -55,12 +55,11 @@ namespace Shuttle.Access
             }
         }
 
-        public void Flush()
+        public void Flush(Guid token)
         {
             lock (_lock)
             {
-                _sessions.Dispose();
-                _sessions = new MemoryCache(new MemoryCacheOptions());
+                _sessions.Remove(token);
             }
         }
     }

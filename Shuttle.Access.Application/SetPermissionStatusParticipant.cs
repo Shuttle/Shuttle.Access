@@ -57,13 +57,12 @@ namespace Shuttle.Access.Application
                 }
             }
 
-            _eventStore.Save(stream);
-
             context.Message.WithResponse(new PermissionStatusSet
             {
                 Id = message.Request.Id,
                 Name = permission.Name,
-                Status = message.Request.Status
+                Status = message.Request.Status,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

@@ -48,12 +48,11 @@ namespace Shuttle.Access.Application
 
             stream.AddEvent(role.SetName(request.Name));
 
-            _eventStore.Save(stream);
-
             context.Message.WithResponse(new RoleNameSet
             {
                 Id = request.Id,
-                Name = request.Name
+                Name = request.Name,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

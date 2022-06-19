@@ -48,12 +48,11 @@ namespace Shuttle.Access.Application
 
             stream.AddEvent(identity.SetName(request.Name));
 
-            _eventStore.Save(stream);
-
             context.Message.WithResponse(new IdentityNameSet
             {
                 Id = request.Id,
-                Name = request.Name
+                Name = request.Name,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

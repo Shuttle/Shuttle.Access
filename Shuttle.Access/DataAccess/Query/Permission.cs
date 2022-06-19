@@ -12,16 +12,22 @@ namespace Shuttle.Access.DataAccess.Query
 
         public class Specification
         {
+            private readonly List<string> _names = new List<string>();
+            private readonly List<Guid> _ids = new List<Guid>();
+            private readonly List<Guid> _roleIds = new List<Guid>();
+            private readonly List<int> _statuses = new List<int>();
+            
             public string NameMatch { get; private set; }
-            public List<string> Names { get; } = new List<string>();
-            public List<Guid> Ids { get; } = new List<Guid>();
-            public List<int> Statuses { get; } = new List<int>();
+            public IEnumerable<string> Names => _names.AsReadOnly();
+            public IEnumerable<Guid> Ids => _ids.AsReadOnly();
+            public IEnumerable<Guid> RoleIds => _roleIds.AsReadOnly();
+            public IEnumerable<int> Statuses => _statuses.AsReadOnly();
 
             public Specification AddName(string name)
             {
-                if (!Names.Contains(name))
+                if (!_names.Contains(name))
                 {
-                    Names.Add(name);
+                    _names.Add(name);
                 }
 
                 return this;
@@ -36,9 +42,9 @@ namespace Shuttle.Access.DataAccess.Query
 
             public Specification AddId(Guid id)
             {
-                if (!Ids.Contains(id))
+                if (!_ids.Contains(id))
                 {
-                    Ids.Add(id);
+                    _ids.Add(id);
                 }
 
                 return this;
@@ -61,9 +67,19 @@ namespace Shuttle.Access.DataAccess.Query
 
             public Specification AddStatus(int status)
             {
-                if (!Statuses.Contains(status))
+                if (!_statuses.Contains(status))
                 {
-                    Statuses.Add(status);
+                    _statuses.Add(status);
+                }
+
+                return this;
+            }
+
+            public Specification AddRoleId(Guid roleId)
+            {
+                if (!_roleIds.Contains(roleId))
+                {
+                    _roleIds.Add(roleId);
                 }
 
                 return this;

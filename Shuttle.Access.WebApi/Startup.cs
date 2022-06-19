@@ -19,6 +19,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Ninject;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc.DataStore;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Container;
@@ -30,7 +31,9 @@ using Shuttle.Core.Ninject;
 using Shuttle.Core.Reflection;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureMQ;
+using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
+using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.WebApi
@@ -61,7 +64,6 @@ namespace Shuttle.Access.WebApi
             services.AddSingleton<IKernel>(new StandardKernel());
             services.AddSingleton<IControllerActivator, ControllerActivator>();
 
-            services.AddSingleton(AccessConnectionSection.GetConfiguration());
             services.AddSingleton(AccessSessionSection.GetConfiguration());
             services.AddSingleton<IConnectionConfigurationProvider, ConnectionConfigurationProvider>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -77,6 +79,8 @@ namespace Shuttle.Access.WebApi
             services.AddSingleton<ISessionRepository, SessionRepository>();
             services.AddSingleton<IDataRowMapper<Session>, SessionMapper>();
             services.AddSingleton(typeof(IDataRepository<>), typeof(DataRepository<>));
+
+            services.AddSingleton(AccessConnectionSection.GetConfiguration());
             services.AddSingleton<IAccessService, DataStoreAccessService>();
 
             services.AddSwaggerGen(options =>
@@ -136,6 +140,7 @@ namespace Shuttle.Access.WebApi
 
             componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessConnectionConfiguration>());
             componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessSessionConfiguration>());
+            componentContainer.Register<IAccessService, DataStoreAccessService>();
 
             var applicationPartManager = app.ApplicationServices.GetRequiredService<ApplicationPartManager>();
             var controllerFeature = new ControllerFeature();
@@ -148,9 +153,11 @@ namespace Shuttle.Access.WebApi
             }
 
             componentContainer.RegisterDataAccess();
+            componentContainer.RegisterSubscription();
             componentContainer.RegisterServiceBus();
             componentContainer.RegisterEventStore();
             componentContainer.RegisterEventStoreStorage();
+            componentContainer.RegisterEventProcessing();
             componentContainer.RegisterMediator();
             componentContainer.RegisterMediatorParticipants(Assembly.Load("Shuttle.Access.Application"));
 
@@ -162,6 +169,12 @@ namespace Shuttle.Access.WebApi
             {
                 throw new ApplicationException("[connection failure]");
             }
+
+            var subscriptionManager = componentContainer.Resolve<ISubscriptionManager>();
+
+            subscriptionManager.Subscribe<IdentityRoleSet>();
+            subscriptionManager.Subscribe<RolePermissionSet>();
+            subscriptionManager.Subscribe<PermissionStatusSet>();
 
             _bus = componentContainer.Resolve<IServiceBus>().Start();
 

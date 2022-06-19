@@ -9,12 +9,12 @@ namespace Shuttle.Access.Sql
     public class IdentityQueryFactory : IIdentityQueryFactory
     {
         private const string SelectedColumns = @"
-    i.Id,
-    i.Name,
-    i.DateRegistered,
-    i.RegisteredBy,
-    i.DateActivated,
-    i.GeneratedPassword
+    i.[Id],
+    i.[Name],
+    i.[DateRegistered],
+    i.[RegisteredBy],
+    i.[DateActivated],
+    i.[GeneratedPassword]
 ";
 
         public IQuery Register(Guid id, Registered domainEvent)
@@ -61,7 +61,11 @@ from
 left join
 	IdentityRole ir on (ir.IdentityId = i.Id)
 left join
-	Role r on (r.Id = ir.RoleId)    
+	Role r on (r.Id = ir.RoleId)   
+left join
+	RolePermission rp on (rp.RoleId = r.Id)    
+left join
+    Permission p on (p.Id = rp.PermissionId)
 where
 (
     isnull(@Name, '') = ''
@@ -76,6 +80,18 @@ and
 )
 and
 (
+    @RoleId is null
+    or
+    r.Id = @RoleId
+)
+and
+(
+    @PermissionId is null
+    or
+    p.Id = @PermissionId
+)
+and
+(
     @IdentityId is null
     or
     i.Id = @IdentityId
@@ -83,7 +99,9 @@ and
 ")
                 .AddParameterValue(Columns.RoleName, specification.RoleName)
                 .AddParameterValue(Columns.Name, specification.Name)
-                .AddParameterValue(Columns.IdentityId, specification.Id);
+                .AddParameterValue(Columns.IdentityId, specification.Id)
+                .AddParameterValue(Columns.RoleId, specification.RoleId)
+                .AddParameterValue(Columns.PermissionId, specification.PermissionId);
         }
 
         public IQuery RoleAdded(Guid id, RoleAdded domainEvent)
@@ -207,6 +225,8 @@ where
         public IQuery Permissions(Guid id)
         {
             return RawQuery.Create(@"
+SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+
 select
 	p.[Name]
 from
@@ -217,6 +237,8 @@ inner join
 	IdentityRole ir on ir.RoleId = rp.RoleId
 where
 	ir.IdentityId = @IdentityId
+and
+    p.Status <> 3
 ")
                 .AddParameterValue(Columns.IdentityId, id);
         }

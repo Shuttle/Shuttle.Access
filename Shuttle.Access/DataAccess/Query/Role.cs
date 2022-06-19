@@ -16,18 +16,22 @@ namespace Shuttle.Access.DataAccess.Query
 
         public class Specification
         {
+            private readonly List<string> _names = new List<string>();
+            private readonly List<Guid> _rolesIds = new List<Guid>();
+            private readonly List<Guid> _permissionIds = new List<Guid>();
+
             public string NameMatch { get; private set; }
-            public List<string> Names { get; } = new List<string>();
-            public List<Guid> RoleIds { get; } = new List<Guid>();
-            public List<Guid> PermissionIds { get; } = new List<Guid>();
+            public IEnumerable<string> Names => _names.AsReadOnly();
+            public IEnumerable<Guid> RoleIds => _rolesIds.AsReadOnly();
+            public IEnumerable<Guid> PermissionIds => _permissionIds.AsReadOnly();
             public bool PermissionsIncluded { get; private set; }
             public DateTime? StartDateRegistered { get; private set; }
 
             public Specification AddRoleId(Guid id)
             {
-                if (!RoleIds.Contains(id))
+                if (!_rolesIds.Contains(id))
                 {
-                    RoleIds.Add(id);
+                    _rolesIds.Add(id);
                 }
 
                 return this;
@@ -35,9 +39,9 @@ namespace Shuttle.Access.DataAccess.Query
 
             public Specification AddPermissionId(Guid id)
             {
-                if (!PermissionIds.Contains(id))
+                if (!_permissionIds.Contains(id))
                 {
-                    PermissionIds.Add(id);
+                    _permissionIds.Add(id);
                 }
 
                 return this;
@@ -45,9 +49,9 @@ namespace Shuttle.Access.DataAccess.Query
 
             public Specification AddName(string name)
             {
-                if (!Names.Contains(name))
+                if (!_names.Contains(name))
                 {
-                    Names.Add(name);
+                    _names.Add(name);
                 }
 
                 return this;

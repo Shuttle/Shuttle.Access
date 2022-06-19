@@ -49,12 +49,11 @@ namespace Shuttle.Access.Application
 
             stream.AddEvent(aggregate.Register(message.Name, (PermissionStatus)status));
 
-            _eventStore.Save(stream);
-
             context.Message.WithResponse(new PermissionRegistered
             {
                 Id = id,
-                Name = message.Name
+                Name = message.Name,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

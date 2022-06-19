@@ -69,13 +69,13 @@ namespace Shuttle.Access.Projection
 
             using (databaseContextFactory.Create("Access"))
             {
-                _eventProcessor.AddProjection("Identity");
-                _eventProcessor.AddProjection("Permission");
-                _eventProcessor.AddProjection("Role");
+                _eventProcessor.AddProjection(ProjectionNames.Identity);
+                _eventProcessor.AddProjection(ProjectionNames.Permission);
+                _eventProcessor.AddProjection(ProjectionNames.Role);
 
-                container.AddEventHandler<IdentityHandler>("Identity");
-                container.AddEventHandler<PermissionHandler>("Permission");
-                container.AddEventHandler<RoleHandler>("Role");
+                container.AddEventHandler<IdentityHandler>(ProjectionNames.Identity);
+                container.AddEventHandler<PermissionHandler>(ProjectionNames.Permission);
+                container.AddEventHandler<RoleHandler>(ProjectionNames.Role);
             }
 
             _eventProcessor.Start();

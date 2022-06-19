@@ -10,5 +10,6 @@ namespace Shuttle.Access.Messages.v1
         public string GeneratedPassword { get; set; }
         public bool Activated { get; set; }
         public string System { get; set; }
+        public long SequenceNumber { get; set; }
     }
 }

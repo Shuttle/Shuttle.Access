@@ -43,12 +43,11 @@ namespace Shuttle.Access.Application
 
             stream.AddEvent(role.Register(message.Name));
 
-            _eventStore.Save(stream);
-
             context.Message.WithResponse(new RoleRegistered
             {
                 Id = id,
-                Name = message.Name
+                Name = message.Name,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

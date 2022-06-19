@@ -94,15 +94,14 @@ namespace Shuttle.Access.Application
                 stream.AddEvent(identity.Activate(registered.DateRegistered));
             }
 
-            _eventStore.Save(stream);
-
             context.Message.WithResponse(new IdentityRegistered
             {
                 Id = id.Value,
                 Name = message.Name,
                 RegisteredBy = message.RegisteredBy,
                 GeneratedPassword = message.GeneratedPassword,
-                System = message.System
+                System = message.System,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

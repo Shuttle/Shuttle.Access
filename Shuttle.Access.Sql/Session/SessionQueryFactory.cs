@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -7,6 +8,14 @@ namespace Shuttle.Access.Sql
 {
 	public class SessionQueryFactory : ISessionQueryFactory
 	{
+		private const string SelectedColumns = @"
+	Token, 
+	IdentityId, 
+	IdentityName, 
+	DateRegistered, 
+	ExpiryDate 
+";
+
 		public IQuery Get(Guid token)
 		{
 			return RawQuery.Create(@"
@@ -185,5 +194,30 @@ where
                 .AddParameterValue(Columns.ExpiryDate, session.ExpiryDate)
                 .AddParameterValue(Columns.IdentityName, session.IdentityName);
         }
-    }
+
+        public IQuery Search(DataAccess.Query.Session.Specification specification)
+        {
+			return Specification(specification, true);
+		}
+
+        private IQuery Specification(DataAccess.Query.Session.Specification specification, bool columns)
+        {
+			Guard.AgainstNull(specification, nameof(specification));
+
+			return RawQuery.Create($@"
+select distinct
+{(columns ? SelectedColumns : "count (*)")}
+from
+	[dbo].[Session] 
+where
+(
+	1 = 1
+)
+{(!specification.Permissions.Any() ? string.Empty : $@"
+and
+    Token in (select distinct Token from [dbo].[SessionPermission] where PermissionName in ({string.Join(",", specification.Permissions.Select(item => $"'{item}'"))}))
+")}
+");
+        }
+	}
 }

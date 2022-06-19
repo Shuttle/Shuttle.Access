@@ -25,17 +25,21 @@ namespace Shuttle.Access.Sql
 
             var what = columns
                 ? @"
-    Id,
-    [Name],
-    [Status]
+    p.[Id],
+    p.[Name],
+    p.[Status]
 "
                 : "count(*)";
 
             return RawQuery.Create($@"
-select
+select distinct
 {what}
 from
-    Permission
+    Permission p
+{(!specification.RoleIds.Any() ? string.Empty : @"
+inner join
+    RolePermission rp on (rp.PermissionId = p.Id)
+")}
 {Where(specification)}
 ")
                 .AddParameterValue(Columns.NameMatch, specification.NameMatch);
@@ -48,16 +52,21 @@ where
 (
     isnull(@NameMatch, '') = ''
     or
-    [Name] like '%' + @NameMatch + '%'
+    p.[Name] like '%' + @NameMatch + '%'
 )
 {(!specification.Names.Any() ? string.Empty : $@"
 and
-    [Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+    p.[Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
 ")}
 {(!specification.Ids.Any() ? string.Empty : $@"
 and
-    Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
-")}";
+    p.Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+")}
+{(!specification.RoleIds.Any() ? string.Empty : $@"
+and
+    rp.RoleId in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
+")}
+";
         }
 
         public IQuery Registered(Guid id, Registered domainEvent)
@@ -137,7 +146,7 @@ if exists
 select
     null
 from
-    Permission
+    Permission p
 {Where(specification)}
 )
     select 1

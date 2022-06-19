@@ -1,7 +1,7 @@
 ﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.WebApi.v1.Specifications;
+namespace Shuttle.Access.WebApi.Controllers.v1;
 
 public static class PermissionSpecificationExtensions
 {

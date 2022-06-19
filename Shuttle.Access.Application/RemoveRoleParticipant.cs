@@ -46,7 +46,8 @@ namespace Shuttle.Access.Application
             context.Message.WithResponse(new RoleRemoved
             {
                 Id = message.Request.Id,                            
-                Name = role.Name
+                Name = role.Name,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

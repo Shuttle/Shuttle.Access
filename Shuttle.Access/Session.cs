@@ -53,5 +53,10 @@ namespace Shuttle.Access
             Token = Guid.NewGuid();
             ExpiryDate = expiryDate;
         }
+
+        public void ClearPermissions()
+        {
+            _permissions.Clear();
+        }
     }
 }

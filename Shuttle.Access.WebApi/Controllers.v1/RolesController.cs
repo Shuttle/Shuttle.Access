@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.DataAccess;
@@ -10,7 +9,7 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
 
-namespace Shuttle.Access.WebApi.v1
+namespace Shuttle.Access.WebApi.Controllers.v1
 {
     [Route("[controller]", Order = 1)]
     [Route("v{version:apiVersion}/[controller]", Order = 2)]

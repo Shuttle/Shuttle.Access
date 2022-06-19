@@ -5,7 +5,8 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application
 {
-    public class SetRolePermissionParticipant : IParticipant<RequestResponseMessage<SetRolePermission, RolePermissionSet>>
+    public class
+        SetRolePermissionParticipant : IParticipant<RequestResponseMessage<SetRolePermission, RolePermissionSet>>
     {
         private readonly IEventStore _eventStore;
 
@@ -16,7 +17,8 @@ namespace Shuttle.Access.Application
             _eventStore = eventStore;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponseMessage<SetRolePermission, RolePermissionSet>> context)
+        public void ProcessMessage(
+            IParticipantContext<RequestResponseMessage<SetRolePermission, RolePermissionSet>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -38,13 +40,12 @@ namespace Shuttle.Access.Application
                 stream.AddEvent(role.RemovePermission(request.PermissionId));
             }
 
-            _eventStore.Save(stream);
-
             message.WithResponse(new RolePermissionSet
             {
                 RoleId = request.RoleId,
                 PermissionId = request.PermissionId,
-                Active = request.Active
+                Active = request.Active,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

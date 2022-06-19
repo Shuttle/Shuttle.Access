@@ -8,5 +8,6 @@ namespace Shuttle.Access
         RegisterSessionResult Register(string identityName, string password, Guid token);
         bool Remove(Guid token);
         bool Remove(string identityName);
+        void Refresh(Guid token);
     }
 }

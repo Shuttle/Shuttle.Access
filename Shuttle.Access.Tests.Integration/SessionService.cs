@@ -16,12 +16,17 @@ namespace Shuttle.Access.Tests.Integration
 
         public bool Remove(Guid token)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public bool Remove(string identityName)
         {
-            throw new NotImplementedException();
+            return true;
+        }
+
+        public void Refresh(Guid token)
+        {
+            
         }
     }
 }

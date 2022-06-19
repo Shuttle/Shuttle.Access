@@ -57,12 +57,11 @@ namespace Shuttle.Access.Application
             stream.Apply(identity);
             stream.AddEvent(identity.Activate(now));
 
-            _eventStore.Save(stream);
-
             context.Message.WithResponse(new IdentityActivated
             {
                 Id = id,
-                DateActivated = now
+                DateActivated = now,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }

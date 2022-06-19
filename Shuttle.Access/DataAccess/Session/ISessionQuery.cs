@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Shuttle.Access.DataAccess
 {
@@ -7,5 +8,6 @@ namespace Shuttle.Access.DataAccess
         bool Contains(Guid token);
         bool Contains(Guid token, string permission);
         Query.Session Get(Guid token);
+        IEnumerable<Query.Session> Search(Query.Session.Specification specification);
     }
 }

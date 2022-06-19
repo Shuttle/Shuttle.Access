@@ -8,10 +8,10 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
         <PackageReference Include="Moq" Version="4.18.1" />
         <PackageReference Include="NUnit" Version="3.13.3" />
-        <PackageReference Include="Shuttle.Access" Version="5.0.0" />
-        <PackageReference Include="Shuttle.Access.Application" Version="5.0.0" />
-        <PackageReference Include="Shuttle.Access.Messages" Version="5.0.0" />
-        <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="5.0.0" />
+        <PackageReference Include="Shuttle.Access" Version="6.0.0" />
+        <PackageReference Include="Shuttle.Access.Application" Version="6.0.0" />
+        <PackageReference Include="Shuttle.Access.Messages" Version="6.0.0" />
+        <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="6.0.0" />
         <PackageReference Include="Shuttle.Access.Mvc.Rest" Version="6.0.0" />
         <PackageReference Include="Shuttle.Access.RestClient" Version="6.0.0" />
         <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />

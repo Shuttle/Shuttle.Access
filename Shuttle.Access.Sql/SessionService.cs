@@ -206,5 +206,19 @@ namespace Shuttle.Access.Sql
 
             return _sessionRepository.Remove(identityName) > 0;
         }
+
+        public void Refresh(Guid token)
+        {
+            var session = _sessionRepository.Get(token);
+
+            session.ClearPermissions();
+
+            foreach (var permission in _authorizationService.Permissions(session.IdentityName))
+            {
+                session.AddPermission(permission);
+            }
+
+            _sessionRepository.Save(session);
+        }
     }
 }

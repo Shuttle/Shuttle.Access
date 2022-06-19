@@ -7,5 +7,6 @@ namespace Shuttle.Access.Messages.v1
         public Guid Id { get; set; }
         public string Name { get; set; }
         public DateTime DateActivated { get; set; }
+        public long SequenceNumber { get; set; }
     }
 }

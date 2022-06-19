@@ -38,13 +38,12 @@ namespace Shuttle.Access.Application
                 stream.AddEvent(identity.RemoveRole(request.RoleId));
             }
 
-            _eventStore.Save(stream);
-
             message.WithResponse(new IdentityRoleSet
             {
                 RoleId = request.RoleId,
                 IdentityId = request.IdentityId,
-                Active = request.Active
+                Active = request.Active,
+                SequenceNumber = _eventStore.Save(stream)
             });
         }
     }
