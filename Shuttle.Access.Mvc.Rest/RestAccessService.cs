@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.Options;
 using Shuttle.Access.RestClient;
 using Shuttle.Core.Contract;
 
@@ -6,15 +7,16 @@ namespace Shuttle.Access.Mvc.Rest
 {
     public class RestAccessService : CachedAccessService, IAccessService
     {
-        private readonly IAccessSessionConfiguration _sessionConfiguration;
         private readonly IAccessClient _accessClient;
+        private readonly AccessOptions _accessOptions;
 
-        public RestAccessService(IAccessSessionConfiguration sessionConfiguration, IAccessClient accessClient)
+        public RestAccessService(IOptions<AccessOptions> accessOptions, IAccessClient accessClient)
         {
-            Guard.AgainstNull(sessionConfiguration, nameof(sessionConfiguration));
+            Guard.AgainstNull(accessOptions, nameof(accessOptions));
+            Guard.AgainstNull(accessOptions.Value, nameof(accessOptions.Value));
             Guard.AgainstNull(accessClient, nameof(accessClient));
 
-            _sessionConfiguration = sessionConfiguration;
+            _accessOptions = accessOptions.Value;
             _accessClient = accessClient;
         }
 
@@ -59,7 +61,7 @@ namespace Shuttle.Access.Mvc.Rest
             if (session.IsSuccessStatusCode &&
                 session.Content != null)
             {
-                Cache(token, session.Content.Permissions, _sessionConfiguration.SessionDuration);
+                Cache(token, session.Content.Permissions, _accessOptions.SessionDuration);
             }
         }
     }

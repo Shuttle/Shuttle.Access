@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -89,7 +90,7 @@ namespace Shuttle.Access.Application
 
                     while (_roleQuery.Count(roleSpecification) == 0 && DateTime.Now < timeout)
                     {
-                        ThreadSleep.While(500, context.CancellationToken);
+                        Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
                     }
 
                     if (_roleQuery.Count(roleSpecification) == 0)

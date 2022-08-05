@@ -22,33 +22,33 @@ namespace Shuttle.Access.Sql
 
         public void Register(PrimitiveEvent primitiveEvent, Registered domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Register(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.Register(primitiveEvent.Id, domainEvent));
         }
 
         public void RoleAdded(PrimitiveEvent primitiveEvent, RoleAdded domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.RoleAdded(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.RoleAdded(primitiveEvent.Id, domainEvent));
         }
 
         public void RoleRemoved(PrimitiveEvent primitiveEvent, RoleRemoved domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.RoleRemoved(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.RoleRemoved(primitiveEvent.Id, domainEvent));
         }
 
         public void Removed(PrimitiveEvent primitiveEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.RemoveRoles(primitiveEvent.Id));
-            _databaseGateway.ExecuteUsing(_queryFactory.Remove(primitiveEvent.Id));
+            _databaseGateway.Execute(_queryFactory.RemoveRoles(primitiveEvent.Id));
+            _databaseGateway.Execute(_queryFactory.Remove(primitiveEvent.Id));
         }
 
         public void Activated(PrimitiveEvent primitiveEvent, Activated domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Activated(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.Activated(primitiveEvent.Id, domainEvent));
         }
 
         public void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.NameSet(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.NameSet(primitiveEvent.Id, domainEvent));
         }
     }
 }

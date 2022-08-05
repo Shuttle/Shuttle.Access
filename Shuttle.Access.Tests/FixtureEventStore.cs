@@ -9,6 +9,7 @@ namespace Shuttle.Access.Tests
     public class FixtureEventStore : IEventStore
     {
         private readonly Dictionary<Guid, EventStream> _eventStreams = new();
+        private long _sequenceNumber = 1;
 
         public EventStream CreateEventStream(Guid id)
         {
@@ -34,16 +35,18 @@ namespace Shuttle.Access.Tests
             return _eventStreams.ContainsKey(id) ? _eventStreams[id] : CreateEventStream(id);
         }
 
-        public void Save(EventStream eventStream)
+        public long Save(EventStream eventStream)
         {
-            Save(eventStream, null);
+            return Save(eventStream, null);
         }
 
-        public void Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configurator)
+        public long Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configurator)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream));
 
             eventStream.Commit();
+
+            return _sequenceNumber++;
         }
 
         public void Remove(Guid id)

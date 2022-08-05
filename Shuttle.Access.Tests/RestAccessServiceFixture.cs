@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Refit;
@@ -27,7 +27,7 @@ namespace Shuttle.Access.Tests
             sessionsApi.Setup(m => m.Get(It.IsAny<Guid>()).Result).Returns(new ApiResponse<DataAccess.Query.Session>(new HttpResponseMessage(HttpStatusCode.BadRequest), null, new RefitSettings()));
             accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-            var service = new RestAccessService(new Mock<IAccessSessionConfiguration>().Object, accessClient.Object);
+            var service = new RestAccessService(Options.Create(new AccessOptions()), accessClient.Object);
 
             Assert.That(service.Contains(Guid.NewGuid()), Is.False);
         }
@@ -35,16 +35,17 @@ namespace Shuttle.Access.Tests
         [Test]
         public void Should_be_able_check_for_and_cache_existing_session()
         {
-            var configuration = new Mock<IAccessSessionConfiguration>();
             var accessClient = new Mock<IAccessClient>();
             var sessionsApi = new Mock<ISessionsApi>();
 
             sessionsApi.Setup(m => m.Get(It.IsAny<Guid>()).Result).Returns(new ApiResponse<DataAccess.Query.Session>(new HttpResponseMessage(HttpStatusCode.OK), new DataAccess.Query.Session { Permissions = new List<string>() }, new RefitSettings()));
 
             accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
-            configuration.Setup(m => m.SessionDuration).Returns(TimeSpan.FromHours(1));
 
-            var service = new RestAccessService(configuration.Object, accessClient.Object);
+            var service = new RestAccessService(Options.Create(new AccessOptions
+            {
+                SessionDuration = TimeSpan.FromHours(1)
+            }), accessClient.Object);
 
             Assert.That(service.Contains(_session.Token), Is.True);
 

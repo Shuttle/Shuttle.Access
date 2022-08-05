@@ -29,12 +29,12 @@ namespace Shuttle.Access.Sql
 
         public int Count(DataAccess.Query.Permission.Specification specification)
         {
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count(specification));
+            return _databaseGateway.GetScalar<int>(_queryFactory.Count(specification));
         }
 
         public bool Contains(DataAccess.Query.Permission.Specification specification)
         {
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Contains(specification)) == 1;
+            return _databaseGateway.GetScalar<int>(_queryFactory.Contains(specification)) == 1;
         }
     }
 }

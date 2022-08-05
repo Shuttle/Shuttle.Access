@@ -129,7 +129,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var id = Guid.NewGuid();
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<RemoveIdentity>(message => message.Id.Equals(id)))).Verifiable();
+            serviceBus.Setup(m => m.Send(It.Is<RemoveIdentity>(message => message.Id.Equals(id)), null)).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -157,7 +157,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var roleId = Guid.NewGuid();
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<SetIdentityRole>(message => message.RoleId.Equals(roleId))))
+            serviceBus.Setup(m => m.Send(It.Is<SetIdentityRole>(message => message.RoleId.Equals(roleId)), null))
                 .Verifiable();
 
             var mediator = new Mock<IMediator>();
@@ -225,7 +225,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.IsSuccessStatusCode, Is.False);
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>(), null), Times.Never);
             }
         }
 
@@ -263,7 +263,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
                 mediator.Verify(m => m.Send(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>(), null), Times.Never);
             }
         }
 
@@ -305,7 +305,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
                 mediator.Verify(m => m.Send(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>(), null), Times.Never);
             }
         }
 
@@ -315,7 +315,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var token = Guid.NewGuid();
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<ChangePassword>(message => message.Token.Equals(token)))).Verifiable();
+            serviceBus.Setup(m => m.Send(It.Is<ChangePassword>(message => message.Token.Equals(token)), null)).Verifiable();
 
             var mediator = new Mock<IMediator>();
 
@@ -347,7 +347,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
                 mediator.Verify(m => m.Send(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>(), null), Times.Never);
             }
         }
 
@@ -386,7 +386,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
 
                 mediator.Verify(m => m.Send(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>(), null), Times.Never);
             }
         }
 
@@ -427,7 +427,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
                 mediator.Verify(m => m.Send(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>(), null), Times.Never);
             }
         }
 
@@ -437,7 +437,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var token = Guid.NewGuid();
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<ResetPassword>(message => message.PasswordResetToken.Equals(token))))
+            serviceBus.Setup(m => m.Send(It.Is<ResetPassword>(message => message.PasswordResetToken.Equals(token)), null))
                 .Verifiable();
 
             var mediator = new Mock<IMediator>();
@@ -470,7 +470,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
                 mediator.Verify(m => m.Send(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-                serviceBus.Verify(m => m.Send(It.IsAny<object>()), Times.Never);
+                serviceBus.Verify(m => m.Send(It.IsAny<object>(), null), Times.Never);
             }
         }
 
@@ -584,7 +584,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-                serviceBus.Verify(m => m.Send(It.IsAny<ActivateIdentity>()), Times.Once);
+                serviceBus.Verify(m => m.Send(It.IsAny<ActivateIdentity>(), null), Times.Once);
             }
         }
 
@@ -709,7 +709,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                     Times.Once);
                 mediator.Verify(m => m.Send(It.IsAny<GeneratePassword>(), CancellationToken.None), Times.Once);
                 mediator.Verify(m => m.Send(It.IsAny<GenerateHash>(), CancellationToken.None), Times.Once);
-                serviceBus.Verify(m => m.Send(It.IsAny<RegisterIdentity>()), Times.Once);
+                serviceBus.Verify(m => m.Send(It.IsAny<RegisterIdentity>(), null), Times.Once);
             }
         }
     }

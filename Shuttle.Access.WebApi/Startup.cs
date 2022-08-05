@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,18 +15,15 @@ using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Ninject;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc.DataStore;
 using Shuttle.Access.Sql;
-using Shuttle.Core.Container;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Http;
-using Shuttle.Core.Logging;
 using Shuttle.Core.Mediator;
-using Shuttle.Core.Ninject;
 using Shuttle.Core.Reflection;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureMQ;
@@ -40,15 +36,11 @@ namespace Shuttle.Access.WebApi
 {
     public class Startup
     {
-        private readonly ILog _log;
-        private IServiceBus _bus;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-
-            _log = Log.For(this);
         }
 
         public IConfiguration Configuration { get; }
@@ -56,32 +48,55 @@ namespace Shuttle.Access.WebApi
         private void OnShutdown()
         {
             _cancellationTokenSource?.Cancel();
-            _bus?.Dispose();
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IKernel>(new StandardKernel());
-            services.AddSingleton<IControllerActivator, ControllerActivator>();
-
-            services.AddSingleton(AccessSessionSection.GetConfiguration());
-            services.AddSingleton<IConnectionConfigurationProvider, ConnectionConfigurationProvider>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<IDatabaseContextCache, ContextDatabaseContextCache>();
-            services.AddSingleton<IDatabaseContextFactory, DatabaseContextFactory>();
-            services.AddSingleton<IDatabaseGateway, DatabaseGateway>();
-            services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
-            services.AddSingleton<IDbCommandFactory, DbCommandFactory>();
-            services.AddSingleton<IDataRowMapper, DataRowMapper>();
-            services.AddSingleton<IQueryMapper, QueryMapper>();
+
+            services.AddDataAccess(builder =>
+            {
+                builder.AddConnectionString("Access", "System.Data.SqlClient");
+            });
+
+            services.AddAccess();
+            services.AddSqlAccess();
+
             services.AddSingleton<ISessionQueryFactory, SessionQueryFactory>();
             services.AddSingleton<ISessionQuery, SessionQuery>();
             services.AddSingleton<ISessionRepository, SessionRepository>();
-            services.AddSingleton<IDataRowMapper<Session>, SessionMapper>();
-            services.AddSingleton(typeof(IDataRepository<>), typeof(DataRepository<>));
 
-            services.AddSingleton(AccessConnectionSection.GetConfiguration());
             services.AddSingleton<IAccessService, DataStoreAccessService>();
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IHashingService, HashingService>();
+            services.AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>();
+
+            services.AddSqlSubscription();
+
+            services.AddServiceBus(builder =>
+            {
+                Configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
+
+                builder.Options.SubscriptionOptions.ConnectionStringName = "Access";
+
+                builder.AddSubscription<IdentityRoleSet>();
+                builder.AddSubscription<RolePermissionSet>();
+                builder.AddSubscription<PermissionStatusSet>();
+            });
+            services.AddAzureStorageQueues();
+            services.AddEventStore();
+            services.AddSqlEventStorage();
+            services.AddSqlEventProcessing(builder =>
+            {
+                builder.Options.EventProjectionConnectionStringName = "Access";
+                builder.Options.EventStoreConnectionStringName = "Access";
+            });
+
+            services.AddMediator(builder =>
+            {
+                builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
+            });
 
             services.AddSwaggerGen(options =>
             {
@@ -125,58 +140,20 @@ namespace Shuttle.Access.WebApi
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
-            IHostApplicationLifetime applicationLifetime)
+            IHostApplicationLifetime applicationLifetime, ILogger<Startup> logger)
         {
-            var container = app.ApplicationServices.GetService<IKernel>();
-
-            var componentContainer = new NinjectComponentContainer(container);
-
-            componentContainer.RegisterSuffixed("Shuttle.Access.Sql");
-
-            componentContainer.Register<IHttpContextAccessor, HttpContextAccessor>();
-            componentContainer.Register<IDatabaseContextCache, ContextDatabaseContextCache>();
-            componentContainer.Register<IHashingService, HashingService>();
-            componentContainer.Register<IPasswordGenerator, DefaultPasswordGenerator>();
-
-            componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessConnectionConfiguration>());
-            componentContainer.RegisterInstance(app.ApplicationServices.GetService<IAccessSessionConfiguration>());
-            componentContainer.Register<IAccessService, DataStoreAccessService>();
-
             var applicationPartManager = app.ApplicationServices.GetRequiredService<ApplicationPartManager>();
             var controllerFeature = new ControllerFeature();
 
             applicationPartManager.PopulateFeature(controllerFeature);
 
-            foreach (var type in controllerFeature.Controllers.Select(t => t.AsType()))
-            {
-                componentContainer.Register(type, type);
-            }
-
-            componentContainer.RegisterDataAccess();
-            componentContainer.RegisterSubscription();
-            componentContainer.RegisterServiceBus();
-            componentContainer.RegisterEventStore();
-            componentContainer.RegisterEventStoreStorage();
-            componentContainer.RegisterEventProcessing();
-            componentContainer.RegisterMediator();
-            componentContainer.RegisterMediatorParticipants(Assembly.Load("Shuttle.Access.Application"));
-
-            componentContainer.Register<IAzureStorageConfiguration, DefaultAzureStorageConfiguration>();
-
-            var databaseContextFactory = componentContainer.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
+            var databaseContextFactory = app.ApplicationServices.GetRequiredService<IDatabaseContextFactory>()
+                .ConfigureWith("Access");
 
             if (!databaseContextFactory.IsAvailable("Access", _cancellationTokenSource.Token))
             {
                 throw new ApplicationException("[connection failure]");
             }
-
-            var subscriptionManager = componentContainer.Resolve<ISubscriptionManager>();
-
-            subscriptionManager.Subscribe<IdentityRoleSet>();
-            subscriptionManager.Subscribe<RolePermissionSet>();
-            subscriptionManager.Subscribe<PermissionStatusSet>();
-
-            _bus = componentContainer.Resolve<IServiceBus>().Start();
 
             applicationLifetime.ApplicationStopping.Register(OnShutdown);
 
@@ -193,7 +170,7 @@ namespace Shuttle.Access.WebApi
 
                     if (feature != null)
                     {
-                        _log.Error(feature.Error.AllMessages());
+                        logger.LogError(feature.Error.AllMessages());
                     }
 
                     return Task.CompletedTask;

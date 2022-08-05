@@ -1,18 +1,15 @@
 ﻿using System;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Reflection;
 using System.Text;
 using System.Threading;
-using log4net;
-using Ninject;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Shuttle.Access.Projection.v1;
-using Shuttle.Core.Container;
 using Shuttle.Core.Data;
-using Shuttle.Core.Log4Net;
-using Shuttle.Core.Logging;
-using Shuttle.Core.Ninject;
-using Shuttle.Core.Reflection;
-using Shuttle.Core.ServiceHost;
+using Shuttle.Core.DependencyInjection;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
@@ -27,72 +24,53 @@ namespace Shuttle.Access.Projection
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            ServiceHost.Run<Host>();
-        }
-    }
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureServices(services =>
+                {
+                    var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-    public class Host : IServiceHost
-    {
-        private readonly CancellationTokenSource _cancellationTokenSource = new();
-        private IEventProcessor _eventProcessor;
-        private IEventStore _eventStore;
-        private IKernel _kernel;
+                    services.AddSingleton<IConfiguration>(configuration);
 
-        public void Start()
-        {
-            Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
+                    services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
 
-            Log.Information("[starting]");
+                    services.AddDataAccess(builder =>
+                    {
+                        builder.AddConnectionString("Access", "System.Data.SqlClient");
+                    });
 
-            _kernel = new StandardKernel();
+                    services.AddEventStore(builder =>
+                    {
+                        builder.AddEventHandler<IdentityHandler>(ProjectionNames.Identity);
+                        builder.AddEventHandler<PermissionHandler>(ProjectionNames.Permission);
+                        builder.AddEventHandler<RoleHandler>(ProjectionNames.Role);
+                    });
 
-            var container = new NinjectComponentContainer(_kernel);
+                    services.AddSqlEventStorage();
+                    services.AddSqlEventProcessing();
 
-            container.RegisterDataAccess();
-            container.RegisterSuffixed("Shuttle.Access.Sql");
-            container.RegisterEventStore();
-            container.RegisterEventStoreStorage();
-            container.RegisterEventProcessing();
+                    services.AddSingleton<IHashingService, HashingService>();
+                })
+                .Build();
 
-            _ = container.Resolve<EventProcessingModule>();
+            var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>().ConfigureWith("Access");
 
-            _eventStore = container.Resolve<IEventStore>();
-            _eventProcessor = container.Resolve<IEventProcessor>();
+            var cancellationTokenSource = new CancellationTokenSource();
 
-            var databaseContextFactory = container.Resolve<IDatabaseContextFactory>();
+            Console.CancelKeyPress += delegate {
+                cancellationTokenSource.Cancel();
+            };
 
-            if (!databaseContextFactory.IsAvailable("Access", _cancellationTokenSource.Token))
+            if (!databaseContextFactory.IsAvailable("Access", cancellationTokenSource.Token))
             {
                 throw new ApplicationException("[connection failure]");
             }
 
-            using (databaseContextFactory.Create("Access"))
+            if (cancellationTokenSource.Token.IsCancellationRequested)
             {
-                _eventProcessor.AddProjection(ProjectionNames.Identity);
-                _eventProcessor.AddProjection(ProjectionNames.Permission);
-                _eventProcessor.AddProjection(ProjectionNames.Role);
-
-                container.AddEventHandler<IdentityHandler>(ProjectionNames.Identity);
-                container.AddEventHandler<PermissionHandler>(ProjectionNames.Permission);
-                container.AddEventHandler<RoleHandler>(ProjectionNames.Role);
+                return;
             }
 
-            _eventProcessor.Start();
-
-            Log.Information("[started]");
-        }
-
-        public void Stop()
-        {
-            Log.Information("[stopping]");
-
-            _cancellationTokenSource?.Cancel();
-
-            _kernel?.Dispose();
-            _eventProcessor?.Dispose();
-            _eventStore?.AttemptDispose();
-
-            Log.Information("[stopped]");
+            host.Run();
         }
     }
 }

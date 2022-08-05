@@ -27,12 +27,12 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNull(session, nameof(session));
 
-            _databaseGateway.ExecuteUsing(_queryFactory.Remove(session.IdentityName));
-            _databaseGateway.ExecuteUsing(_queryFactory.Add(session));
+            _databaseGateway.Execute(_queryFactory.Remove(session.IdentityName));
+            _databaseGateway.Execute(_queryFactory.Add(session));
 
             foreach (var permission in session.Permissions)
             {
-                _databaseGateway.ExecuteUsing(_queryFactory.AddPermission(session.Token, permission));
+                _databaseGateway.Execute(_queryFactory.AddPermission(session.Token, permission));
             }
         }
 
@@ -40,7 +40,7 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNull(session, nameof(session));
 
-            _databaseGateway.ExecuteUsing(_queryFactory.Renew(session));
+            _databaseGateway.Execute(_queryFactory.Renew(session));
         }
 
         public Session Get(Guid token)
@@ -57,14 +57,14 @@ namespace Shuttle.Access.Sql
 
         public Session Find(Guid token)
         {
-            var session = _dataRepository.FetchItemUsing(_queryFactory.Get(token));
+            var session = _dataRepository.FetchItem(_queryFactory.Get(token));
 
             if (session == null)
             {
                 return null;
             }
 
-            foreach (var row in _databaseGateway.GetRowsUsing(_queryFactory.GetPermissions(token)))
+            foreach (var row in _databaseGateway.GetRows(_queryFactory.GetPermissions(token)))
             {
                 session.AddPermission(Columns.PermissionName.MapFrom(row));
             }
@@ -74,14 +74,14 @@ namespace Shuttle.Access.Sql
 
         public Session Find(string identityName)
         {
-            var session = _dataRepository.FetchItemUsing(_queryFactory.Get(identityName));
+            var session = _dataRepository.FetchItem(_queryFactory.Get(identityName));
 
             if (session == null)
             {
                 return null;
             }
 
-            foreach (var row in _databaseGateway.GetRowsUsing(_queryFactory.GetPermissions(session.Token)))
+            foreach (var row in _databaseGateway.GetRows(_queryFactory.GetPermissions(session.Token)))
             {
                 session.AddPermission(Columns.PermissionName.MapFrom(row));
             }
@@ -91,12 +91,12 @@ namespace Shuttle.Access.Sql
 
         public int Remove(Guid token)
         {
-            return _databaseGateway.ExecuteUsing(_queryFactory.Remove(token));
+            return _databaseGateway.Execute(_queryFactory.Remove(token));
         }
 
         public int Remove(string identityName)
         {
-            return _databaseGateway.ExecuteUsing(_queryFactory.Remove(identityName));
+            return _databaseGateway.Execute(_queryFactory.Remove(identityName));
         }
     }
 }

@@ -14,9 +14,8 @@
         <PackageReference Include="Shuttle.Access.Mvc.DataStore" Version="6.0.0" />
         <PackageReference Include="Shuttle.Access.Mvc.Rest" Version="6.0.0" />
         <PackageReference Include="Shuttle.Access.RestClient" Version="6.0.0" />
-        <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
-        <PackageReference Include="Shuttle.Core.Data" Version="12.1.0" />
-        <PackageReference Include="Shuttle.Core.Transactions" Version="10.0.3" />
+        <PackageReference Include="Shuttle.Core.Data" Version="13.0.0" />
+        <PackageReference Include="Shuttle.Core.Transactions" Version="11.0.0" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
     </ItemGroup>
     

@@ -1,6 +1,5 @@
 using System;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Logging;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
 
@@ -11,7 +10,6 @@ namespace Shuttle.Access.Sql
         private readonly IEventStore _eventStore;
         private readonly IHashingService _hashingService;
         private readonly IKeyStore _keyStore;
-        private readonly ILog _log;
 
         public AuthenticationService(IEventStore eventStore, IKeyStore keyStore, IHashingService hashingService)
         {
@@ -22,8 +20,6 @@ namespace Shuttle.Access.Sql
             _eventStore = eventStore;
             _keyStore = keyStore;
             _hashingService = hashingService;
-
-            _log = Log.For(this);
         }
 
         public AuthenticationResult Authenticate(string identityName, string password)
@@ -32,7 +28,7 @@ namespace Shuttle.Access.Sql
 
             if (!id.HasValue)
             {
-                _log.Trace($"[identityName not found] : identityName = '{identityName}'");
+                Authentication.Invoke(this, new AuthenticationEventArgs(false, string.Format(Resources.InvalidIdentity, identityName)));
 
                 return AuthenticationResult.Failure();
             }
@@ -43,10 +39,12 @@ namespace Shuttle.Access.Sql
 
             if (identity.PasswordMatches(_hashingService.Sha256(password)))
             {
+                Authentication.Invoke(this, new AuthenticationEventArgs(true, string.Empty));
+
                 return AuthenticationResult.Success();
             }
 
-            _log.Trace($"[invalid password] : identityName = '{identityName}'");
+            Authentication.Invoke(this, new AuthenticationEventArgs(false, string.Format(Resources.InvalidPassword, identityName)));
 
             return AuthenticationResult.Failure();
         }
@@ -55,5 +53,9 @@ namespace Shuttle.Access.Sql
         {
             return AuthenticationResult.Success();
         }
+
+        public event EventHandler<AuthenticationEventArgs> Authentication = delegate
+        {
+        };
     }
 }

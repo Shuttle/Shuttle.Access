@@ -34,7 +34,7 @@ namespace Shuttle.Access.Sql
 
             if (specification.PermissionsIncluded)
             {
-                var permissionRows = _databaseGateway.GetRowsUsing(_queryFactory.Permissions(specification));
+                var permissionRows = _databaseGateway.GetRows(_queryFactory.Permissions(specification));
 
                 foreach (var permissionGroup in permissionRows.GroupBy(row=>Columns.RoleId.MapFrom(row)))
                 {
@@ -59,7 +59,7 @@ namespace Shuttle.Access.Sql
 
         public int Count(DataAccess.Query.Role.Specification specification)
         {
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count(specification));
+            return _databaseGateway.GetScalar<int>(_queryFactory.Count(specification));
         }
     }
 }

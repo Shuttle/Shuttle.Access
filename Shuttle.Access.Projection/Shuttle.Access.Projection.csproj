@@ -12,11 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
-    <PackageReference Include="Shuttle.Core.Log4Net" Version="10.0.4" />
-    <PackageReference Include="Shuttle.Core.Ninject" Version="10.1.1" />
-    <PackageReference Include="Shuttle.Core.ServiceHost" Version="10.1.1" />
-    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="15.0.0" />
+    <PackageReference Include="Shuttle.Core.DependencyInjection" Version="1.0.0" />
+    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="16.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
@@ -25,6 +25,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
     <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

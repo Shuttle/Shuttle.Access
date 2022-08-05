@@ -4,16 +4,13 @@ using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using log4net;
-using Ninject;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Container;
 using Shuttle.Core.Data;
-using Shuttle.Core.Log4Net;
-using Shuttle.Core.Logging;
+using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
-using Shuttle.Core.Ninject;
-using Shuttle.Core.ServiceHost;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureMQ;
 using Shuttle.Esb.Sql.Subscription;
@@ -30,64 +27,69 @@ namespace Shuttle.Access.Server
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            ServiceHost.Run<Host>();
-        }
-    }
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureServices(services =>
+                {
+                    var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-    public class Host : IServiceHost
-    {
-        private readonly CancellationTokenSource _cancellationTokenSource = new();
-        private IServiceBus _bus;
-        private IKernel _kernel;
+                    services.AddSingleton<IConfiguration>(configuration);
 
-        public void Start()
-        {
-            Log.Assign(new Log4NetLog(LogManager.GetLogger(typeof(Host))));
+                    services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
 
-            Log.Information("[starting]");
+                    services.AddDataAccess(builder =>
+                    {
+                        builder.AddConnectionString("Access", "System.Data.SqlClient");
+                    });
 
-            _kernel = new StandardKernel();
+                    services.AddServiceBus(builder =>
+                    {
+                        configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
 
-            var container = new NinjectComponentContainer(_kernel);
+                        builder.Options.SubscriptionOptions.ConnectionStringName = "Access";
+                    });
 
-            container.Register<IAzureStorageConfiguration, DefaultAzureStorageConfiguration>();
+                    services.AddAzureStorageQueues(builder =>
+                    {
+                        builder.AddConnectionString("azure");
+                    });
 
-            container.RegisterDataAccess();
-            container.RegisterSuffixed("Shuttle.Access.Sql");
-            container.RegisterEventStore();
-            container.RegisterEventStoreStorage();
-            container.RegisterSubscription();
-            container.RegisterServiceBus();
-            container.RegisterMediator();
-            container.RegisterMediatorParticipants(Assembly.Load("Shuttle.Access.Application"));
-            container.Register<IHashingService, HashingService>();
+                    services.AddEventStore();
+                    services.AddSqlEventStorage();
+                    services.AddSqlSubscription();
 
-            var databaseContextFactory = container.Resolve<IDatabaseContextFactory>().ConfigureWith("Access");
+                    services.AddMediator(builder =>
+                    {
+                        builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
+                    });
 
-            if (!databaseContextFactory.IsAvailable("Access", _cancellationTokenSource.Token))
+                    services.AddSingleton<IHashingService, HashingService>();
+                })
+                .Build();
+
+            var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>().ConfigureWith("Access");
+
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            Console.CancelKeyPress += delegate {
+                cancellationTokenSource.Cancel();
+            };
+
+            if (!databaseContextFactory.IsAvailable("Access", cancellationTokenSource.Token))
             {
                 throw new ApplicationException("[connection failure]");
             }
 
-            _bus = container.Resolve<IServiceBus>().Start();
+            if (cancellationTokenSource.Token.IsCancellationRequested)
+            {
+                return;
+            }
 
             using (databaseContextFactory.Create())
             {
-                container.Resolve<IMediator>().Send(new ConfigureApplication());
+                host.Services.GetRequiredService<IMediator>().Send(new ConfigureApplication(), cancellationTokenSource.Token);
             }
 
-            Log.Information("[started]");
-        }
-
-        public void Stop()
-        {
-            Log.Information("[stopping]");
-
-            _cancellationTokenSource?.Cancel();
-
-            _bus?.Dispose();
-
-            Log.Information("[stopped]");
+            host.Run();
         }
     }
 }

@@ -55,7 +55,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<RegisterPermission>(message => message.Name.Equals(permission)))).Verifiable();
+            serviceBus.Setup(m => m.Send(It.Is<RegisterPermission>(message => message.Name.Equals(permission)), null)).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -87,7 +87,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
 
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m=>m.Send(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)))).Verifiable();
+            serviceBus.Setup(m=>m.Send(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)), null)).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {

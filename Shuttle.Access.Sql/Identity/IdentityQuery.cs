@@ -27,12 +27,12 @@ namespace Shuttle.Access.Sql
 
         public int AdministratorCount()
         {
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.AdministratorCount());
+            return _databaseGateway.GetScalar<int>(_queryFactory.AdministratorCount());
         }
 
         public Guid Id(string identityName)
         {
-            return _databaseGateway.GetScalarUsing<Guid>(_queryFactory.GetId(identityName));
+            return _databaseGateway.GetScalar<Guid>(_queryFactory.GetId(identityName));
         }
 
         public IEnumerable<string> Permissions(Guid userId)
@@ -48,7 +48,7 @@ namespace Shuttle.Access.Sql
 
             if (specification.RolesIncluded)
             {
-                var roleRows = _databaseGateway.GetRowsUsing(_queryFactory.Roles(specification));
+                var roleRows = _databaseGateway.GetRows(_queryFactory.Roles(specification));
 
                 foreach (var roleGroup in roleRows.GroupBy(row => Columns.IdentityId.MapFrom(row)))
                 {
@@ -69,7 +69,7 @@ namespace Shuttle.Access.Sql
 
         public IEnumerable<Guid> RoleIds(DataAccess.Query.Identity.Specification specification)
         {
-            return _databaseGateway.GetRowsUsing(_queryFactory.Roles(specification))
+            return _databaseGateway.GetRows(_queryFactory.Roles(specification))
                 .Select(row => Columns.RoleId.MapFrom(row));
         }
 
@@ -77,7 +77,7 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Count(specification));
+            return _databaseGateway.GetScalar<int>(_queryFactory.Count(specification));
         }
     }
 }
