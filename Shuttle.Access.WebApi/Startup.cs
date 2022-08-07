@@ -84,6 +84,7 @@ namespace Shuttle.Access.WebApi
                 builder.AddSubscription<RolePermissionSet>();
                 builder.AddSubscription<PermissionStatusSet>();
             });
+
             services.AddAzureStorageQueues();
             services.AddEventStore();
             services.AddSqlEventStorage();
