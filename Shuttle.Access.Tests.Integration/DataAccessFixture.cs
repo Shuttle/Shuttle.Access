@@ -42,11 +42,17 @@ namespace Shuttle.Access.Tests.Integration
 
             DatabaseContextFactory = new DatabaseContextFactory(
                 ConnectionStringOptions,
+                Options.Create(new DataAccessOptions
+                {
+                    DatabaseContextFactory = new DatabaseContextFactoryOptions
+                    {
+                        DefaultConnectionStringName = "Access"
+                    }
+                }),
                 new DbConnectionFactory(),
                 new DbCommandFactory(Options.Create(new DataAccessOptions())),
                 DatabaseContextCache);
 
-            DatabaseContextFactory.ConfigureWith("Abacus");
             QueryMapper = new QueryMapper(DatabaseGateway, DataRowMapper);
         }
 

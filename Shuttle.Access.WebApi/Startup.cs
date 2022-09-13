@@ -26,7 +26,7 @@ using Shuttle.Core.Data.Http;
 using Shuttle.Core.Mediator;
 using Shuttle.Core.Reflection;
 using Shuttle.Esb;
-using Shuttle.Esb.AzureMQ;
+using Shuttle.Esb.AzureStorageQueues;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.EventProcessing;
@@ -57,6 +57,7 @@ namespace Shuttle.Access.WebApi
             services.AddDataAccess(builder =>
             {
                 builder.AddConnectionString("Access", "System.Data.SqlClient");
+                builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
             });
 
             services.AddAccess();
@@ -78,14 +79,21 @@ namespace Shuttle.Access.WebApi
             {
                 Configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
 
-                builder.Options.SubscriptionOptions.ConnectionStringName = "Access";
+                builder.Options.Subscription.ConnectionStringName = "Access";
 
                 builder.AddSubscription<IdentityRoleSet>();
                 builder.AddSubscription<RolePermissionSet>();
                 builder.AddSubscription<PermissionStatusSet>();
             });
 
-            services.AddAzureStorageQueues();
+            services.AddAzureStorageQueues(builder =>
+            {
+                builder.AddOptions("azure", new AzureStorageQueueOptions
+                {
+                    ConnectionString = Configuration.GetConnectionString("azure")
+                });
+            });
+
             services.AddEventStore();
             services.AddSqlEventStorage();
             services.AddSqlEventProcessing(builder =>
@@ -148,8 +156,7 @@ namespace Shuttle.Access.WebApi
 
             applicationPartManager.PopulateFeature(controllerFeature);
 
-            var databaseContextFactory = app.ApplicationServices.GetRequiredService<IDatabaseContextFactory>()
-                .ConfigureWith("Access");
+            var databaseContextFactory = app.ApplicationServices.GetRequiredService<IDatabaseContextFactory>();
 
             if (!databaseContextFactory.IsAvailable("Access", _cancellationTokenSource.Token))
             {
@@ -195,7 +202,6 @@ namespace Shuttle.Access.WebApi
             });
 
             app.UseSwagger();
-
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Shuttle.Access.WebApi.v1");

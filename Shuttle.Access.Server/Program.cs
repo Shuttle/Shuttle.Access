@@ -12,7 +12,7 @@ using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
-using Shuttle.Esb.AzureMQ;
+using Shuttle.Esb.AzureStorageQueues;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
@@ -39,18 +39,22 @@ namespace Shuttle.Access.Server
                     services.AddDataAccess(builder =>
                     {
                         builder.AddConnectionString("Access", "System.Data.SqlClient");
+                        builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
                     });
 
                     services.AddServiceBus(builder =>
                     {
                         configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
 
-                        builder.Options.SubscriptionOptions.ConnectionStringName = "Access";
+                        builder.Options.Subscription.ConnectionStringName = "Access";
                     });
 
                     services.AddAzureStorageQueues(builder =>
                     {
-                        builder.AddConnectionString("azure");
+                        builder.AddOptions("azure", new AzureStorageQueueOptions
+                        {
+                            ConnectionString = configuration.GetConnectionString("azure")
+                        });
                     });
 
                     services.AddEventStore();
@@ -66,7 +70,7 @@ namespace Shuttle.Access.Server
                 })
                 .Build();
 
-            var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>().ConfigureWith("Access");
+            var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
 
             var cancellationTokenSource = new CancellationTokenSource();
 

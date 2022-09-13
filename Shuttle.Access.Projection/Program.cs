@@ -36,6 +36,7 @@ namespace Shuttle.Access.Projection
                     services.AddDataAccess(builder =>
                     {
                         builder.AddConnectionString("Access", "System.Data.SqlClient");
+                        builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
                     });
 
                     services.AddEventStore(builder =>
@@ -46,13 +47,17 @@ namespace Shuttle.Access.Projection
                     });
 
                     services.AddSqlEventStorage();
-                    services.AddSqlEventProcessing();
+                    services.AddSqlEventProcessing(builder =>
+                    {
+                        builder.Options.EventProjectionConnectionStringName = "Access";
+                        builder.Options.EventStoreConnectionStringName = "Access";
+                    });
 
                     services.AddSingleton<IHashingService, HashingService>();
                 })
                 .Build();
 
-            var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>().ConfigureWith("Access");
+            var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
 
             var cancellationTokenSource = new CancellationTokenSource();
 

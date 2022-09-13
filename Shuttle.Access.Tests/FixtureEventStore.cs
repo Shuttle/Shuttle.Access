@@ -40,7 +40,7 @@ namespace Shuttle.Access.Tests
             return Save(eventStream, null);
         }
 
-        public long Save(EventStream eventStream, Action<EventEnvelopeConfigurator> configurator)
+        public long Save(EventStream eventStream, Action<EventEnvelopeBuilder> builder)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream));
 

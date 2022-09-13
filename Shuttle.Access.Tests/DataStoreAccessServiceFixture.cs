@@ -20,7 +20,15 @@ namespace Shuttle.Access.Tests
 
             repository.Setup(m => m.Find(It.IsAny<Guid>())).Returns(() => null);
 
-            var service = new DataStoreAccessService(new Mock<IOptionsMonitor<ConnectionStringOptions>>().Object, Options.Create(new AccessOptions
+            var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
+
+            connectionStringOptions.Setup(m => m.Get("Access")).Returns(new ConnectionStringOptions
+            {
+                Name = "Access",
+                ConnectionString = "connection-string"
+            });
+
+            var service = new DataStoreAccessService(connectionStringOptions.Object, Options.Create(new AccessOptions
                 {
                     SessionDuration = TimeSpan.FromHours(1)
                 }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
@@ -35,7 +43,15 @@ namespace Shuttle.Access.Tests
 
             repository.Setup(m => m.Find(It.IsAny<Guid>())).Returns(() => _session);
 
-            var service = new DataStoreAccessService(new Mock<IOptionsMonitor<ConnectionStringOptions>>().Object, Options.Create(new AccessOptions
+            var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
+
+            connectionStringOptions.Setup(m => m.Get("Access")).Returns(new ConnectionStringOptions
+            {
+                Name = "Access",
+                ConnectionString = "connection-string"
+            });
+
+            var service = new DataStoreAccessService(connectionStringOptions.Object, Options.Create(new AccessOptions
                 {
                     SessionDuration = TimeSpan.FromHours(1)
                 }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
