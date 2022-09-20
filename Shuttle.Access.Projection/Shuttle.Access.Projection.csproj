@@ -16,8 +16,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Shuttle.Core.Data.SqlClient" Version="10.0.7" />
     <PackageReference Include="Shuttle.Core.DependencyInjection" Version="1.0.0" />
-    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="16.0.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="16.0.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0" />
   </ItemGroup>
