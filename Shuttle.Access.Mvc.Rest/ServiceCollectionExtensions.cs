@@ -1,0 +1,18 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Shuttle.Core.Contract;
+
+namespace Shuttle.Access.Mvc.Rest
+{
+    public static class ServiceCollectionExtensions
+    {
+        public static IServiceCollection AddRestAccessService(this IServiceCollection services)
+        {
+            Guard.AgainstNull(services, nameof(services));
+
+            services.TryAddSingleton<IAccessService, RestAccessService>();
+
+            return services;
+        }
+    }
+}

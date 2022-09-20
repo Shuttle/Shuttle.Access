@@ -18,7 +18,6 @@
       <dependency id="Microsoft.Extensions.Caching.Memory" version="6.0.1" />
       <dependency id="Shuttle.Core.Contract" version="10.1.0" />
       <dependency id="Shuttle.Core.Data" version="13.0.0" />
-      <dependency id="System.Configuration.ConfigurationManager" version="6.0.0" />
 		</dependencies>
 	</metadata>
 	<files>

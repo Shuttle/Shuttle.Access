@@ -96,11 +96,11 @@ namespace Shuttle.Access.WebApi
 
             services.AddEventStore();
             services.AddSqlEventStorage();
-            services.AddSqlEventProcessing(builder =>
-            {
-                builder.Options.EventProjectionConnectionStringName = "Access";
-                builder.Options.EventStoreConnectionStringName = "Access";
-            });
+            //services.AddSqlEventProcessing(builder =>
+            //{
+            //    builder.Options.EventProjectionConnectionStringName = "Access";
+            //    builder.Options.EventStoreConnectionStringName = "Access";
+            //});
 
             services.AddMediator(builder =>
             {

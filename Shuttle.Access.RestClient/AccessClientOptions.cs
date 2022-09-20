@@ -2,9 +2,9 @@
 
 namespace Shuttle.Access.RestClient
 {
-    public class AccessRestClientOptions
+    public class AccessClientOptions
     {
-        public const string SectionName = "Shuttle:Access:RestClient";
+        public const string SectionName = "Shuttle:Access:Client";
 
         public Uri BaseAddress { get; set; }
         public string IdentityName { get; set; }

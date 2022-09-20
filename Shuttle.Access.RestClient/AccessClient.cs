@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using Microsoft.Extensions.Options;
 using Refit;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.RestClient.v1;
@@ -10,18 +11,19 @@ namespace Shuttle.Access.RestClient
     public class AccessClient : IAccessClient
     {
         private static readonly object Lock = new object();
-        private readonly IAccessClientConfiguration _configuration;
+        private readonly AccessClientOptions _accessClientOptions;
 
-        public AccessClient(IAccessClientConfiguration configuration, IHttpClientFactory httpClientFactory)
+        public AccessClient(IOptions<AccessClientOptions> accessClientOptions, IHttpClientFactory httpClientFactory)
         {
-            Guard.AgainstNull(configuration, nameof(configuration));
+            Guard.AgainstNull(accessClientOptions, nameof(accessClientOptions));
+            Guard.AgainstNull(accessClientOptions.Value, nameof(accessClientOptions.Value));
             Guard.AgainstNull(httpClientFactory, nameof(httpClientFactory));
 
-            _configuration = configuration;
+            _accessClientOptions = accessClientOptions.Value;
 
             var client = httpClientFactory.CreateClient("AccessClient");
 
-            client.BaseAddress = configuration.BaseAddress;
+            client.BaseAddress = _accessClientOptions.BaseAddress;
 
             Server = RestService.For<IServerApi>(client);
             Permissions = RestService.For<IPermissionsApi>(client);
@@ -67,8 +69,8 @@ namespace Shuttle.Access.RestClient
 
                 var response = Sessions.Post(new RegisterSession
                 {
-                    IdentityName = _configuration.IdentityName, 
-                    Password = _configuration.Password
+                    IdentityName = _accessClientOptions.IdentityName, 
+                    Password = _accessClientOptions.Password
                 }).Result;
 
                 if (!response.IsSuccessStatusCode ||
