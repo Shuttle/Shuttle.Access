@@ -8,7 +8,7 @@ namespace Shuttle.Access.Mvc
 {
     public static class HttpContextExtensions
     {
-        public static readonly string AuthorizationScheme = "access-session-token";
+        public static readonly string AuthorizationScheme = "Bearer";
         private static readonly char[] Space = new[] {' '};
 
         public static SessionTokenResult GetAccessSessionToken(this HttpContext context)

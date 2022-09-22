@@ -42,7 +42,7 @@ namespace Shuttle.Access.RestClient
 
             if (client.Token.HasValue)
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("access-session-token", client.Token.Value.ToString("n"));
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", client.Token.Value.ToString("n"));
             }
 
             return base.SendAsync(request, cancellationToken);

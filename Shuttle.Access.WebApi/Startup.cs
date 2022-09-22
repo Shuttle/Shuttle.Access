@@ -111,13 +111,13 @@ namespace Shuttle.Access.WebApi
             {
                 options.SwaggerDoc("v1", new OpenApiInfo { Title = "Shuttle.Access.WebApi", Version = "v1" });
 
-                options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "access-session-token",
                     In = ParameterLocation.Header,
-                    Type = SecuritySchemeType.ApiKey,
+                    Type = SecuritySchemeType.Http,
                     Description = "Shuttle.Access token security",
-                    Scheme = "ApiKeyScheme"
+                    Scheme = "Bearer"
                 });
 
                 var key = new OpenApiSecurityScheme
@@ -125,7 +125,7 @@ namespace Shuttle.Access.WebApi
                     Reference = new OpenApiReference
                     {
                         Type = ReferenceType.SecurityScheme,
-                        Id = "ApiKey"
+                        Id = "Bearer"
                     },
                     In = ParameterLocation.Header
                 };
