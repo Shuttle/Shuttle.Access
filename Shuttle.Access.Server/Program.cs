@@ -16,6 +16,7 @@ using Shuttle.Esb.AzureStorageQueues;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
+using Shuttle.Sentinel.Module;
 
 namespace Shuttle.Access.Server
 {
@@ -66,9 +67,17 @@ namespace Shuttle.Access.Server
                         builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
                     });
 
+                    services.AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>();
                     services.AddSingleton<IHashingService, HashingService>();
+
+                    services.AddSentinelModule(builder =>
+                    {
+                        configuration.GetSection(SentinelOptions.SectionName).Bind(builder.Options);
+                    });
                 })
                 .Build();
+
+            host.Services.GetRequiredService<SentinelModule>().RouteMissing += (sender, eventArgs) => throw new ApplicationException($"Could not find a route for message type '{eventArgs.MessageType}'.");
 
             var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
 

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Shuttle.Access.Server": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
