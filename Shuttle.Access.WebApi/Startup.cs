@@ -14,9 +14,12 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Mvc.DataStore;
@@ -27,6 +30,7 @@ using Shuttle.Core.Mediator;
 using Shuttle.Core.Reflection;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
+using Shuttle.Esb.OpenTelemetry;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.EventProcessing;
@@ -96,15 +100,32 @@ namespace Shuttle.Access.WebApi
 
             services.AddEventStore();
             services.AddSqlEventStorage();
-            //services.AddSqlEventProcessing(builder =>
-            //{
-            //    builder.Options.EventProjectionConnectionStringName = "Access";
-            //    builder.Options.EventStoreConnectionStringName = "Access";
-            //});
+
+            services.TryAddSingleton<Recall.Sql.EventProcessing.IScriptProvider, Recall.Sql.EventProcessing.ScriptProvider>();
+            services.AddSingleton<IProjectionQueryFactory, ProjectionQueryFactory>();
+            services.AddSingleton<IProjectionRepository, ProjectionRepository>();
 
             services.AddMediator(builder =>
             {
                 builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
+            });
+
+            services.AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.WebApi"));
+
+            services.AddOpenTelemetryTracing(
+                builder => builder
+                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Shuttle.Access.WebApi"))
+                    .AddServiceBusInstrumentation()
+                    .AddAspNetCoreInstrumentation()
+                    .AddSqlClientInstrumentation(options =>
+                    {
+                        options.SetDbStatementForText = true;
+                    })
+                    .AddJaegerExporter());
+
+            services.AddServiceBusInstrumentation(builder =>
+            {
+                Configuration.GetSection(OpenTelemetryOptions.SectionName).Bind(builder.Options);
             });
 
             services.AddSwaggerGen(options =>

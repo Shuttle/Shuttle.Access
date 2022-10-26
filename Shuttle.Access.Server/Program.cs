@@ -7,16 +7,18 @@ using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
+using Shuttle.Esb.OpenTelemetry;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
-using Shuttle.Sentinel.Module;
 
 namespace Shuttle.Access.Server
 {
@@ -70,14 +72,24 @@ namespace Shuttle.Access.Server
                     services.AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>();
                     services.AddSingleton<IHashingService, HashingService>();
 
-                    services.AddSentinelModule(builder =>
+                    services.AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Server"));
+
+                    services.AddOpenTelemetryTracing(
+                        builder => builder
+                            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Shuttle.Access.Server"))
+                            .AddServiceBusInstrumentation()
+                            .AddSqlClientInstrumentation(options =>
+                            {
+                                options.SetDbStatementForText = true;
+                            })
+                            .AddJaegerExporter());
+
+                    services.AddServiceBusInstrumentation(builder =>
                     {
-                        configuration.GetSection(SentinelOptions.SectionName).Bind(builder.Options);
+                        configuration.GetSection(OpenTelemetryOptions.SectionName).Bind(builder.Options);
                     });
                 })
                 .Build();
-
-            host.Services.GetRequiredService<SentinelModule>().RouteMissing += (sender, eventArgs) => throw new ApplicationException($"Could not find a route for message type '{eventArgs.MessageType}'.");
 
             var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
 

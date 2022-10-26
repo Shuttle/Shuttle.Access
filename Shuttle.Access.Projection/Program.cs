@@ -7,6 +7,8 @@ using System.Threading;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Shuttle.Access.Projection.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
@@ -54,6 +56,17 @@ namespace Shuttle.Access.Projection
                     });
 
                     services.AddSingleton<IHashingService, HashingService>();
+
+                    services.AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Projection"));
+
+                    services.AddOpenTelemetryTracing(
+                        builder => builder
+                            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Shuttle.Access.Projection"))
+                            .AddSqlClientInstrumentation(options =>
+                            {
+                                options.SetDbStatementForText = true;
+                            })
+                            .AddJaegerExporter());
                 })
                 .Build();
 
