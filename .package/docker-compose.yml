@@ -1,5 +1,17 @@
 ﻿version: "3.9"
 services:
+    jeager:
+        image: jaegertracing/all-in-one:1.6
+        environment:
+            - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+        ports:
+            - "5775:5775/udp"
+            - "6831:6831/udp"
+            - "6832:6832/udp"
+            - "5778:5778"
+            - "16686:16686"
+            - "14268:14268"
+            - "9411:9411"
     azurite:
         image: mcr.microsoft.com/azure-storage/azurite
         hostname: azurite
@@ -12,11 +24,13 @@ services:
         depends_on:
             - "azurite"
             - "database"
+            - "jeager"
     projection:
         image:
             shuttle/access-projection:latest
         depends_on:
             - "database"
+            - "jeager"
     web-api:
         image:
             shuttle/access-webapi:latest
@@ -25,6 +39,7 @@ services:
         depends_on:
             - "azurite"
             - "server"
+            - "jeager"
         ports:
             - "5599:5599"
     front-end:
