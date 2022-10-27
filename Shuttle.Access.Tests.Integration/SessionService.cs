@@ -28,5 +28,9 @@ namespace Shuttle.Access.Tests.Integration
         {
             
         }
+
+        public event EventHandler<SessionOperationEventArgs> SessionOperation = delegate
+        {
+        };
     }
 }

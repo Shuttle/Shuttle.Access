@@ -7,10 +7,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="6.0.1" />
-    <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
     <PackageReference Include="Shuttle.Core.Contract" Version="10.1.0" />
-    <PackageReference Include="Shuttle.Core.Data" Version="12.1.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+    <PackageReference Include="Shuttle.Core.Data" Version="13.0.0" />
   </ItemGroup>
 
   <ItemGroup>

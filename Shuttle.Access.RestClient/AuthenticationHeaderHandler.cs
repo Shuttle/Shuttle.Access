@@ -4,21 +4,21 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Shuttle.Core.Container;
+using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient
 {
     public class AuthenticationHeaderHandler : DelegatingHandler
     {
-        private readonly IComponentResolver _resolver;
+        private readonly IServiceProvider _serviceProvider;
         private readonly string _userAgent;
 
-        public AuthenticationHeaderHandler(IComponentResolver resolver)
+        public AuthenticationHeaderHandler(IServiceProvider serviceProvider)
         {
-            Guard.AgainstNull(resolver, nameof(resolver));
+            Guard.AgainstNull(serviceProvider, nameof(serviceProvider));
 
-            _resolver = resolver;
+            _serviceProvider = serviceProvider;
 
             var version = Assembly.GetExecutingAssembly().GetName().Version;
 
@@ -31,7 +31,7 @@ namespace Shuttle.Access.RestClient
 
             request.Headers.Add("User-Agent", _userAgent);
 
-            var client = _resolver.Resolve<IAccessClient>();
+            var client = _serviceProvider.GetRequiredService<IAccessClient>();
 
             if ((!client.Token.HasValue || (client.TokenExpiryDate ?? DateTime.UtcNow) < DateTime.UtcNow) &&
                 !request.RequestUri.PathAndQuery.Equals("/sessions") &&
@@ -42,7 +42,7 @@ namespace Shuttle.Access.RestClient
 
             if (client.Token.HasValue)
             {
-                request.Headers.Authorization = new AuthenticationHeaderValue("access-session-token", client.Token.Value.ToString("n"));
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", client.Token.Value.ToString("n"));
             }
 
             return base.SendAsync(request, cancellationToken);

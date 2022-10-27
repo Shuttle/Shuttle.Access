@@ -22,27 +22,27 @@ namespace Shuttle.Access.Sql
 
         public void Registered(PrimitiveEvent primitiveEvent, Registered domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Registered(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.Registered(primitiveEvent.Id, domainEvent));
         }
 
         public void Activated(PrimitiveEvent primitiveEvent, Activated domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Activated(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.Activated(primitiveEvent.Id, domainEvent));
         }
 
         public void Deactivated(PrimitiveEvent primitiveEvent, Deactivated domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Deactivated(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.Deactivated(primitiveEvent.Id, domainEvent));
         }
 
         public void Removed(PrimitiveEvent primitiveEvent, Removed domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.Removed(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.Removed(primitiveEvent.Id, domainEvent));
         }
 
         public void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent)
         {
-            _databaseGateway.ExecuteUsing(_queryFactory.NameSet(primitiveEvent.Id, domainEvent));
+            _databaseGateway.Execute(_queryFactory.NameSet(primitiveEvent.Id, domainEvent));
         }
     }
 }

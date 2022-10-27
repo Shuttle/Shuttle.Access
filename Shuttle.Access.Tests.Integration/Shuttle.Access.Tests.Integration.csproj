@@ -5,21 +5,20 @@
   </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.9" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
-        <PackageReference Include="Moq" Version="4.18.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
+        <PackageReference Include="Moq" Version="4.18.2" />
         <PackageReference Include="NUnit" Version="3.13.3" />
-        <PackageReference Include="Shuttle.Access.RestClient" Version="6.0.0" />
-        <PackageReference Include="Shuttle.Core.Configuration" Version="10.0.4" />
-        <PackageReference Include="Shuttle.Core.Data" Version="12.1.0" />
-        <PackageReference Include="Shuttle.Core.Transactions" Version="10.0.3" />
+        <PackageReference Include="Shuttle.Core.Data" Version="13.0.0" />
+        <PackageReference Include="Shuttle.Core.Transactions" Version="11.0.0" />
         <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj" />
       <ProjectReference Include="..\Shuttle.Access.WebApi\Shuttle.Access.WebApi.csproj" />
     </ItemGroup>
 

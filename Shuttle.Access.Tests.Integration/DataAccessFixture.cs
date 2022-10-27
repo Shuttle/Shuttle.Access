@@ -2,6 +2,7 @@
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Transactions;
+using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Core.Data;
@@ -17,27 +18,41 @@ namespace Shuttle.Access.Tests.Integration
         {
             DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
 
-            TransactionScopeFactory =
-                new DefaultTransactionScopeFactory(true, IsolationLevel.ReadCommitted, TimeSpan.FromSeconds(120));
-            DatabaseGateway = new DatabaseGateway();
-            DataRowMapper = new DataRowMapper();
+            TransactionScopeFactory = new TransactionScopeFactory(Options.Create(new TransactionScopeOptions
+            {
+                Enabled = true,
+                IsolationLevel = IsolationLevel.ReadCommitted,
+                Timeout = TimeSpan.FromSeconds(120)
+            }));
             DatabaseContextCache = new ThreadStaticDatabaseContextCache();
+            DatabaseGateway = new DatabaseGateway(DatabaseContextCache);
+            DataRowMapper = new DataRowMapper();
 
-            var connectionConfigurationProvider = new Mock<IConnectionConfigurationProvider>();
+            var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
-            connectionConfigurationProvider.Setup(m => m.Get(It.IsAny<string>())).Returns(
-                new ConnectionConfiguration(
-                    "Access",
-                    "System.Data.SqlClient",
-                    "Server=.;Database=Access;User ID=sa;Password=Pass!000"));
+            connectionStringOptions.Setup(m => m.Get(It.IsAny<string>())).Returns(
+                (string name) => new ConnectionStringOptions
+                {
+                    Name = name,
+                    ProviderName = "System.Data.SqlClient",
+                    ConnectionString = "server=.;Initial Catalog=Access;user id=sa;password=Pass!000"
+                });
+
+            ConnectionStringOptions = connectionStringOptions.Object;
 
             DatabaseContextFactory = new DatabaseContextFactory(
-                connectionConfigurationProvider.Object,
+                ConnectionStringOptions,
+                Options.Create(new DataAccessOptions
+                {
+                    DatabaseContextFactory = new DatabaseContextFactoryOptions
+                    {
+                        DefaultConnectionStringName = "Access"
+                    }
+                }),
                 new DbConnectionFactory(),
-                new DbCommandFactory(),
-                new ThreadStaticDatabaseContextCache());
+                new DbCommandFactory(Options.Create(new DataAccessOptions())),
+                DatabaseContextCache);
 
-            DatabaseContextFactory.ConfigureWith("Abacus");
             QueryMapper = new QueryMapper(DatabaseGateway, DataRowMapper);
         }
 
@@ -47,5 +62,6 @@ namespace Shuttle.Access.Tests.Integration
         protected IDatabaseContextFactory DatabaseContextFactory { get; private set; }
         protected IDataRowMapper DataRowMapper { get; private set; }
         protected IQueryMapper QueryMapper { get; private set; }
+        protected IOptionsMonitor<ConnectionStringOptions> ConnectionStringOptions { get; private set; }
     }
 }

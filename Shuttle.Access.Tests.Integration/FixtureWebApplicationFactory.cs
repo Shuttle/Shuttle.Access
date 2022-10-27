@@ -51,7 +51,7 @@ namespace Shuttle.Access.Tests.Integration
         protected override void ConfigureClient(HttpClient client)
         {
             client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("access-session-token", Guid.NewGuid().ToString());
+                new AuthenticationHeaderValue("Bearer", Guid.NewGuid().ToString());
 
             base.ConfigureClient(client);
         }

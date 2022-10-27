@@ -119,7 +119,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var id = Guid.NewGuid();
             var serviceBus = new Mock<IServiceBus>();
 
-            serviceBus.Setup(m => m.Send(It.Is<RemoveRole>(message => message.Id.Equals(id)))).Verifiable();
+            serviceBus.Setup(m => m.Send(It.Is<RemoveRole>(message => message.Id.Equals(id)), null)).Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -149,7 +149,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             var serviceBus = new Mock<IServiceBus>();
 
             serviceBus.Setup(m =>
-                    m.Send(It.Is<SetRolePermission>(message => message.PermissionId.Equals(permissionId))))
+                    m.Send(It.Is<SetRolePermission>(message => message.PermissionId.Equals(permissionId)), null))
                 .Verifiable();
 
             using (var httpClient = Factory.WithWebHostBuilder(builder =>
@@ -257,7 +257,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-                serviceBus.Verify(m => m.Send(It.IsAny<RegisterRole>()), Times.Once);
+                serviceBus.Verify(m => m.Send(It.IsAny<RegisterRole>(), null), Times.Once);
             }
         }
     }

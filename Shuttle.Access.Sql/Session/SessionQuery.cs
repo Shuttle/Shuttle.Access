@@ -26,12 +26,12 @@ namespace Shuttle.Access.Sql
 
         public bool Contains(Guid token)
         {
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Contains(token)) == 1;
+            return _databaseGateway.GetScalar<int>(_queryFactory.Contains(token)) == 1;
         }
 
         public bool Contains(Guid token, string permission)
         {
-            return _databaseGateway.GetScalarUsing<int>(_queryFactory.Contains(token, permission)) == 1;
+            return _databaseGateway.GetScalar<int>(_queryFactory.Contains(token, permission)) == 1;
         }
 
         public DataAccess.Query.Session Get(Guid token)

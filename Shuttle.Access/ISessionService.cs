@@ -9,5 +9,7 @@ namespace Shuttle.Access
         bool Remove(Guid token);
         bool Remove(string identityName);
         void Refresh(Guid token);
+
+        event EventHandler<SessionOperationEventArgs> SessionOperation;
     }
 }
