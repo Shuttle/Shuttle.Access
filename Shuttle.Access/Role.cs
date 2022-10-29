@@ -58,7 +58,7 @@ namespace Shuttle.Access
         {
             if (HasPermission(permissionId))
             {
-                throw new InvalidOperationException(string.Format(Resources.DuplicatePermissionException, permissionId,
+                throw new InvalidOperationException(string.Format(Resources.DuplicateRolePermissionException, permissionId,
                     Name));
             }
 

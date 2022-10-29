@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
-using System.Data.SqlClient;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Hosting;
 
 namespace Shuttle.Access.WebApi
@@ -9,16 +9,16 @@ namespace Shuttle.Access.WebApi
     {
         public static void Main(string[] args)
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+            DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
             CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
+                .ConfigureWebHostDefaults(builder =>
                 {
-                    webBuilder.UseStartup<Startup>();
+                    builder.UseStartup<Startup>();
                 });
     }
 }

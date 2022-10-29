@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Transactions;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
@@ -16,7 +16,7 @@ namespace Shuttle.Access.Tests.Integration
         [SetUp]
         public void DataAccessSetUp()
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+            DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
             TransactionScopeFactory = new TransactionScopeFactory(Options.Create(new TransactionScopeOptions
             {
@@ -34,7 +34,7 @@ namespace Shuttle.Access.Tests.Integration
                 (string name) => new ConnectionStringOptions
                 {
                     Name = name,
-                    ProviderName = "System.Data.SqlClient",
+                    ProviderName = "Microsoft.Data.SqlClient",
                     ConnectionString = "server=.;Initial Catalog=Access;user id=sa;password=Pass!000"
                 });
 

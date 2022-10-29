@@ -97,11 +97,20 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Identity &apos;{0}&apos; is already in role with id &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateIdentityRoleException {
+            get {
+                return ResourceManager.GetString("DuplicateIdentityRoleException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Permission with Id &apos;{0}&apos; already exists on role &apos;{1}&apos;..
         /// </summary>
-        public static string DuplicatePermissionException {
+        public static string DuplicateRolePermissionException {
             get {
-                return ResourceManager.GetString("DuplicatePermissionException", resourceCulture);
+                return ResourceManager.GetString("DuplicateRolePermissionException", resourceCulture);
             }
         }
         

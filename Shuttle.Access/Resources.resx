@@ -130,7 +130,11 @@
   <data name="DeleteSessionException" xml:space="preserve">
     <value>Could not delete the session.</value>
   </data>
-  <data name="DuplicatePermissionException" xml:space="preserve">
+  <data name="DuplicateIdentityRoleException" xml:space="preserve">
+    <value>Identity '{0}' is already in role with id '{1}'.</value>
+    <comment>0 = identity name; 1 = role id</comment>
+  </data>
+  <data name="DuplicateRolePermissionException" xml:space="preserve">
     <value>Permission with Id '{0}' already exists on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
   </data>

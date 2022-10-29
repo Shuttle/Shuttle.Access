@@ -1,19 +1,7 @@
 ﻿{
-  "Logging": {
-    "Debug": {
-      "LogLevel": {
-        "Default": "Warning"
-      }
-    },
-    "Console": {
-      "LogLevel": {
-        "Default": "Warning"
-      }
-    }
-  },
   "ConnectionStrings": {
-    "azure": "UseDevelopmentStorage=true",
-    "Access": "Data Source=.;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true"
+    "azure": "UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite",
+    "Access": "Data Source=database;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true"
   },
   "Shuttle": {
     "ServiceBus": {

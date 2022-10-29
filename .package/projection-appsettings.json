@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "Access": "Data Source=database;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true"
+  }
+}

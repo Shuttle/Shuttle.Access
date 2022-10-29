@@ -2,4 +2,6 @@
 
 COPY ./deployment/Shuttle.Access.WebApi/. /opt/shuttle.access.webapi/.
 
-ENTRYPOINT ["/opt/shuttle.access.webapi/Shuttle.Access.WebApi"]
+WORKDIR /opt/shuttle.access.webapi/
+
+ENTRYPOINT ["dotnet", "Shuttle.Access.WebApi.dll"]

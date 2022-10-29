@@ -1,7 +1,7 @@
 {
   "ConnectionStrings": {
-    "Access": "Data Source=.;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true",
-    "azure": "UseDevelopmentStorage=true;"
+    "Access": "Data Source=database;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true",
+    "azure": "UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite"
   },
   "Shuttle": {
     "ServiceBus": {

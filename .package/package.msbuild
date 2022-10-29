@@ -4,15 +4,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="../Shuttle.Access.Projection/Shuttle.Access.Projection.csproj">
-			<ConfigFile>Shuttle.Access.Projection.dll.config</ConfigFile>
-		</ProjectReference>
-		<ProjectReference Include="../Shuttle.Access.Server/Shuttle.Access.Server.csproj">
-			<ConfigFile>Shuttle.Access.Server.dll.config</ConfigFile>
-		</ProjectReference>
-		<ProjectReference Include="../Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj">
-			<ConfigFile>Shuttle.Access.WebApi.dll.config</ConfigFile>
-		</ProjectReference>
+		<ProjectReference Include="../Shuttle.Access.Projection/Shuttle.Access.Projection.csproj"/>
+		<ProjectReference Include="../Shuttle.Access.Server/Shuttle.Access.Server.csproj"/>
+		<ProjectReference Include="../Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj"/>
 		<DatabaseReference Include="../Shuttle.Access.Database/Shuttle.Access.Database.sqlproj" />
 		<DockerFile Include="dockerfile-projection">
 			<Name>shuttle/access-projection</Name>

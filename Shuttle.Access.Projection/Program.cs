@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,7 +22,7 @@ namespace Shuttle.Access.Projection
     {
         private static void Main(string[] args)
         {
-            DbProviderFactories.RegisterFactory("System.Data.SqlClient", SqlClientFactory.Instance);
+            DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -37,7 +37,7 @@ namespace Shuttle.Access.Projection
 
                     services.AddDataAccess(builder =>
                     {
-                        builder.AddConnectionString("Access", "System.Data.SqlClient");
+                        builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
                         builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
                     });
 
@@ -66,7 +66,10 @@ namespace Shuttle.Access.Projection
                             {
                                 options.SetDbStatementForText = true;
                             })
-                            .AddJaegerExporter());
+                            .AddJaegerExporter(options =>
+                            {
+                                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
+                            }));
                 })
                 .Build();
 

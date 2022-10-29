@@ -130,6 +130,11 @@ namespace Shuttle.Access
 
         public RoleAdded AddRole(Guid roleId)
         {
+            if (IsInRole(roleId))
+            {
+                throw new ApplicationException(string.Format(Resources.DuplicateIdentityRoleException, Name, roleId));
+            }
+
             return On(new RoleAdded { RoleId = roleId });
         }
 
