@@ -164,7 +164,7 @@ namespace Shuttle.Access.WebApi
             services.AddOpenTelemetryTracing(
                 builder => builder
                     .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Shuttle.Access.WebApi"))
-                    .AddServiceBusInstrumentation()
+                    .AddServiceBusSource()
                     .AddAspNetCoreInstrumentation()
                     .AddSqlClientInstrumentation(options =>
                     {

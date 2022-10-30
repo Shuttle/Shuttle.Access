@@ -3,6 +3,7 @@
     "Shuttle.Access.Server": {
       "commandName": "Project",
       "environmentVariables": {
+        "JAEGER_AGENT_HOST": "localhost",
         "DOTNET_ENVIRONMENT": "Development"
       }
     }

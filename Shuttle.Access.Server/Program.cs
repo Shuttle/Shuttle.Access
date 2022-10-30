@@ -77,7 +77,7 @@ namespace Shuttle.Access.Server
                     services.AddOpenTelemetryTracing(
                         builder => builder
                             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Shuttle.Access.Server"))
-                            .AddServiceBusInstrumentation()
+                            .AddServiceBusSource()
                             .AddSqlClientInstrumentation(options =>
                             {
                                 options.SetDbStatementForText = true;

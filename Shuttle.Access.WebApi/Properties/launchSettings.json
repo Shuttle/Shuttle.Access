@@ -13,6 +13,7 @@
       "launchBrowser": true,
       "launchUrl": "swagger/index.html",
       "environmentVariables": {
+        "JAEGER_AGENT_HOST": "localhost",
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
