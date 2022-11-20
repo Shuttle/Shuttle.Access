@@ -13,6 +13,7 @@ using Shuttle.Access.Projection.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
 using Shuttle.Recall;
+using Shuttle.Recall.OpenTelemetry;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
 
@@ -61,7 +62,11 @@ namespace Shuttle.Access.Projection
 
                     services.AddOpenTelemetryTracing(
                         builder => builder
-                            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Shuttle.Access.Projection"))
+                            //.AddSource("Shuttle.Access.Projection")
+                            .AddRecallInstrumentation(openTelemetryBuilder =>
+                            {
+                                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                            })
                             .AddSqlClientInstrumentation(options =>
                             {
                                 options.SetDbStatementForText = true;

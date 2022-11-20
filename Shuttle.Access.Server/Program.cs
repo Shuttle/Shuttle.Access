@@ -13,11 +13,14 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
+using Shuttle.Core.Mediator.OpenTelemetry;
+using Shuttle.Core.Pipelines;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
 using Shuttle.Esb.OpenTelemetry;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
+using Shuttle.Recall.OpenTelemetry;
 using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Server
@@ -76,8 +79,19 @@ namespace Shuttle.Access.Server
 
                     services.AddOpenTelemetryTracing(
                         builder => builder
-                            .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Shuttle.Access.Server"))
-                            .AddServiceBusSource()
+                            //.AddSource("Shuttle.Access.Server")
+                            .AddServiceBusInstrumentation(openTelemetryBuilder =>
+                            {
+                                configuration.GetSection(ServiceBusOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                            })
+                            .AddMediatorInstrumentation(openTelemetryBuilder =>
+                            {
+                                configuration.GetSection(MediatorOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                            })
+                            .AddRecallInstrumentation(openTelemetryBuilder =>
+                            {
+                                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                            })
                             .AddSqlClientInstrumentation(options =>
                             {
                                 options.SetDbStatementForText = true;
@@ -86,11 +100,6 @@ namespace Shuttle.Access.Server
                             {
                                 options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
                             }));
-
-                    services.AddServiceBusInstrumentation(builder =>
-                    {
-                        configuration.GetSection(OpenTelemetryOptions.SectionName).Bind(builder.Options);
-                    });
                 })
                 .Build();
 
@@ -112,10 +121,13 @@ namespace Shuttle.Access.Server
                 return;
             }
 
-            using (databaseContextFactory.Create())
+            host.Services.GetRequiredService<IPipelineFactory>().ModulesResolved += (sender, e) =>
             {
-                host.Services.GetRequiredService<IMediator>().Send(new ConfigureApplication(), cancellationTokenSource.Token);
-            }
+                using (databaseContextFactory.Create())
+                {
+                    host.Services.GetRequiredService<IMediator>().Send(new ConfigureApplication(), cancellationTokenSource.Token);
+                }
+            };
 
             host.Run();
         }

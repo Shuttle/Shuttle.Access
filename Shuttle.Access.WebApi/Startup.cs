@@ -24,6 +24,7 @@ using Shuttle.Access.Sql;
 using Shuttle.Core.Data;
 using Shuttle.Core.Data.Http;
 using Shuttle.Core.Mediator;
+using Shuttle.Core.Mediator.OpenTelemetry;
 using Shuttle.Core.Reflection;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
@@ -163,8 +164,15 @@ namespace Shuttle.Access.WebApi
 
             services.AddOpenTelemetryTracing(
                 builder => builder
-                    .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("Shuttle.Access.WebApi"))
-                    .AddServiceBusSource()
+                    //.AddSource("Shuttle.Access.WebApi")
+                    .AddServiceBusInstrumentation(openTelemetryBuilder =>
+                    {
+                        Configuration.GetSection(ServiceBusOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                    })
+                    .AddMediatorInstrumentation(openTelemetryBuilder =>
+                    {
+                        Configuration.GetSection(MediatorOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                    })
                     .AddAspNetCoreInstrumentation()
                     .AddSqlClientInstrumentation(options =>
                     {
@@ -174,11 +182,6 @@ namespace Shuttle.Access.WebApi
                     {
                         options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
                     }));
-
-            services.AddServiceBusInstrumentation(builder =>
-            {
-                Configuration.GetSection(OpenTelemetryOptions.SectionName).Bind(builder.Options);
-            });
 
             services.AddSwaggerGen(options =>
             {
