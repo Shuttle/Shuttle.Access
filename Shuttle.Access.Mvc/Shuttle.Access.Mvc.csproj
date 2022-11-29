@@ -16,7 +16,7 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
-		<PackageReference Include="Shuttle.Core.Contract" Version="10.1.0" />
+		<PackageReference Include="Shuttle.Core.Contract" Version="11.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

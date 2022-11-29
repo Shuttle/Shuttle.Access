@@ -22,6 +22,7 @@ using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
 using Shuttle.Recall.OpenTelemetry;
 using Shuttle.Recall.Sql.Storage;
+using Shuttle.Sentinel.Module;
 
 namespace Shuttle.Access.Server
 {
@@ -39,6 +40,8 @@ namespace Shuttle.Access.Server
                     var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
                     services.AddSingleton<IConfiguration>(configuration);
+
+                    services.AddSentinelModule();
 
                     services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
 
@@ -79,7 +82,6 @@ namespace Shuttle.Access.Server
 
                     services.AddOpenTelemetryTracing(
                         builder => builder
-                            //.AddSource("Shuttle.Access.Server")
                             .AddServiceBusInstrumentation(openTelemetryBuilder =>
                             {
                                 configuration.GetSection(ServiceBusOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
