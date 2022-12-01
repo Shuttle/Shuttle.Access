@@ -17,7 +17,7 @@
 		<dependencies>
       <dependency id="Microsoft.AspNetCore.Http.Abstractions" version="2.2.0" />
       <dependency id="Microsoft.AspNetCore.Mvc.Core" version="2.2.5" />
-      <dependency id="Shuttle.Core.Contract" version="10.1.0" />
+      <dependency id="Shuttle.Core.Contract" version="11.0.0" />
 		</dependencies>
 	</metadata>
 	<files>
