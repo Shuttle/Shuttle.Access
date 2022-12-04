@@ -17,8 +17,8 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="OpenTelemetry" Version="1.4.0-beta.3" />
     <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.4.0-beta.3" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.8" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.0.0-rc9.8" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.9" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.0.0-rc9.9" />
     <PackageReference Include="Shuttle.Core.DependencyInjection" Version="1.0.1" />
     <PackageReference Include="Shuttle.Recall.OpenTelemetry" Version="1.0.2-beta.3" />
     <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="16.1.1" />
