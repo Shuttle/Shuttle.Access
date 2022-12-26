@@ -96,6 +96,10 @@ and
     or
     i.Id = @IdentityId
 )
+{(columns ? @"
+order by
+    i.[Name]
+" : string.Empty)}
 ")
                 .AddParameterValue(Columns.RoleName, specification.RoleName)
                 .AddParameterValue(Columns.Name, specification.Name)

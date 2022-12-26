@@ -155,6 +155,8 @@ and
     or
     DateRegistered >= @DateRegistered
 )
+order by
+    p.Name
 ")
                 .AddParameterValue(Columns.NameMatch, specification.NameMatch)
                 .AddParameterValue(Columns.DateRegistered, specification.StartDateRegistered);
@@ -205,6 +207,10 @@ and
 and
     Id in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
 ")}
+{(columns ? @"
+order by
+    Name
+" : string.Empty)}
 ")
                 .AddParameterValue(Columns.NameMatch, specification.NameMatch);
         }
