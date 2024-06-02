@@ -7,14 +7,11 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
 using Shuttle.Core.Mediator.OpenTelemetry;
-using Shuttle.Core.Pipelines;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
 using Shuttle.Esb.OpenTelemetry;
@@ -24,63 +21,65 @@ using Shuttle.Recall.OpenTelemetry;
 using Shuttle.Recall.Sql.Storage;
 using Shuttle.Sentinel.Module;
 
-namespace Shuttle.Access.Server
+namespace Shuttle.Access.Server;
+
+internal class Program
 {
-    internal class Program
+    private static void Main(string[] args)
     {
-        private static void Main(string[] args)
-        {
-            DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
+        DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-            var host = Host.CreateDefaultBuilder()
-                .ConfigureServices(services =>
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services =>
+            {
+                var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+
+                services.AddSingleton<IConfiguration>(configuration);
+
+                services.AddSentinelModule();
+
+                services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
+
+                services.AddDataAccess(builder =>
                 {
-                    var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+                    builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
+                    builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
+                });
 
-                    services.AddSingleton<IConfiguration>(configuration);
+                services.AddServiceBus(builder =>
+                {
+                    configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
 
-                    services.AddSentinelModule();
+                    builder.Options.Subscription.ConnectionStringName = "Access";
+                });
 
-                    services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
-
-                    services.AddDataAccess(builder =>
+                services.AddAzureStorageQueues(builder =>
+                {
+                    builder.AddOptions("azure", new AzureStorageQueueOptions
                     {
-                        builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
-                        builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
+                        ConnectionString = configuration.GetConnectionString("azure")
                     });
+                });
 
-                    services.AddServiceBus(builder =>
-                    {
-                        configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
+                services.AddEventStore();
+                services.AddSqlEventStorage();
+                services.AddSqlSubscription();
 
-                        builder.Options.Subscription.ConnectionStringName = "Access";
-                    });
+                services.AddMediator(builder =>
+                {
+                    builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
+                });
 
-                    services.AddAzureStorageQueues(builder =>
-                    {
-                        builder.AddOptions("azure", new AzureStorageQueueOptions
-                        {
-                            ConnectionString = configuration.GetConnectionString("azure")
-                        });
-                    });
+                services.AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>();
+                services.AddSingleton<IHashingService, HashingService>();
+                services.AddSingleton<IHostedService, ApplicationHostedService>();
 
-                    services.AddEventStore();
-                    services.AddSqlEventStorage();
-                    services.AddSqlSubscription();
+                services.AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Server"));
 
-                    services.AddMediator(builder =>
-                    {
-                        builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
-                    });
-
-                    services.AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>();
-                    services.AddSingleton<IHashingService, HashingService>();
-
-                    services.AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Server"));
-
-                    services.AddOpenTelemetryTracing(
+                services.AddOpenTelemetry()
+                    .WithTracing(
                         builder => builder
                             .AddServiceBusInstrumentation(openTelemetryBuilder =>
                             {
@@ -102,36 +101,28 @@ namespace Shuttle.Access.Server
                             {
                                 options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
                             }));
-                })
-                .Build();
+            })
+            .Build();
 
-            var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
+        var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
 
-            var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationTokenSource = new CancellationTokenSource();
 
-            Console.CancelKeyPress += delegate {
-                cancellationTokenSource.Cancel();
-            };
+        Console.CancelKeyPress += delegate
+        {
+            cancellationTokenSource.Cancel();
+        };
 
-            if (!databaseContextFactory.IsAvailable("Access", cancellationTokenSource.Token))
-            {
-                throw new ApplicationException("[connection failure]");
-            }
-
-            if (cancellationTokenSource.Token.IsCancellationRequested)
-            {
-                return;
-            }
-
-            host.Services.GetRequiredService<IPipelineFactory>().ModulesResolved += (sender, e) =>
-            {
-                using (databaseContextFactory.Create())
-                {
-                    host.Services.GetRequiredService<IMediator>().Send(new ConfigureApplication(), cancellationTokenSource.Token);
-                }
-            };
-
-            host.Run();
+        if (!databaseContextFactory.IsAvailable("Access", cancellationTokenSource.Token))
+        {
+            throw new ApplicationException("[connection failure]");
         }
+
+        if (cancellationTokenSource.Token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        host.Run();
     }
 }

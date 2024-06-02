@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
@@ -30,14 +32,14 @@ namespace Shuttle.Access.Sql
             _identityQuery = identityQuery;
         }
 
-        public RegisterSessionResult Register(string identityName, Guid requesterToken)
+        public async Task<RegisterSessionResult> RegisterAsync(string identityName, Guid requesterToken, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(identityName))
             {
                 return RegisterSessionResult.Failure();
             }
 
-            var requesterSession = _sessionRepository.Find(requesterToken);
+            var requesterSession = await _sessionRepository.FindAsync(requesterToken, cancellationToken);
 
             if (requesterSession == null)
             {
@@ -66,7 +68,7 @@ namespace Shuttle.Access.Sql
                 return RegisterSessionResult.Failure();
             }
             
-            var session = _sessionRepository.Find(identityName);
+            var session = await _sessionRepository.FindAsync(identityName, cancellationToken);
 
             if (session != null && 
                 session.HasExpired &&
@@ -76,27 +78,26 @@ namespace Shuttle.Access.Sql
 
                     session.Renew(DateTime.UtcNow.Add(_accessOptions.SessionDuration));
 
-                    _sessionRepository.Renew(session);
+                    await _sessionRepository.RenewAsync(session, cancellationToken);
             }
             else
             {
                 var now = DateTime.UtcNow;
 
-                session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now,
-                    now.Add(_accessOptions.SessionDuration));
+                session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now, now.Add(_accessOptions.SessionDuration));
 
                 foreach (var permission in _authorizationService.Permissions(identityName))
                 {
                     session.AddPermission(permission);
                 }
 
-                _sessionRepository.Save(session);
+                await _sessionRepository.SaveAsync(session, cancellationToken);
             }
 
             return RegisterSessionResult.Success(session);
         }
 
-        public RegisterSessionResult Register(string identityName, string password, Guid token)
+        public async Task<RegisterSessionResult> RegisterAsync(string identityName, string password, Guid token, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrEmpty(identityName) || string.IsNullOrEmpty(password) && token.Equals(Guid.Empty))
             {
@@ -109,7 +110,7 @@ namespace Shuttle.Access.Sql
             {
                 SessionOperation.Invoke(this, new SessionOperationEventArgs(string.Format(Access.Resources.SessionRegisterIdentity, identityName)));
 
-                var authenticationResult = _authenticationService.Authenticate(identityName, password);
+                var authenticationResult = await _authenticationService.AuthenticateAsync(identityName, password, cancellationToken);
 
                 if (!authenticationResult.Authenticated)
                 {
@@ -118,7 +119,7 @@ namespace Shuttle.Access.Sql
                     return RegisterSessionResult.Failure();
                 }
 
-                session = _sessionRepository.Find(identityName);
+                session = await _sessionRepository.FindAsync(identityName, cancellationToken);
 
                 if (session != null && session.HasExpired)
                 {
@@ -128,7 +129,7 @@ namespace Shuttle.Access.Sql
 
                         session.Renew(DateTime.UtcNow.Add(_accessOptions.SessionDuration));
 
-                        _sessionRepository.Renew(session);
+                        await _sessionRepository.RenewAsync(session, cancellationToken);
                     }
                     else
                     {
@@ -148,14 +149,14 @@ namespace Shuttle.Access.Sql
                         session.AddPermission(permission);
                     }
 
-                    _sessionRepository.Save(session);
+                    await _sessionRepository.SaveAsync(session, cancellationToken);
                 }
             }
             else
             {
                 SessionOperation.Invoke(this, new SessionOperationEventArgs(string.Format(Access.Resources.SessionRegisterToken, identityName)));
 
-                session = _sessionRepository.Find(token);
+                session = await _sessionRepository.FindAsync(token, cancellationToken);
 
                 if (session == null)
                 {
@@ -172,7 +173,7 @@ namespace Shuttle.Access.Sql
 
                         session.Renew(DateTime.UtcNow.Add(_accessOptions.SessionDuration));
 
-                        _sessionRepository.Renew(session);
+                        await _sessionRepository.RenewAsync(session, cancellationToken);
                     }
                     else
                     {
@@ -188,23 +189,23 @@ namespace Shuttle.Access.Sql
             return RegisterSessionResult.Success(session.IdentityName, session.Token, session.ExpiryDate, session.Permissions);
         }
 
-        public bool Remove(Guid token)
+        public async ValueTask<bool> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            var session = _sessionRepository.Find(token);
+            var session = await _sessionRepository.FindAsync(token, cancellationToken);
 
-            return session != null && Remove(session.IdentityName);
+            return session != null && await RemoveAsync(session.IdentityName, cancellationToken);
         }
 
-        public bool Remove(string identityName)
+        public async ValueTask<bool> RemoveAsync(string identityName, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
-            return _sessionRepository.Remove(identityName) > 0;
+            return await _sessionRepository.RemoveAsync(identityName, cancellationToken) > 0;
         }
 
-        public void Refresh(Guid token)
+        public async Task RefreshAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            var session = _sessionRepository.Get(token);
+            var session = await _sessionRepository.GetAsync(token, cancellationToken);
 
             session.ClearPermissions();
 
@@ -213,7 +214,7 @@ namespace Shuttle.Access.Sql
                 session.AddPermission(permission);
             }
 
-            _sessionRepository.Save(session);
+            await _sessionRepository.SaveAsync(session, cancellationToken);
         }
 
         public event EventHandler<SessionOperationEventArgs> SessionOperation = delegate

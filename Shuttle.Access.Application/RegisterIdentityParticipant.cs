@@ -40,7 +40,7 @@ namespace Shuttle.Access.Application
             Identity identity;
 
             var key = Identity.Key(message.Name);
-            var id = _keyStore.Get(key);
+            var id = _keyStore.Find(key);
 
             if (id.HasValue)
             {
@@ -61,7 +61,7 @@ namespace Shuttle.Access.Application
 
                 _keyStore.Add(id.Value, key);
 
-                stream = _eventStore.CreateEventStream(id.Value);
+                stream = _eventStore.Get(id.Value);
             }
 
             var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -24,17 +26,17 @@ namespace Shuttle.Access.Sql
             _queryFactory = queryFactory;
         }
 
-        public bool Contains(Guid token)
+        public ValueTask<bool> ContainsAsync(Guid token, CancellationToken cancellationToken = default)
         {
             return _databaseGateway.GetScalar<int>(_queryFactory.Contains(token)) == 1;
         }
 
-        public bool Contains(Guid token, string permission)
+        public ValueTask<bool> ContainsAsync(Guid token, string permission, CancellationToken cancellationToken = default)
         {
             return _databaseGateway.GetScalar<int>(_queryFactory.Contains(token, permission)) == 1;
         }
 
-        public DataAccess.Query.Session Get(Guid token)
+        public Task<DataAccess.Query.Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
         {
             var result = _queryMapper.MapObject<DataAccess.Query.Session>(_queryFactory.Get(token));
 
@@ -45,7 +47,7 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public IEnumerable<DataAccess.Query.Session> Search(DataAccess.Query.Session.Specification specification)
+        public Task<IEnumerable<Session>> SearchAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(specification, nameof(specification));
 

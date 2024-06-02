@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -23,7 +25,7 @@ namespace Shuttle.Access.Sql
             _queryFactory = queryFactory;
         }
 
-        public void Save(Session session)
+        public Task SaveAsync(Session session, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(session, nameof(session));
 
@@ -36,16 +38,16 @@ namespace Shuttle.Access.Sql
             }
         }
 
-        public void Renew(Session session)
+        public Task RenewAsync(Session session, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(session, nameof(session));
 
             _databaseGateway.Execute(_queryFactory.Renew(session));
         }
 
-        public Session Get(Guid token)
+        public Task<Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            var result = Find(token);
+            var result = FindAsync(token);
 
             if (result == null)
             {
@@ -55,7 +57,7 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public Session Find(Guid token)
+        public Task<Session> FindAsync(Guid token, CancellationToken cancellationToken = default)
         {
             var session = _dataRepository.FetchItem(_queryFactory.Get(token));
 
@@ -66,13 +68,13 @@ namespace Shuttle.Access.Sql
 
             foreach (var row in _databaseGateway.GetRows(_queryFactory.GetPermissions(token)))
             {
-                session.AddPermission(Columns.PermissionName.MapFrom(row));
+                session.AddPermission(Columns.PermissionName.Value(row));
             }
 
             return session;
         }
 
-        public Session Find(string identityName)
+        public Task<Session> FindAsync(string identityName, CancellationToken cancellationToken = default)
         {
             var session = _dataRepository.FetchItem(_queryFactory.Get(identityName));
 
@@ -83,18 +85,18 @@ namespace Shuttle.Access.Sql
 
             foreach (var row in _databaseGateway.GetRows(_queryFactory.GetPermissions(session.Token)))
             {
-                session.AddPermission(Columns.PermissionName.MapFrom(row));
+                session.AddPermission(Columns.PermissionName.Value(row));
             }
 
             return session;
         }
 
-        public int Remove(Guid token)
+        public ValueTask<int> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
         {
             return _databaseGateway.Execute(_queryFactory.Remove(token));
         }
 
-        public int Remove(string identityName)
+        public ValueTask<int> RemoveAsync(string identityName, CancellationToken cancellationToken = default)
         {
             return _databaseGateway.Execute(_queryFactory.Remove(identityName));
         }

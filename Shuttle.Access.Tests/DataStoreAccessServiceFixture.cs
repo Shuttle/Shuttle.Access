@@ -18,7 +18,7 @@ namespace Shuttle.Access.Tests
         {
             var repository = new Mock<ISessionRepository>();
 
-            repository.Setup(m => m.Find(It.IsAny<Guid>())).Returns(() => null);
+            repository.Setup(m => m.FindAsync(It.IsAny<Guid>())).Returns(() => null);
 
             var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -41,7 +41,7 @@ namespace Shuttle.Access.Tests
         {
             var repository = new Mock<ISessionRepository>();
 
-            repository.Setup(m => m.Find(It.IsAny<Guid>())).Returns(() => _session);
+            repository.Setup(m => m.FindAsync(It.IsAny<Guid>())).Returns(() => _session);
 
             var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -59,7 +59,7 @@ namespace Shuttle.Access.Tests
             Assert.That(service.Contains(_session.Token), Is.True);
             Assert.That(service.Contains(_session.Token), Is.True);
 
-            repository.Verify(m => m.Find(It.IsAny<Guid>()), Times.Exactly(1));
+            repository.Verify(m => m.FindAsync(It.IsAny<Guid>()), Times.Exactly(1));
         }
     }
 }

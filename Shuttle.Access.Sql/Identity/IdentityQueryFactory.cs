@@ -19,7 +19,7 @@ namespace Shuttle.Access.Sql
 
         public IQuery Register(Guid id, Registered domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 insert into [dbo].[Identity]
 (
 	[Id],
@@ -37,11 +37,11 @@ values
     @GeneratedPassword
 )
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Name, domainEvent.Name)
-                .AddParameterValue(Columns.DateRegistered, domainEvent.DateRegistered)
-                .AddParameterValue(Columns.RegisteredBy, domainEvent.RegisteredBy)
-                .AddParameterValue(Columns.GeneratedPassword, domainEvent.GeneratedPassword);
+                .AddParameter(Columns.Id, id)
+                .AddParameter(Columns.Name, domainEvent.Name)
+                .AddParameter(Columns.DateRegistered, domainEvent.DateRegistered)
+                .AddParameter(Columns.RegisteredBy, domainEvent.RegisteredBy)
+                .AddParameter(Columns.GeneratedPassword, domainEvent.GeneratedPassword);
         }
 
         public IQuery Count(DataAccess.Query.Identity.Specification specification)
@@ -53,7 +53,7 @@ values
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return RawQuery.Create($@"
+            return new Query($@"
 select distinct
 {(columns ? SelectedColumns : "count (*)")}
 from
@@ -101,16 +101,16 @@ order by
     i.[Name]
 " : string.Empty)}
 ")
-                .AddParameterValue(Columns.RoleName, specification.RoleName)
-                .AddParameterValue(Columns.Name, specification.Name)
-                .AddParameterValue(Columns.IdentityId, specification.Id)
-                .AddParameterValue(Columns.RoleId, specification.RoleId)
-                .AddParameterValue(Columns.PermissionId, specification.PermissionId);
+                .AddParameter(Columns.RoleName, specification.RoleName)
+                .AddParameter(Columns.Name, specification.Name)
+                .AddParameter(Columns.IdentityId, specification.Id)
+                .AddParameter(Columns.RoleId, specification.RoleId)
+                .AddParameter(Columns.PermissionId, specification.PermissionId);
         }
 
         public IQuery RoleAdded(Guid id, RoleAdded domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 if not exists(select null from [dbo].[IdentityRole] where IdentityId = @IdentityId and RoleId = @RoleId)
     insert into [dbo].[IdentityRole]
     (
@@ -125,9 +125,9 @@ if not exists(select null from [dbo].[IdentityRole] where IdentityId = @Identity
         @DateRegistered
     )
 ")
-                .AddParameterValue(Columns.IdentityId, id)
-                .AddParameterValue(Columns.RoleId, domainEvent.RoleId)
-                .AddParameterValue(Columns.DateRegistered, DateTime.UtcNow);
+                .AddParameter(Columns.IdentityId, id)
+                .AddParameter(Columns.RoleId, domainEvent.RoleId)
+                .AddParameter(Columns.DateRegistered, DateTime.UtcNow);
         }
 
         public IQuery Search(DataAccess.Query.Identity.Specification specification)
@@ -137,7 +137,7 @@ if not exists(select null from [dbo].[IdentityRole] where IdentityId = @Identity
 
         public IQuery Get(Guid id)
         {
-            return RawQuery.Create($@"
+            return new Query($@"
 select
     {SelectedColumns}
 from
@@ -145,14 +145,14 @@ from
 where 
     i.Id = @Id
 ")
-                .AddParameterValue(Columns.Id, id);
+                .AddParameter(Columns.Id, id);
         }
 
         public IQuery Roles(DataAccess.Query.Identity.Specification specification)
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return RawQuery.Create(@"
+            return new Query(@"
 select 
     ir.IdentityId, 
     ir.RoleId Id, 
@@ -174,13 +174,13 @@ and
     DateRegistered >= @DateRegistered
 )
 ")
-                .AddParameterValue(Columns.IdentityId, specification.Id)
-                .AddParameterValue(Columns.DateRegistered, specification.StartDateRegistered);
+                .AddParameter(Columns.IdentityId, specification.Id)
+                .AddParameter(Columns.DateRegistered, specification.StartDateRegistered);
         }
 
         public IQuery RoleRemoved(Guid id, RoleRemoved domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 delete 
 from 
     [dbo].[IdentityRole]
@@ -189,13 +189,13 @@ where
 and
 	[RoleId] = @RoleId
 ")
-                .AddParameterValue(Columns.IdentityId, id)
-                .AddParameterValue(Columns.RoleId, domainEvent.RoleId);
+                .AddParameter(Columns.IdentityId, id)
+                .AddParameter(Columns.RoleId, domainEvent.RoleId);
         }
 
         public IQuery AdministratorCount()
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 select 
     count(*) as count 
 from 
@@ -209,26 +209,26 @@ where
 
         public IQuery RemoveRoles(Guid id)
         {
-            return RawQuery.Create("delete from IdentityRole where IdentityId = @IdentityId")
-                .AddParameterValue(Columns.IdentityId, id);
+            return new Query("delete from IdentityRole where IdentityId = @IdentityId")
+                .AddParameter(Columns.IdentityId, id);
         }
 
         public IQuery Remove(Guid id)
         {
-            return RawQuery.Create("delete from [dbo].[Identity] where Id = @Id").AddParameterValue(Columns.Id, id);
+            return new Query("delete from [dbo].[Identity] where Id = @Id").AddParameter(Columns.Id, id);
         }
 
         public IQuery GetId(string identityName)
         {
             Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
-            return RawQuery.Create("select Id from [dbo].[Identity] where Name = @Name")
-                .AddParameterValue(Columns.Name, identityName);
+            return new Query("select Id from [dbo].[Identity] where Name = @Name")
+                .AddParameter(Columns.Name, identityName);
         }
 
         public IQuery Permissions(Guid id)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 
 select
@@ -244,12 +244,12 @@ where
 and
     p.Status <> 3
 ")
-                .AddParameterValue(Columns.IdentityId, id);
+                .AddParameter(Columns.IdentityId, id);
         }
 
         public IQuery Activated(Guid id, Activated domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 update
     [dbo].[Identity]
 set
@@ -257,13 +257,13 @@ set
 where
     Id = @Id
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.DateActivated, domainEvent.DateActivated);
+                .AddParameter(Columns.Id, id)
+                .AddParameter(Columns.DateActivated, domainEvent.DateActivated);
         }
 
         public IQuery NameSet(Guid id, NameSet domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 update
     [dbo].[Identity]
 set
@@ -271,8 +271,8 @@ set
 where
     Id = @Id
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Name, domainEvent.Name);
+                .AddParameter(Columns.Id, id)
+                .AddParameter(Columns.Name, domainEvent.Name);
 
         }
     }

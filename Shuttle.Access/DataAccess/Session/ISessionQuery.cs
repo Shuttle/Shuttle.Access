@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shuttle.Access.DataAccess
 {
     public interface ISessionQuery
     {
-        bool Contains(Guid token);
-        bool Contains(Guid token, string permission);
-        Query.Session Get(Guid token);
-        IEnumerable<Query.Session> Search(Query.Session.Specification specification);
+        ValueTask<bool> ContainsAsync(Guid token, CancellationToken cancellationToken = default);
+        ValueTask<bool> ContainsAsync(Guid token, string permission, CancellationToken cancellationToken = default);
+        Task<Query.Session> GetAsync(Guid token, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Session>> SearchAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default);
     }
 }

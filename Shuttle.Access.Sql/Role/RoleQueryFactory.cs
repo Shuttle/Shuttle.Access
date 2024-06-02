@@ -18,7 +18,7 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
-            return RawQuery.Create(@"
+            return new Query(@"
 if not exists
 (
     select
@@ -39,13 +39,13 @@ if not exists
 	    @Name
     )
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Name, domainEvent.Name);
+                .AddParameter(Columns.Id, id)
+                .AddParameter(Columns.Name, domainEvent.Name);
         }
 
         public IQuery Get(Guid id)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 select
     Name
 from
@@ -53,12 +53,12 @@ from
 where
     Id = @Id
 ")
-                .AddParameterValue(Columns.Id, id);
+                .AddParameter(Columns.Id, id);
         }
 
         public IQuery PermissionAdded(Guid id, PermissionAdded domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 insert into [dbo].[RolePermission]
 (
 	[RoleId],
@@ -72,14 +72,14 @@ values
     @DateRegistered
 )
 ")
-                .AddParameterValue(Columns.RoleId, id)
-                .AddParameterValue(Columns.PermissionId, domainEvent.PermissionId)
-                .AddParameterValue(Columns.DateRegistered, DateTime.UtcNow);
+                .AddParameter(Columns.RoleId, id)
+                .AddParameter(Columns.PermissionId, domainEvent.PermissionId)
+                .AddParameter(Columns.DateRegistered, DateTime.UtcNow);
         }
 
         public IQuery PermissionRemoved(Guid id, PermissionRemoved domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 delete 
 from 
     [dbo].[RolePermission]
@@ -88,13 +88,13 @@ where
 and
 	[PermissionId] = @PermissionId
 ")
-                .AddParameterValue(Columns.RoleId, id)
-                .AddParameterValue(Columns.PermissionId, domainEvent.PermissionId);
+                .AddParameter(Columns.RoleId, id)
+                .AddParameter(Columns.PermissionId, domainEvent.PermissionId);
         }
 
         public IQuery Removed(Guid id)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 delete 
 from 
     [dbo].[Role]
@@ -107,7 +107,7 @@ from
 where	
     [RoleId] = @Id;
 ")
-                .AddParameterValue(Columns.Id, id);
+                .AddParameter(Columns.Id, id);
         }
 
         public IQuery Count(DataAccess.Query.Role.Specification specification)
@@ -119,7 +119,7 @@ where
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return RawQuery.Create($@"
+            return new Query($@"
 select 
     rp.RoleId,
     p.Id,
@@ -158,14 +158,14 @@ and
 order by
     p.Name
 ")
-                .AddParameterValue(Columns.NameMatch, specification.NameMatch)
-                .AddParameterValue(Columns.DateRegistered, specification.StartDateRegistered);
+                .AddParameter(Columns.NameMatch, specification.NameMatch)
+                .AddParameter(Columns.DateRegistered, specification.StartDateRegistered);
 
         }
 
         public IQuery NameSet(Guid id, NameSet domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 update
     Role
 set
@@ -173,8 +173,8 @@ set
 where
     Id = @Id
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Name, domainEvent.Name);
+                .AddParameter(Columns.Id, id)
+                .AddParameter(Columns.Name, domainEvent.Name);
         }
 
         private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
@@ -188,7 +188,7 @@ where
 "
                 : "count(*)";
 
-            return RawQuery.Create($@"
+            return new Query($@"
 select
 {what}
 from
@@ -212,7 +212,7 @@ order by
     Name
 " : string.Empty)}
 ")
-                .AddParameterValue(Columns.NameMatch, specification.NameMatch);
+                .AddParameter(Columns.NameMatch, specification.NameMatch);
         }
     }
 }

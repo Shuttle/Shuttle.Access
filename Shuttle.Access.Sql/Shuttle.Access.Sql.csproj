@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+		<TargetFramework>net8.0</TargetFramework>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Shuttle.Core.Data" Version="14.0.1" />
+		<PackageReference Include="Shuttle.Core.Data" Version="15.0.1" />
 		<PackageReference Include="Shuttle.Core.DependencyInjection" Version="1.0.1" />
-		<PackageReference Include="Shuttle.Recall" Version="16.1.1" />
-		<PackageReference Include="Shuttle.Recall.Sql.Storage" Version="16.1.1" />
+		<PackageReference Include="Shuttle.Recall" Version="17.0.1" />
+		<PackageReference Include="Shuttle.Recall.Sql.Storage" Version="17.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>

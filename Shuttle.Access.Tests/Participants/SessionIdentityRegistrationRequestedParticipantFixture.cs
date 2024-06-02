@@ -20,7 +20,7 @@ namespace Shuttle.Access.Tests.Participants
                 .AddPermission(Permissions.Activate.Identity);
             var sessionRepository = new Mock<ISessionRepository>();
 
-            sessionRepository.Setup(m => m.Find(session.Token)).Returns(session);
+            sessionRepository.Setup(m => m.FindAsync(session.Token)).Returns(session);
 
             var participant = new SessionIdentityRegistrationRequestedParticipant(sessionRepository.Object);
 

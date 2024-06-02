@@ -25,7 +25,7 @@ namespace Shuttle.Access.Application
                 return;
             }
 
-            var session = _sessionRepository.Find(context.Message.SessionToken.Value);
+            var session = _sessionRepository.FindAsync(context.Message.SessionToken.Value);
 
             if (session != null && session.HasPermission(Permissions.Register.Identity))
             {

@@ -2,8 +2,7 @@
 using System.Data.Common;
 using System.Transactions;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Options;
-using Moq;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Shuttle.Core.Data;
 using Shuttle.Core.Transactions;
@@ -18,50 +17,31 @@ namespace Shuttle.Access.Tests.Integration
         {
             DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
-            TransactionScopeFactory = new TransactionScopeFactory(Options.Create(new TransactionScopeOptions
-            {
-                Enabled = true,
-                IsolationLevel = IsolationLevel.ReadCommitted,
-                Timeout = TimeSpan.FromSeconds(120)
-            }));
-            DatabaseContextCache = new ThreadStaticDatabaseContextCache();
-            DatabaseGateway = new DatabaseGateway(DatabaseContextCache);
-            DataRowMapper = new DataRowMapper();
-
-            var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
-
-            connectionStringOptions.Setup(m => m.Get(It.IsAny<string>())).Returns(
-                (string name) => new ConnectionStringOptions
+            var serviceProvider = new ServiceCollection()
+                .AddDataAccess(builder =>
                 {
-                    Name = name,
-                    ProviderName = "Microsoft.Data.SqlClient",
-                    ConnectionString = "server=.;Initial Catalog=Access;user id=sa;password=Pass!000"
-                });
-
-            ConnectionStringOptions = connectionStringOptions.Object;
-
-            DatabaseContextFactory = new DatabaseContextFactory(
-                ConnectionStringOptions,
-                Options.Create(new DataAccessOptions
+                    builder.AddConnectionString("Access", "Microsoft.Data.SqlClient", "server=.;database=Access;user id=sa;password=Pass!000;TrustServerCertificate=true");
+                    builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
+                })
+                .AddTransactionScope(builder =>
                 {
-                    DatabaseContextFactory = new DatabaseContextFactoryOptions
-                    {
-                        DefaultConnectionStringName = "Access"
-                    }
-                }),
-                new DbConnectionFactory(),
-                new DbCommandFactory(Options.Create(new DataAccessOptions())),
-                DatabaseContextCache);
+                    builder.Options.Enabled = true;
+                    builder.Options.IsolationLevel = IsolationLevel.ReadCommitted;
+                    builder.Options.Timeout = TimeSpan.FromSeconds(120);
+                })
+                .BuildServiceProvider();
 
-            QueryMapper = new QueryMapper(DatabaseGateway, DataRowMapper);
+            DatabaseGateway = serviceProvider.GetRequiredService<IDatabaseGateway>();
+            DataRowMapper = serviceProvider.GetRequiredService <IDataRowMapper>();
+            QueryMapper = serviceProvider.GetRequiredService<IQueryMapper>();
+            DatabaseContextFactory = serviceProvider.GetRequiredService<IDatabaseContextFactory>();
+            TransactionScopeFactory = serviceProvider.GetRequiredService<ITransactionScopeFactory>();
         }
 
         protected ITransactionScopeFactory TransactionScopeFactory { get; private set; }
-        protected IDatabaseContextCache DatabaseContextCache { get; private set; }
         protected IDatabaseGateway DatabaseGateway { get; private set; }
         protected IDatabaseContextFactory DatabaseContextFactory { get; private set; }
         protected IDataRowMapper DataRowMapper { get; private set; }
         protected IQueryMapper QueryMapper { get; private set; }
-        protected IOptionsMonitor<ConnectionStringOptions> ConnectionStringOptions { get; private set; }
     }
 }

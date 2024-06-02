@@ -23,7 +23,7 @@ namespace Shuttle.Access.Tests.Participants
             var sessionRepository = new Mock<ISessionRepository>();
             var hashingService = new Mock<IHashingService>();
 
-            sessionRepository.Setup(m => m.Find(session.Token))
+            sessionRepository.Setup(m => m.FindAsync(session.Token))
                 .Returns(session);
             hashingService.Setup(m => m.Sha256(changePassword.NewPassword)).Returns(hash);
 

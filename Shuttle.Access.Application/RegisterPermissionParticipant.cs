@@ -39,7 +39,7 @@ namespace Shuttle.Access.Application
             _keyStore.Add(id, key);
 
             var aggregate = new Permission();
-            var stream = _eventStore.CreateEventStream(id);
+            var stream = _eventStore.Get(id);
             var status = message.Status;
 
             if (!Enum.IsDefined(typeof(PermissionStatus), status))

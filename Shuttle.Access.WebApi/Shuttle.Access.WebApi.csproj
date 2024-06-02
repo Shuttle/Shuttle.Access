@@ -1,75 +1,22 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
-    <AnalysisLevel>5.0</AnalysisLevel>
-    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="log4net.template.xml" />
+    <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.6" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.20.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Handlers.v1\" />
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.0.1" />
-    <PackageReference Include="OpenTelemetry" Version="1.4.0-beta.3" />
-    <PackageReference Include="OpenTelemetry.Api" Version="1.4.0-beta.3" />
-    <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.4.0-beta.3" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.9" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.0.0-rc9.9" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.0.0-rc9.9" />
-    <PackageReference Include="Shuttle.Core.Data" Version="14.0.1" />
-    <PackageReference Include="Shuttle.Core.Data.Http" Version="13.0.2" />
-    <PackageReference Include="Shuttle.Core.DependencyInjection" Version="1.0.1" />
-    <PackageReference Include="Shuttle.Core.Mediator" Version="13.1.1" />
-    <PackageReference Include="Shuttle.Core.Mediator.OpenTelemetry" Version="1.0.2-beta.3" />
-    <PackageReference Include="Shuttle.Esb" Version="13.2.1" />
-    <PackageReference Include="Shuttle.Esb.AzureStorageQueues" Version="13.2.1" />
-    <PackageReference Include="Shuttle.Esb.OpenTelemetry" Version="1.0.2-beta.3" />
-    <PackageReference Include="Shuttle.Esb.Sql.Subscription" Version="13.2.2" />
-    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="16.1.1" />
-    <PackageReference Include="Shuttle.Recall.Sql.Storage" Version="16.1.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
+    <ProjectReference Include="..\Shuttle.Access.AspNetCore\Shuttle.Access.AspNetCore.csproj" />
     <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.Mvc.DataStore\Shuttle.Access.Mvc.DataStore.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.Mvc\Shuttle.Access.Mvc.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
-    <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Update="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

@@ -36,7 +36,7 @@ namespace Shuttle.Access.Sql
             {
                 var permissionRows = _databaseGateway.GetRows(_queryFactory.Permissions(specification));
 
-                foreach (var permissionGroup in permissionRows.GroupBy(row=>Columns.RoleId.MapFrom(row)))
+                foreach (var permissionGroup in permissionRows.GroupBy(row=>Columns.RoleId.Value(row)))
                 {
                     var role = result.FirstOrDefault(item => item.Id == permissionGroup.Key);
 

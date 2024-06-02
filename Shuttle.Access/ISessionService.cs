@@ -1,14 +1,16 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shuttle.Access
 {
     public interface ISessionService
     {
-        RegisterSessionResult Register(string identityName, Guid requesterToken);
-        RegisterSessionResult Register(string identityName, string password, Guid token);
-        bool Remove(Guid token);
-        bool Remove(string identityName);
-        void Refresh(Guid token);
+        Task<RegisterSessionResult> RegisterAsync(string identityName, Guid requesterToken, CancellationToken cancellationToken = default);
+        Task<RegisterSessionResult> RegisterAsync(string identityName, string password, Guid token, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveAsync(Guid token, CancellationToken cancellationToken = default);
+        ValueTask<bool> RemoveAsync(string identityName, CancellationToken cancellationToken = default);
+        Task RefreshAsync(Guid token, CancellationToken cancellationToken = default);
 
         event EventHandler<SessionOperationEventArgs> SessionOperation;
     }

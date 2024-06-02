@@ -24,6 +24,7 @@ namespace Shuttle.Access.RestClient
             });
 
             services.TryAddSingleton<IAccessClient, AccessClient>();
+            services.TryAddSingleton<IAccessService, RestAccessService>();
             services.TryAddSingleton<AuthenticationHeaderHandler>();
 
             return services;

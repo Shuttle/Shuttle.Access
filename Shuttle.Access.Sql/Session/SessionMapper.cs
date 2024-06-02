@@ -8,11 +8,11 @@ namespace Shuttle.Access.Sql
 		public MappedRow<Session> Map(DataRow row)
 		{
 			return new MappedRow<Session>(row, new Session(
-				Columns.Token.MapFrom(row), 
-                Columns.IdentityId.MapFrom(row), 
-				Columns.IdentityName.MapFrom(row),
-				Columns.DateRegistered.MapFrom(row),
-                Columns.ExpiryDate.MapFrom(row)));
+				Columns.Token.Value(row), 
+                Columns.IdentityId.Value(row), 
+				Columns.IdentityName.Value(row),
+				Columns.DateRegistered.Value(row),
+                Columns.ExpiryDate.Value(row)));
 		}
 	}
 }

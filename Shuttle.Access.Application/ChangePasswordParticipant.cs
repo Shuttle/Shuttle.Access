@@ -43,7 +43,7 @@ namespace Shuttle.Access.Application
 
             if (request.Token.HasValue)
             {
-                var session = _sessionRepository.Find(request.Token.Value);
+                var session = _sessionRepository.FindAsync(request.Token.Value);
 
                 if (session == null)
                 {

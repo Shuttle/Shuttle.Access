@@ -18,7 +18,7 @@ namespace Shuttle.Access.Tests.Participants
             var eventStore = new FixtureEventStore();
             var keyStore = new Mock<IKeyStore>();
 
-            keyStore.Setup(m => m.Contains(It.IsAny<string>())).Returns(false);
+            keyStore.Setup(m => m.Contains(It.IsAny<string>(), null)).Returns(false);
 
             var participant =
                 new RegisterRoleParticipant(eventStore, keyStore.Object);

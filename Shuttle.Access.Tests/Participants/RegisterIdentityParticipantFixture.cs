@@ -26,7 +26,7 @@ namespace Shuttle.Access.Tests.Participants
 
             identityQuery.Setup(m => m.Count(It.IsAny<DataAccess.Query.Identity.Specification>())).Returns(1);
 
-            keyStore.Setup(m => m.Get(Identity.Key(identity.Name))).Returns((Guid?)null);
+            keyStore.Setup(m => m.Find(Identity.Key(identity.Name), null)).Returns((Guid?)null);
 
             var participant =
                 new RegisterIdentityParticipant(eventStore, keyStore.Object, identityQuery.Object, roleQuery.Object);

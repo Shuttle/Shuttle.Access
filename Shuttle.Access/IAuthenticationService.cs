@@ -1,11 +1,12 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shuttle.Access
 {
     public interface IAuthenticationService
     {
-        AuthenticationResult Authenticate(string identityName, string password);
-        AuthenticationResult Authenticate(string identityName);
+        Task<AuthenticationResult> AuthenticateAsync(string identityName, string password, CancellationToken cancellationToken = default);
 
         event EventHandler<AuthenticationEventArgs> Authentication;
     }

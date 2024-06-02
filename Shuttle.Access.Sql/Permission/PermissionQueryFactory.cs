@@ -31,7 +31,7 @@ namespace Shuttle.Access.Sql
 "
                 : "count(*)";
 
-            return RawQuery.Create($@"
+            return new Query($@"
 select distinct
 {what}
 from
@@ -42,7 +42,7 @@ inner join
 ")}
 {Where(specification)}
 ")
-                .AddParameterValue(Columns.NameMatch, specification.NameMatch);
+                .AddParameter(Columns.NameMatch, specification.NameMatch);
         }
 
         private string Where(DataAccess.Query.Permission.Specification specification)
@@ -73,7 +73,7 @@ and
         {
             Guard.AgainstNull(domainEvent, nameof(domainEvent));
 
-            return RawQuery.Create(@"
+            return new Query(@"
 if not exists
 (
     select
@@ -96,9 +96,9 @@ if not exists
         @Status
     )
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Name, domainEvent.Name)
-                .AddParameterValue(Columns.Status, (int)domainEvent.Status);
+                .AddParameter(Columns.Id, id)
+                .AddParameter(Columns.Name, domainEvent.Name)
+                .AddParameter(Columns.Status, (int)domainEvent.Status);
         }
 
         public IQuery Activated(Guid id, Activated domainEvent)
@@ -110,7 +110,7 @@ if not exists
 
         private static IQuery SetStatus(Guid id, int status)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 update
     Permission
 set
@@ -118,8 +118,8 @@ set
 where
     Id = @Id
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Status, status);
+                .AddParameter(Columns.Id, id)
+                .AddParameter(Columns.Status, status);
         }
 
         public IQuery Deactivated(Guid id, Deactivated domainEvent)
@@ -140,7 +140,7 @@ where
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return RawQuery.Create($@"
+            return new Query($@"
 if exists
 (
 select
@@ -153,12 +153,12 @@ from
 else
     select 0
 ")
-                .AddParameterValue(Columns.NameMatch, specification.NameMatch);
+                .AddParameter(Columns.NameMatch, specification.NameMatch);
         }
 
         public IQuery NameSet(Guid id, NameSet domainEvent)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 update
     Permission
 set
@@ -166,8 +166,8 @@ set
 where
     Id = @Id
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Name, domainEvent.Name);
+                .AddParameter(Columns.Id, id)
+                .AddParameter(Columns.Name, domainEvent.Name);
         }
     }
 }

@@ -10,8 +10,7 @@ namespace Shuttle.Access.Mvc.DataStore
         private readonly AccessOptions _accessOptions;
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly ISessionRepository _sessionRepository;
-        private readonly string _providerName;
-        private readonly string _connectionString;
+        private readonly string _connectionStringName;
 
         public DataStoreAccessService(IOptionsMonitor<ConnectionStringOptions> connectionStringOptions, IOptions<AccessOptions> accessOptions, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) {
             Guard.AgainstNull(connectionStringOptions, nameof(connectionStringOptions));
@@ -20,19 +19,8 @@ namespace Shuttle.Access.Mvc.DataStore
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
             Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
 
-            var connectionStringName = accessOptions.Value.ConnectionStringName;
-            var connectionString = connectionStringOptions.Get(connectionStringName);
-
-            if (connectionString == null)
-            {
-                throw new InvalidOperationException(string.Format(Core.Data.Resources.ConnectionStringMissingException,
-                    connectionStringName));
-            }
-
-            _providerName = connectionString.ProviderName;
-            _connectionString = connectionString.ConnectionString;
-
             _accessOptions = accessOptions.Value;
+            _connectionStringName = accessOptions.Value.ConnectionStringName;
             _databaseContextFactory = databaseContextFactory;
             _sessionRepository = sessionRepository;
         }
@@ -73,9 +61,9 @@ namespace Shuttle.Access.Mvc.DataStore
                 return;
             }
 
-            using (_databaseContextFactory.Create(_providerName, _connectionString))
+            using (_databaseContextFactory.Create(_connectionStringName))
             {
-                var session = _sessionRepository.Find(token);
+                var session = _sessionRepository.FindAsync(token);
 
                 if (session != null)
                 {

@@ -18,7 +18,7 @@ namespace Shuttle.Access.Sql
 
 		public IQuery Get(Guid token)
 		{
-			return RawQuery.Create(@"
+			return new Query(@"
 select 
 	Token, 
 	IdentityId, 
@@ -30,14 +30,14 @@ from
 where 
 	Token = @Token
 ")
-				.AddParameterValue(Columns.Token, token);
+				.AddParameter(Columns.Token, token);
 		}
 
         public IQuery Get(string identityName)
         {
             Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
             
-            return RawQuery.Create(@"
+            return new Query(@"
 select 
 	Token, 
 	IdentityId, 
@@ -49,12 +49,12 @@ from
 where 
 	IdentityName = @IdentityName
 ")
-                .AddParameterValue(Columns.IdentityName, identityName);
+                .AddParameter(Columns.IdentityName, identityName);
         }
 
 		public IQuery GetPermissions(Guid token)
 		{
-			return RawQuery.Create(@"
+			return new Query(@"
 select 
 	PermissionName 
 from 
@@ -62,28 +62,28 @@ from
 where 
 	Token = @Token
 ")
-				.AddParameterValue(Columns.Token, token);
+				.AddParameter(Columns.Token, token);
 		}
 
 		public IQuery Remove(string identityName)
 		{
             Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
-			return RawQuery.Create(@"
+			return new Query(@"
 delete 
 from 
 	[dbo].[Session] 
 where 
 	IdentityName = @IdentityName
 ")
-				.AddParameterValue(Columns.IdentityName, identityName);
+				.AddParameter(Columns.IdentityName, identityName);
 		}
 
 		public IQuery Add(Session session)
 		{
             Guard.AgainstNull(session, nameof(session));
             
-			return RawQuery.Create(@"
+			return new Query(@"
 insert into [dbo].[Session] 
 (
 	Token, 
@@ -101,18 +101,18 @@ values
     @ExpiryDate
 )
 ")
-				.AddParameterValue(Columns.Token, session.Token)
-				.AddParameterValue(Columns.IdentityName, session.IdentityName)
-				.AddParameterValue(Columns.IdentityId, session.IdentityId)
-				.AddParameterValue(Columns.DateRegistered, session.DateRegistered)
-				.AddParameterValue(Columns.ExpiryDate, session.ExpiryDate);
+				.AddParameter(Columns.Token, session.Token)
+				.AddParameter(Columns.IdentityName, session.IdentityName)
+				.AddParameter(Columns.IdentityId, session.IdentityId)
+				.AddParameter(Columns.DateRegistered, session.DateRegistered)
+				.AddParameter(Columns.ExpiryDate, session.ExpiryDate);
 		}
 
 		public IQuery AddPermission(Guid token, string permission)
 		{
             Guard.AgainstNullOrEmptyString(permission, nameof(permission));
             
-			return RawQuery.Create(@"
+			return new Query(@"
 insert into [dbo].[SessionPermission]
 (
 	Token,
@@ -124,25 +124,25 @@ values
 	@PermissionName
 )
 ")
-				.AddParameterValue(Columns.Token, token)
-				.AddParameterValue(Columns.PermissionName, permission);
+				.AddParameter(Columns.Token, token)
+				.AddParameter(Columns.PermissionName, permission);
 		}
 
 		public IQuery Remove(Guid token)
 		{
-			return RawQuery.Create(@"
+			return new Query(@"
 delete 
 from 
 	[dbo].[Session] 
 here 
 	Token = @Token
 ")
-				.AddParameterValue(Columns.Token, token);
+				.AddParameter(Columns.Token, token);
 		}
 
 	    public IQuery Contains(Guid token)
 	    {
-            return RawQuery.Create(@"
+            return new Query(@"
 if exists 
 (
 	select 
@@ -154,14 +154,14 @@ where
 ) 
 	select 1 else select 0
 ")
-                .AddParameterValue(Columns.Token, token);
+                .AddParameter(Columns.Token, token);
         }
 
 	    public IQuery Contains(Guid token, string permission)
 	    {
             Guard.AgainstNullOrEmptyString(permission, nameof(permission));
 
-            return RawQuery.Create(@"
+            return new Query(@"
 if exists 
 (
 	select 
@@ -175,13 +175,13 @@ if exists
 ) 
 	select 1 else select 0
 ")
-                .AddParameterValue(Columns.Token, token)
-                .AddParameterValue(Columns.PermissionName, permission);
+                .AddParameter(Columns.Token, token)
+                .AddParameter(Columns.PermissionName, permission);
         }
 
         public IQuery Renew(Session session)
         {
-            return RawQuery.Create(@"
+            return new Query(@"
 update
     [dbo].[Session]
 set
@@ -190,9 +190,9 @@ set
 where
     IdentityName = @IdentityName
 ")
-                .AddParameterValue(Columns.Token, session.Token)
-                .AddParameterValue(Columns.ExpiryDate, session.ExpiryDate)
-                .AddParameterValue(Columns.IdentityName, session.IdentityName);
+                .AddParameter(Columns.Token, session.Token)
+                .AddParameter(Columns.ExpiryDate, session.ExpiryDate)
+                .AddParameter(Columns.IdentityName, session.IdentityName);
         }
 
         public IQuery Search(DataAccess.Query.Session.Specification specification)
@@ -204,7 +204,7 @@ where
         {
 			Guard.AgainstNull(specification, nameof(specification));
 
-			return RawQuery.Create($@"
+			return new Query($@"
 select distinct
 {(columns ? SelectedColumns : "count (*)")}
 from

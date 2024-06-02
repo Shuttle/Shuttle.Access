@@ -12,8 +12,8 @@ namespace Shuttle.Access.Mvc
             ActionResult = null;
         }
 
-        public Guid SessionToken { get; private set; }
-        public IActionResult ActionResult { get; private set; }
+        public Guid SessionToken { get; private init; }
+        public IActionResult ActionResult { get; private init; }
 
         public bool Ok => ActionResult == null;
 

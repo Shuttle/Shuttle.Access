@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.NetworkInformation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Core.Contract;

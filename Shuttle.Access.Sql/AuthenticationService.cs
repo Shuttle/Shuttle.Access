@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
@@ -22,9 +24,9 @@ namespace Shuttle.Access.Sql
             _hashingService = hashingService;
         }
 
-        public AuthenticationResult Authenticate(string identityName, string password)
+        public async Task<AuthenticationResult> AuthenticateAsync(string identityName, string password, CancellationToken cancellationToken = default)
         {
-            var id = _keyStore.Get(Identity.Key(identityName));
+            var id = await _keyStore.FindAsync(Identity.Key(identityName), cancellationToken);
 
             if (!id.HasValue)
             {
@@ -35,7 +37,7 @@ namespace Shuttle.Access.Sql
 
             var identity = new Identity();
 
-            _eventStore.Get(id.Value).Apply(identity);
+            (await _eventStore.GetAsync(id.Value)).Apply(identity);
 
             if (identity.PasswordMatches(_hashingService.Sha256(password)))
             {
@@ -47,11 +49,6 @@ namespace Shuttle.Access.Sql
             Authentication.Invoke(this, new AuthenticationEventArgs(false, string.Format(Resources.InvalidPassword, identityName)));
 
             return AuthenticationResult.Failure();
-        }
-
-        public AuthenticationResult Authenticate(string identityName)
-        {
-            return AuthenticationResult.Success();
         }
 
         public event EventHandler<AuthenticationEventArgs> Authentication = delegate

@@ -50,7 +50,7 @@ namespace Shuttle.Access.Sql
             {
                 var roleRows = _databaseGateway.GetRows(_queryFactory.Roles(specification));
 
-                foreach (var roleGroup in roleRows.GroupBy(row => Columns.IdentityId.MapFrom(row)))
+                foreach (var roleGroup in roleRows.GroupBy(row => Columns.IdentityId.Value(row)))
                 {
                     var user = result.FirstOrDefault(item => item.Id == roleGroup.Key);
 
@@ -60,7 +60,7 @@ namespace Shuttle.Access.Sql
                     }
 
                     user.Roles = roleGroup.Select(row => new DataAccess.Query.Identity.Role
-                        {Id = Columns.Id.MapFrom(row), Name = Columns.Name.MapFrom(row)}).ToList();
+                        {Id = Columns.Id.Value(row), Name = Columns.Name.Value(row)}).ToList();
                 }
             }
 
@@ -70,7 +70,7 @@ namespace Shuttle.Access.Sql
         public IEnumerable<Guid> RoleIds(DataAccess.Query.Identity.Specification specification)
         {
             return _databaseGateway.GetRows(_queryFactory.Roles(specification))
-                .Select(row => Columns.RoleId.MapFrom(row));
+                .Select(row => Columns.RoleId.Value(row));
         }
 
         public int Count(DataAccess.Query.Identity.Specification specification)

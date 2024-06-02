@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Refit;
-using Shuttle.Access.Mvc.Rest;
 using Shuttle.Access.RestClient;
 using Shuttle.Access.RestClient.v1;
 
