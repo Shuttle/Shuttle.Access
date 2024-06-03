@@ -9,18 +9,18 @@ namespace Shuttle.Access.RestClient.v1
     public interface ISessionsApi
     {
         [Post("/sessions")]
-        Task<ApiResponse<SessionRegistered>> Post(RegisterSession message);
+        Task<ApiResponse<SessionRegistered>> PostAsync(RegisterSession message);
 
         [Post("/sessions/delegated")]
-        Task<ApiResponse<SessionRegistered>> Post(RegisterDelegatedSession message);
+        Task<ApiResponse<SessionRegistered>> PostAsync(RegisterDelegatedSession message);
 
         [Delete("/sessions")]
-        Task<ApiResponse<object>> Delete();
+        Task<ApiResponse<object>> DeleteAsync();
 
         [Get("/sessions/{token}")]
-        Task<ApiResponse<DataAccess.Query.Session>> Get(Guid token);
+        Task<ApiResponse<DataAccess.Query.Session>> GetAsync(Guid token);
 
         [Get("/sessions/{token}/permissions")]
-        Task<ApiResponse<List<string>>> GetPermissions(Guid token);
+        Task<ApiResponse<List<string>>> GetPermissionsAsync(Guid token);
     }
 }

@@ -39,7 +39,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Roles.Get().Result;
+                var response = client.Roles.GetAsync().Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -101,7 +101,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Roles.Get("some-value").Result;
+                var response = client.Roles.GetAsync("some-value").Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -132,7 +132,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).RegisterSession();
 
-                var response = client.Roles.Delete(id).Result;
+                var response = client.Roles.DeleteAsync(id).Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -163,7 +163,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).RegisterSession();
 
-                var response = client.Roles.SetPermission(Guid.NewGuid(), new SetRolePermission
+                var response = client.Roles.SetPermissionAsync(Guid.NewGuid(), new SetRolePermission
                 {
                     PermissionId = permissionId,
                     Active = true
@@ -205,7 +205,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Roles.PermissionAvailability(Guid.NewGuid(), new Identifiers<Guid>
+                var response = client.Roles.PermissionAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
                 {
                     Values = new List<Guid>
                     {
@@ -248,7 +248,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).RegisterSession();
 
-                var response = client.Roles.Register(new RegisterRole
+                var response = client.Roles.RegisterAsync(new RegisterRole
                 {
                     Name = "role"
                 }).Result;

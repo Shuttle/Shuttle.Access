@@ -62,17 +62,14 @@ namespace Shuttle.Access.Sql
                 return RegisterSessionResult.Failure();
             }
 
-            if (_identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(identityName))
-                .SingleOrDefault() == null)
+            if ((await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(identityName), cancellationToken)).SingleOrDefault() == null)
             {
                 return RegisterSessionResult.Failure();
             }
             
             var session = await _sessionRepository.FindAsync(identityName, cancellationToken);
 
-            if (session != null && 
-                session.HasExpired &&
-                session.ExpiryDate.Subtract(_accessOptions.SessionDuration) < DateTime.UtcNow)
+            if (session is { HasExpired: true } && session.ExpiryDate.Subtract(_accessOptions.SessionDuration) < DateTime.UtcNow)
             {
                     SessionOperation.Invoke(this, new SessionOperationEventArgs(string.Format(Access.Resources.SessionRegisterRenewed, identityName)));
 
@@ -84,9 +81,9 @@ namespace Shuttle.Access.Sql
             {
                 var now = DateTime.UtcNow;
 
-                session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now, now.Add(_accessOptions.SessionDuration));
+                session = new Session(Guid.NewGuid(), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
 
-                foreach (var permission in _authorizationService.Permissions(identityName))
+                foreach (var permission in _authorizationService.GetPermissionsAsync(identityName))
                 {
                     session.AddPermission(permission);
                 }
@@ -121,7 +118,7 @@ namespace Shuttle.Access.Sql
 
                 session = await _sessionRepository.FindAsync(identityName, cancellationToken);
 
-                if (session != null && session.HasExpired)
+                if (session is { HasExpired: true })
                 {
                     if (session.ExpiryDate.Subtract(_accessOptions.SessionDuration) < DateTime.UtcNow)
                     {
@@ -141,10 +138,10 @@ namespace Shuttle.Access.Sql
                 {
                     var now = DateTime.UtcNow;
 
-                    session = new Session(Guid.NewGuid(), _identityQuery.Id(identityName), identityName, now,
+                    session = new Session(Guid.NewGuid(), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now,
                         now.Add(_accessOptions.SessionDuration));
 
-                    foreach (var permission in _authorizationService.Permissions(identityName))
+                    foreach (var permission in _authorizationService.GetPermissionsAsync(identityName))
                     {
                         session.AddPermission(permission);
                     }
@@ -209,7 +206,7 @@ namespace Shuttle.Access.Sql
 
             session.ClearPermissions();
 
-            foreach (var permission in _authorizationService.Permissions(session.IdentityName))
+            foreach (var permission in _authorizationService.GetPermissionsAsync(session.IdentityName))
             {
                 session.AddPermission(permission);
             }

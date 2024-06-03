@@ -25,29 +25,29 @@ namespace Shuttle.Access.Sql
             _queryFactory = queryFactory;
         }
 
-        public Task SaveAsync(Session session, CancellationToken cancellationToken = default)
+        public async Task SaveAsync(Session session, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(session, nameof(session));
 
-            _databaseGateway.Execute(_queryFactory.Remove(session.IdentityName));
-            _databaseGateway.Execute(_queryFactory.Add(session));
+            await _databaseGateway.ExecuteAsync(_queryFactory.Remove(session.IdentityName), cancellationToken);
+            await _databaseGateway.ExecuteAsync(_queryFactory.Add(session), cancellationToken);
 
             foreach (var permission in session.Permissions)
             {
-                _databaseGateway.Execute(_queryFactory.AddPermission(session.Token, permission));
+                await _databaseGateway.ExecuteAsync(_queryFactory.AddPermission(session.Token, permission), cancellationToken);
             }
         }
 
-        public Task RenewAsync(Session session, CancellationToken cancellationToken = default)
+        public async Task RenewAsync(Session session, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(session, nameof(session));
 
-            _databaseGateway.Execute(_queryFactory.Renew(session));
+            await _databaseGateway.ExecuteAsync(_queryFactory.Renew(session), cancellationToken);
         }
 
-        public Task<Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
+        public async Task<Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            var result = FindAsync(token);
+            var result = await FindAsync(token, cancellationToken);
 
             if (result == null)
             {
@@ -57,16 +57,16 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public Task<Session> FindAsync(Guid token, CancellationToken cancellationToken = default)
+        public async Task<Session> FindAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            var session = _dataRepository.FetchItem(_queryFactory.Get(token));
+            var session = await _dataRepository.FetchItemAsync(_queryFactory.Get(token), cancellationToken);
 
             if (session == null)
             {
                 return null;
             }
 
-            foreach (var row in _databaseGateway.GetRows(_queryFactory.GetPermissions(token)))
+            foreach (var row in await _databaseGateway.GetRowsAsync(_queryFactory.GetPermissions(token), cancellationToken))
             {
                 session.AddPermission(Columns.PermissionName.Value(row));
             }
@@ -74,16 +74,16 @@ namespace Shuttle.Access.Sql
             return session;
         }
 
-        public Task<Session> FindAsync(string identityName, CancellationToken cancellationToken = default)
+        public async Task<Session> FindAsync(string identityName, CancellationToken cancellationToken = default)
         {
-            var session = _dataRepository.FetchItem(_queryFactory.Get(identityName));
+            var session = await _dataRepository.FetchItemAsync(_queryFactory.Get(identityName), cancellationToken);
 
             if (session == null)
             {
                 return null;
             }
 
-            foreach (var row in _databaseGateway.GetRows(_queryFactory.GetPermissions(session.Token)))
+            foreach (var row in await _databaseGateway.GetRowsAsync(_queryFactory.GetPermissions(session.Token), cancellationToken))
             {
                 session.AddPermission(Columns.PermissionName.Value(row));
             }
@@ -91,14 +91,14 @@ namespace Shuttle.Access.Sql
             return session;
         }
 
-        public ValueTask<int> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
+        public async ValueTask<int> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.Execute(_queryFactory.Remove(token));
+            return await _databaseGateway.ExecuteAsync(_queryFactory.Remove(token), cancellationToken);
         }
 
-        public ValueTask<int> RemoveAsync(string identityName, CancellationToken cancellationToken = default)
+        public async ValueTask<int> RemoveAsync(string identityName, CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.Execute(_queryFactory.Remove(identityName));
+            return await _databaseGateway.ExecuteAsync(_queryFactory.Remove(identityName), cancellationToken);
         }
     }
 }

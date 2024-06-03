@@ -63,7 +63,7 @@ namespace Shuttle.Access.Mvc.DataStore
 
             using (_databaseContextFactory.Create(_connectionStringName))
             {
-                var session = _sessionRepository.FindAsync(token);
+                var session = _sessionRepository.FindAsync(token).GetAwaiter().GetResult();
 
                 if (session != null)
                 {

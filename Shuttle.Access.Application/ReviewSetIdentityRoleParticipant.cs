@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -6,7 +7,7 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application
 {
-    public class ReviewSetIdentityRoleParticipant : IParticipant<RequestMessage<SetIdentityRole>>
+    public class ReviewSetIdentityRoleParticipant : IAsyncParticipant<RequestMessage<SetIdentityRole>>
     {
         private readonly IRoleQuery _roleQuery;
         private readonly IIdentityQuery _identityQuery;
@@ -20,7 +21,7 @@ namespace Shuttle.Access.Application
             _identityQuery = identityQuery;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestMessage<SetIdentityRole>> context)
+        public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<SetIdentityRole>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -39,7 +40,7 @@ namespace Shuttle.Access.Application
                 &&
                 !request.Active
                 &&
-                _identityQuery.AdministratorCount() == 1)
+                await _identityQuery.AdministratorCountAsync() == 1)
             {
                 context.Message.Failed("last-administrator");
             }

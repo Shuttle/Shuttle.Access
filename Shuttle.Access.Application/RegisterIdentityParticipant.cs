@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -10,7 +11,7 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application
 {
-    public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
+    public class RegisterIdentityParticipant : IAsyncParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
     {
         private readonly IEventStore _eventStore;
         private readonly IKeyStore _keyStore;
@@ -30,7 +31,7 @@ namespace Shuttle.Access.Application
             _roleQuery = roleQuery;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)
+        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -40,12 +41,12 @@ namespace Shuttle.Access.Application
             Identity identity;
 
             var key = Identity.Key(message.Name);
-            var id = _keyStore.Find(key);
+            var id = await _keyStore.FindAsync(key);
 
             if (id.HasValue)
             {
                 identity = new Identity();
-                stream = _eventStore.Get(id.Value);
+                stream = await _eventStore.GetAsync(id.Value);
 
                 stream.Apply(identity);
 
@@ -59,15 +60,14 @@ namespace Shuttle.Access.Application
                 id = Guid.NewGuid();
                 identity = new Identity();
 
-                _keyStore.Add(id.Value, key);
+                await _keyStore.AddAsync(id.Value, key);
 
-                stream = _eventStore.Get(id.Value);
+                stream = await _eventStore.GetAsync(id.Value);
             }
 
             var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
-            var count = _identityQuery.Count(
-                new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
+            var count = await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
 
             if (count == 0)
             {
@@ -101,7 +101,7 @@ namespace Shuttle.Access.Application
                 RegisteredBy = message.RegisteredBy,
                 GeneratedPassword = message.GeneratedPassword,
                 System = message.System,
-                SequenceNumber = _eventStore.Save(stream)
+                SequenceNumber = await _eventStore.SaveAsync(stream)
             });
         }
     }

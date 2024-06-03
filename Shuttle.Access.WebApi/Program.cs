@@ -43,7 +43,7 @@ public class Program
 
         app.UseAccessAuthorization();
 
-        app.MapGet("/server/version", (HttpContext _) =>
+        app.MapGet("/server/configuration", (HttpContext _) =>
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 

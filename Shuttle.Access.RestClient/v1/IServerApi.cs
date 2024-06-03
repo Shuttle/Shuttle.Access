@@ -7,6 +7,6 @@ namespace Shuttle.Access.RestClient.v1
     public interface IServerApi
     {
         [Get("/server/configuration")]
-        Task<ApiResponse<ServerConfiguration>> Configuration();
+        Task<ApiResponse<ServerConfiguration>> ConfigurationAsync();
     }
 }

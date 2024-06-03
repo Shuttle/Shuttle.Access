@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -12,7 +14,7 @@ public class SessionsFixture : WebApiFixture
     private const string Permission = "integration://system-permission";
 
     [Test]
-    public void Should_be_able_to_get_a_session_using_the_token()
+    public async Task Should_be_able_to_get_a_session_using_the_token_async()
     {
         var sessionQuery = new Mock<ISessionQuery>();
         var session = new Access.DataAccess.Query.Session
@@ -20,7 +22,7 @@ public class SessionsFixture : WebApiFixture
             Token = Guid.NewGuid()
         };
 
-        sessionQuery.Setup(m => m.GetAsync(It.IsAny<Guid>())).Returns(session);
+        sessionQuery.Setup(m => m.GetAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
 
         using (var httpClient = Factory.WithWebHostBuilder(builder =>
                {
@@ -32,7 +34,7 @@ public class SessionsFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Sessions.Get(session.Token).Result;
+            var response = await client.Sessions.GetAsync(session.Token);
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -60,7 +62,7 @@ public class SessionsFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Sessions.GetPermissions(session.Token).Result;
+            var response = client.Sessions.GetPermissionsAsync(session.Token).Result;
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);

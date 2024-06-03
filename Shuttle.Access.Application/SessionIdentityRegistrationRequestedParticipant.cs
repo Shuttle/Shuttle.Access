@@ -1,11 +1,11 @@
-﻿using System;
+﻿using System.Threading.Tasks;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application
 {
-    public class SessionIdentityRegistrationRequestedParticipant : IParticipant<IdentityRegistrationRequested>
+    public class SessionIdentityRegistrationRequestedParticipant : IAsyncParticipant<IdentityRegistrationRequested>
     {
         private readonly ISessionRepository _sessionRepository;
 
@@ -16,7 +16,7 @@ namespace Shuttle.Access.Application
             _sessionRepository = sessionRepository;
         }
 
-        public void ProcessMessage(IParticipantContext<IdentityRegistrationRequested> context)
+        public async Task ProcessMessageAsync(IParticipantContext<IdentityRegistrationRequested> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -25,7 +25,7 @@ namespace Shuttle.Access.Application
                 return;
             }
 
-            var session = _sessionRepository.FindAsync(context.Message.SessionToken.Value);
+            var session = await _sessionRepository.FindAsync(context.Message.SessionToken.Value, context.CancellationToken);
 
             if (session != null && session.HasPermission(Permissions.Register.Identity))
             {

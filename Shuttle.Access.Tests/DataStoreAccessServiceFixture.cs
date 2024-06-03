@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
@@ -10,15 +11,14 @@ namespace Shuttle.Access.Tests
     [TestFixture]
     public class DataStoreAccessServiceFixture
     {
-        private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow,
-            DateTime.UtcNow.AddHours(1));
+        private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow, DateTime.UtcNow.AddHours(1));
 
         [Test]
         public void Should_be_able_check_for_non_existent_session()
         {
             var repository = new Mock<ISessionRepository>();
 
-            repository.Setup(m => m.FindAsync(It.IsAny<Guid>())).Returns(() => null);
+            repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(() => null);
 
             var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -41,7 +41,7 @@ namespace Shuttle.Access.Tests
         {
             var repository = new Mock<ISessionRepository>();
 
-            repository.Setup(m => m.FindAsync(It.IsAny<Guid>())).Returns(() => _session);
+            repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(() => _session);
 
             var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -59,7 +59,7 @@ namespace Shuttle.Access.Tests
             Assert.That(service.Contains(_session.Token), Is.True);
             Assert.That(service.Contains(_session.Token), Is.True);
 
-            repository.Verify(m => m.FindAsync(It.IsAny<Guid>()), Times.Exactly(1));
+            repository.Verify(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None), Times.Exactly(1));
         }
     }
 }

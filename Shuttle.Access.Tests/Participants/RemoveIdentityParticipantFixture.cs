@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
@@ -16,7 +17,7 @@ namespace Shuttle.Access.Tests.Participants
     public class RemoveIdentityParticipantFixture
     {
         [Test]
-        public void Should_be_able_to_remove_identity()
+        public async Task Should_be_able_to_remove_identity_async()
         {
             var eventStore = new FixtureEventStore();
             var removeIdentity = new RemoveIdentity
@@ -26,9 +27,9 @@ namespace Shuttle.Access.Tests.Participants
 
             var participant = new RemoveIdentityParticipant(eventStore, new Mock<IKeyStore>().Object);
 
-            participant.ProcessMessage(new ParticipantContext<RemoveIdentity>(removeIdentity, CancellationToken.None));
+            await participant.ProcessMessageAsync(new ParticipantContext<RemoveIdentity>(removeIdentity, CancellationToken.None));
 
-            Assert.That(eventStore.Get(removeIdentity.Id).Count, Is.EqualTo(1));
+            Assert.That((await eventStore.GetAsync(removeIdentity.Id)).Count, Is.EqualTo(1));
 
             var removed = eventStore.FindEvent<Removed>(removeIdentity.Id);
 

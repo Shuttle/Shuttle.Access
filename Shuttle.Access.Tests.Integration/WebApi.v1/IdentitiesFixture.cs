@@ -23,7 +23,7 @@ public class IdentitiesFixture : WebApiFixture
 
         var identity = CreateIdentity();
 
-        identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
             new List<Access.DataAccess.Query.Identity>
             {
                 identity
@@ -39,7 +39,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient);
 
-            var response = client.Identities.Get().Result;
+            var response = client.Identities.GetAsync().Result;
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -89,7 +89,7 @@ public class IdentitiesFixture : WebApiFixture
 
         var identity = CreateIdentity();
 
-        identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
             new List<Access.DataAccess.Query.Identity>
             {
                 identity
@@ -105,7 +105,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient);
 
-            var response = client.Identities.Get("some-value").Result;
+            var response = client.Identities.GetAsync("some-value").Result;
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -139,7 +139,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.Delete(id).Result;
+            var response = client.Identities.DeleteAsync(id).Result;
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -174,7 +174,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.SetRole(Guid.NewGuid(), roleId, new SetIdentityRole
+            var response = client.Identities.SetRoleAsync(Guid.NewGuid(), roleId, new SetIdentityRole
             {
                 Active = true
             }).Result;
@@ -213,7 +213,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.SetRole(Guid.NewGuid(), roleId, new SetIdentityRole
+            var response = client.Identities.SetRoleAsync(Guid.NewGuid(), roleId, new SetIdentityRole
             {
                 IdentityId = Guid.NewGuid()
             }).Result;
@@ -249,7 +249,7 @@ public class IdentitiesFixture : WebApiFixture
 
             client.RegisterSession();
 
-            var response = client.Identities.ChangePassword(new ChangePassword
+            var response = client.Identities.ChangePasswordAsync(new ChangePassword
             {
                 NewPassword = "new-password",
                 Token = token
@@ -291,7 +291,7 @@ public class IdentitiesFixture : WebApiFixture
 
             client.RegisterSession();
 
-            var response = client.Identities.ChangePassword(new ChangePassword
+            var response = client.Identities.ChangePasswordAsync(new ChangePassword
             {
                 NewPassword = "new-password",
                 Token = token
@@ -333,7 +333,7 @@ public class IdentitiesFixture : WebApiFixture
 
             client.RegisterSession();
 
-            var response = client.Identities.ChangePassword(new ChangePassword
+            var response = client.Identities.ChangePasswordAsync(new ChangePassword
             {
                 NewPassword = "new-password",
                 Token = token
@@ -371,7 +371,7 @@ public class IdentitiesFixture : WebApiFixture
 
             client.RegisterSession();
 
-            var response = client.Identities.ResetPassword(new ResetPassword
+            var response = client.Identities.ResetPasswordAsync(new ResetPassword
             {
                 Name = "identity",
                 Password = "password",
@@ -412,7 +412,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.ResetPassword(new ResetPassword
+            var response = client.Identities.ResetPasswordAsync(new ResetPassword
             {
                 Name = "identity",
                 Password = "password",
@@ -455,7 +455,7 @@ public class IdentitiesFixture : WebApiFixture
 
             client.RegisterSession();
 
-            var response = client.Identities.ResetPassword(new ResetPassword
+            var response = client.Identities.ResetPasswordAsync(new ResetPassword
             {
                 Name = "identity",
                 Password = "password",
@@ -478,7 +478,7 @@ public class IdentitiesFixture : WebApiFixture
         var inactiveRoleId = Guid.NewGuid();
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.RoleIds(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+        identityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
             new List<Guid>
             {
                 activeRoleId
@@ -495,7 +495,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient);
 
-            var response = client.Identities.RoleAvailability(Guid.NewGuid(), new Identifiers<Guid>
+            var response = client.Identities.RoleAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
             {
                 Values = new List<Guid>
                 {
@@ -535,7 +535,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.Activate(new ActivateIdentity
+            var response = client.Identities.ActivateAsync(new ActivateIdentity
             {
                 Name = "unknown"
             }).Result;
@@ -554,7 +554,7 @@ public class IdentitiesFixture : WebApiFixture
 
         var identity = CreateIdentity();
 
-        identityQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
             new List<Access.DataAccess.Query.Identity>
             {
                 identity
@@ -572,7 +572,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.Activate(new ActivateIdentity
+            var response = client.Identities.ActivateAsync(new ActivateIdentity
             {
                 Name = "known"
             }).Result;
@@ -609,7 +609,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.GetPasswordResetToken("identity").Result;
+            var response = client.Identities.GetPasswordResetTokenAsync("identity").Result;
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -645,7 +645,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.GetPasswordResetToken("identity").Result;
+            var response = client.Identities.GetPasswordResetTokenAsync("identity").Result;
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -693,7 +693,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient).RegisterSession();
 
-            var response = client.Identities.Register(new RegisterIdentity
+            var response = client.Identities.RegisterAsync(new RegisterIdentity
             {
                 Name = "identity"
             }).Result;

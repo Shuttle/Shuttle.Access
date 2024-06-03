@@ -1,11 +1,12 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application
 {
-    public class SetPermissionStatusParticipant : IParticipant<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>>
+    public class SetPermissionStatusParticipant : IAsyncParticipant<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>>
     {
         private readonly IEventStore _eventStore;
 
@@ -16,8 +17,7 @@ namespace Shuttle.Access.Application
             _eventStore = eventStore;
         }
 
-        public void ProcessMessage(
-            IParticipantContext<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>> context)
+        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -25,7 +25,7 @@ namespace Shuttle.Access.Application
             
             Guard.AgainstUndefinedEnum<PermissionStatus>(message.Request.Status, nameof(message.Request.Status));
 
-            var stream = _eventStore.Get(message.Request.Id);
+            var stream = await _eventStore.GetAsync(message.Request.Id);
 
             if (stream.IsEmpty)
             {
@@ -62,7 +62,7 @@ namespace Shuttle.Access.Application
                 Id = message.Request.Id,
                 Name = permission.Name,
                 Status = message.Request.Status,
-                SequenceNumber = _eventStore.Save(stream)
+                SequenceNumber = await _eventStore.SaveAsync(stream)
             });
         }
     }

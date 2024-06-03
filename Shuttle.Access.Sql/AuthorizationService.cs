@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 
@@ -24,11 +26,10 @@ namespace Shuttle.Access.Sql
             _identityQuery = identityQuery;
         }
 
-        public IEnumerable<string> Permissions(string identityName)
+        public async Task<IEnumerable<string>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default)
         {
-            var userId = _identityQuery.Id(identityName);
-            var user = _identityQuery.Search(
-                new DataAccess.Query.Identity.Specification().WithIdentityId(userId).IncludeRoles()).FirstOrDefault();
+            var userId = await _identityQuery.IdAsync(identityName, cancellationToken);
+            var user = (await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithIdentityId(userId).IncludeRoles(), cancellationToken)).FirstOrDefault();
 
             if (user == null)
             {
@@ -38,7 +39,7 @@ namespace Shuttle.Access.Sql
             return user.Roles.Any(item =>
                 item.Name.Equals(AdministratorRoleName, StringComparison.InvariantCultureIgnoreCase))
                 ? AdministratorPermissions
-                : _identityQuery.Permissions(userId);
+                : await _identityQuery.PermissionsAsync(userId, cancellationToken);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
@@ -6,7 +7,7 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application
 {
-    public class SetRoleNameParticipant : IParticipant<RequestResponseMessage<SetRoleName, RoleNameSet>>
+    public class SetRoleNameParticipant : IAsyncParticipant<RequestResponseMessage<SetRoleName, RoleNameSet>>
     {
         private readonly IEventStore _eventStore;
         private readonly IKeyStore _keyStore;
@@ -20,14 +21,14 @@ namespace Shuttle.Access.Application
             _keyStore = keyStore;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponseMessage<SetRoleName, RoleNameSet>> context)
+        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetRoleName, RoleNameSet>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
             var request = context.Message.Request;
 
             var role = new Role();
-            var stream = _eventStore.Get(request.Id);
+            var stream = await _eventStore.GetAsync(request.Id);
 
             stream.Apply(role);
 
@@ -39,12 +40,12 @@ namespace Shuttle.Access.Application
             var key = Role.Key(role.Name);
             var rekey = Role.Key(request.Name);
 
-            if (_keyStore.Contains(rekey) || !_keyStore.Contains(key))
+            if (await _keyStore.ContainsAsync(rekey) || !await _keyStore.ContainsAsync(key))
             {
                 return;
             }
 
-            _keyStore.Rekey(key, rekey);
+            await _keyStore.RekeyAsync(key, rekey);
 
             stream.AddEvent(role.SetName(request.Name));
 
@@ -52,7 +53,7 @@ namespace Shuttle.Access.Application
             {
                 Id = request.Id,
                 Name = request.Name,
-                SequenceNumber = _eventStore.Save(stream)
+                SequenceNumber = await _eventStore.SaveAsync(stream)
             });
         }
     }

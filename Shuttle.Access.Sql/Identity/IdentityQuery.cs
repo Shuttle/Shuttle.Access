@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -25,30 +27,30 @@ namespace Shuttle.Access.Sql
             _queryMapper = queryMapper;
         }
 
-        public int AdministratorCount()
+        public async ValueTask<int> AdministratorCountAsync(CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.GetScalar<int>(_queryFactory.AdministratorCount());
+            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.AdministratorCount(), cancellationToken);
         }
 
-        public Guid Id(string identityName)
+        public async ValueTask<Guid> IdAsync(string identityName, CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.GetScalar<Guid>(_queryFactory.GetId(identityName));
+            return await _databaseGateway.GetScalarAsync<Guid>(_queryFactory.GetId(identityName), cancellationToken);
         }
 
-        public IEnumerable<string> Permissions(Guid userId)
+        public async Task<IEnumerable<string>> PermissionsAsync(Guid userId, CancellationToken cancellationToken = default)
         {
-            return _queryMapper.MapValues<string>(_queryFactory.Permissions(userId));
+            return await _queryMapper.MapValuesAsync<string>(_queryFactory.Permissions(userId), cancellationToken);
         }
 
-        public IEnumerable<DataAccess.Query.Identity> Search(DataAccess.Query.Identity.Specification specification)
+        public async Task<IEnumerable<DataAccess.Query.Identity>> SearchAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            var result = _queryMapper.MapObjects<DataAccess.Query.Identity>(_queryFactory.Search(specification));
+            var result = await _queryMapper.MapObjectsAsync<DataAccess.Query.Identity>(_queryFactory.Search(specification), cancellationToken);
 
             if (specification.RolesIncluded)
             {
-                var roleRows = _databaseGateway.GetRows(_queryFactory.Roles(specification));
+                var roleRows = await _databaseGateway.GetRowsAsync(_queryFactory.Roles(specification), cancellationToken);
 
                 foreach (var roleGroup in roleRows.GroupBy(row => Columns.IdentityId.Value(row)))
                 {
@@ -67,17 +69,14 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public IEnumerable<Guid> RoleIds(DataAccess.Query.Identity.Specification specification)
+        public async Task<IEnumerable<Guid>> RoleIdsAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.GetRows(_queryFactory.Roles(specification))
-                .Select(row => Columns.RoleId.Value(row));
+            return (await _databaseGateway.GetRowsAsync(_queryFactory.Roles(Guard.AgainstNull(specification, nameof(specification))), cancellationToken)).Select(row => Columns.RoleId.Value(row));
         }
 
-        public int Count(DataAccess.Query.Identity.Specification specification)
+        public async ValueTask<int> CountAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
-            Guard.AgainstNull(specification, nameof(specification));
-
-            return _databaseGateway.GetScalar<int>(_queryFactory.Count(specification));
+            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Count(Guard.AgainstNull(specification, nameof(specification))), cancellationToken);
         }
     }
 }

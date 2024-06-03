@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -8,7 +9,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application
 {
-    public class ActivateIdentityParticipant : IParticipant<RequestResponseMessage<ActivateIdentity, IdentityActivated>>
+    public class ActivateIdentityParticipant : IAsyncParticipant<RequestResponseMessage<ActivateIdentity, IdentityActivated>>
     {
         private readonly IIdentityQuery _identityQuery;
         private readonly IEventStore _eventStore;
@@ -22,7 +23,7 @@ namespace Shuttle.Access.Application
             _eventStore = eventStore;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponseMessage<ActivateIdentity, IdentityActivated>> context)
+        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<ActivateIdentity, IdentityActivated>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -42,7 +43,7 @@ namespace Shuttle.Access.Application
 
             Guid id;
 
-            var query = _identityQuery.Search(specification).FirstOrDefault();
+            var query = (await _identityQuery.SearchAsync(specification, context.CancellationToken)).FirstOrDefault();
 
             if (query == null)
             {
@@ -52,7 +53,7 @@ namespace Shuttle.Access.Application
             id = query.Id;
 
             var identity = new Identity();
-            var stream = _eventStore.Get(id);
+            var stream = await _eventStore.GetAsync(id);
 
             stream.Apply(identity);
             stream.AddEvent(identity.Activate(now));
@@ -61,7 +62,7 @@ namespace Shuttle.Access.Application
             {
                 Id = id,
                 DateActivated = now,
-                SequenceNumber = _eventStore.Save(stream)
+                SequenceNumber = await _eventStore.SaveAsync(stream)
             });
         }
     }

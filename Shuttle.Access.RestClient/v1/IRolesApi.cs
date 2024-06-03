@@ -10,21 +10,21 @@ namespace Shuttle.Access.RestClient.v1
     public interface IRolesApi
     {
         [Get("/roles")]
-        Task<ApiResponse<List<DataAccess.Query.Role>>> Get();
+        Task<ApiResponse<List<DataAccess.Query.Role>>> GetAsync();
         
         [Get("/roles/{value}")]
-        Task<ApiResponse<DataAccess.Query.Role>> Get(string value);
+        Task<ApiResponse<DataAccess.Query.Role>> GetAsync(string value);
         
         [Delete("/roles/{id}")]
-        Task<ApiResponse<object>> Delete(Guid id);
+        Task<ApiResponse<object>> DeleteAsync(Guid id);
         
         [Patch("/roles/{id}/permissions")]
-        Task<ApiResponse<object>> SetPermission(Guid id, SetRolePermission message);
+        Task<ApiResponse<object>> SetPermissionAsync(Guid id, SetRolePermission message);
 
         [Post("/roles/{id}/permissions/availability")]
-        Task<ApiResponse<List<IdentifierAvailability<Guid>>>> PermissionAvailability(Guid id, Identifiers<Guid> identifiers);
+        Task<ApiResponse<List<IdentifierAvailability<Guid>>>> PermissionAvailabilityAsync(Guid id, Identifiers<Guid> identifiers);
 
         [Post("/roles")]
-        Task<ApiResponse<Guid>> Register(RegisterRole message);
+        Task<ApiResponse<Guid>> RegisterAsync(RegisterRole message);
     }
 }

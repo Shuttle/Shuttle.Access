@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
@@ -15,7 +16,7 @@ namespace Shuttle.Access.Tests.Participants
     public class RegisterIdentityParticipantFixture
     {
         [Test]
-        public void Should_be_able_to_register_an_identity()
+        public async Task Should_be_able_to_register_an_identity_async()
         {
             var eventStore = new FixtureEventStore();
             var keyStore = new Mock<IKeyStore>();
@@ -24,24 +25,20 @@ namespace Shuttle.Access.Tests.Participants
 
             var identity = new DataAccess.Query.Identity { Id = Guid.NewGuid(), Name = "name" };
 
-            identityQuery.Setup(m => m.Count(It.IsAny<DataAccess.Query.Identity.Specification>())).Returns(1);
+            identityQuery.Setup(m => m.CountAsync(It.IsAny<DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
 
-            keyStore.Setup(m => m.Find(Identity.Key(identity.Name), null)).Returns((Guid?)null);
+            keyStore.Setup(m => m.FindAsync(Identity.Key(identity.Name), null, CancellationToken.None)).Returns(ValueTask.FromResult((Guid?)null));
 
-            var participant =
-                new RegisterIdentityParticipant(eventStore, keyStore.Object, identityQuery.Object, roleQuery.Object);
+            var participant = new RegisterIdentityParticipant(eventStore, keyStore.Object, identityQuery.Object, roleQuery.Object);
 
             var registerIdentity = new RegisterIdentity
             {
                 Name = "name"
             };
 
-            var requestResponseMessage =
-                new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(registerIdentity);
+            var requestResponseMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(registerIdentity);
 
-            participant.ProcessMessage(
-                new ParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>(
-                    requestResponseMessage, CancellationToken.None));
+            await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>(requestResponseMessage, CancellationToken.None));
 
             Assert.That(requestResponseMessage.Ok, Is.True);
             Assert.That(requestResponseMessage.Response, Is.Not.Null);

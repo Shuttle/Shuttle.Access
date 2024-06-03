@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shuttle.Access.DataAccess
 {
     public interface IIdentityQuery
     {
-        int Count(Query.Identity.Specification specification);
-        IEnumerable<Query.Identity> Search(Query.Identity.Specification specification);
-        IEnumerable<Guid> RoleIds(Query.Identity.Specification specification);
-        int AdministratorCount();
-        Guid Id(string identityName);
-        IEnumerable<string> Permissions(Guid id);
+        ValueTask<int> CountAsync(Query.Identity.Specification specification, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Query.Identity>> SearchAsync(Query.Identity.Specification specification, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Guid>> RoleIdsAsync(Query.Identity.Specification specification, CancellationToken cancellationToken = default);
+        ValueTask<int> AdministratorCountAsync(CancellationToken cancellationToken = default);
+        ValueTask<Guid> IdAsync(string identityName, CancellationToken cancellationToken = default);
+        Task<IEnumerable<string>> PermissionsAsync(Guid id, CancellationToken cancellationToken = default);
     }
 }

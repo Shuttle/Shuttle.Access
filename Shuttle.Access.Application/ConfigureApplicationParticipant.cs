@@ -9,14 +9,14 @@ using Shuttle.Core.Threading;
 
 namespace Shuttle.Access.Application
 {
-    public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication>
+    public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplication>
     {
         private readonly IMediator _mediator;
         private readonly IRoleQuery _roleQuery;
         private readonly IPermissionQuery _permissionQuery;
         private readonly IIdentityQuery _identityQuery;
 
-        private readonly List<string> _permissions = new List<string>
+        private readonly List<string> _permissions = new()
         {
             "access://identity/view",
             "access://identity/register",
@@ -46,7 +46,7 @@ namespace Shuttle.Access.Application
             _identityQuery = identityQuery;
         }
 
-        public void ProcessMessage(IParticipantContext<ConfigureApplication> context)
+        public async Task ProcessMessageAsync(IParticipantContext<ConfigureApplication> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -61,7 +61,7 @@ namespace Shuttle.Access.Application
                     Name = "Administrator"
                 });
 
-                _mediator.Send(registerRoleMessage);
+                await _mediator.SendAsync(registerRoleMessage);
             }
 
             foreach (var permission in _permissions)
@@ -78,10 +78,10 @@ namespace Shuttle.Access.Application
                         Status = (int)PermissionStatus.Active
                     });
 
-                _mediator.Send(registerPermissionMessage);
+                await _mediator.SendAsync(registerPermissionMessage);
             }
 
-            if (_identityQuery.Count(new DataAccess.Query.Identity.Specification()) == 0)
+            if (await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification()) == 0)
             {
                 if (!administratorExists)
                 {
@@ -101,8 +101,8 @@ namespace Shuttle.Access.Application
 
                 var generateHash = new GenerateHash { Value = "admin" };
 
-                _mediator.Send(generateHash);
-;
+                await _mediator.SendAsync(generateHash);
+
                 var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new RegisterIdentity
                 {
                     Name = "admin",
@@ -112,7 +112,7 @@ namespace Shuttle.Access.Application
                     Activated = true
                 });
 
-                _mediator.Send(registerIdentityMessage);
+                await _mediator.SendAsync(registerIdentityMessage);
             }
         }
     }

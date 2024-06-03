@@ -45,7 +45,7 @@ namespace Shuttle.Access.RestClient
                     return this;
                 }
 
-                var response = Sessions.Delete().Result;
+                var response = Sessions.DeleteAsync().Result;
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -67,7 +67,7 @@ namespace Shuttle.Access.RestClient
                     return this;
                 }
 
-                var response = Sessions.Post(new RegisterSession
+                var response = Sessions.PostAsync(new RegisterSession
                 {
                     IdentityName = _accessClientOptions.IdentityName, 
                     Password = _accessClientOptions.Password

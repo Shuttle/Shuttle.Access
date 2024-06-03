@@ -39,7 +39,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).RegisterSession();
 
-                var response = client.Permissions.Get().Result;
+                var response = client.Permissions.GetAsync().Result;
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -68,7 +68,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).RegisterSession();
 
-                var response = client.Permissions.Post(new RegisterPermission
+                var response = client.Permissions.PostAsync(new RegisterPermission
                 {
                     Name = permission
                 }).Result;
@@ -100,7 +100,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient).RegisterSession();
 
-                var response = client.Permissions.SetStatus(permissionId, new SetPermissionStatus
+                var response = client.Permissions.SetStatusAsync(permissionId, new SetPermissionStatus
                 {
                     Id = permissionId,
                     Status = (int)PermissionStatus.Deactivated

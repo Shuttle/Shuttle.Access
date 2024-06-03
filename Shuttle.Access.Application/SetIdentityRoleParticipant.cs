@@ -1,11 +1,12 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application
 {
-    public class SetIdentityRoleParticipant : IParticipant<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>
+    public class SetIdentityRoleParticipant : IAsyncParticipant<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>
     {
         private readonly IEventStore _eventStore;
 
@@ -16,7 +17,7 @@ namespace Shuttle.Access.Application
             _eventStore = eventStore;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>> context)
+        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -24,7 +25,7 @@ namespace Shuttle.Access.Application
 
             var identity = new Identity();
             var request = message.Request;
-            var stream = _eventStore.Get(request.IdentityId);
+            var stream = await _eventStore.GetAsync(request.IdentityId);
 
             stream.Apply(identity);
 
@@ -43,7 +44,7 @@ namespace Shuttle.Access.Application
                 RoleId = request.RoleId,
                 IdentityId = request.IdentityId,
                 Active = request.Active,
-                SequenceNumber = _eventStore.Save(stream)
+                SequenceNumber = await _eventStore.SaveAsync(stream)
             });
         }
     }

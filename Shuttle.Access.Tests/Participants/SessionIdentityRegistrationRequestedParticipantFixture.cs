@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
@@ -12,7 +13,7 @@ namespace Shuttle.Access.Tests.Participants
     public class SessionIdentityRegistrationRequestedParticipantFixture
     {
         [Test]
-        public void Should_be_able_to_request_identity_registration_using_a_session()
+        public async Task Should_be_able_to_request_identity_registration_using_a_session_async()
         {
             var now = DateTime.UtcNow;
             var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", now, now.AddSeconds(5))
@@ -20,15 +21,13 @@ namespace Shuttle.Access.Tests.Participants
                 .AddPermission(Permissions.Activate.Identity);
             var sessionRepository = new Mock<ISessionRepository>();
 
-            sessionRepository.Setup(m => m.FindAsync(session.Token)).Returns(session);
+            sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session));
 
             var participant = new SessionIdentityRegistrationRequestedParticipant(sessionRepository.Object);
 
             var identityRegistrationRequested = new IdentityRegistrationRequested(session.Token);
 
-            participant.ProcessMessage(
-                new ParticipantContext<IdentityRegistrationRequested>(identityRegistrationRequested,
-                    CancellationToken.None));
+            await participant.ProcessMessageAsync(new ParticipantContext<IdentityRegistrationRequested>(identityRegistrationRequested, CancellationToken.None));
 
             Assert.That(identityRegistrationRequested.IsAllowed, Is.True);
             Assert.That(identityRegistrationRequested.IsActivationAllowed, Is.True);

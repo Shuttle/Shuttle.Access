@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
@@ -7,7 +8,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application
 {
-    public class GetPasswordResetTokenParticipant : IParticipant<RequestResponseMessage<GetPasswordResetToken, Guid>>
+    public class GetPasswordResetTokenParticipant : IAsyncParticipant<RequestResponseMessage<GetPasswordResetToken, Guid>>
     {
         private readonly IEventStore _eventStore;
         private readonly IIdentityQuery _identityQuery;
@@ -18,11 +19,10 @@ namespace Shuttle.Access.Application
             _eventStore = eventStore;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponseMessage<GetPasswordResetToken, Guid>> context)
+        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<GetPasswordResetToken, Guid>> context)
         {
             var identityName = context.Message.Request.Name;
-            var query = _identityQuery.Search(new DataAccess.Query.Identity.Specification().WithName(identityName))
-                .SingleOrDefault();
+            var query = (await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(identityName))).SingleOrDefault();
 
             if (query == null)
             {
@@ -31,7 +31,7 @@ namespace Shuttle.Access.Application
                 return;
             }
 
-            var stream = _eventStore.Get(query.Id);
+            var stream = await _eventStore.GetAsync(query.Id);
             var identity = new Identity();
 
             stream.Apply(identity);
@@ -42,7 +42,7 @@ namespace Shuttle.Access.Application
                 {
                     stream.AddEvent(identity.RegisterPasswordResetToken());
 
-                    _eventStore.Save(stream);
+                    await _eventStore.SaveAsync(stream);
                 }
 
                 context.Message.WithResponse(identity.PasswordResetToken.Value);

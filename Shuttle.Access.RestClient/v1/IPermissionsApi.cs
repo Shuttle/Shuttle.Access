@@ -9,15 +9,15 @@ namespace Shuttle.Access.RestClient.v1
     public interface IPermissionsApi
     {
         [Post("/permissions/search")]
-        Task<ApiResponse<List<DataAccess.Query.Permission>>> Search(PermissionSpecification specification);
+        Task<ApiResponse<List<DataAccess.Query.Permission>>> SearchAsync(PermissionSpecification specification);
 
         [Get("/permissions")]
-        Task<ApiResponse<List<DataAccess.Query.Permission>>> Get();
+        Task<ApiResponse<List<DataAccess.Query.Permission>>> GetAsync();
 
         [Post("/permissions")]
-        Task<ApiResponse<object>> Post(RegisterPermission message);
+        Task<ApiResponse<object>> PostAsync(RegisterPermission message);
 
         [Patch("/permissions/{id}")]
-        Task<ApiResponse<object>> SetStatus(Guid id, SetPermissionStatus message);
+        Task<ApiResponse<object>> SetStatusAsync(Guid id, SetPermissionStatus message);
     }
 }

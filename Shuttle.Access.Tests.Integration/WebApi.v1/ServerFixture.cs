@@ -9,7 +9,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         {
             using (var httpClient = Factory.CreateClient())
             {
-                var response = GetClient(httpClient).Server.Configuration().Result;
+                var response = GetClient(httpClient).Server.ConfigurationAsync().Result;
 
                 Assert.That(response.IsSuccessStatusCode, Is.True);
                 Assert.That(response.Content, Is.Not.Null);

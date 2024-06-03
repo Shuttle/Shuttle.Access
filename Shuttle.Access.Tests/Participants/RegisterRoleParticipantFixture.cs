@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
@@ -13,7 +14,7 @@ namespace Shuttle.Access.Tests.Participants
     public class RegisterRoleParticipantFixture
     {
         [Test]
-        public void Should_be_able_to_add_role()
+        public async Task Should_be_able_to_add_role_async()
         {
             var eventStore = new FixtureEventStore();
             var keyStore = new Mock<IKeyStore>();
@@ -28,9 +29,7 @@ namespace Shuttle.Access.Tests.Participants
             var requestResponseMessage =
                 new RequestResponseMessage<RegisterRole, RoleRegistered>(addRole);
 
-            participant.ProcessMessage(
-                new ParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>>(
-                    requestResponseMessage, CancellationToken.None));
+            await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>>(requestResponseMessage, CancellationToken.None));
 
             Assert.That(requestResponseMessage.Response, Is.Not.Null);
 

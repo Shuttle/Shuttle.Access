@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
@@ -16,7 +17,7 @@ namespace Shuttle.Access.Tests.Participants
     public class SetIdentityRoleParticipantFixture
     {
         [Test]
-        public void Should_be_able_to_review_with_no_administrator_role()
+        public async Task Should_be_able_to_review_with_no_administrator_role_async()
         {
             var eventStore = new FixtureEventStore();
             var participant = new SetIdentityRoleParticipant(eventStore);
@@ -30,7 +31,7 @@ namespace Shuttle.Access.Tests.Participants
                 IdentityId = identityId
             });
             
-            participant.ProcessMessage(new ParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>(setIdentityRole, new CancellationToken()));
+            await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>(setIdentityRole, new CancellationToken()));
 
             var eventStream = eventStore.Get(identityId);
 

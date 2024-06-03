@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -7,7 +8,7 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application
 {
-    public class RegisterRoleParticipant : IParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
+    public class RegisterRoleParticipant : IAsyncParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
     {
         private readonly IEventStore _eventStore;
         private readonly IKeyStore _keyStore;
@@ -21,7 +22,7 @@ namespace Shuttle.Access.Application
             _keyStore = keyStore;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>> context)
+        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -29,17 +30,17 @@ namespace Shuttle.Access.Application
 
             var key = Role.Key(message.Name);
 
-            if (_keyStore.Contains(key))
+            if (await _keyStore.ContainsAsync(key))
             {
                 return;
             }
 
             var id = Guid.NewGuid();
 
-            _keyStore.Add(id, key);
+            await _keyStore.AddAsync(id, key);
 
             var role = new Role();
-            var stream = _eventStore.Get(id);
+            var stream = await _eventStore.GetAsync(id);
 
             stream.AddEvent(role.Register(message.Name));
 
@@ -47,7 +48,7 @@ namespace Shuttle.Access.Application
             {
                 Id = id,
                 Name = message.Name,
-                SequenceNumber = _eventStore.Save(stream)
+                SequenceNumber = await _eventStore.SaveAsync(stream)
             });
         }
     }

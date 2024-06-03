@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
@@ -13,7 +14,7 @@ namespace Shuttle.Access.Tests.Participants
     public class ChangePasswordParticipantFixture
     {
         [Test]
-        public void Should_be_able_to_change_password()
+        public async Task Should_be_able_to_change_password_async()
         {
             var now = DateTime.UtcNow;
             var hash = new byte[] { 0, 1, 2, 3, 4 };
@@ -23,20 +24,19 @@ namespace Shuttle.Access.Tests.Participants
             var sessionRepository = new Mock<ISessionRepository>();
             var hashingService = new Mock<IHashingService>();
 
-            sessionRepository.Setup(m => m.FindAsync(session.Token))
-                .Returns(session);
+            sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session));
             hashingService.Setup(m => m.Sha256(changePassword.NewPassword)).Returns(hash);
 
             var participant = new ChangePasswordParticipant(hashingService.Object, sessionRepository.Object, eventStore);
 
-            eventStore.Get(session.IdentityId).AddEvent(new Registered
+            (await eventStore.GetAsync(session.IdentityId)).AddEvent(new Registered
             {
                 Activated = true,
                 DateRegistered = DateTime.Now,
                 Name = "user"
             });
 
-            participant.ProcessMessage(
+            await participant.ProcessMessageAsync(
                 new ParticipantContext<RequestMessage<ChangePassword>>(
                     new RequestMessage<ChangePassword>(changePassword), CancellationToken.None));
 

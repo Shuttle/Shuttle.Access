@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
@@ -11,7 +12,7 @@ namespace Shuttle.Access.Tests.Participants
     public class GenerateHashParticipantFixture
     {
         [Test]
-        public void Should_be_able_to_generate_hash()
+        public async Task Should_be_able_to_generate_hash_async()
         {
             var hash = new byte[] { 0, 1, 2, 3, 4 };
             var hashingService = new Mock<IHashingService>();
@@ -21,7 +22,7 @@ namespace Shuttle.Access.Tests.Participants
 
             var participant = new GenerateHashParticipant(hashingService.Object);
 
-            participant.ProcessMessage(new ParticipantContext<GenerateHash>(generateHash, CancellationToken.None));
+            await participant.ProcessMessageAsync(new ParticipantContext<GenerateHash>(generateHash, CancellationToken.None));
 
             Assert.That(generateHash.Hash, Is.Not.Null);
             Assert.That(generateHash.Hash, Is.EqualTo(hash));

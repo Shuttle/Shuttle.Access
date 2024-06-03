@@ -55,7 +55,7 @@ namespace Shuttle.Access.RestClient
                 return;
             }
 
-            var session = _accessClient.Sessions.Get(token).Result;
+            var session = _accessClient.Sessions.GetAsync(token).Result;
 
             if (session.IsSuccessStatusCode &&
                 session.Content != null)
