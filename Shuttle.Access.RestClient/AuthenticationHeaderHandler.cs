@@ -37,7 +37,7 @@ namespace Shuttle.Access.RestClient
                 !request.RequestUri.PathAndQuery.Equals("/sessions") &&
                 request.Method != HttpMethod.Post)
             {
-                client.RegisterSession();
+                client.RegisterSessionAsync();
             }
 
             if (client.Token.HasValue)

@@ -83,7 +83,7 @@ namespace Shuttle.Access.Sql
 
                 session = new Session(Guid.NewGuid(), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
 
-                foreach (var permission in _authorizationService.GetPermissionsAsync(identityName))
+                foreach (var permission in await _authorizationService.GetPermissionsAsync(identityName, cancellationToken))
                 {
                     session.AddPermission(permission);
                 }
@@ -141,7 +141,7 @@ namespace Shuttle.Access.Sql
                     session = new Session(Guid.NewGuid(), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now,
                         now.Add(_accessOptions.SessionDuration));
 
-                    foreach (var permission in _authorizationService.GetPermissionsAsync(identityName))
+                    foreach (var permission in await _authorizationService.GetPermissionsAsync(identityName, cancellationToken))
                     {
                         session.AddPermission(permission);
                     }
@@ -206,7 +206,7 @@ namespace Shuttle.Access.Sql
 
             session.ClearPermissions();
 
-            foreach (var permission in _authorizationService.GetPermissionsAsync(session.IdentityName))
+            foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, cancellationToken))
             {
                 session.AddPermission(permission);
             }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -14,7 +15,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
     public class PermissionsFixture : WebApiFixture
     {
         [Test]
-        public void Should_be_able_to_get_available_permissions()
+        public async Task Should_be_able_to_get_available_permissions_async()
         {
             var permission = new Access.DataAccess.Query.Permission
             {
@@ -37,9 +38,9 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).RegisterSession();
+                var client = await GetClient(httpClient).RegisterSessionAsync();
 
-                var response = client.Permissions.GetAsync().Result;
+                var response = await client.Permissions.GetAsync();
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -49,7 +50,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         }
 
         [Test]
-        public void Should_be_able_to_post_permission()
+        public async Task Should_be_able_to_post_permission_async()
         {
             const string permission = "integration://available-permission";
 
@@ -66,12 +67,12 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).RegisterSession();
+                var client = await GetClient(httpClient).RegisterSessionAsync();
 
-                var response = client.Permissions.PostAsync(new RegisterPermission
+                var response = await client.Permissions.PostAsync(new RegisterPermission
                 {
                     Name = permission
-                }).Result;
+                });
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -81,7 +82,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         }
 
         [Test]
-        public void Should_be_able_to_set_permission_status()
+        public async Task Should_be_able_to_set_permission_status_async()
         {
             var permissionId = Guid.NewGuid();
 
@@ -98,13 +99,13 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).RegisterSession();
+                var client = await GetClient(httpClient).RegisterSessionAsync();
 
-                var response = client.Permissions.SetStatusAsync(permissionId, new SetPermissionStatus
+                var response = await client.Permissions.SetStatusAsync(permissionId, new SetPermissionStatus
                 {
                     Id = permissionId,
                     Status = (int)PermissionStatus.Deactivated
-                }).Result;
+                });
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -17,17 +19,17 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 public class IdentitiesFixture : WebApiFixture
 {
     [Test]
-    public void Should_be_able_to_get_all_identities()
+    public async Task Should_be_able_to_get_all_identities_async()
     {
         var identityQuery = new Mock<IIdentityQuery>();
 
         var identity = CreateIdentity();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
             new List<Access.DataAccess.Query.Identity>
             {
                 identity
-            });
+            }.AsEnumerable()));
 
         using (var httpClient = Factory.WithWebHostBuilder(builder =>
                {
@@ -39,7 +41,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient);
 
-            var response = client.Identities.GetAsync().Result;
+            var response = await client.Identities.GetAsync();
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -83,17 +85,17 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_get_identity_by_value()
+    public async Task Should_be_able_to_get_identity_by_value_async()
     {
         var identityQuery = new Mock<IIdentityQuery>();
 
         var identity = CreateIdentity();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
-            new List<Access.DataAccess.Query.Identity>
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(
+            Task.FromResult(new List<Access.DataAccess.Query.Identity>
             {
                 identity
-            });
+            }.AsEnumerable()));
 
         using (var httpClient = Factory.WithWebHostBuilder(builder =>
                {
@@ -105,7 +107,7 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient);
 
-            var response = client.Identities.GetAsync("some-value").Result;
+            var response = await client.Identities.GetAsync("some-value");
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -121,7 +123,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_delete_identity()
+    public async Task Should_be_able_to_delete_identity_async()
     {
         var id = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -137,9 +139,9 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.DeleteAsync(id).Result;
+            var response = await client.Identities.DeleteAsync(id);
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -149,7 +151,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_set_identity_role_status()
+    public async Task Should_be_able_to_set_identity_role_status_async()
     {
         var roleId = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -172,12 +174,12 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.SetRoleAsync(Guid.NewGuid(), roleId, new SetIdentityRole
+            var response = await client.Identities.SetRoleAsync(Guid.NewGuid(), roleId, new SetIdentityRole
             {
                 Active = true
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -189,7 +191,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_not_be_able_to_set_identity_role_status_when_mediator_call_fails()
+    public async Task Should_not_be_able_to_set_identity_role_status_when_mediator_call_fails_async()
     {
         var roleId = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -211,12 +213,12 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.SetRoleAsync(Guid.NewGuid(), roleId, new SetIdentityRole
+            var response = await client.Identities.SetRoleAsync(Guid.NewGuid(), roleId, new SetIdentityRole
             {
                 IdentityId = Guid.NewGuid()
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -227,7 +229,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_not_be_able_to_change_password_when_no_session_token_is_provided()
+    public async Task Should_not_be_able_to_change_password_when_no_session_token_is_provided()
     {
         var token = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -243,17 +245,15 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient);
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
             httpClient.DefaultRequestHeaders.Remove("Authorization");
 
-            client.RegisterSession();
-
-            var response = client.Identities.ChangePasswordAsync(new ChangePassword
+            var response = await client.Identities.ChangePasswordAsync(new ChangePassword
             {
                 NewPassword = "new-password",
                 Token = token
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -265,7 +265,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_not_be_able_to_change_password_when_mediator_call_fails()
+    public async Task Should_not_be_able_to_change_password_when_mediator_call_fails()
     {
         var token = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -287,15 +287,13 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient);
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            client.RegisterSession();
-
-            var response = client.Identities.ChangePasswordAsync(new ChangePassword
+            var response = await client.Identities.ChangePasswordAsync(new ChangePassword
             {
                 NewPassword = "new-password",
                 Token = token
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -307,7 +305,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_change_password()
+    public async Task Should_be_able_to_change_password_async()
     {
         var token = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -329,15 +327,13 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient);
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            client.RegisterSession();
-
-            var response = client.Identities.ChangePasswordAsync(new ChangePassword
+            var response = await client.Identities.ChangePasswordAsync(new ChangePassword
             {
                 NewPassword = "new-password",
                 Token = token
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -349,7 +345,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_not_be_able_to_reset_password_when_no_session_token_is_provided()
+    public async Task Should_not_be_able_to_reset_password_when_no_session_token_is_provided_async()
     {
         var token = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -365,18 +361,16 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient);
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
             httpClient.DefaultRequestHeaders.Remove("Authorization");
 
-            client.RegisterSession();
-
-            var response = client.Identities.ResetPasswordAsync(new ResetPassword
+            var response = await client.Identities.ResetPasswordAsync(new ResetPassword
             {
                 Name = "identity",
                 Password = "password",
                 PasswordResetToken = token
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -388,7 +382,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_not_be_able_to_reset_password_when_mediator_call_fails()
+    public async Task Should_not_be_able_to_reset_password_when_mediator_call_fails()
     {
         var token = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -410,14 +404,14 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.ResetPasswordAsync(new ResetPassword
+            var response = await client.Identities.ResetPasswordAsync(new ResetPassword
             {
                 Name = "identity",
                 Password = "password",
                 PasswordResetToken = token
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -429,7 +423,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_reset_password()
+    public async Task Should_be_able_to_reset_password_async()
     {
         var token = Guid.NewGuid();
         var serviceBus = new Mock<IServiceBus>();
@@ -451,16 +445,14 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient);
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            client.RegisterSession();
-
-            var response = client.Identities.ResetPasswordAsync(new ResetPassword
+            var response = await client.Identities.ResetPasswordAsync(new ResetPassword
             {
                 Name = "identity",
                 Password = "password",
                 PasswordResetToken = token
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -472,17 +464,18 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_get_role_status()
+    public async Task Should_be_able_to_get_role_status_async()
     {
         var activeRoleId = Guid.NewGuid();
         var inactiveRoleId = Guid.NewGuid();
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
-            new List<Guid>
-            {
-                activeRoleId
-            });
+        identityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(
+            Task.FromResult(
+                new List<Guid>
+                {
+                    activeRoleId
+                }.AsEnumerable()));
 
         using (var httpClient = Factory.WithWebHostBuilder(builder =>
                    {
@@ -495,14 +488,14 @@ public class IdentitiesFixture : WebApiFixture
         {
             var client = GetClient(httpClient);
 
-            var response = client.Identities.RoleAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
+            var response = await client.Identities.RoleAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
             {
                 Values = new List<Guid>
                 {
                     activeRoleId,
                     inactiveRoleId
                 }
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -523,7 +516,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_not_be_able_to_activate_unknown_identity()
+    public async Task Should_not_be_able_to_activate_unknown_identity()
     {
         using (var httpClient = Factory.WithWebHostBuilder(builder =>
                {
@@ -533,12 +526,12 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.ActivateAsync(new ActivateIdentity
+            var response = await client.Identities.ActivateAsync(new ActivateIdentity
             {
                 Name = "unknown"
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -547,18 +540,19 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_activate_identity()
+    public async Task Should_be_able_to_activate_identity()
     {
         var serviceBus = new Mock<IServiceBus>();
         var identityQuery = new Mock<IIdentityQuery>();
 
         var identity = CreateIdentity();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>())).Returns(
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(
+            Task.FromResult(
             new List<Access.DataAccess.Query.Identity>
             {
                 identity
-            });
+            }.AsEnumerable()));
 
         using (var httpClient = Factory.WithWebHostBuilder(builder =>
                {
@@ -570,12 +564,12 @@ public class IdentitiesFixture : WebApiFixture
                        });
                }).CreateClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.ActivateAsync(new ActivateIdentity
+            var response = await client.Identities.ActivateAsync(new ActivateIdentity
             {
                 Name = "known"
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -586,7 +580,7 @@ public class IdentitiesFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_get_password_reset_token()
+    public async Task Should_be_able_to_get_password_reset_token_async()
     {
         var token = Guid.NewGuid();
         var mediator = new Mock<IMediator>();
@@ -607,23 +601,21 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.GetPasswordResetTokenAsync("identity").Result;
+            var response = await client.Identities.GetPasswordResetTokenAsync("identity");
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
             Assert.That(response.Content, Is.EqualTo(token));
 
-            mediator.Verify(
-                m => m.Send(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(),
-                    CancellationToken.None), Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), CancellationToken.None), Times.Once);
         }
     }
 
     [Test]
-    public void Should_not_be_able_to_get_password_reset_token_when_mediator_call_fails()
+    public async Task Should_not_be_able_to_get_password_reset_token_when_mediator_call_fails_async()
     {
         var mediator = new Mock<IMediator>();
 
@@ -643,22 +635,20 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.GetPasswordResetTokenAsync("identity").Result;
+            var response = await client.Identities.GetPasswordResetTokenAsync("identity");
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.False);
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-            mediator.Verify(
-                m => m.Send(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(),
-                    CancellationToken.None), Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), CancellationToken.None), Times.Once);
         }
     }
 
     [Test]
-    public void Should_be_able_to_register_identity()
+    public async Task Should_be_able_to_register_identity_async()
     {
         var serviceBus = new Mock<IServiceBus>();
         var mediator = new Mock<IMediator>();
@@ -691,19 +681,18 @@ public class IdentitiesFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Identities.RegisterAsync(new RegisterIdentity
+            var response = await client.Identities.RegisterAsync(new RegisterIdentity
             {
                 Name = "identity"
-            }).Result;
+            });
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-            mediator.Verify(m => m.Send(It.IsAny<IdentityRegistrationRequested>(), CancellationToken.None),
-                Times.Once);
+            mediator.Verify(m => m.Send(It.IsAny<IdentityRegistrationRequested>(), CancellationToken.None), Times.Once);
             mediator.Verify(m => m.Send(It.IsAny<GeneratePassword>(), CancellationToken.None), Times.Once);
             mediator.Verify(m => m.Send(It.IsAny<GenerateHash>(), CancellationToken.None), Times.Once);
             serviceBus.Verify(m => m.Send(It.IsAny<RegisterIdentity>(), null), Times.Once);

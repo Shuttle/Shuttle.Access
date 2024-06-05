@@ -26,32 +26,32 @@ namespace Shuttle.Access.Sql
             _queryFactory = queryFactory;
         }
 
-        public ValueTask<bool> ContainsAsync(Guid token, CancellationToken cancellationToken = default)
+        public async ValueTask<bool> ContainsAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.GetScalar<int>(_queryFactory.Contains(token)) == 1;
+            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Contains(token), cancellationToken) == 1;
         }
 
-        public ValueTask<bool> ContainsAsync(Guid token, string permission, CancellationToken cancellationToken = default)
+        public async ValueTask<bool> ContainsAsync(Guid token, string permission, CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.GetScalar<int>(_queryFactory.Contains(token, permission)) == 1;
+            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Contains(token, permission), cancellationToken) == 1;
         }
 
-        public Task<DataAccess.Query.Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
+        public async Task<DataAccess.Query.Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            var result = _queryMapper.MapObject<DataAccess.Query.Session>(_queryFactory.Get(token));
+            var result = await _queryMapper.MapObjectAsync<DataAccess.Query.Session>(_queryFactory.Get(token), cancellationToken);
 
             result.GuardAgainstRecordNotFound(token);
 
-            result.Permissions = _queryMapper.MapValues<string>(_queryFactory.GetPermissions(token)).ToList();
+            result.Permissions = (await _queryMapper.MapValuesAsync<string>(_queryFactory.GetPermissions(token), cancellationToken)).ToList();
 
             return result;
         }
 
-        public Task<IEnumerable<Session>> SearchAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<DataAccess.Query.Session>> SearchAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return _queryMapper.MapObjects<DataAccess.Query.Session>(_queryFactory.Search(specification));
+            return await _queryMapper.MapObjectsAsync<DataAccess.Query.Session>(_queryFactory.Search(specification), cancellationToken);
         }
     }
 }

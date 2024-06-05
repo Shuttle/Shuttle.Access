@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -17,7 +18,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
     public class RolesFixture : WebApiFixture
     {
         [Test]
-        public void Should_be_able_to_get_all_roles()
+        public async Task Should_be_able_to_get_all_roles_async()
         {
             var roleQuery = new Mock<IRoleQuery>();
 
@@ -39,7 +40,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Roles.GetAsync().Result;
+                var response = await client.Roles.GetAsync();
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -79,7 +80,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         }
 
         [Test]
-        public void Should_be_able_to_get_role_by_value()
+        public async Task Should_be_able_to_get_role_by_value_async()
         {
             var roleQuery = new Mock<IRoleQuery>();
 
@@ -101,7 +102,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Roles.GetAsync("some-value").Result;
+                var response = await client.Roles.GetAsync("some-value");
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -114,7 +115,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         }
 
         [Test]
-        public void Should_be_able_to_delete_role()
+        public async Task Should_be_able_to_delete_role_async()
         {
             var id = Guid.NewGuid();
             var serviceBus = new Mock<IServiceBus>();
@@ -130,9 +131,9 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).RegisterSession();
+                var client = await GetClient(httpClient).RegisterSessionAsync();
 
-                var response = client.Roles.DeleteAsync(id).Result;
+                var response = await client.Roles.DeleteAsync(id);
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -142,7 +143,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         }
 
         [Test]
-        public void Should_be_able_to_set_role()
+        public async Task Should_be_able_to_set_role_async()
         {
             var permissionId = Guid.NewGuid();
 
@@ -161,13 +162,13 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).RegisterSession();
+                var client = await GetClient(httpClient).RegisterSessionAsync();
 
-                var response = client.Roles.SetPermissionAsync(Guid.NewGuid(), new SetRolePermission
+                var response = await client.Roles.SetPermissionAsync(Guid.NewGuid(), new SetRolePermission
                 {
                     PermissionId = permissionId,
                     Active = true
-                }).Result;
+                });
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -178,7 +179,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         }
 
         [Test]
-        public void Should_be_able_to_get_role()
+        public async Task Should_be_able_to_get_role_async()
         {
             var activePermissionId = Guid.NewGuid();
             var inactivePermissionId = Guid.NewGuid();
@@ -205,14 +206,14 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
             {
                 var client = GetClient(httpClient);
 
-                var response = client.Roles.PermissionAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
+                var response = await client.Roles.PermissionAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
                 {
                     Values = new List<Guid>
                     {
                         activePermissionId,
                         inactivePermissionId
                     }
-                }).Result;
+                });
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -233,7 +234,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
         }
 
         [Test]
-        public void Should_be_able_to_register_role()
+        public async Task Should_be_able_to_register_role_async()
         {
             var serviceBus = new Mock<IServiceBus>();
 
@@ -246,12 +247,12 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1
                        });
                    }).CreateDefaultClient())
             {
-                var client = GetClient(httpClient).RegisterSession();
+                var client = await GetClient(httpClient).RegisterSessionAsync();
 
-                var response = client.Roles.RegisterAsync(new RegisterRole
+                var response = await client.Roles.RegisterAsync(new RegisterRole
                 {
                     Name = "role"
-                }).Result;
+                });
 
                 Assert.That(response, Is.Not.Null);
                 Assert.That(response.IsSuccessStatusCode, Is.True);

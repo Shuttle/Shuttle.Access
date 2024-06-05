@@ -32,7 +32,7 @@ public class SessionsFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
             var response = await client.Sessions.GetAsync(session.Token);
 
@@ -44,13 +44,13 @@ public class SessionsFixture : WebApiFixture
     }
 
     [Test]
-    public void Should_be_able_to_get_session_permissions()
+    public async Task Should_be_able_to_get_session_permissions_async()
     {
         var sessionRepository = new Mock<ISessionRepository>();
         var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
             .AddPermission(Permission);
 
-        sessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>())).Returns(session);
+        sessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
 
         using (var httpClient = Factory.WithWebHostBuilder(builder =>
                {
@@ -60,9 +60,9 @@ public class SessionsFixture : WebApiFixture
                    });
                }).CreateDefaultClient())
         {
-            var client = GetClient(httpClient).RegisterSession();
+            var client = await GetClient(httpClient).RegisterSessionAsync();
 
-            var response = client.Sessions.GetPermissionsAsync(session.Token).Result;
+            var response = await client.Sessions.GetPermissionsAsync(session.Token);
 
             Assert.That(response, Is.Not.Null);
             Assert.That(response.IsSuccessStatusCode, Is.True);

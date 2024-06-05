@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Refit;
 using Shuttle.Access.Messages.v1;
@@ -10,7 +12,7 @@ namespace Shuttle.Access.RestClient
 {
     public class AccessClient : IAccessClient
     {
-        private static readonly object Lock = new object();
+        private static readonly SemaphoreSlim Lock = new(1, 1);
         private readonly AccessClientOptions _accessClientOptions;
 
         public AccessClient(IOptions<AccessClientOptions> accessClientOptions, IHttpClientFactory httpClientFactory)
@@ -36,16 +38,18 @@ namespace Shuttle.Access.RestClient
         public IIdentitiesApi Identities { get; }
         public IRolesApi Roles { get; }
 
-        public IAccessClient DeleteSession()
+        public async Task<IAccessClient> DeleteSessionAsync(CancellationToken cancellationToken = default)
         {
-            lock (Lock)
+            try
             {
+                await Lock.WaitAsync(cancellationToken);
+
                 if (!this.HasSession())
                 {
                     return this;
                 }
 
-                var response = Sessions.DeleteAsync().Result;
+                var response = await Sessions.DeleteAsync();
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -54,14 +58,23 @@ namespace Shuttle.Access.RestClient
 
                 ResetSession();
             }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                Lock.Release();
+            }
 
             return this;
         }
 
-        public IAccessClient RegisterSession()
+        public async Task<IAccessClient> RegisterSessionAsync(CancellationToken cancellationToken = default)
         {
-            lock (Lock)
+            try
             {
+                await Lock.WaitAsync(cancellationToken);
+
                 if (this.HasSession())
                 {
                     return this;
@@ -81,6 +94,13 @@ namespace Shuttle.Access.RestClient
 
                 Token = response.Content.Token;
                 TokenExpiryDate = response.Content.TokenExpiryDate.Subtract(TimeSpan.FromMinutes(1));
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                Lock.Release();
             }
 
             return this;
