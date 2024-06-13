@@ -20,6 +20,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
+      <ProjectReference Include="..\Shuttle.Access.WebApi\Shuttle.Access.WebApi.csproj" />
     </ItemGroup>
 
 </Project>
