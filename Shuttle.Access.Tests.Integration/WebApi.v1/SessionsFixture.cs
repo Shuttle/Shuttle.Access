@@ -7,6 +7,7 @@ using Moq;
 using NUnit.Framework;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Core.Data;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -27,6 +28,10 @@ public class SessionsFixture : WebApiFixture
             });
         });
 
+        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", DateTime.Now, DateTime.Now);
+
+        factory.SessionService.Setup(m => m.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(RegisterSessionResult.Success(session)));
+
         var client = factory.CreateClient();
 
         var response = await client.PostAsJsonAsync(
@@ -37,8 +42,12 @@ public class SessionsFixture : WebApiFixture
                 Password = "password"
             });
 
-        Assert.That(response, Is.Not.Null);
-        Assert.That(response.IsSuccessStatusCode, Is.True);
+        var sessionRegistered = response.Content.ReadFromJsonAsync<SessionRegistered>();
+
+        Assert.That(sessionRegistered, Is.Not.Null);
+        Assert.That(sessionRegistered.IsCompletedSuccessfully, Is.True);
+        Assert.That(sessionRegistered.Result?.Token, Is.EqualTo(session.Token));
+        Assert.That(sessionRegistered.Result?.IdentityName, Is.EqualTo(session.IdentityName));
 
         factory.DatabaseContextFactory.Verify(m => m.Create(), Times.Once);
     }

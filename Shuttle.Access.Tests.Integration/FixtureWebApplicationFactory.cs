@@ -42,8 +42,11 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
         AccessService.Setup(m => m.HasPermission(It.IsAny<Guid>(), It.IsAny<string>())).Returns(true);
         AccessService.Setup(m => m.Contains(It.IsAny<Guid>())).Returns(true);
 
+        DatabaseContextFactory.Setup(m => m.Create()).Returns(new Mock<IDatabaseContext>().Object);
+
         builder.ConfigureServices(services =>
         {
+            services.AddSingleton(new Mock<ISubscriptionService>().Object);
             services.AddSingleton(SessionService.Object);
             services.AddSingleton(DatabaseContextFactory.Object);
             services.AddSingleton(AccessService.Object);
