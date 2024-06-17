@@ -1,35 +1,23 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Reflection;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
-public class SessionsFixture : WebApiFixture
+public class SessionsFixture
 {
     private const string Permission = "integration://system-permission";
 
     [Test]
     public async Task Should_be_able_to_register_a_session_async()
     {
-        var sessionService = new Mock<ISessionService>();
-
-        var factory = new FixtureWebApplicationFactory(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                services.AddSingleton(sessionService.Object);
-            });
-        });
+        var factory = new FixtureWebApplicationFactory();
 
         var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", DateTime.Now, DateTime.Now);
 
@@ -52,27 +40,21 @@ public class SessionsFixture : WebApiFixture
         Assert.That(sessionRegistered.Result?.Token, Is.EqualTo(session.Token));
         Assert.That(sessionRegistered.Result?.IdentityName, Is.EqualTo(session.IdentityName));
 
-        factory.DatabaseContextFactory.Verify(m => m.Create(), Times.Once);
+        factory.DatabaseContextFactory.Verify(m => m.Create(), Times.AtLeast(1));
+        factory.SessionService.Verify(m => m.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), CancellationToken.None), Times.Once);
     }
 
     [Test]
     public async Task Should_be_able_to_get_a_session_using_the_token_async()
     {
-        var sessionQuery = new Mock<ISessionQuery>();
+        var factory = new FixtureWebApplicationFactory();
+
         var session = new Access.DataAccess.Query.Session
         {
             Token = Guid.NewGuid()
         };
 
-        sessionQuery.Setup(m => m.GetAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
-
-        var factory = new FixtureWebApplicationFactory(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                services.AddSingleton(sessionQuery.Object);
-            });
-        });
+        factory.SessionQuery.Setup(m => m.GetAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
 
         var client = factory.CreateClient();
 
@@ -93,19 +75,14 @@ public class SessionsFixture : WebApiFixture
     [Test]
     public async Task Should_be_able_to_get_session_permissions_async()
     {
-        var sessionRepository = new Mock<ISessionRepository>();
+        var factory = new FixtureWebApplicationFactory();
+
         var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
             .AddPermission(Permission);
 
-        sessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
+        factory.SessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
 
-        var client = new FixtureWebApplicationFactory(builder =>
-        {
-            builder.ConfigureServices(services =>
-            {
-                services.AddSingleton(sessionRepository.Object);
-            });
-        }).CreateClient();
+        var client = factory.CreateClient();
 
         var response = await client.GetFromJsonAsync<IEnumerable<string>>($"/v1/sessions/{session.Token}/permissions");
 

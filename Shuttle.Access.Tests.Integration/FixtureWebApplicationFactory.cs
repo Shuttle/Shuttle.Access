@@ -5,26 +5,28 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.WebApi;
 using Shuttle.Core.Data;
-using Shuttle.Core.Mediator;
 using Shuttle.Esb;
-using Shuttle.Recall;
 
 namespace Shuttle.Access.Tests.Integration;
 
 public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
 {
-    public Mock<IAccessService> AccessService { get; } = new();
-    public Mock<IDatabaseContextFactory> DatabaseContextFactory { get; } = new();
-    public Mock<ISessionService> SessionService { get; } = new();
-
     private readonly Action<IWebHostBuilder> _webHostBuilder;
 
     public FixtureWebApplicationFactory(Action<IWebHostBuilder> webHostBuilder = null)
     {
         _webHostBuilder = webHostBuilder;
     }
+
+    public Mock<IAccessService> AccessService { get; } = new();
+    public Mock<IDatabaseContextFactory> DatabaseContextFactory { get; } = new();
+    public Mock<IRoleQuery> RoleQuery { get; } = new();
+    public Mock<ISessionQuery> SessionQuery { get; } = new();
+    public Mock<ISessionService> SessionService { get; } = new();
+    public Mock<ISessionRepository> SessionRepository { get; } = new();
 
     protected override void ConfigureClient(HttpClient client)
     {
@@ -47,17 +49,12 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
         builder.ConfigureServices(services =>
         {
             services.AddSingleton(new Mock<ISubscriptionService>().Object);
-            services.AddSingleton(SessionService.Object);
-            services.AddSingleton(DatabaseContextFactory.Object);
             services.AddSingleton(AccessService.Object);
-            //services.AddSingleton(new Mock<IAuthenticationService>().Object);
-            //services.AddSingleton(new Mock<IAuthorizationService>().Object);
-            //services.AddSingleton(new Mock<ISessionRepository>().Object);
-            //services.AddSingleton(new Mock<IServiceBus>().Object);
-            //services.AddSingleton(new Mock<IMediator>().Object);
-            //services.AddSingleton(new Mock<IHashingService>().Object);
-            //services.AddSingleton(new Mock<IEventStore>().Object);
-            //services.AddSingleton(new Mock<IPasswordGenerator>().Object);
+            services.AddSingleton(DatabaseContextFactory.Object);
+            services.AddSingleton(RoleQuery.Object);
+            services.AddSingleton(SessionQuery.Object);
+            services.AddSingleton(SessionRepository.Object);
+            services.AddSingleton(SessionService.Object);
         });
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Data;
@@ -95,12 +96,19 @@ public class Program
 
         app.UseAccessAuthorization();
 
-        app.MapGet("/server/configuration", (HttpContext _) =>
-        {
-            var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
+        // server
 
-            return new { Version = $"{version.Major}.{version.Minor}.{version.Build}" };
-        });
+        app.MapGet("/v{version:apiVersion}/server/configuration", (HttpContext _) =>
+            {
+                var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
+
+                return new ServerConfiguration { Version = $"{version.Major}.{version.Minor}.{version.Build}" };
+            })
+            .WithTags("Server")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
+
+        // sessions
 
         app.MapPost("/v{version:apiVersion}/sessions", async (ISessionService sessionService, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterSession message) =>
             {
@@ -127,66 +135,69 @@ public class Program
                     })
                     : Results.BadRequest();
             })
+            .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        //app.MapPost("/v{version:apiVersion}/sessions/delegated", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionService sessionService, RegisterDelegatedSession message) =>
-        //    {
-        //        if (string.IsNullOrEmpty(message.IdentityName))
-        //        {
-        //            return Results.BadRequest();
-        //        }
+        app.MapPost("/v{version:apiVersion}/sessions/delegated", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionService sessionService, RegisterDelegatedSession message) =>
+            {
+                if (string.IsNullOrEmpty(message.IdentityName))
+                {
+                    return Results.BadRequest();
+                }
 
-        //        var sessionTokenResult = httpContext.GetAccessSessionToken();
+                var sessionTokenResult = httpContext.GetAccessSessionToken();
 
-        //        if (!sessionTokenResult.Ok)
-        //        {
-        //            return Results.Unauthorized();
-        //        }
+                if (!sessionTokenResult.Ok)
+                {
+                    return Results.Unauthorized();
+                }
 
-        //        RegisterSessionResult registerSessionResult;
+                RegisterSessionResult registerSessionResult;
 
-        //        await using (databaseContextFactory.Create())
-        //        {
-        //            registerSessionResult = await sessionService.RegisterAsync(message.IdentityName, sessionTokenResult.SessionToken);
-        //        }
+                await using (databaseContextFactory.Create())
+                {
+                    registerSessionResult = await sessionService.RegisterAsync(message.IdentityName, sessionTokenResult.SessionToken);
+                }
 
-        //        if (!registerSessionResult.Ok)
-        //        {
-        //            return Results.BadRequest();
-        //        }
+                if (!registerSessionResult.Ok)
+                {
+                    return Results.BadRequest();
+                }
 
-        //        return Results.Ok(new SessionRegistered
-        //        {
-        //            IdentityName = registerSessionResult.IdentityName,
-        //            Token = registerSessionResult.Token,
-        //            TokenExpiryDate = registerSessionResult.TokenExpiryDate,
-        //            Permissions = registerSessionResult.Permissions.ToList()
-        //        });
-        //    })
-        //    .RequiresSession()
-        //    .WithApiVersionSet(versionSet)
-        //    .MapToApiVersion(apiVersion1);
+                return Results.Ok(new SessionRegistered
+                {
+                    IdentityName = registerSessionResult.IdentityName,
+                    Token = registerSessionResult.Token,
+                    TokenExpiryDate = registerSessionResult.TokenExpiryDate,
+                    Permissions = registerSessionResult.Permissions.ToList()
+                });
+            })
+            .WithTags("Sessions")
+            .RequiresSession()
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
 
-        //app.MapDelete("/v{version:apiVersion}/sessions", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionService sessionService) =>
-        //    {
-        //        var sessionTokenResult = httpContext.GetAccessSessionToken();
+        app.MapDelete("/v{version:apiVersion}/sessions", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionService sessionService) =>
+            {
+                var sessionTokenResult = httpContext.GetAccessSessionToken();
 
-        //        if (!sessionTokenResult.Ok)
-        //        {
-        //            return Results.BadRequest();
-        //        }
+                if (!sessionTokenResult.Ok)
+                {
+                    return Results.BadRequest();
+                }
 
-        //        await using (databaseContextFactory.Create())
-        //        {
-        //            return await sessionService.RemoveAsync(sessionTokenResult.SessionToken)
-        //                ? Results.Ok()
-        //                : Results.Problem();
-        //        }
-        //    })
-        //    .RequiresPermission(Permissions.View.Sessions)
-        //    .WithApiVersionSet(versionSet)
-        //    .MapToApiVersion(apiVersion1);
+                await using (databaseContextFactory.Create())
+                {
+                    return await sessionService.RemoveAsync(sessionTokenResult.SessionToken)
+                        ? Results.Ok()
+                        : Results.Problem();
+                }
+            })
+            .WithTags("Sessions")
+            .RequiresPermission(Permissions.View.Sessions)
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
 
         app.MapGet("/v{version:apiVersion}/sessions/{token:Guid}", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery) =>
             {
@@ -199,6 +210,7 @@ public class Program
                         : Results.Ok(session);
                 }
             })
+            .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.View.Sessions);
@@ -214,9 +226,154 @@ public class Program
                         : Results.Ok(session.Permissions);
                 }
             })
+            .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.View.Sessions);
+
+        // roles
+
+        app.MapPatch("/v{version:apiVersion}/roles/{id}/name", async (Guid id, [FromBody] SetRoleName message, [FromServices] IServiceBus serviceBus) =>
+        {
+            try
+            {
+                message.Id = id;
+                message.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+
+            await serviceBus.SendAsync(message);
+
+            return Results.Accepted();
+        })
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(Permissions.Register.Role);
+
+        app.MapPatch("/v{version:apiVersion}/roles/{id}/permissions", async (Guid id, [FromBody] SetRolePermission message, [FromServices] IServiceBus serviceBus) =>
+        {
+            try
+            {
+                message.RoleId = id;
+                message.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+
+            await serviceBus.SendAsync(message);
+
+            return Results.Accepted();
+        })
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(Permissions.Register.Role);
+
+        app.MapPost("/v{version:apiVersion}/roles/{id}/permissions/availability", async (Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        {
+            try
+            {
+                identifiers.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+
+            await using var context = databaseContextFactory.Create();
+
+            var permissions = roleQuery.Permissions(new DataAccess.Query.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values)).ToList();
+
+            return Results.Ok(from permissionId in identifiers.Values
+                              select new IdentifierAvailability<Guid>()
+                              {
+                                  Id = permissionId,
+                                  Active = permissions.Any(item => item.Id.Equals(permissionId))
+                              });
+        })
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(Permissions.Register.Role);
+
+        app.MapGet("/v{version:apiVersion}/roles", async ([FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        {
+            await using var context = databaseContextFactory.Create();
+
+            return Results.Ok(roleQuery.Search(new DataAccess.Query.Role.Specification()));
+        })
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(Permissions.View.Role);
+
+        app.MapGet("/v{version:apiVersion}/roles/{value}", async (string value, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        {
+            await using var context = databaseContextFactory.Create();
+
+            var specification = new DataAccess.Query.Role.Specification();
+
+            if (Guid.TryParse(value, out var id))
+            {
+                specification.AddRoleId(id);
+            }
+            else
+            {
+                specification.AddName(value);
+            }
+
+            var role = roleQuery
+                .Search(specification.IncludePermissions())
+                .FirstOrDefault();
+
+            return role != null
+                ? Results.Ok(role)
+                : Results.BadRequest();
+        })
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(Permissions.View.Role);
+
+        app.MapDelete("/v{version:apiVersion}/roles/{id}", async (Guid id, [FromServices] IServiceBus serviceBus) =>
+        {
+            await serviceBus.SendAsync(new RemoveRole
+            {
+                Id = id
+            });
+
+            return Results.Accepted();
+        })
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(Permissions.Remove.Role);
+
+        app.MapPost("/v{version:apiVersion}/roles", async ([FromBody] RegisterRole message, [FromServices] IServiceBus serviceBus) =>
+        {
+            try
+            {
+                message.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+
+            await serviceBus.SendAsync(message);
+
+            return Results.Accepted();
+        })
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(Permissions.Register.Role);
 
         if (app.Environment.IsDevelopment())
         {
