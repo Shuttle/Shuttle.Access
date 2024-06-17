@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,7 +10,7 @@ using Moq;
 using NUnit.Framework;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Data;
+using Shuttle.Core.Reflection;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -87,31 +90,26 @@ public class SessionsFixture : WebApiFixture
         Assert.That(response.Token, Is.EqualTo(session.Token));
     }
 
-    //[Test]
-    //public async Task Should_be_able_to_get_session_permissions_async()
-    //{
-    //    var sessionRepository = new Mock<ISessionRepository>();
-    //    var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
-    //        .AddPermission(Permission);
+    [Test]
+    public async Task Should_be_able_to_get_session_permissions_async()
+    {
+        var sessionRepository = new Mock<ISessionRepository>();
+        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
+            .AddPermission(Permission);
 
-    //    sessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
+        sessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
 
-    //    using (var httpClient = Factory.WithWebHostBuilder(builder =>
-    //           {
-    //               builder.ConfigureTestServices(services =>
-    //               {
-    //                   services.AddSingleton(sessionRepository.Object);
-    //               });
-    //           }).CreateDefaultClient())
-    //    {
-    //        var client = await GetClient(httpClient).RegisterSessionAsync();
+        var client = new FixtureWebApplicationFactory(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.AddSingleton(sessionRepository.Object);
+            });
+        }).CreateClient();
 
-    //        var response = await client.Sessions.GetPermissionsAsync(session.Token);
+        var response = await client.GetFromJsonAsync<IEnumerable<string>>($"/v1/sessions/{session.Token}/permissions");
 
-    //        Assert.That(response, Is.Not.Null);
-    //        Assert.That(response.IsSuccessStatusCode, Is.True);
-    //        Assert.That(response.Content, Is.Not.Null);
-    //        Assert.That(response.Content.Find(item => item.Equals(Permission, StringComparison.InvariantCultureIgnoreCase)), Is.Not.Null);
-    //    }
-    //}
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.FirstOrDefault(item => item.Equals(Permission, StringComparison.InvariantCultureIgnoreCase)), Is.Not.Null);
+    }
 }

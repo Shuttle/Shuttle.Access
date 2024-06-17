@@ -189,31 +189,34 @@ public class Program
         //    .MapToApiVersion(apiVersion1);
 
         app.MapGet("/v{version:apiVersion}/sessions/{token:Guid}", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery) =>
-        {
-            await using (databaseContextFactory.Create())
             {
-                var session = await sessionQuery.GetAsync(token);
+                await using (databaseContextFactory.Create())
+                {
+                    var session = await sessionQuery.GetAsync(token);
 
-                return session == null
-                    ? Results.BadRequest()
-                    : Results.Ok(session);
-            }
-        })
+                    return session == null
+                        ? Results.BadRequest()
+                        : Results.Ok(session);
+                }
+            })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.View.Sessions);
 
-        //app.MapGet("/sessions/{token:Guid}/permissions", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
-        //{
-        //    await using (databaseContextFactory.Create())
-        //    {
-        //        var session = await sessionRepository.FindAsync(token);
+        app.MapGet("/v{version:apiVersion}/sessions/{token:Guid}/permissions", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
+            {
+                await using (databaseContextFactory.Create())
+                {
+                    var session = await sessionRepository.FindAsync(token);
 
-        //        return session == null
-        //            ? Results.BadRequest()
-        //            : Results.Ok(session.Permissions);
-        //    }
-        //}).RequiresPermission(Permissions.View.Sessions);
+                    return session == null
+                        ? Results.BadRequest()
+                        : Results.Ok(session.Permissions);
+                }
+            })
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(Permissions.View.Sessions);
 
         if (app.Environment.IsDevelopment())
         {
