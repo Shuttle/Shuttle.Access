@@ -27,6 +27,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
     public Mock<ISessionQuery> SessionQuery { get; } = new();
     public Mock<ISessionService> SessionService { get; } = new();
     public Mock<ISessionRepository> SessionRepository { get; } = new();
+    public Mock<IServiceBus> ServiceBus { get; } = new();
 
     protected override void ConfigureClient(HttpClient client)
     {
@@ -53,6 +54,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton(DatabaseContextFactory.Object);
             services.AddSingleton(RoleQuery.Object);
             services.AddSingleton(SessionQuery.Object);
+            services.AddSingleton(ServiceBus.Object);
             services.AddSingleton(SessionRepository.Object);
             services.AddSingleton(SessionService.Object);
         });
