@@ -29,7 +29,7 @@ namespace Shuttle.Access.Sql
         public async Task<IEnumerable<string>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default)
         {
             var userId = await _identityQuery.IdAsync(identityName, cancellationToken);
-            var user = (await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithIdentityId(userId).IncludeRoles(), cancellationToken)).FirstOrDefault();
+            var user = (await _identityQuery.SearchAsync(new IdentitySpecification().WithIdentityId(userId).IncludeRoles(), cancellationToken)).FirstOrDefault();
 
             if (user == null)
             {

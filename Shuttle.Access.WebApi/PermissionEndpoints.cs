@@ -6,6 +6,7 @@ using Shuttle.Access.WebApi.Specifications;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
+using PermissionSpecification = Shuttle.Access.DataAccess.PermissionSpecification;
 
 namespace Shuttle.Access.WebApi;
 
@@ -23,7 +24,7 @@ public static class PermissionEndpoints
             {
                 await using (databaseContextFactory.Create())
                 {
-                    var permissions = (await permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification())).ToList();
+                    var permissions = (await permissionQuery.SearchAsync(new PermissionSpecification())).ToList();
                     return Results.Ok(permissions);
                 }
             })
@@ -35,7 +36,7 @@ public static class PermissionEndpoints
             {
                 await using (databaseContextFactory.Create())
                 {
-                    var permission = (await permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification().AddId(id))).SingleOrDefault();
+                    var permission = (await permissionQuery.SearchAsync(new PermissionSpecification().AddId(id))).SingleOrDefault();
                     return permission != null ? Results.Ok(permission) : Results.BadRequest();
                 }
             })

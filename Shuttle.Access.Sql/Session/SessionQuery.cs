@@ -36,9 +36,9 @@ namespace Shuttle.Access.Sql
             return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Contains(token, permission), cancellationToken) == 1;
         }
 
-        public async Task<DataAccess.Query.Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
+        public async Task<Messages.v1.Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            var result = await _queryMapper.MapObjectAsync<DataAccess.Query.Session>(_queryFactory.Get(token), cancellationToken);
+            var result = await _queryMapper.MapObjectAsync<Messages.v1.Session>(_queryFactory.Get(token), cancellationToken);
 
             result.GuardAgainstRecordNotFound(token);
 
@@ -47,11 +47,11 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public async Task<IEnumerable<DataAccess.Query.Session>> SearchAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            return await _queryMapper.MapObjectsAsync<DataAccess.Query.Session>(_queryFactory.Search(specification), cancellationToken);
+            return await _queryMapper.MapObjectsAsync<Messages.v1.Session>(_queryFactory.Search(specification), cancellationToken);
         }
     }
 }

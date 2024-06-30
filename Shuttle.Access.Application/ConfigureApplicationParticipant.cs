@@ -6,6 +6,7 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Core.Threading;
+using PermissionSpecification = Shuttle.Access.DataAccess.PermissionSpecification;
 
 namespace Shuttle.Access.Application
 {
@@ -50,7 +51,7 @@ namespace Shuttle.Access.Application
         {
             Guard.AgainstNull(context, nameof(context));
 
-            var roleSpecification = new DataAccess.Query.Role.Specification().AddName("Administrator");
+            var roleSpecification = new RoleSpecification().AddName("Administrator");
 
             var administratorExists = await _roleQuery.CountAsync(roleSpecification) > 0;
 
@@ -66,7 +67,7 @@ namespace Shuttle.Access.Application
 
             foreach (var permission in _permissions)
             {
-                if (await _permissionQuery.ContainsAsync(new DataAccess.Query.Permission.Specification().AddName(permission)))
+                if (await _permissionQuery.ContainsAsync(new PermissionSpecification().AddName(permission)))
                 {
                     continue;
                 }
@@ -81,7 +82,7 @@ namespace Shuttle.Access.Application
                 await _mediator.SendAsync(registerPermissionMessage);
             }
 
-            if (await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification()) == 0)
+            if (await _identityQuery.CountAsync(new IdentitySpecification()) == 0)
             {
                 if (!administratorExists)
                 {

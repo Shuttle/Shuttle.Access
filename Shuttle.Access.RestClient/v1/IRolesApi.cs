@@ -10,10 +10,10 @@ namespace Shuttle.Access.RestClient.v1
     public interface IRolesApi
     {
         [Get("/v1/roles")]
-        Task<IApiResponse<List<DataAccess.Query.Role>>> GetAsync();
+        Task<IApiResponse<List<Messages.v1.Role>>> GetAsync();
         
         [Get("/v1/roles/{value}")]
-        Task<IApiResponse<DataAccess.Query.Role>> GetAsync(string value);
+        Task<IApiResponse<Messages.v1.Role>> GetAsync(string value);
         
         [Delete("/v1/roles/{id}")]
         Task<IApiResponse> DeleteAsync(Guid id);

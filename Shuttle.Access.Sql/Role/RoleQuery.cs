@@ -28,11 +28,11 @@ namespace Shuttle.Access.Sql
             _dataRowMapper = dataRowMapper;
         }
 
-        public async Task<IEnumerable<DataAccess.Query.Role>> SearchAsync(DataAccess.Query.Role.Specification specification, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Messages.v1.Role>> SearchAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(specification, nameof(specification));
 
-            var result = (await _queryMapper.MapObjectsAsync<DataAccess.Query.Role>(_queryFactory.Search(specification), cancellationToken)).ToList();
+            var result = (await _queryMapper.MapObjectsAsync<Messages.v1.Role>(_queryFactory.Search(specification), cancellationToken)).ToList();
 
             if (specification.PermissionsIncluded)
             {
@@ -47,19 +47,19 @@ namespace Shuttle.Access.Sql
                         continue;
                     }
 
-                    role.Permissions = _dataRowMapper.MapObjects<DataAccess.Query.Role.Permission>(permissionGroup).ToList();
+                    role.Permissions = _dataRowMapper.MapObjects<Messages.v1.Role.Permission>(permissionGroup).ToList();
                 }
             }
 
             return result;
         }
 
-        public async Task<IEnumerable<DataAccess.Query.Permission>> PermissionsAsync(DataAccess.Query.Role.Specification specification, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Messages.v1.Permission>> PermissionsAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
         {
-            return await _queryMapper.MapObjectsAsync<DataAccess.Query.Role.Permission>(_queryFactory.Permissions(specification), cancellationToken);
+            return await _queryMapper.MapObjectsAsync<Messages.v1.Role.Permission>(_queryFactory.Permissions(specification), cancellationToken);
         }
 
-        public async ValueTask<int> CountAsync(DataAccess.Query.Role.Specification specification, CancellationToken cancellationToken = default)
+        public async ValueTask<int> CountAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
         {
             return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
         }

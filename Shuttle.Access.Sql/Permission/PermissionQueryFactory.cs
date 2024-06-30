@@ -9,17 +9,17 @@ namespace Shuttle.Access.Sql
 {
     public class PermissionQueryFactory : IPermissionQueryFactory
     {
-        public IQuery Search(DataAccess.Query.Permission.Specification specification)
+        public IQuery Search(PermissionSpecification specification)
         {
             return Specification(specification, true);
         }
 
-        public IQuery Count(DataAccess.Query.Permission.Specification specification)
+        public IQuery Count(PermissionSpecification specification)
         {
             return Specification(specification, false);
         }
 
-        public IQuery Specification(DataAccess.Query.Permission.Specification specification, bool columns)
+        public IQuery Specification(PermissionSpecification specification, bool columns)
         {
             Guard.AgainstNull(specification, nameof(specification));
 
@@ -45,7 +45,7 @@ inner join
                 .AddParameter(Columns.NameMatch, specification.NameMatch);
         }
 
-        private string Where(DataAccess.Query.Permission.Specification specification)
+        private string Where(PermissionSpecification specification)
         {
             return $@"
 where
@@ -136,7 +136,7 @@ where
             return SetStatus(id, (int)PermissionStatus.Removed);
         }
 
-        public IQuery Contains(DataAccess.Query.Permission.Specification specification)
+        public IQuery Contains(PermissionSpecification specification)
         {
             Guard.AgainstNull(specification, nameof(specification));
 

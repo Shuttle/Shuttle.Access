@@ -23,7 +23,7 @@ namespace Shuttle.Access.Tests
             var accessClient = new Mock<IAccessClient>();
             var sessionsApi = new Mock<ISessionsApi>();
 
-            sessionsApi.Setup(m => m.GetAsync(It.IsAny<Guid>()).Result).Returns(new ApiResponse<DataAccess.Query.Session>(new HttpResponseMessage(HttpStatusCode.BadRequest), null, new RefitSettings()));
+            sessionsApi.Setup(m => m.GetAsync(It.IsAny<Guid>()).Result).Returns(new ApiResponse<Messages.v1.Session>(new HttpResponseMessage(HttpStatusCode.BadRequest), null, new RefitSettings()));
             accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
             var service = new RestAccessService(Options.Create(new AccessOptions()), accessClient.Object);
@@ -37,7 +37,7 @@ namespace Shuttle.Access.Tests
             var accessClient = new Mock<IAccessClient>();
             var sessionsApi = new Mock<ISessionsApi>();
 
-            sessionsApi.Setup(m => m.GetAsync(It.IsAny<Guid>()).Result).Returns(new ApiResponse<DataAccess.Query.Session>(new HttpResponseMessage(HttpStatusCode.OK), new DataAccess.Query.Session { Permissions = new List<string>() }, new RefitSettings()));
+            sessionsApi.Setup(m => m.GetAsync(It.IsAny<Guid>()).Result).Returns(new ApiResponse<Messages.v1.Session>(new HttpResponseMessage(HttpStatusCode.OK), new Messages.v1.Session { Permissions = new List<string>() }, new RefitSettings()));
 
             accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 

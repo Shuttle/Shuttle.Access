@@ -15,6 +15,6 @@ namespace Shuttle.Access.DataAccess
         IQuery Contains(Guid token);
         IQuery Contains(Guid token, string permission);
         IQuery Renew(Session session);
-        IQuery Search(Query.Session.Specification specification);
+        IQuery Search(SessionSpecification specification);
     }
 }

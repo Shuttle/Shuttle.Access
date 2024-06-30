@@ -22,10 +22,10 @@ namespace Shuttle.Access.Tests.Participants
             var eventStore = new FixtureEventStore();
             var identityQuery = new Mock<IIdentityQuery>();
 
-            var identity = new DataAccess.Query.Identity { Id = Guid.NewGuid() };
+            var identity = new Messages.v1.Identity { Id = Guid.NewGuid() };
 
-            identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Identity.Specification>(), CancellationToken.None))
-                .Returns(Task.FromResult(new List<DataAccess.Query.Identity>{ identity }.AsEnumerable()));
+            identityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None))
+                .Returns(Task.FromResult(new List<Messages.v1.Identity>{ identity }.AsEnumerable()));
 
             var participant =
                 new ActivateIdentityParticipant(identityQuery.Object, eventStore);

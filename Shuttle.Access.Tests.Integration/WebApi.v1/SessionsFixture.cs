@@ -17,7 +17,7 @@ public class SessionsFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var session = new Access.DataAccess.Query.Session
+        var session = new Messages.v1.Session
         {
             Token = Guid.NewGuid()
         };

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Messages.v1;
+using PermissionSpecification = Shuttle.Access.DataAccess.PermissionSpecification;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -13,7 +14,7 @@ public class PermissionsFixture
     [Test]
     public async Task Should_be_able_to_get_available_permissions_async()
     {
-        var permission = new Access.DataAccess.Query.Permission
+        var permission = new Messages.v1.Permission
         {
             Id = Guid.NewGuid(),
             Name = "integration://available-permission",
@@ -22,7 +23,7 @@ public class PermissionsFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Permission.Specification>(), default)).Returns(Task.FromResult(new List<Access.DataAccess.Query.Permission> { permission }.AsEnumerable()));
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<PermissionSpecification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Permission> { permission }.AsEnumerable()));
 
         var response = await factory.GetAccessClient().Permissions.GetAsync();
 

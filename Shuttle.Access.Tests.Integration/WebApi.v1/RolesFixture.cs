@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 
@@ -13,13 +14,13 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 [TestFixture]
 public class RolesFixture
 {
-    private static Access.DataAccess.Query.Role CreateRole()
+    private static Messages.v1.Role CreateRole()
     {
-        return new Access.DataAccess.Query.Role
+        return new Messages.v1.Role
         {
             Id = Guid.NewGuid(),
             Name = "name",
-            Permissions = new List<Access.DataAccess.Query.Role.Permission>
+            Permissions = new List<Messages.v1.Role.Permission>
             {
                 new()
                 {
@@ -42,8 +43,8 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Access.DataAccess.Query.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), default)).Returns(
+            Task.FromResult(new List<Messages.v1.Role>
             {
                 role
             }.AsEnumerable()));
@@ -72,8 +73,8 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Access.DataAccess.Query.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), default)).Returns(
+            Task.FromResult(new List<Messages.v1.Role>
             {
                 role
             }.AsEnumerable()));
@@ -140,8 +141,8 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<Access.DataAccess.Query.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Access.DataAccess.Query.Permission>
+        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<RoleSpecification>(), default)).Returns(
+            Task.FromResult(new List<Messages.v1.Permission>
             {
                 new()
                 {

@@ -10,10 +10,10 @@ namespace Shuttle.Access.RestClient.v1
     public interface IIdentitiesApi
     {
         [Get("/identities")]
-        Task<IApiResponse<List<DataAccess.Query.Identity>>> GetAsync();
+        Task<IApiResponse<List<Messages.v1.Identity>>> GetAsync();
         
         [Get("/identities/{value}")]
-        Task<IApiResponse<DataAccess.Query.Identity>> GetAsync(string value);
+        Task<IApiResponse<Messages.v1.Identity>> GetAsync(string value);
         
         [Delete("/identities/{id}")]
         Task<IApiResponse> DeleteAsync(Guid id);

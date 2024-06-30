@@ -23,9 +23,9 @@ namespace Shuttle.Access.Tests.Participants
             var identityQuery = new Mock<IIdentityQuery>();
             var roleQuery = new Mock<IRoleQuery>();
 
-            var identity = new DataAccess.Query.Identity { Id = Guid.NewGuid(), Name = "name" };
+            var identity = new Messages.v1.Identity { Id = Guid.NewGuid(), Name = "name" };
 
-            identityQuery.Setup(m => m.CountAsync(It.IsAny<DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
+            identityQuery.Setup(m => m.CountAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
 
             keyStore.Setup(m => m.FindAsync(Identity.Key(identity.Name), null, CancellationToken.None)).Returns(ValueTask.FromResult((Guid?)null));
 

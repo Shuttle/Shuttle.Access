@@ -18,7 +18,7 @@ namespace Shuttle.Access.RestClient.v1
         Task<IApiResponse> DeleteAsync();
 
         [Get("/v1/sessions/{token}")]
-        Task<IApiResponse<DataAccess.Query.Session>> GetAsync(Guid token);
+        Task<IApiResponse<Messages.v1.Session>> GetAsync(Guid token);
 
         [Get("/v1/sessions/{token}/permissions")]
         Task<IApiResponse<List<string>>> GetPermissionsAsync(Guid token);

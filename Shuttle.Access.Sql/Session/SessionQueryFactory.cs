@@ -195,12 +195,12 @@ where
                 .AddParameter(Columns.IdentityName, session.IdentityName);
         }
 
-        public IQuery Search(DataAccess.Query.Session.Specification specification)
+        public IQuery Search(SessionSpecification specification)
         {
 			return Specification(specification, true);
 		}
 
-        private IQuery Specification(DataAccess.Query.Session.Specification specification, bool columns)
+        private IQuery Specification(SessionSpecification specification, bool columns)
         {
 			Guard.AgainstNull(specification, nameof(specification));
 

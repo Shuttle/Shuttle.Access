@@ -67,11 +67,11 @@ namespace Shuttle.Access.Application
 
             var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
-            var count = await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
+            var count = await _identityQuery.CountAsync(new IdentitySpecification().WithRoleName("Administrator"));
 
             if (count == 0)
             {
-                var roles = (await _roleQuery.SearchAsync(new DataAccess.Query.Role.Specification().AddName("Administrator"))).ToList();
+                var roles = (await _roleQuery.SearchAsync(new RoleSpecification().AddName("Administrator"))).ToList();
 
                 if (roles.Count != 1)
                 {

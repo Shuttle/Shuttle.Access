@@ -29,7 +29,7 @@ namespace Shuttle.Access.Application
         {
             Guard.AgainstNull(context, nameof(context));
 
-            var queryIdentity = (await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(context.Message.Request.Name))).SingleOrDefault();
+            var queryIdentity = (await _identityQuery.SearchAsync(new IdentitySpecification().WithName(context.Message.Request.Name))).SingleOrDefault();
 
             if (queryIdentity == null)
             {

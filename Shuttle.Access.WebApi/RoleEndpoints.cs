@@ -73,7 +73,7 @@ public static class RoleEndpoints
 
             await using var context = databaseContextFactory.Create();
 
-            var permissions = (await roleQuery.PermissionsAsync(new DataAccess.Query.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
+            var permissions = (await roleQuery.PermissionsAsync(new RoleSpecification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
 
             return Results.Ok(from permissionId in identifiers.Values
                               select new IdentifierAvailability<Guid>()
@@ -91,7 +91,7 @@ public static class RoleEndpoints
         {
             await using var context = databaseContextFactory.Create();
 
-            return Results.Ok(await roleQuery.SearchAsync(new DataAccess.Query.Role.Specification()));
+            return Results.Ok(await roleQuery.SearchAsync(new RoleSpecification()));
         })
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
@@ -102,7 +102,7 @@ public static class RoleEndpoints
         {
             await using var context = databaseContextFactory.Create();
 
-            var specification = new DataAccess.Query.Role.Specification();
+            var specification = new RoleSpecification();
 
             if (Guid.TryParse(value, out var id))
             {
