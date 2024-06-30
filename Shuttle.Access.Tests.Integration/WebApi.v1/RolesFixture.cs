@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Esb;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -43,11 +42,11 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Role.Specification>())).Returns(
-            new List<Access.DataAccess.Query.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Role.Specification>(), default)).Returns(
+            Task.FromResult(new List<Access.DataAccess.Query.Role>
             {
                 role
-            });
+            }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 
@@ -73,11 +72,11 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Role.Specification>())).Returns(
-            new List<Access.DataAccess.Query.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Role.Specification>(), default)).Returns(
+            Task.FromResult(new List<Access.DataAccess.Query.Role>
             {
                 role
-            });
+            }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 
@@ -141,19 +140,19 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.RoleQuery.Setup(m => m.Permissions(It.IsAny<Access.DataAccess.Query.Role.Specification>())).Returns(
-            new List<Access.DataAccess.Query.Role.Permission>
+        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<Access.DataAccess.Query.Role.Specification>(), default)).Returns(
+            Task.FromResult(new List<Access.DataAccess.Query.Permission>
             {
                 new()
                 {
                     Id = activePermissionId,
                     Name = "system://permission-a"
                 }
-            });
+            }.AsEnumerable()));
 
         var response = await factory.GetAccessClient().Roles.PermissionAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
         {
-            Values = new ()
+            Values = new List<Guid>
             {
                 activePermissionId,
                 inactivePermissionId

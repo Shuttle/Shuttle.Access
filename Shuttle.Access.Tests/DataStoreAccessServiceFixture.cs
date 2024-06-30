@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
@@ -18,7 +19,7 @@ namespace Shuttle.Access.Tests
         {
             var repository = new Mock<ISessionRepository>();
 
-            repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(() => null);
+            repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult((Session)null));
 
             var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -41,7 +42,7 @@ namespace Shuttle.Access.Tests
         {
             var repository = new Mock<ISessionRepository>();
 
-            repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(() => _session);
+            repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(_session));
 
             var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 

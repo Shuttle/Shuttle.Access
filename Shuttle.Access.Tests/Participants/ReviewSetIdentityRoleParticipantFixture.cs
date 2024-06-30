@@ -20,7 +20,7 @@ namespace Shuttle.Access.Tests.Participants
         {
             var roleQuery = new Mock<IRoleQuery>();
 
-            roleQuery.Setup(m => m.Search(It.IsAny<DataAccess.Query.Role.Specification>())).Returns(Enumerable.Empty<DataAccess.Query.Role>());
+            roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Role.Specification>(), default)).Returns(Task.FromResult(Enumerable.Empty<DataAccess.Query.Role>()));
 
             var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
             var reviewRequest = new RequestMessage<SetIdentityRole>(new SetIdentityRole());
@@ -36,14 +36,14 @@ namespace Shuttle.Access.Tests.Participants
             var roleId = Guid.NewGuid();
             var roleQuery = new Mock<IRoleQuery>();
 
-            roleQuery.Setup(m => m.Search(It.IsAny<DataAccess.Query.Role.Specification>())).Returns(new List<DataAccess.Query.Role>
+            roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Role.Specification>(), default)).Returns(Task.FromResult(new List<DataAccess.Query.Role>
             {
                 new()
                 {
                     Id = roleId,
                     Name = "Administrator"
                 }
-            });
+            }.AsEnumerable()));
 
             var identityQuery = new Mock<IIdentityQuery>();
 

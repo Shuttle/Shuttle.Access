@@ -52,7 +52,7 @@ namespace Shuttle.Access.Application
 
             var roleSpecification = new DataAccess.Query.Role.Specification().AddName("Administrator");
 
-            var administratorExists = _roleQuery.Count(roleSpecification) > 0;
+            var administratorExists = await _roleQuery.CountAsync(roleSpecification) > 0;
 
             if (!administratorExists)
             {
@@ -66,7 +66,7 @@ namespace Shuttle.Access.Application
 
             foreach (var permission in _permissions)
             {
-                if (_permissionQuery.Contains(new DataAccess.Query.Permission.Specification().AddName(permission)))
+                if (await _permissionQuery.ContainsAsync(new DataAccess.Query.Permission.Specification().AddName(permission)))
                 {
                     continue;
                 }
@@ -88,12 +88,12 @@ namespace Shuttle.Access.Application
                     // wait for role projection
                     var timeout = DateTime.Now.AddSeconds(15);
 
-                    while (_roleQuery.Count(roleSpecification) == 0 && DateTime.Now < timeout)
+                    while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTime.Now < timeout)
                     {
                         Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
                     }
 
-                    if (_roleQuery.Count(roleSpecification) == 0)
+                    if (await _roleQuery.CountAsync(roleSpecification) == 0)
                     {
                         throw new ApplicationException(Resources.AdministratorRoleException);
                     }

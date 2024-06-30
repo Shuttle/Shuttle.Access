@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shuttle.Access.DataAccess
 {
     public interface IRoleQuery
     {
-        IEnumerable<Query.Role> Search(Query.Role.Specification specification);
-        IEnumerable<Query.Role.Permission> Permissions(Query.Role.Specification specification);
-        int Count(Query.Role.Specification specification);
+        Task<IEnumerable<Query.Role>> SearchAsync(Query.Role.Specification specification, CancellationToken cancellationToken = default);
+        Task<IEnumerable<Query.Permission>> PermissionsAsync(Query.Role.Specification specification, CancellationToken cancellationToken = default);
+        ValueTask<int> CountAsync(Query.Role.Specification specification, CancellationToken cancellationToken = default);
     }
 }

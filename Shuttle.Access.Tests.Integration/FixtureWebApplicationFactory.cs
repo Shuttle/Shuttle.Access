@@ -23,6 +23,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
 
     public Mock<IAccessService> AccessService { get; } = new();
     public Mock<IDatabaseContextFactory> DatabaseContextFactory { get; } = new();
+    public Mock<IPermissionQuery> PermissionQuery { get; } = new();
     public Mock<IRoleQuery> RoleQuery { get; } = new();
     public Mock<ISessionQuery> SessionQuery { get; } = new();
     public Mock<ISessionService> SessionService { get; } = new();
@@ -52,6 +53,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton(new Mock<ISubscriptionService>().Object);
             services.AddSingleton(AccessService.Object);
             services.AddSingleton(DatabaseContextFactory.Object);
+            services.AddSingleton(PermissionQuery.Object);
             services.AddSingleton(RoleQuery.Object);
             services.AddSingleton(SessionQuery.Object);
             services.AddSingleton(ServiceBus.Object);

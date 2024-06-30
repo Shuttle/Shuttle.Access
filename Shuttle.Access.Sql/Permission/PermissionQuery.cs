@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -22,19 +24,19 @@ namespace Shuttle.Access.Sql
             _queryFactory = queryFactory;
         }
 
-        public IEnumerable<DataAccess.Query.Permission> Search(DataAccess.Query.Permission.Specification specification)
+        public async Task<IEnumerable<DataAccess.Query.Permission>> SearchAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)
         {
-            return _queryMapper.MapObjects<DataAccess.Query.Permission>(_queryFactory.Search(specification));
+            return await _queryMapper.MapObjectsAsync<DataAccess.Query.Permission>(_queryFactory.Search(specification), cancellationToken);
         }
 
-        public int Count(DataAccess.Query.Permission.Specification specification)
+        public async ValueTask<int> CountAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.GetScalar<int>(_queryFactory.Count(specification));
+            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
         }
 
-        public bool Contains(DataAccess.Query.Permission.Specification specification)
+        public async ValueTask<bool> ContainsAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)
         {
-            return _databaseGateway.GetScalar<int>(_queryFactory.Contains(specification)) == 1;
+            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;
         }
     }
 }

@@ -26,8 +26,7 @@ namespace Shuttle.Access.Application
             Guard.AgainstNull(context, nameof(context));
 
             var request = context.Message.Request;
-            var roles = _roleQuery.Search(
-                new DataAccess.Query.Role.Specification().AddName("Administrator")).ToList();
+            var roles = (await _roleQuery.SearchAsync(new DataAccess.Query.Role.Specification().AddName("Administrator"))).ToList();
 
             if (roles.Count != 1)
             {
