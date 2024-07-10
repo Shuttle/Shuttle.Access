@@ -28,7 +28,7 @@ api.interceptors.response.use(
         error.response.data ||
         error.response.statusText ||
         "(unknown communication/network error)",
-      type: "danger",
+      type: "error",
       name: "api-error",
     });
 

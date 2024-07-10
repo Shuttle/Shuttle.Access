@@ -120,7 +120,7 @@ export const useSessionStore = defineStore("session", {
         }
 
         return axios
-          .post(configuration.getApiUrl("sessions"), {
+          .post(configuration.getApiUrl("v1/sessions"), {
             identityName: credentials.identityName,
             password: credentials.password,
             token: credentials.token,

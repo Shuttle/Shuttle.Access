@@ -1,22 +1,21 @@
 <template>
-    <h1>{{ $t("sign-in") }}</h1>
-    <form @submit.prevent="signIn()">
-        <div class="title">{{ $t("sign-in") }}</div>
-        <v-text-field v-model="state.identityName" :label="$t('identity-name')" class="mb-2" autocomplete="username"
+    <form @submit.prevent="signIn()" class="sv-form sv-form--sm px-5 pt-20">
+        <div class="sv-title">{{ $t("sign-in") }}</div>
+        <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')" class="mb-2" autocomplete="username"
             :error-messages="validation.message('identityName')">
         </v-text-field>
-        <v-text-field v-model="state.password" :label="$t('password')" :icon-end="getPasswordIcon()" icon-end-clickable
-            :append-inner-icon="`svg:${getPasswordIcon()}`" @click:append-inner="togglePasswordIcon" :type="getPasswordType()"
-            autocomplete="current-password" :error-messages="validation.message('password')">
+        <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')" :icon-end="getPasswordIcon()" icon-end-clickable
+            :append-inner-icon="`svg:${getPasswordIcon()}`" @click:append-inner="togglePasswordIcon"
+            :type="getPasswordType()" autocomplete="current-password" :error-messages="validation.message('password')">
         </v-text-field>
-        <div class="flex flex-row justify-end mt-4">
+        <div class="flex justify-end mt-4">
             <v-btn @click="signIn">{{ $t("sign-in") }}</v-btn>
         </div>
     </form>
 </template>
 
 <script setup lang="ts">
-import { mdiEyeOutline, mdiEyeOffOutline } from '@mdi/js';
+import { mdiAccountOutline, mdiEyeOutline, mdiEyeOffOutline, mdiShieldOutline } from '@mdi/js';
 import { computed, reactive, ref } from "vue";
 import { required } from '@vuelidate/validators';
 import { useValidation } from "@/composables/useValidation"
@@ -80,7 +79,7 @@ const signIn = async () => {
         .catch(error => {
             alertStore.add({
                 message: error.response?.status == 400 ? t("exceptions.invalid-credentials") : error.toString(),
-                variant: "danger",
+                type: "error",
                 name: "sign-in-exception"
             });
         });

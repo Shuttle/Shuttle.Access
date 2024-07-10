@@ -36,7 +36,7 @@ await sessionStore.initialize().catch((error) => {
     message: i18n.global.t("exceptions.session-initialize", {
       error: error.toString(),
     }),
-    type: "danger",
+    type: "error",
     name: "session-initialize",
   });
 

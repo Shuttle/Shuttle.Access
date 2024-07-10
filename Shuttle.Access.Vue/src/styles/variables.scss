@@ -1,0 +1,287 @@
+:root {
+    /* textColor */
+    --sv-text-primary: 249, 115, 22;
+    --sv-text-primary--hover: 255, 129, 40;
+    --sv-text-secondary: 177, 177, 177;
+    --sv-text-secondary--hover: 212, 212, 212;
+    --sv-text-success: 74, 222, 128;
+    --sv-text-success--hover: 134, 239, 172;
+    --sv-text-danger: 248, 113, 113;
+    --sv-text-danger--hover: 252, 165, 165;
+    --sv-text-warning: 250, 204, 21;
+    --sv-text-warning--hover: 253, 224, 71;
+    --sv-text-info: 34, 211, 238;
+    --sv-text-info--hover: 103, 232, 249;
+    --sv-text-link: 34, 211, 238;
+    --sv-text-link--hover: 103, 232, 249;
+    --sv-text-disabled: 180, 180, 180;
+    --sv-text-readonly: 135, 135, 135;
+    
+    --sv-text-fg-primary: 255, 255, 255;
+    --sv-text-fg-primary--hover: 255, 255, 255;
+    --sv-text-fg-secondary: 255, 255, 255;
+    --sv-text-fg-secondary--hover: 255, 255, 255;
+    --sv-text-fg-success: 74, 222, 128;
+    --sv-text-fg-success--hover: 134, 239, 172;
+    --sv-text-fg-danger: 248, 113, 113;
+    --sv-text-fg-danger--hover: 252, 165, 165;
+    --sv-text-fg-warning: 250, 204, 21;
+    --sv-text-fg-warning--hover: 253, 224, 71;
+    --sv-text-fg-info: 34, 211, 238;
+    --sv-text-fg-info--hover: 103, 232, 249;
+    --sv-text-fg-link: 34, 211, 238;
+    --sv-text-fg-link--hover: 103, 232, 249;
+    --sv-text-fg-disabled: 180, 180, 180;
+    --sv-text-fg-readonly: 135, 135, 135;
+
+    --sv-text-label: 33, 53, 71;
+    --sv-text-input: 33, 53, 71;
+    --sv-text-input-selected: 61, 37, 192;
+    --sv-text-input--active: 61, 37, 192;
+    --sv-text-navigation: 17, 24, 39;
+    --sv-text-navbar-menu-toggle: 156, 163, 175;
+    --sv-text-navbar-menu-toggle--hover: 255, 255, 255;
+    --sv-text-table-th: 255, 255, 255;
+    --sv-text-title-primary: 216, 113, 45;
+    --sv-text-title-secondary: 229, 229, 229;
+    --sv-text-title-success: 187, 247, 208;
+    --sv-text-title-danger: 254, 202, 202;
+    --sv-text-title-warning: 254, 240, 138;
+    --sv-text-title-info: 165, 243, 252;
+    --sv-text-dialog: 30, 30, 30;
+    --sv-text-dialog-title: 96, 165, 250;
+
+    /* backgroundColor */
+    --sv-bg-primary: 249, 115, 22;
+    --sv-bg-primary--hover: 250, 125, 36;
+    --sv-bg-primary--active: 235, 120, 38;
+    --sv-bg-light-primary: 255, 232, 215;
+    --sv-bg-light-primary--hover: 255, 224, 202;
+    --sv-bg-light-primary--active: 255, 215, 187;
+    --sv-bg-secondary: 195, 195, 195;
+    --sv-bg-secondary--hover: 190, 190, 190;
+    --sv-bg-secondary--active: 185, 185, 185;
+    --sv-bg-light-secondary: 230, 230, 230;
+    --sv-bg-light-secondary--hover: 225, 225, 225;
+    --sv-bg-light-secondary--active: 220, 220, 220;
+    --sv-bg-success: 220, 252, 231;
+    --sv-bg-success--hover: 187, 247, 208;
+    --sv-bg-success--active: 134, 239, 172;
+    --sv-bg-light-success: 248, 255, 251;
+    --sv-bg-light-success--hover: 241, 255, 247;
+    --sv-bg-light-success--active: 230, 255, 241;
+    --sv-bg-danger: 254, 226, 226;
+    --sv-bg-danger--hover: 254, 202, 202;
+    --sv-bg-danger--active: 252, 165, 165;
+    --sv-bg-light-danger: 255, 242, 242;
+    --sv-bg-light-danger--hover: 255, 231, 231;
+    --sv-bg-light-danger--active: 255, 221, 221;
+    --sv-bg-warning: 254, 249, 195;
+    --sv-bg-warning--hover: 254, 240, 138;
+    --sv-bg-warning--active: 253, 224, 71;
+    --sv-bg-light-warning: 255, 254, 240;
+    --sv-bg-light-warning--hover: 255, 252, 227;
+    --sv-bg-light-warning--active: 255, 247, 210;
+    --sv-bg-info: 207, 250, 254;
+    --sv-bg-info--hover: 165, 243, 252;
+    --sv-bg-info--active: 103, 232, 249;
+    --sv-bg-light-info: 239, 254, 255;
+    --sv-bg-light-info--hover: 234, 253, 255;
+    --sv-bg-light-info--active: 215, 250, 255;
+    --sv-bg-disabled: 229, 231, 235;
+    --sv-bg-readonly: 229, 231, 235;
+
+    --sv-bg-input: 241, 241, 241;
+    --sv-bg-input-selected: 200, 200, 200;
+    --sv-bg-input--active: 180, 180, 180;
+    --sv-bg-input-indicator: 250, 250, 250;
+    --sv-bg-input-indicator-selected: 250, 250, 250;
+    --sv-bg-input-indicator--active: 250, 250, 250;
+    --sv-bg-input-indicator-disabled: 250, 250, 250;
+    --sv-bg-input-indicator-readonly: 250, 250, 250;
+
+    --sv-bg-navigation--hover: 209, 213, 219;
+    --sv-bg-navigation-dropdown: 243, 244, 246;
+    --sv-bg-navbar-menu-toggle: 55, 65, 81;
+    --sv-bg-navbar-menu-toggle--hover: 31, 41, 55;
+
+    --sv-bg-dialog: 240, 240, 240;
+
+    --sv-bg-table: 250, 250, 250;
+    --sv-bg-table-thead-tr: 247, 113, 36;
+    --sv-bg-table-tbody-tr--odd: 245, 245, 245;
+    --sv-bg-table-tbody-tr--hover: 255, 218, 196;
+
+    /* borderColor */
+    --sv-border-primary: 255, 134, 53;
+    --sv-border-secondary: 229, 229, 229;
+    --sv-border-success: 187, 247, 208;
+    --sv-border-danger: 254, 202, 202;
+    --sv-border-warning: 254, 240, 138;
+    --sv-border-info: 165, 243, 252;
+    --sv-border-disabled: 209, 213, 219;
+    --sv-border-readonly: 209, 213, 219;
+
+    --sv-border-input: 160, 160, 160;
+    --sv-border-input-selected: 120, 120, 120;
+    --sv-border-input--active: 100, 100, 100;
+    --sv-border-input-indicator: 60, 60, 60;
+    --sv-border-input-indicator-selected: 120, 120, 120;
+    --sv-border-input-indicator--active: 120, 120, 120;
+    --sv-border-input--hover: 40, 40, 40;
+
+    --sv-border-navigation-dropdown: 209, 213, 219;
+    --sv-border-navigation-divider: 209, 213, 219;
+    
+    --sv-default--focus: 191, 219, 254;
+
+    --sv-border-dialog: 100, 100, 100;
+    --sv-border-dialog-title: 96, 165, 250;
+
+    --sv-border-table: 255, 218, 196;
+
+    /* fill */
+    --sv-fill-primary: 57, 87, 124;
+
+    /* placeholderColor */
+    --sv-placeholder-input: 180, 180, 180;
+
+    /* ringColor */
+    --sv-ring-default--focus: 147 197 253;
+}
+
+.dark {
+    /* textColor */
+    --sv-text-primary: 255, 220, 196;
+    --sv-text-primary--hover: 187, 143, 114;
+    --sv-text-secondary: 177, 177, 177;
+    --sv-text-secondary--hover: 38, 38, 38;
+    --sv-text-success: 176, 241, 199;
+    --sv-text-success--hover: 22, 101, 52;
+    --sv-text-danger: 231, 168, 168;
+    --sv-text-danger--hover: 153, 27, 27;
+    --sv-text-warning: 255, 245, 215;
+    --sv-text-warning--hover: 133, 77, 14;
+    --sv-text-info: 228, 251, 255;
+    --sv-text-info--hover: 21, 94, 117;
+    --sv-text-link: 133, 196, 241;
+    --sv-text-link--hover: 21, 94, 117;
+    --sv-text-disabled: 107, 114, 128;
+    --sv-text-readonly: 177, 184, 199;
+    --sv-text-label: 250, 250, 250;
+    --sv-text-input: 250, 250, 250;
+    --sv-text-input-selected: 61, 37, 192;
+    --sv-text-input--active: 61, 37, 192;
+    --sv-text-navigation: 250 250 250;
+    --sv-text-navbar-menu-toggle: 156, 163, 175;
+    --sv-text-navbar-menu-toggle--hover: 255, 255, 255;
+    --sv-text-table-th: 230, 230, 230;
+    --sv-text-title-primary: 163, 99, 56;
+    --sv-text-title-secondary: 48, 48, 48;
+    --sv-text-title-success: 60, 87, 58;
+    --sv-text-title-danger: 73, 46, 46;
+    --sv-text-title-warning: 105, 96, 48;
+    --sv-text-title-info: 14, 116, 144;
+    --sv-text-title-disabled: 31, 41, 55;
+    --sv-text-title-readonly: 31, 41, 55;
+    --sv-text-dialog: 230, 230, 230;
+    --sv-text-dialog-title: 192, 207, 249;
+
+    /* backgroundColor */
+    --sv-bg-primary: 249, 115, 22;
+    --sv-bg-primary--hover: 250, 125, 36;
+    --sv-bg-primary--active: 235, 120, 38;
+    --sv-bg-light-primary: 255, 152, 79;
+    --sv-bg-light-primary--hover: 235, 118, 34;
+    --sv-bg-light-primary--active: 219, 106, 26;
+    --sv-bg-secondary: 68, 68, 68;
+    --sv-bg-secondary--hover: 64, 64, 64;
+    --sv-bg-secondary--active: 60, 60, 60;
+    --sv-bg-light-secondary: 68, 68, 68;
+    --sv-bg-light-secondary--hover: 64, 64, 64;
+    --sv-bg-light-secondary--active: 60, 60, 60;
+    --sv-bg-success: 64, 112, 61;
+    --sv-bg-success--hover: 56, 97, 53;
+    --sv-bg-success--active: 54, 90, 52;
+    --sv-bg-light-success: 64, 112, 61;
+    --sv-bg-light-success--hover: 56, 97, 53;
+    --sv-bg-light-success--active: 54, 90, 52;
+    --sv-bg-danger: 126, 45, 45;
+    --sv-bg-danger--hover: 116, 40, 40;
+    --sv-bg-danger--active: 100, 36, 36;
+    --sv-bg-light-danger: 126, 45, 45;
+    --sv-bg-light-danger--hover: 116, 40, 40;
+    --sv-bg-light-danger--active: 100, 36, 36;
+    --sv-bg-warning: 129, 112, 30;
+    --sv-bg-warning--hover: 116, 102, 34;
+    --sv-bg-warning--active: 109, 96, 34;
+    --sv-bg-light-warning: 129, 112, 30;
+    --sv-bg-light-warning--hover: 116, 102, 34;
+    --sv-bg-light-warning--active: 109, 96, 34;
+    --sv-bg-info: 30, 123, 151;
+    --sv-bg-info--hover: 14, 116, 144;
+    --sv-bg-info--active: 21, 94, 117;
+    --sv-bg-light-info: 30, 123, 151;
+    --sv-bg-light-info--hover: 14, 116, 144;
+    --sv-bg-light-info--active: 21, 94, 117;
+    --sv-bg-disabled: 30, 33, 37;
+    --sv-bg-readonly: 30, 33, 37;
+
+    --sv-bg-input: 26, 26, 26;
+    --sv-bg-input-selected: 60, 60, 60;
+    --sv-bg-input--active: 35, 35, 35;
+    --sv-bg-input-indicator: 47, 47, 47;
+    --sv-bg-input-indicator-selected: 26, 26, 26;
+    --sv-bg-input-indicator--active: 26, 26, 26;
+    --sv-bg-input-indicator-disabled: 65, 65, 65;
+    --sv-bg-input-indicator-readonly: 65, 65, 65;
+
+    --sv-bg-navigation--hover: 75, 85, 99;
+    --sv-bg-navigation-dropdown: 55, 65, 81;
+    
+    --sv-bg-dialog: 48, 48, 48;
+
+    --sv-bg-table: 40, 40, 40;
+    --sv-bg-table-thead-tr: 165, 76, 25;
+    --sv-bg-table-tbody-tr--odd: 45, 45, 45;
+    --sv-bg-table-tbody-tr--hover: 136, 87, 58;
+
+    /* borderColor */
+    --sv-border-primary: 163, 99, 56;
+    --sv-border-secondary: 48, 48, 48;
+    --sv-border-success: 60, 87, 58;
+    --sv-border-danger: 88, 41, 41;
+    --sv-border-warning: 105, 96, 48;
+    --sv-border-info: 14, 116, 144;
+    --sv-border-disabled: 31, 41, 55;
+    --sv-border-readonly: 46, 60, 80;
+
+    --sv-border-input: 128, 128, 128;
+    --sv-border-input-selected: 128, 128, 128;
+    --sv-border-input--active: 60, 60, 60;
+    --sv-border-input-indicator: 128, 128, 128;
+    --sv-border-input-indicator-selected: 128, 128, 128;
+    --sv-border-input-indicator--active: 128, 128, 128;
+    --sv-border-input--hover: 200, 200, 200;
+
+    --sv-border-navigation-divider: 75, 85, 99;
+    --sv-border-navigation-dropdown: 75, 85, 99;
+    --sv-border-navbar-menu-toggle: 55, 65, 81;
+    --sv-border-navbar-menu-toggle--hover: 31, 41, 55;
+
+    --sv-border-default--focus: 96, 165, 250;
+
+    --sv-border-dialog: 50, 50, 50;
+    --sv-border-dialog-title: 192, 207, 249;
+    
+    --sv-border-table: 92, 71, 60;
+
+    /* fill */
+    --sv-fill-primary: 218, 97, 27;
+
+    /* placeholder */
+    --sv-placeholder-input: 100, 100, 100;
+
+    /* ringColor */
+    --sv-ring-default--focus: 59, 130, 246;
+}

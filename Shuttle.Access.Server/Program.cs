@@ -38,8 +38,6 @@ internal class Program
 
                 services.AddSingleton<IConfiguration>(configuration);
 
-                services.AddSentinelModule();
-
                 services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
 
                 services.AddDataAccess(builder =>

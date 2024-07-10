@@ -82,10 +82,21 @@ public class Program
             {
                 builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
             })
-            .AddAccessAuthorization();
+            .AddAccessAuthorization()
+            .AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            }); ;
 
         var app = webApplicationBuilder.Build();
 
+        app.UseCors("AllowAll");
         app.UseAccessAuthorization();
             
         app.MapPermissionEndpoints();
