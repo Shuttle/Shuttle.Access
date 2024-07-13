@@ -19,7 +19,7 @@ public static class RoleEndpoints
             .ReportApiVersions()
             .Build();
 
-        app.MapPatch("/v1/roles/{id}/name", async (Guid id, [FromBody] SetRoleName message, [FromServices] IServiceBus serviceBus) =>
+        app.MapPatch("/v{version:apiVersion}/roles/{id}/name", async (Guid id, [FromBody] SetRoleName message, [FromServices] IServiceBus serviceBus) =>
         {
             try
             {
@@ -40,7 +40,7 @@ public static class RoleEndpoints
     .MapToApiVersion(apiVersion1)
     .RequiresPermission(Permissions.Register.Role);
 
-        app.MapPatch("/v1/roles/{id}/permissions", async (Guid id, [FromBody] SetRolePermission message, [FromServices] IServiceBus serviceBus) =>
+        app.MapPatch("/v{version:apiVersion}/roles/{id}/permissions", async (Guid id, [FromBody] SetRolePermission message, [FromServices] IServiceBus serviceBus) =>
         {
             try
             {
@@ -60,7 +60,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Role);
 
-        app.MapPost("/v1/roles/{id}/permissions/availability", async (Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        app.MapPost("/v{version:apiVersion}/roles/{id}/permissions/availability", async (Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
         {
             try
             {
@@ -87,7 +87,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Role);
 
-        app.MapGet("/v1/roles", async ([FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        app.MapGet("/v{version:apiVersion}/roles", async ([FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
         {
             await using var context = databaseContextFactory.Create();
 
@@ -98,7 +98,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.View.Role);
 
-        app.MapGet("/v1/roles/{value}", async (string value, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        app.MapGet("/v{version:apiVersion}/roles/{value}", async (string value, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
         {
             await using var context = databaseContextFactory.Create();
 
@@ -124,7 +124,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.View.Role);
 
-        app.MapDelete("/v1/roles/{id}", async (Guid id, [FromServices] IServiceBus serviceBus) =>
+        app.MapDelete("/v{version:apiVersion}/roles/{id}", async (Guid id, [FromServices] IServiceBus serviceBus) =>
         {
             await serviceBus.SendAsync(new RemoveRole
             {
@@ -138,7 +138,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Remove.Role);
 
-        app.MapPost("/v1/roles", async ([FromBody] RegisterRole message, [FromServices] IServiceBus serviceBus) =>
+        app.MapPost("/v{version:apiVersion}/roles", async ([FromBody] RegisterRole message, [FromServices] IServiceBus serviceBus) =>
         {
             try
             {

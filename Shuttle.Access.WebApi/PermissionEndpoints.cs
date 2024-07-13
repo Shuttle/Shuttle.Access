@@ -20,7 +20,7 @@ public static class PermissionEndpoints
             .ReportApiVersions()
             .Build();
 
-        app.MapGet("/v1/permissions", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
+        app.MapGet("/v{version:apiVersion}/permissions", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
             {
                 await using (databaseContextFactory.Create())
                 {
@@ -32,7 +32,7 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresSession();
 
-        app.MapGet("/v1/permissions/{id:guid}", async (Guid id, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
+        app.MapGet("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
             {
                 await using (databaseContextFactory.Create())
                 {
@@ -44,7 +44,7 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresSession();
 
-        app.MapPost("/v1/permissions/search", async (PermissionSpecification specification, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
+        app.MapPost("/v{version:apiVersion}/permissions/search", async (PermissionSpecification specification, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
             {
                 if (specification == null)
                 {
@@ -61,7 +61,7 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresSession();
 
-        app.MapPost("/v1/permissions", async (RegisterPermission message, IServiceBus serviceBus) =>
+        app.MapPost("/v{version:apiVersion}/permissions", async (RegisterPermission message, IServiceBus serviceBus) =>
             {
                 try
                 {
@@ -80,7 +80,7 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Permission);
 
-        app.MapPatch("/v1/permissions/{id:guid}/name", async (Guid id, SetPermissionName message, IServiceBus serviceBus) =>
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/name", async (Guid id, SetPermissionName message, IServiceBus serviceBus) =>
             {
                 try
                 {
@@ -100,7 +100,7 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Permission);
 
-        app.MapPatch("/v1/permissions/{id:guid}", async (Guid id, SetPermissionStatus message, IServiceBus serviceBus) =>
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, SetPermissionStatus message, IServiceBus serviceBus) =>
             {
                 try
                 {

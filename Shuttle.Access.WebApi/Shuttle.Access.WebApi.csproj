@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
     <ProjectReference Include="..\Shuttle.Access.AspNetCore\Shuttle.Access.AspNetCore.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
     <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
   </ItemGroup>
 

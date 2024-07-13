@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Shuttle.Access.Events;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Contract;
 

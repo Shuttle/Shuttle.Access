@@ -20,7 +20,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
 	  <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
 	</ItemGroup>
 

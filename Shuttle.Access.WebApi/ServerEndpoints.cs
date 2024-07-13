@@ -14,7 +14,7 @@ public static class ServerEndpoints
             .ReportApiVersions()
             .Build();
 
-        app.MapGet("/v1/server/configuration", (HttpContext _) =>
+        app.MapGet("/v{version:apiVersion}/server/configuration", (HttpContext _) =>
             {
                 var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 

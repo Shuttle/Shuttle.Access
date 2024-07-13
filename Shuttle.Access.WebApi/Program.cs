@@ -99,6 +99,7 @@ public class Program
         app.UseCors("AllowAll");
         app.UseAccessAuthorization();
             
+        app.MapIdentityEndpoints();
         app.MapPermissionEndpoints();
         app.MapRoleEndpoints();
         app.MapServerEndpoints();
