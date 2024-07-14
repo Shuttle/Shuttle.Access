@@ -11,9 +11,9 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="OpenTelemetry.Exporter.Jaeger" Version="1.5.1" />
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.8.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.0.0-rc9.9" />
-    <PackageReference Include="Shuttle.Core.Data" Version="15.0.1" />
+    <PackageReference Include="Shuttle.Core.Data" Version="16.0.0" />
     <PackageReference Include="Shuttle.Core.DependencyInjection" Version="1.0.1" />
     <PackageReference Include="Shuttle.Core.Mediator" Version="14.0.0" />
     <PackageReference Include="Shuttle.Core.Mediator.OpenTelemetry" Version="14.0.0" />
@@ -23,7 +23,7 @@
     <PackageReference Include="Shuttle.Esb.OpenTelemetry" Version="14.0.1" />
     <PackageReference Include="Shuttle.Esb.Sql.Subscription" Version="14.0.1" />
     <PackageReference Include="Shuttle.Recall.OpenTelemetry" Version="17.0.1" />
-    <PackageReference Include="Shuttle.Recall.Sql.Storage" Version="17.0.1" />
+    <PackageReference Include="Shuttle.Recall.Sql.Storage" Version="17.0.2" />
     <PackageReference Include="Shuttle.Sentinel.Module" Version="1.0.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
@@ -31,7 +31,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
     <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
     <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
   </ItemGroup>

@@ -63,6 +63,18 @@ namespace Shuttle.Access.Application
                 });
 
                 await _mediator.SendAsync(registerRoleMessage);
+
+                var timeout = DateTime.Now.AddSeconds(15);
+
+                while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTime.Now < timeout)
+                {
+                    Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+                }
+
+                if (await _roleQuery.CountAsync(roleSpecification) == 0)
+                {
+                    throw new ApplicationException(Resources.AdministratorRoleException);
+                }
             }
 
             foreach (var permission in _permissions)
@@ -84,22 +96,6 @@ namespace Shuttle.Access.Application
 
             if (await _identityQuery.CountAsync(new IdentitySpecification()) == 0)
             {
-                if (!administratorExists)
-                {
-                    // wait for role projection
-                    var timeout = DateTime.Now.AddSeconds(15);
-
-                    while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTime.Now < timeout)
-                    {
-                        Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
-                    }
-
-                    if (await _roleQuery.CountAsync(roleSpecification) == 0)
-                    {
-                        throw new ApplicationException(Resources.AdministratorRoleException);
-                    }
-                }
-
                 var generateHash = new GenerateHash { Value = "admin" };
 
                 await _mediator.SendAsync(generateHash);

@@ -3,15 +3,20 @@ using System.Data.Common;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using OpenTelemetry;
 using OpenTelemetry.Trace;
 using Shuttle.Access.Projection.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
+using Shuttle.Core.Pipelines;
 using Shuttle.Recall;
+using Shuttle.Recall.Logging;
 using Shuttle.Recall.OpenTelemetry;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
@@ -20,7 +25,7 @@ namespace Shuttle.Access.Projection;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
@@ -31,32 +36,41 @@ internal class Program
             {
                 var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-                services.AddSingleton<IConfiguration>(configuration);
+                services
+                    .AddSingleton<IConfiguration>(configuration)
+                    .AddLogging(configure =>
+                    {
+                        configure.AddConsole();
+                    })
+                    .FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add()
+                    .AddDataAccess(builder =>
+                    {
+                        builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
+                        builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
+                    })
+                    .AddSqlEventStorage(builder =>
+                    {
+                        builder.Options.ConnectionStringName = "Access";
+                    })
+                    .AddSqlEventProcessing(builder =>
+                    {
+                        builder.Options.ConnectionStringName = "Access";
+                    })
+                    .AddEventStore(builder =>
+                    {
+                        configuration.GetSection(EventStoreOptions.SectionName).Bind(builder.Options);
+                        //builder.Options.Asynchronous = true;
 
-                services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
-
-                services.AddDataAccess(builder =>
-                {
-                    builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
-                    builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
-                });
-
-                services.AddEventStore(builder =>
-                {
-                    builder.AddEventHandler<IdentityHandler>(ProjectionNames.Identity);
-                    builder.AddEventHandler<PermissionHandler>(ProjectionNames.Permission);
-                    builder.AddEventHandler<RoleHandler>(ProjectionNames.Role);
-                });
-
-                services.AddSqlEventStorage();
-                services.AddSqlEventProcessing(builder =>
-                {
-                    builder.Options.ConnectionStringName = "Access";
-                });
-
-                services.AddSingleton<IHashingService, HashingService>();
-
-                services.AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Projection"));
+                        builder.AddEventHandler<IdentityHandler>(ProjectionNames.Identity);
+                        builder.AddEventHandler<PermissionHandler>(ProjectionNames.Permission);
+                        builder.AddEventHandler<RoleHandler>(ProjectionNames.Role);
+                    })
+                    .AddRecallLogging(builder =>
+                    {
+                        builder.Options.AddPipelineEventType<OnPipelineException>();
+                    })
+                    .AddSingleton<IHashingService, HashingService>()
+                    .AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Projection"));
 
                 services.AddOpenTelemetry()
                     .WithTracing(builder =>
@@ -96,6 +110,6 @@ internal class Program
             return;
         }
 
-        host.Run();
+        await host.RunAsync(cancellationTokenSource.Token);
     }
 }

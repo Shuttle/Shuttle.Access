@@ -6,18 +6,21 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Core.Threading;
+using Shuttle.Core.Transactions;
 
 namespace Shuttle.Access.Server;
 
 public class ApplicationHostedService: IHostedService
 {
+    private readonly ITransactionScopeFactory _transactionScopeFactory;
     private readonly IDatabaseContextFactory _databaseContextFactory;
     private readonly IMediator _mediator;
 
-    public ApplicationHostedService(IHostApplicationLifetime hostApplicationLifetime, IDatabaseContextFactory databaseContextFactory, IMediator mediator)
+    public ApplicationHostedService(IHostApplicationLifetime hostApplicationLifetime, ITransactionScopeFactory transactionScopeFactory, IDatabaseContextFactory databaseContextFactory, IMediator mediator)
     {
         Guard.AgainstNull(hostApplicationLifetime, nameof(hostApplicationLifetime)).ApplicationStarted.Register(OnStarted);
 
+        _transactionScopeFactory = Guard.AgainstNull(transactionScopeFactory, nameof(transactionScopeFactory));
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
         _mediator = Guard.AgainstNull(mediator, nameof(mediator));
     }
@@ -26,7 +29,7 @@ public class ApplicationHostedService: IHostedService
     {
         using (_databaseContextFactory.Create())
         {
-            _mediator.Send(new ConfigureApplication());
+            _mediator.SendAsync(new ConfigureApplication()).GetAwaiter().GetResult();
         }
     }
 

@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,13 +20,12 @@ using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
 using Shuttle.Recall.OpenTelemetry;
 using Shuttle.Recall.Sql.Storage;
-using Shuttle.Sentinel.Module;
 
 namespace Shuttle.Access.Server;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
@@ -36,45 +36,42 @@ internal class Program
             {
                 var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
 
-                services.AddSingleton<IConfiguration>(configuration);
-
-                services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
-
-                services.AddDataAccess(builder =>
-                {
-                    builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
-                    builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
-                });
-
-                services.AddServiceBus(builder =>
-                {
-                    configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
-
-                    builder.Options.Subscription.ConnectionStringName = "Access";
-                });
-
-                services.AddAzureStorageQueues(builder =>
-                {
-                    builder.AddOptions("azure", new AzureStorageQueueOptions
+                services
+                    .AddSingleton<IConfiguration>(configuration)
+                    .FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add()
+                    .AddDataAccess(builder =>
                     {
-                        ConnectionString = configuration.GetConnectionString("azure")
-                    });
-                });
+                        builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
+                        builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
+                    })
+                    .AddServiceBus(builder =>
+                    {
+                        configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
 
-                services.AddEventStore();
-                services.AddSqlEventStorage();
-                services.AddSqlSubscription();
+                        builder.Options.Subscription.ConnectionStringName = "Access";
 
-                services.AddMediator(builder =>
-                {
-                    builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
-                });
-
-                services.AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>();
-                services.AddSingleton<IHashingService, HashingService>();
-                services.AddSingleton<IHostedService, ApplicationHostedService>();
-
-                services.AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Server"));
+                    })
+                    .AddAzureStorageQueues(builder =>
+                    {
+                        builder.AddOptions("azure", new AzureStorageQueueOptions
+                        {
+                            ConnectionString = configuration.GetConnectionString("azure")
+                        });
+                    })
+                    .AddSqlEventStorage(builder =>
+                    {
+                        builder.Options.ConnectionStringName = "Access";
+                    })
+                    .AddEventStore()
+                    .AddSqlSubscription()
+                    .AddMediator(builder =>
+                    {
+                        builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
+                    })
+                    .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
+                    .AddSingleton<IHashingService, HashingService>()
+                    .AddSingleton<IHostedService, ApplicationHostedService>()
+                    .AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Server"));
 
                 services.AddOpenTelemetry()
                     .WithTracing(
@@ -121,6 +118,6 @@ internal class Program
             return;
         }
 
-        host.Run();
+        await host.RunAsync(cancellationTokenSource.Token);
     }
 }

@@ -67,6 +67,8 @@ namespace Shuttle.Access.Application
 
             var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
+            stream.AddEvent(registered);
+
             var count = await _identityQuery.CountAsync(new IdentitySpecification().WithRoleName("Administrator"));
 
             if (count == 0)
@@ -85,8 +87,6 @@ namespace Shuttle.Access.Application
                     stream.AddEvent(identity.AddRole(role.Id));
                 }
             }
-
-            stream.AddEvent(registered);
 
             if (message.Activated)
             {
