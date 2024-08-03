@@ -62,7 +62,7 @@ namespace Shuttle.Access.Sql
                 return RegisterSessionResult.Failure();
             }
 
-            if ((await _identityQuery.SearchAsync(new IdentitySpecification().WithName(identityName), cancellationToken)).SingleOrDefault() == null)
+            if ((await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(identityName), cancellationToken)).SingleOrDefault() == null)
             {
                 return RegisterSessionResult.Failure();
             }

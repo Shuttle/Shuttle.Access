@@ -8,13 +8,12 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
         <PackageReference Include="Moq" Version="4.20.70" />
         <PackageReference Include="NUnit" Version="3.14.0" />
-        <PackageReference Include="Shuttle.Core.Data" Version="16.0.0" />
+        <PackageReference Include="Shuttle.Core.Data" Version="16.0.2" />
         <PackageReference Include="Shuttle.Core.Transactions" Version="11.1.0" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
-      <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
       <ProjectReference Include="..\Shuttle.Access.Mvc.DataStore\Shuttle.Access.Mvc.DataStore.csproj" />
       <ProjectReference Include="..\Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj" />
       <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />

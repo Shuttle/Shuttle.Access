@@ -7,11 +7,11 @@ namespace Shuttle.Access.DataAccess
     public interface IIdentityQueryFactory
     {
         IQuery Register(Guid id, Registered domainEvent);
-        IQuery Count(IdentitySpecification specification);
+        IQuery Count(Query.Identity.Specification specification);
         IQuery RoleAdded(Guid id, RoleAdded domainEvent);
-        IQuery Search(IdentitySpecification specification);
+        IQuery Search(Query.Identity.Specification specification);
         IQuery Get(Guid id);
-        IQuery Roles(IdentitySpecification specification);
+        IQuery Roles(Query.Identity.Specification specification);
         IQuery RoleRemoved(Guid id, RoleRemoved domainEvent);
         IQuery AdministratorCount();
         IQuery RemoveRoles(Guid id);

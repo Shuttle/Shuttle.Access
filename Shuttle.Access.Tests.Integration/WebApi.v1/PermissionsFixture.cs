@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Messages.v1;
-using PermissionSpecification = Shuttle.Access.DataAccess.PermissionSpecification;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -23,7 +22,7 @@ public class PermissionsFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<PermissionSpecification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Permission> { permission }.AsEnumerable()));
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Permission.Specification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Permission> { permission }.AsEnumerable()));
 
         var response = await factory.GetAccessClient().Permissions.GetAsync();
 

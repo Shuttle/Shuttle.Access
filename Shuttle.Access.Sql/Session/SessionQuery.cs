@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.DataAccess.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
@@ -47,7 +48,7 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(specification, nameof(specification));
 

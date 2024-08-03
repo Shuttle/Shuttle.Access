@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.DataAccess;
@@ -9,13 +10,9 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
-    public static void MapSessionEndpoints(this WebApplication app)
+    public static void MapSessionEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
-        var versionSet = app.NewApiVersionSet()
-            .HasApiVersion(apiVersion1)
-            .ReportApiVersions()
-            .Build();
 
         app.MapPost("/v{version:apiVersion}/sessions", async (ISessionService sessionService, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterSession message) =>
             {

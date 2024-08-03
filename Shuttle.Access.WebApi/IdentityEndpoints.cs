@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.DataAccess;
@@ -13,13 +14,9 @@ namespace Shuttle.Access.WebApi;
 
 public static class IdentityEndpoints
 {
-    public static void MapIdentityEndpoints(this WebApplication app)
+    public static void MapIdentityEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
-        var versionSet = app.NewApiVersionSet()
-            .HasApiVersion(apiVersion1)
-            .ReportApiVersions()
-            .Build();
 
         app.MapPatch("/v{version:apiVersion}/identities/{id}/name", async (IServiceBus serviceBus, Guid id, [FromBody] SetIdentityName message) =>
             {
@@ -45,7 +42,7 @@ public static class IdentityEndpoints
             {
                 await using var context = databaseContextFactory.Create();
 
-                return Results.Ok(await identityQuery.SearchAsync(new IdentitySpecification()));
+                return Results.Ok(await identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification()));
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -54,7 +51,7 @@ public static class IdentityEndpoints
         app.MapGet("/v{version:apiVersion}/identities/{value}", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, string value) =>
             {
                 await using var context = databaseContextFactory.Create();
-                var specification = new IdentitySpecification().IncludeRoles();
+                var specification = new DataAccess.Query.Identity.Specification().IncludeRoles();
 
                 if (Guid.TryParse(value, out var id))
                 {
@@ -205,7 +202,7 @@ public static class IdentityEndpoints
 
                 await using var context = databaseContextFactory.Create();
 
-                roles = (await identityQuery.RoleIdsAsync(new IdentitySpecification().WithIdentityId(id))).ToList();
+                roles = (await identityQuery.RoleIdsAsync(new DataAccess.Query.Identity.Specification().WithIdentityId(id))).ToList();
 
                 return Results.Ok(from roleId in identifiers.Values
                     select new IdentifierAvailability<Guid>
@@ -229,7 +226,7 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var specification = new IdentitySpecification();
+                var specification = new DataAccess.Query.Identity.Specification();
 
                 if (message.Id.HasValue)
                 {

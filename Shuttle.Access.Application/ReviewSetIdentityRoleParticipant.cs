@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.DataAccess.Query;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -26,7 +27,7 @@ namespace Shuttle.Access.Application
             Guard.AgainstNull(context, nameof(context));
 
             var request = context.Message.Request;
-            var roles = (await _roleQuery.SearchAsync(new RoleSpecification().AddName("Administrator"))).ToList();
+            var roles = (await _roleQuery.SearchAsync(new DataAccess.Query.Role.Specification().AddName("Administrator"))).ToList();
 
             if (roles.Count != 1)
             {

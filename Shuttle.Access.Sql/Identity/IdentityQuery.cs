@@ -42,7 +42,7 @@ namespace Shuttle.Access.Sql
             return await _queryMapper.MapValuesAsync<string>(_queryFactory.Permissions(userId), cancellationToken);
         }
 
-        public async Task<IEnumerable<Messages.v1.Identity>> SearchAsync(IdentitySpecification specification, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Messages.v1.Identity>> SearchAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
             Guard.AgainstNull(specification, nameof(specification));
 
@@ -69,12 +69,12 @@ namespace Shuttle.Access.Sql
             return result;
         }
 
-        public async Task<IEnumerable<Guid>> RoleIdsAsync(IdentitySpecification specification, CancellationToken cancellationToken = default)
+        public async Task<IEnumerable<Guid>> RoleIdsAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
             return (await _databaseGateway.GetRowsAsync(_queryFactory.Roles(Guard.AgainstNull(specification, nameof(specification))), cancellationToken)).Select(row => Columns.RoleId.Value(row));
         }
 
-        public async ValueTask<int> CountAsync(IdentitySpecification specification, CancellationToken cancellationToken = default)
+        public async ValueTask<int> CountAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
             return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Count(Guard.AgainstNull(specification, nameof(specification))), cancellationToken);
         }

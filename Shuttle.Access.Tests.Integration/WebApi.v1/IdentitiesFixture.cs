@@ -45,7 +45,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
                 new List<Messages.v1.Identity>
                 {
@@ -113,7 +113,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(Task.FromResult(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
             new List<Messages.v1.Identity>
             {
                 identity
@@ -147,7 +147,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(new List<Messages.v1.Identity>
             {
                 identity
@@ -199,7 +199,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Access.DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
                 new List<Guid>
                 {

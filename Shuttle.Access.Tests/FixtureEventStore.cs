@@ -67,14 +67,14 @@ namespace Shuttle.Access.Tests
             return await Task.FromResult(Get(id, builder));
         }
 
-        public long Save(EventStream eventStream, Action<SaveEventStreamBuilder> builder = null)
+        public long Save(EventStream eventStream, Action<EventStreamBuilder> builder = null)
         {
             Guard.AgainstNull(eventStream, nameof(eventStream)).Commit();
 
             return _sequenceNumber++;
         }
 
-        public async ValueTask<long> SaveAsync(EventStream eventStream, Action<SaveEventStreamBuilder> builder = null)
+        public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder> builder = null)
         {
             return await Task.FromResult(Save(eventStream, builder));
         }

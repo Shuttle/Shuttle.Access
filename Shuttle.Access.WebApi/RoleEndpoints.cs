@@ -6,18 +6,15 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Messages;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
+using Asp.Versioning.Builder;
 
 namespace Shuttle.Access.WebApi;
 
 public static class RoleEndpoints
 {
-    public static void MapRoleEndpoints(this WebApplication app)
+    public static void MapRoleEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
-        var versionSet = app.NewApiVersionSet()
-            .HasApiVersion(apiVersion1)
-            .ReportApiVersions()
-            .Build();
 
         app.MapPatch("/v{version:apiVersion}/roles/{id}/name", async (Guid id, [FromBody] SetRoleName message, [FromServices] IServiceBus serviceBus) =>
         {
@@ -73,7 +70,7 @@ public static class RoleEndpoints
 
             await using var context = databaseContextFactory.Create();
 
-            var permissions = (await roleQuery.PermissionsAsync(new RoleSpecification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
+            var permissions = (await roleQuery.PermissionsAsync(new DataAccess.Query.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
 
             return Results.Ok(from permissionId in identifiers.Values
                               select new IdentifierAvailability<Guid>()
@@ -91,7 +88,7 @@ public static class RoleEndpoints
         {
             await using var context = databaseContextFactory.Create();
 
-            return Results.Ok(await roleQuery.SearchAsync(new RoleSpecification()));
+            return Results.Ok(await roleQuery.SearchAsync(new DataAccess.Query.Role.Specification()));
         })
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
@@ -102,7 +99,7 @@ public static class RoleEndpoints
         {
             await using var context = databaseContextFactory.Create();
 
-            var specification = new RoleSpecification();
+            var specification = new DataAccess.Query.Role.Specification();
 
             if (Guid.TryParse(value, out var id))
             {

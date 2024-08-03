@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.DataAccess.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
 namespace Shuttle.Access.Sql
 {
-	public class SessionQueryFactory : ISessionQueryFactory
+    public class SessionQueryFactory : ISessionQueryFactory
 	{
 		private const string SelectedColumns = @"
 	Token, 
@@ -195,12 +196,12 @@ where
                 .AddParameter(Columns.IdentityName, session.IdentityName);
         }
 
-        public IQuery Search(SessionSpecification specification)
+        public IQuery Search(DataAccess.Query.Session.Specification specification)
         {
 			return Specification(specification, true);
 		}
 
-        private IQuery Specification(SessionSpecification specification, bool columns)
+        private IQuery Specification(DataAccess.Query.Session.Specification specification, bool columns)
         {
 			Guard.AgainstNull(specification, nameof(specification));
 

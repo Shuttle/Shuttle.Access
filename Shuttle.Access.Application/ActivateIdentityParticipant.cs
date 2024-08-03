@@ -30,7 +30,7 @@ namespace Shuttle.Access.Application
             var message = context.Message.Request;
             var now = DateTime.UtcNow;
 
-            var specification = new IdentitySpecification();
+            var specification = new DataAccess.Query.Identity.Specification();
 
             if (message.Id.HasValue)
             {

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.DataAccess.Query;
 using Shuttle.Access.Sql;
 
 namespace Shuttle.Access.Tests.Integration.DataAccess.Sql
@@ -16,8 +17,8 @@ namespace Shuttle.Access.Tests.Integration.DataAccess.Sql
             using (TransactionScopeFactory.Create())
             using (DatabaseContextFactory.Create())
             {
-                Assert.That(() => query.SearchAsync(new RoleSpecification()), Throws.Nothing);
-                Assert.That((await query.SearchAsync(new RoleSpecification().AddName("Administrator"))).Count(), Is.LessThan(2));
+                Assert.That(() => query.SearchAsync(new Access.DataAccess.Query.Role.Specification()), Throws.Nothing);
+                Assert.That((await query.SearchAsync(new Access.DataAccess.Query.Role.Specification().AddName("Administrator"))).Count(), Is.LessThan(2));
             }
         }
     }

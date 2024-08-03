@@ -1,20 +1,17 @@
 ﻿using System.Reflection;
 using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access.WebApi;
 
 public static class ServerEndpoints
 {
-    public static void MapServerEndpoints(this WebApplication app)
+    public static void MapServerEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
-        var versionSet = app.NewApiVersionSet()
-            .HasApiVersion(apiVersion1)
-            .ReportApiVersions()
-            .Build();
 
-        app.MapGet("/v{version:apiVersion}/server/configuration", (HttpContext _) =>
+        app.MapGet("/v{version:apiVersion}/server/configuration", () =>
             {
                 var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 

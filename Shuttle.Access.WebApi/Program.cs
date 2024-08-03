@@ -96,14 +96,20 @@ public class Program
 
         var app = webApplicationBuilder.Build();
 
+        var versionSet = app.NewApiVersionSet()
+            .HasApiVersion(apiVersion1)
+            .ReportApiVersions()
+            .Build();
+
         app.UseCors("AllowAll");
         app.UseAccessAuthorization();
             
-        app.MapIdentityEndpoints();
-        app.MapPermissionEndpoints();
-        app.MapRoleEndpoints();
-        app.MapServerEndpoints();
-        app.MapSessionEndpoints();
+        app.MapIdentityEndpoints(versionSet);
+        app.MapPermissionEndpoints(versionSet);
+        app.MapRoleEndpoints(versionSet);
+        app.MapServerEndpoints(versionSet);
+        app.MapSessionEndpoints(versionSet);
+        app.MapStatisticEndpoints(versionSet);
 
         if (app.Environment.IsDevelopment())
         {

@@ -7,6 +7,7 @@ using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.DataAccess.Query;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 
@@ -20,7 +21,7 @@ namespace Shuttle.Access.Tests.Participants
         {
             var roleQuery = new Mock<IRoleQuery>();
 
-            roleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), default)).Returns(Task.FromResult(Enumerable.Empty<Messages.v1.Role>()));
+            roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Role.Specification>(), default)).Returns(Task.FromResult(Enumerable.Empty<Messages.v1.Role>()));
 
             var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
             var reviewRequest = new RequestMessage<SetIdentityRole>(new SetIdentityRole());
@@ -36,7 +37,7 @@ namespace Shuttle.Access.Tests.Participants
             var roleId = Guid.NewGuid();
             var roleQuery = new Mock<IRoleQuery>();
 
-            roleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Role>
+            roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Role.Specification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Role>
             {
                 new()
                 {

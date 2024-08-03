@@ -15,7 +15,7 @@ namespace Shuttle.Access.Tests.Integration.DataAccess.Sql
             using (TransactionScopeFactory.Create())
             using (DatabaseContextFactory.Create())
             {
-                Assert.That(async () => await query.SearchAsync(new IdentitySpecification().WithIdentityId(new Guid("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED")).IncludeRoles()), Throws.Nothing);
+                Assert.That(async () => await query.SearchAsync(new Access.DataAccess.Query.Identity.Specification().WithIdentityId(new Guid("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED")).IncludeRoles()), Throws.Nothing);
             }
         }
     }

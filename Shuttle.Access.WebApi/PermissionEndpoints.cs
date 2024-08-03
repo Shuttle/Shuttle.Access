@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
@@ -6,25 +7,20 @@ using Shuttle.Access.WebApi.Specifications;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
-using PermissionSpecification = Shuttle.Access.DataAccess.PermissionSpecification;
 
 namespace Shuttle.Access.WebApi;
 
 public static class PermissionEndpoints
 {
-    public static void MapPermissionEndpoints(this WebApplication app)
+    public static void MapPermissionEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
-        var versionSet = app.NewApiVersionSet()
-            .HasApiVersion(apiVersion1)
-            .ReportApiVersions()
-            .Build();
 
         app.MapGet("/v{version:apiVersion}/permissions", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
             {
                 await using (databaseContextFactory.Create())
                 {
-                    var permissions = (await permissionQuery.SearchAsync(new PermissionSpecification())).ToList();
+                    var permissions = (await permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification())).ToList();
                     return Results.Ok(permissions);
                 }
             })
@@ -36,7 +32,7 @@ public static class PermissionEndpoints
             {
                 await using (databaseContextFactory.Create())
                 {
-                    var permission = (await permissionQuery.SearchAsync(new PermissionSpecification().AddId(id))).SingleOrDefault();
+                    var permission = (await permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification().AddId(id))).SingleOrDefault();
                     return permission != null ? Results.Ok(permission) : Results.BadRequest();
                 }
             })

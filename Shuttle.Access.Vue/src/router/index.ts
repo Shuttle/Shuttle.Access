@@ -13,12 +13,12 @@ const routes: Array<RouteRecordRaw> = [
     name: "sign-in",
     component: () => import("../views/SignIn.vue"),
   },
+  {
+    path: "/dashboard",
+    name: "dashboard",
+    component: () => import("../views/Dashboard.vue"),
+  },
 ];
-//     {
-//       path: "/dashboard",
-//       name: "dashboard",
-//       component: () => import("../views/Dashboard.vue"),
-//     },
 //     {
 //       path: "/identities",
 //       name: "identities",

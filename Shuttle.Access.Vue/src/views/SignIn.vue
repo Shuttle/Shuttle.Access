@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="signIn()" class="sv-form sv-form--sm px-5 pt-20">
+    <form @submit.prevent="signIn" class="sv-form sv-form--sm px-5 pt-20">
         <div class="sv-title">{{ $t("sign-in") }}</div>
         <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')" class="mb-2" autocomplete="username"
             :error-messages="validation.message('identityName')">
@@ -9,7 +9,7 @@
             :type="getPasswordType()" autocomplete="current-password" :error-messages="validation.message('password')">
         </v-text-field>
         <div class="flex justify-end mt-4">
-            <v-btn @click="signIn">{{ $t("sign-in") }}</v-btn>
+            <v-btn type="submit">{{ $t("sign-in") }}</v-btn>
         </div>
     </form>
 </template>
