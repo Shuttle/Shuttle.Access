@@ -10,7 +10,7 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 
-namespace Shuttle.Access.WebApi;
+namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class IdentityEndpoints
 {
@@ -40,9 +40,11 @@ public static class IdentityEndpoints
 
         app.MapGet("/v{version:apiVersion}/identities/", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery) =>
             {
-                await using var context = databaseContextFactory.Create();
-
-                return Results.Ok(await identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification()));
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    return Results.Ok(await identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification()));
+                }
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -50,23 +52,26 @@ public static class IdentityEndpoints
 
         app.MapGet("/v{version:apiVersion}/identities/{value}", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, string value) =>
             {
-                await using var context = databaseContextFactory.Create();
-                var specification = new DataAccess.Query.Identity.Specification().IncludeRoles();
-
-                if (Guid.TryParse(value, out var id))
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
                 {
-                    specification.WithIdentityId(id);
-                }
-                else
-                {
-                    specification.WithName(value);
-                }
+                    var specification = new DataAccess.Query.Identity.Specification().IncludeRoles();
 
-                var user = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
+                    if (Guid.TryParse(value, out var id))
+                    {
+                        specification.WithIdentityId(id);
+                    }
+                    else
+                    {
+                        specification.WithName(value);
+                    }
 
-                return user != null
-                    ? Results.Ok(user)
-                    : Results.BadRequest();
+                    var user = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
+
+                    return user != null
+                        ? Results.Ok(user)
+                        : Results.BadRequest();
+                }
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -98,20 +103,22 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                await using var context = databaseContextFactory.Create();
-
-                var reviewRequest = new RequestMessage<SetIdentityRole>(message);
-
-                await mediator.SendAsync(reviewRequest);
-
-                if (!reviewRequest.Ok)
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
                 {
-                    return Results.BadRequest(reviewRequest.Message);
+                    var reviewRequest = new RequestMessage<SetIdentityRole>(message);
+
+                    await mediator.SendAsync(reviewRequest);
+
+                    if (!reviewRequest.Ok)
+                    {
+                        return Results.BadRequest(reviewRequest.Message);
+                    }
+
+                    await serviceBus.SendAsync(message);
+
+                    return Results.Accepted();
                 }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -135,22 +142,24 @@ public static class IdentityEndpoints
                     return Results.BadRequest(Resources.SessionTokenException);
                 }
 
-                await using var context = databaseContextFactory.Create();
-
-                var session = await sessionRepository.GetAsync(sessionTokenResult.SessionToken);
-
-                if (message.Id.HasValue && !session.HasPermission(Permissions.Register.Identity))
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
                 {
-                    return Results.Unauthorized();
+                    var session = await sessionRepository.GetAsync(sessionTokenResult.SessionToken);
+
+                    if (message.Id.HasValue && !session.HasPermission(Permissions.Register.Identity))
+                    {
+                        return Results.Unauthorized();
+                    }
+
+                    var changePassword = new RequestMessage<ChangePassword>(message);
+
+                    await mediator.SendAsync(changePassword);
+
+                    return !changePassword.Ok
+                        ? Results.BadRequest(changePassword.Message)
+                        : Results.Accepted();
                 }
-
-                var changePassword = new RequestMessage<ChangePassword>(message);
-
-                await mediator.SendAsync(changePassword);
-
-                return !changePassword.Ok
-                    ? Results.BadRequest(changePassword.Message)
-                    : Results.Accepted();
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
@@ -175,13 +184,15 @@ public static class IdentityEndpoints
 
                 var requestMessage = new RequestMessage<ResetPassword>(message);
 
-                await using var context = databaseContextFactory.Create();
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    await mediator.SendAsync(requestMessage);
 
-                await mediator.SendAsync(requestMessage);
-
-                return !requestMessage.Ok
-                    ? Results.BadRequest(requestMessage.Message)
-                    : Results.Ok();
+                    return !requestMessage.Ok
+                        ? Results.BadRequest(requestMessage.Message)
+                        : Results.Ok();
+                }
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -200,16 +211,18 @@ public static class IdentityEndpoints
 
                 List<Guid> roles;
 
-                await using var context = databaseContextFactory.Create();
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    roles = (await identityQuery.RoleIdsAsync(new DataAccess.Query.Identity.Specification().WithIdentityId(id))).ToList();
 
-                roles = (await identityQuery.RoleIdsAsync(new DataAccess.Query.Identity.Specification().WithIdentityId(id))).ToList();
-
-                return Results.Ok(from roleId in identifiers.Values
-                    select new IdentifierAvailability<Guid>
-                    {
-                        Id = roleId,
-                        Active = roles.Any(item => item.Equals(roleId))
-                    });
+                    return Results.Ok(from roleId in identifiers.Values
+                        select new IdentifierAvailability<Guid>
+                        {
+                            Id = roleId,
+                            Active = roles.Any(item => item.Equals(roleId))
+                        });
+                }
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -237,17 +250,20 @@ public static class IdentityEndpoints
                     specification.WithName(message.Name);
                 }
 
-                await using var context = databaseContextFactory.Create();
-                var query = (await identityQuery.SearchAsync(specification)).FirstOrDefault();
-
-                if (query == null)
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
                 {
-                    return Results.BadRequest();
+                    var query = (await identityQuery.SearchAsync(specification)).FirstOrDefault();
+
+                    if (query == null)
+                    {
+                        return Results.BadRequest();
+                    }
+
+                    await serviceBus.SendAsync(message);
+
+                    return Results.Accepted();
                 }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -269,11 +285,14 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                await using var context = databaseContextFactory.Create();
-                var requestResponse = new RequestResponseMessage<GetPasswordResetToken, Guid>(message);
-                await mediator.SendAsync(requestResponse);
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    var requestResponse = new RequestResponseMessage<GetPasswordResetToken, Guid>(message);
+                    await mediator.SendAsync(requestResponse);
 
-                return !requestResponse.Ok ? Results.BadRequest(requestResponse.Message) : Results.Ok(requestResponse.Response);
+                    return !requestResponse.Ok ? Results.BadRequest(requestResponse.Message) : Results.Ok(requestResponse.Response);
+                }
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -295,38 +314,40 @@ public static class IdentityEndpoints
                 var sessionTokenResult = httpContext.GetAccessSessionToken();
                 var identityRegistrationRequested = new IdentityRegistrationRequested(sessionTokenResult.Ok ? sessionTokenResult.SessionToken : null);
 
-                await using var context = databaseContextFactory.Create();
-
-                await mediator.SendAsync(identityRegistrationRequested);
-
-                if (!identityRegistrationRequested.IsAllowed)
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
                 {
-                    return Results.Unauthorized();
+                    await mediator.SendAsync(identityRegistrationRequested);
+
+                    if (!identityRegistrationRequested.IsAllowed)
+                    {
+                        return Results.Unauthorized();
+                    }
+
+                    if (string.IsNullOrWhiteSpace(message.Password))
+                    {
+                        var generatePassword = new GeneratePassword();
+
+                        await mediator.SendAsync(generatePassword);
+
+                        message.Password = generatePassword.GeneratedPassword;
+                    }
+
+                    var generateHash = new GenerateHash { Value = message.Password };
+
+                    await mediator.SendAsync(generateHash);
+
+                    message.Password = string.Empty;
+                    message.PasswordHash = generateHash.Hash;
+                    message.RegisteredBy = identityRegistrationRequested.RegisteredBy;
+                    message.Activated = message.Activated && sessionTokenResult.Ok &&
+                                        identityRegistrationRequested.IsActivationAllowed;
+                    message.System = message.System;
+
+                    await serviceBus.SendAsync(message);
+
+                    return Results.Accepted();
                 }
-
-                if (string.IsNullOrWhiteSpace(message.Password))
-                {
-                    var generatePassword = new GeneratePassword();
-
-                    await mediator.SendAsync(generatePassword);
-
-                    message.Password = generatePassword.GeneratedPassword;
-                }
-
-                var generateHash = new GenerateHash { Value = message.Password };
-
-                await mediator.SendAsync(generateHash);
-
-                message.Password = string.Empty;
-                message.PasswordHash = generateHash.Hash;
-                message.RegisteredBy = identityRegistrationRequested.RegisteredBy;
-                message.Activated = message.Activated && sessionTokenResult.Ok &&
-                                    identityRegistrationRequested.IsActivationAllowed;
-                message.System = message.System;
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);

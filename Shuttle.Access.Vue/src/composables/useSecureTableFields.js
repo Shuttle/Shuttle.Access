@@ -3,7 +3,7 @@ import { useSessionStore } from "@/stores/session";
 
 const sessionStore = useSessionStore();
 
-export function useSecureTableFields(fields) {
+export function useSecureTableHeaders(fields) {
     const securedFields = ref([])
 
     fields.forEach(item => {

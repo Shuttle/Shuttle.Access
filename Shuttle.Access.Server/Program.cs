@@ -50,6 +50,8 @@ internal class Program
 
                         builder.Options.Subscription.ConnectionStringName = "Access";
 
+                        builder.Options.Asynchronous = true;
+
                     })
                     .AddAzureStorageQueues(builder =>
                     {

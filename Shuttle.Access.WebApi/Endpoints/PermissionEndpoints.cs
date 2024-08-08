@@ -8,7 +8,7 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
 
-namespace Shuttle.Access.WebApi;
+namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class PermissionEndpoints
 {
@@ -18,6 +18,7 @@ public static class PermissionEndpoints
 
         app.MapGet("/v{version:apiVersion}/permissions", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
             {
+                using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
                     var permissions = (await permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification())).ToList();
@@ -30,6 +31,7 @@ public static class PermissionEndpoints
 
         app.MapGet("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
             {
+                using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
                     var permission = (await permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification().AddId(id))).SingleOrDefault();
@@ -42,11 +44,13 @@ public static class PermissionEndpoints
 
         app.MapPost("/v{version:apiVersion}/permissions/search", async (PermissionSpecification specification, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
             {
+
                 if (specification == null)
                 {
                     return Results.BadRequest();
                 }
 
+                using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
                     var permissions = (await permissionQuery.SearchAsync(specification.Create())).ToList();

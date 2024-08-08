@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
@@ -7,12 +8,12 @@ using Shuttle.Esb;
 namespace Shuttle.Access.Server.v1
 {
     public class IdentityHandler :
-        IMessageHandler<RegisterIdentity>,
-        IMessageHandler<SetIdentityRole>,
-        IMessageHandler<RemoveIdentity>,
-        IMessageHandler<SetPassword>,
-        IMessageHandler<ActivateIdentity>,
-        IMessageHandler<SetIdentityName>
+        IAsyncMessageHandler<RegisterIdentity>,
+        IAsyncMessageHandler<SetIdentityRole>,
+        IAsyncMessageHandler<RemoveIdentity>,
+        IAsyncMessageHandler<SetPassword>,
+        IAsyncMessageHandler<ActivateIdentity>,
+        IAsyncMessageHandler<SetIdentityName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IMediator _mediator;
@@ -26,7 +27,7 @@ namespace Shuttle.Access.Server.v1
             _mediator = mediator;
         }
 
-        public void ProcessMessage(IHandlerContext<ActivateIdentity> context)
+        public async Task ProcessMessageAsync(IHandlerContext<ActivateIdentity> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -34,7 +35,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
@@ -43,7 +44,7 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<RegisterIdentity> context)
+        public async Task ProcessMessageAsync(IHandlerContext<RegisterIdentity> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -61,7 +62,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
@@ -70,11 +71,11 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<RemoveIdentity> context)
+        public async Task ProcessMessageAsync(IHandlerContext<RemoveIdentity> context)
         {
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(context.Message);
+                await _mediator.SendAsync(context.Message);
 
                 context.Publish(new IdentityRemoved
                 {
@@ -83,7 +84,7 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetIdentityRole> context)
+        public async Task ProcessMessageAsync(IHandlerContext<SetIdentityRole> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -93,14 +94,14 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(reviewRequest);
+                await _mediator.SendAsync(reviewRequest);
 
                 if (!reviewRequest.Ok)
                 {
                     return;
                 }
 
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
 
                 if (requestResponse.Response != null)
                 {
@@ -109,17 +110,17 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetPassword> context)
+        public async Task ProcessMessageAsync(IHandlerContext<SetPassword> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(context.Message);
+                await _mediator.SendAsync(context.Message);
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetIdentityName> context)
+        public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context)
         {
             var message = context.Message;
 
@@ -132,7 +133,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)

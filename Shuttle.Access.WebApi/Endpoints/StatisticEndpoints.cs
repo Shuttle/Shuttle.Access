@@ -5,7 +5,7 @@ using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.WebApi;
+namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class StatisticEndpoints
 {
@@ -15,7 +15,8 @@ public static class StatisticEndpoints
 
         app.MapGet("/v{version:apiVersion}/statistics/dashboard", async (IDatabaseContextFactory databaseContextFactory, IRoleQuery roleQuery, IIdentityQuery identityQuery, IPermissionQuery permissionQuery) =>
             {
-                await using (Guard.AgainstNull(databaseContextFactory).Create())
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
                 {
                     return Results.Ok(new
                     {

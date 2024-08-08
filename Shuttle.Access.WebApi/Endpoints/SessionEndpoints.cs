@@ -6,7 +6,7 @@ using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.WebApi;
+namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class SessionEndpoints
 {
@@ -17,13 +17,14 @@ public static class SessionEndpoints
         app.MapPost("/v{version:apiVersion}/sessions", async (ISessionService sessionService, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterSession message) =>
             {
                 if (string.IsNullOrEmpty(message.IdentityName) ||
-                    (string.IsNullOrEmpty(message.Password) && Guid.Empty.Equals(message.Token)))
+                    string.IsNullOrEmpty(message.Password) && Guid.Empty.Equals(message.Token))
                 {
                     return Results.BadRequest();
                 }
 
                 RegisterSessionResult registerSessionResult;
 
+                using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
                     registerSessionResult = await sessionService.RegisterAsync(message.IdentityName, message.Password, message.Token);
@@ -59,6 +60,7 @@ public static class SessionEndpoints
 
                 RegisterSessionResult registerSessionResult;
 
+                using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
                     registerSessionResult = await sessionService.RegisterAsync(message.IdentityName, sessionTokenResult.SessionToken);
@@ -91,6 +93,7 @@ public static class SessionEndpoints
                     return Results.BadRequest();
                 }
 
+                using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
                     return await sessionService.RemoveAsync(sessionTokenResult.SessionToken)
@@ -105,6 +108,7 @@ public static class SessionEndpoints
 
         app.MapGet("/v{version:apiVersion}/sessions/{token:Guid}", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery) =>
             {
+                using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
                     var session = await sessionQuery.GetAsync(token);
@@ -121,6 +125,7 @@ public static class SessionEndpoints
 
         app.MapGet("/v{version:apiVersion}/sessions/{token:Guid}/permissions", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
+                using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
                     var session = await sessionRepository.FindAsync(token);

@@ -7,15 +7,20 @@
                 </template>
             </v-alert>
         </div>
-        <v-main>
-            <router-view />
-        </v-main>
+        <div class="p-4">
+        <RouterView v-slot="{ Component, route }">
+            <transition name="route" mode="out-in">
+                <component :is="Component" :key="route.fullPath"></component>
+            </transition>
+        </RouterView>
+    </div>
     </v-app>
 </template>
 
 <script lang="ts" setup>
 import { mdiCloseCircleOutline } from '@mdi/js';
 import { useAlertStore } from "@/stores/alert";
+import { RouterView } from "vue-router";
 
 var alertStore = useAlertStore();
 

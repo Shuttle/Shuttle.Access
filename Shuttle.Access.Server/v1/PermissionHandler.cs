@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.DataAccess;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -8,9 +9,9 @@ using Shuttle.Esb;
 namespace Shuttle.Access.Server.v1
 {
     public class PermissionHandler :
-        IMessageHandler<RegisterPermission>,
-        IMessageHandler<SetPermissionStatus>,
-        IMessageHandler<SetPermissionName>
+        IAsyncMessageHandler<RegisterPermission>,
+        IAsyncMessageHandler<SetPermissionStatus>,
+        IAsyncMessageHandler<SetPermissionName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IPermissionQuery _permissionQuery;
@@ -28,7 +29,7 @@ namespace Shuttle.Access.Server.v1
             _mediator = mediator;
         }
 
-        public void ProcessMessage(IHandlerContext<RegisterPermission> context)
+        public async Task ProcessMessageAsync(IHandlerContext<RegisterPermission> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -38,7 +39,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
@@ -47,7 +48,7 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetPermissionStatus> context)
+        public async Task ProcessMessageAsync(IHandlerContext<SetPermissionStatus> context)
         {
             Guard.AgainstNull(context, nameof(context));
 
@@ -57,7 +58,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
@@ -66,7 +67,7 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetPermissionName> context)
+        public async Task ProcessMessageAsync(IHandlerContext<SetPermissionName> context)
         {
             var message = context.Message;
 
@@ -79,7 +80,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)

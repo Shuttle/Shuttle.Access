@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
@@ -8,10 +9,10 @@ using Shuttle.Recall;
 namespace Shuttle.Access.Server.v1
 {
     public class RoleHandler :
-        IMessageHandler<RegisterRole>,
-        IMessageHandler<RemoveRole>,
-        IMessageHandler<SetRolePermission>,
-        IMessageHandler<SetRoleName>
+        IAsyncMessageHandler<RegisterRole>,
+        IAsyncMessageHandler<RemoveRole>,
+        IAsyncMessageHandler<SetRolePermission>,
+        IAsyncMessageHandler<SetRoleName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IEventStore _eventStore;
@@ -28,7 +29,7 @@ namespace Shuttle.Access.Server.v1
             _mediator = mediator;
         }
 
-        public void ProcessMessage(IHandlerContext<RegisterRole> context)
+        public async Task ProcessMessageAsync(IHandlerContext<RegisterRole> context)
         {
             var message = context.Message;
 
@@ -41,7 +42,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
@@ -50,7 +51,7 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<RemoveRole> context)
+        public async Task ProcessMessageAsync(IHandlerContext<RemoveRole> context)
         {
             var message = context.Message;
 
@@ -58,7 +59,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
@@ -67,7 +68,7 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetRolePermission> context)
+        public async Task ProcessMessageAsync(IHandlerContext<SetRolePermission> context)
         {
             var message = context.Message;
 
@@ -75,7 +76,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
@@ -84,7 +85,7 @@ namespace Shuttle.Access.Server.v1
             }
         }
 
-        public void ProcessMessage(IHandlerContext<SetRoleName> context)
+        public async Task ProcessMessageAsync(IHandlerContext<SetRoleName> context)
         {
             var message = context.Message;
 
@@ -97,7 +98,7 @@ namespace Shuttle.Access.Server.v1
 
             using (_databaseContextFactory.Create())
             {
-                _mediator.Send(requestResponse);
+                await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)

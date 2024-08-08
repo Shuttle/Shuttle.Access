@@ -8,7 +8,7 @@ using Shuttle.Core.Data;
 using Shuttle.Esb;
 using Asp.Versioning.Builder;
 
-namespace Shuttle.Access.WebApi;
+namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class RoleEndpoints
 {
@@ -68,16 +68,18 @@ public static class RoleEndpoints
                 return Results.BadRequest(ex.Message);
             }
 
-            await using var context = databaseContextFactory.Create();
+            using (new DatabaseContextScope())
+            await using (databaseContextFactory.Create())
+            {
+                var permissions = (await roleQuery.PermissionsAsync(new DataAccess.Query.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
 
-            var permissions = (await roleQuery.PermissionsAsync(new DataAccess.Query.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
-
-            return Results.Ok(from permissionId in identifiers.Values
-                              select new IdentifierAvailability<Guid>()
-                              {
-                                  Id = permissionId,
-                                  Active = permissions.Any(item => item.Id.Equals(permissionId))
-                              });
+                return Results.Ok(from permissionId in identifiers.Values
+                    select new IdentifierAvailability<Guid>()
+                    {
+                        Id = permissionId,
+                        Active = permissions.Any(item => item.Id.Equals(permissionId))
+                    });
+            }
         })
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
@@ -97,24 +99,26 @@ public static class RoleEndpoints
 
         app.MapGet("/v{version:apiVersion}/roles/{value}", async (string value, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
         {
-            await using var context = databaseContextFactory.Create();
-
-            var specification = new DataAccess.Query.Role.Specification();
-
-            if (Guid.TryParse(value, out var id))
+            using (new DatabaseContextScope())
+            await using (databaseContextFactory.Create())
             {
-                specification.AddRoleId(id);
-            }
-            else
-            {
-                specification.AddName(value);
-            }
+                var specification = new DataAccess.Query.Role.Specification();
 
-            var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
+                if (Guid.TryParse(value, out var id))
+                {
+                    specification.AddRoleId(id);
+                }
+                else
+                {
+                    specification.AddName(value);
+                }
 
-            return role != null
-            ? Results.Ok(role)
-                : Results.BadRequest();
+                var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
+
+                return role != null
+                    ? Results.Ok(role)
+                    : Results.BadRequest();
+            }
         })
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)

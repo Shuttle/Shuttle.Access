@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="flex flex-col sm:flex-row gap-2 items-stretch">
+        <div class="flex flex-col sm:flex-row items-stretch gap-2 p-2">
             <div v-for="item in items" :key="item.route"
                 class="group flex flex-col items-center justify-center border border-solid border-[color:rgb(var(--sv-border-primary))] rounded-lg p-2 w-full cursor-pointer hover:bg-[color:rgb(var(--sv-bg-primary--hover))] active:bg-[color:rgb(var(--sv-bg-primary--active))]"
                 @click="click(item)">

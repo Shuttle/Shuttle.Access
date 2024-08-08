@@ -18,6 +18,14 @@ const routes: Array<RouteRecordRaw> = [
     name: "dashboard",
     component: () => import("../views/Dashboard.vue"),
   },
+  {
+    path: "/permissions",
+    name: "permissions",
+    component: () => import("../views/Permissions.vue"),
+    meta: {
+      permission: "access://permission/view",
+    },
+  },
 ];
 //     {
 //       path: "/identities",
@@ -55,14 +63,6 @@ const routes: Array<RouteRecordRaw> = [
 //       path: "/password/:id",
 //       name: "password",
 //       component: () => import("../views/Password.vue"),
-//     },
-//     {
-//       path: "/permissions",
-//       name: "permissions",
-//       component: () => import("../views/Permissions.vue"),
-//       meta: {
-//         permission: "access://permission/view",
-//       },
 //     },
 //     {
 //       path: "/permission",
