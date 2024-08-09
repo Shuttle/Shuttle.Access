@@ -34,6 +34,14 @@ const routes: Array<RouteRecordRaw> = [
       permission: "access://permission/manage",
     },
   },
+  {
+    path: "/permission/:id/rename",
+    name: "permission-rename",
+    component: () => import("../views/PermissionRename.vue"),
+    meta: {
+      permission: "access://permission/manage",
+    },
+  },
 ];
 //     {
 //       path: "/identities",
@@ -71,14 +79,6 @@ const routes: Array<RouteRecordRaw> = [
 //       path: "/password/:id",
 //       name: "password",
 //       component: () => import("../views/Password.vue"),
-//     },
-//     {
-//       path: "/permission/:id/rename",
-//       name: "permission-rename",
-//       component: () => import("../views/PermissionRename.vue"),
-//       meta: {
-//         permission: "access://permission/manage",
-//       },
 //     },
 //     {
 //       path: "/roles",
