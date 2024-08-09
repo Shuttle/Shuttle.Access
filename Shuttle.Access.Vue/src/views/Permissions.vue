@@ -10,7 +10,7 @@
             </div>
         </v-card-title>
         <v-divider></v-divider>
-        <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search">
+        <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search" :loading="busy">
             <template v-slot:text>
                 <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined"
                     hide-details single-line></v-text-field>
