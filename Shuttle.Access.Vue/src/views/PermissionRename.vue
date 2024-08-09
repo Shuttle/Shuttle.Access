@@ -4,7 +4,7 @@
             <div class="sv-title">{{ $t("permission") }}</div>
             <v-text-field v-model="state.current" :label="$t('name')" class="mb-2" readonly>
             </v-text-field>
-            <v-text-field v-model="state.name" :label="$t('name')"
+            <v-text-field v-model="state.name" :label="$t('new-value')"
                 class="mb-2" :error-messages="validation.message('name')">
             </v-text-field>
             <div class="sv-strip sv-strip--reverse">
