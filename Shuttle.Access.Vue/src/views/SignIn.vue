@@ -9,7 +9,7 @@
             :type="getPasswordType()" autocomplete="current-password" :error-messages="validation.message('password')">
         </v-text-field>
         <div class="flex justify-end mt-4">
-            <v-btn type="submit">{{ $t("sign-in") }}</v-btn>
+            <v-btn type="submit" :disabled="busy">{{ $t("sign-in") }}</v-btn>
         </div>
     </form>
 </template>
@@ -26,6 +26,8 @@ import router from "@/router";
 
 const { t } = useI18n({ useScope: 'global' });
 const alertStore = useAlertStore();
+
+const busy = ref(false);
 
 const state = reactive({
     identityName: "",
@@ -67,6 +69,8 @@ const signIn = async () => {
         return;
     }
 
+    busy.value = true;
+
     sessionStore.signIn({
         identityName: state.identityName,
         password: state.password
@@ -82,6 +86,9 @@ const signIn = async () => {
                 type: "error",
                 name: "sign-in-exception"
             });
+        })
+        .finally(() => {
+            busy.value = false;
         });
 }
 </script>
