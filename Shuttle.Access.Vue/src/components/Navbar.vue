@@ -12,38 +12,6 @@
     <v-navigation-drawer v-model="drawer" :location="$vuetify.display.mobile ? 'bottom' : undefined" temporary>
         <v-list @click="$router.push({ path: item.route })" :items="items"></v-list>
     </v-navigation-drawer>
-    <!-- <header>
-        <div
-            class="px-4 border-0 border-b border-solid border-gray-200 dark:border-gray-700 fixed top-0 left-0 w-full bg-[color:var(--color-background)] z-50">
-            <Navbar>
-                <template #start>
-                    <div class="flex flex-row items-center mr-2">
-                        <div class="font-bold text-orange-500 mt-[2px]">Shuttle.Access</div>
-                    </div>
-                </template>
-                <template #navigation>
-                    <Navigation :items="items" @click="route" />
-                </template>
-                <template #end>
-                    <div class="flex flex-row items-center">
-                        <div class="mx-2">
-                            <Toggle aria-label="toggle dark mode" v-model="darkMode" :onIcon="MoonIcon"
-                                :offIcon="SunIcon" @click="toggleAppearance" />
-                        </div>
-                        <div class="hidden sm:block">
-                            <Navigation :items="profileItems" dropdown-alignment="right" @click="route" />
-                        </div>
-                    </div>
-                </template>
-                <template #navigation-minimal>
-                    <Navigation :minimal="true" :items="items" @click="route" />
-                </template>
-                <template #bottom-minimal class="sm:hidden">
-                    <Navigation :minimal="true" :items="profileItems" dropdown-alignment="right" @click="route" />
-                </template>
-            </Navbar>
-        </div>
-    </header> -->
 </template>
 
 <script setup>
@@ -146,45 +114,5 @@ const signOut = () => {
 
     signIn();
 }
-
-const route = (item) => {
-    router.push({ path: item.to });
-}
-
-const storageKey = 'shuttle-theme-appearance';
-let userPreference = localStorage?.getItem(storageKey) || 'auto'
-const query = window.matchMedia(`(prefers-color-scheme: dark)`)
-const classList = document.documentElement.classList
-let isDark = userPreference === 'auto' ? query.matches : userPreference === 'dark'
-const setClass = (dark) => classList[dark ? 'add' : 'remove']('dark')
-
-query.onchange = (e) => {
-    if (userPreference === 'auto') {
-        setClass((isDark = e.matches));
-    }
-}
-
-const toggleAppearance = () => {
-    if (typeof localStorage === 'undefined') {
-        return;
-    }
-
-    setClass((isDark = !isDark));
-
-    localStorage.setItem(
-        storageKey,
-        (userPreference = isDark
-            ? query.matches
-                ? 'auto'
-                : 'dark'
-            : query.matches
-                ? 'light'
-                : 'auto')
-    );
-}
-
-const darkMode = ref(isDark);
-
-setClass(isDark);
 
 </script>
