@@ -58,5 +58,6 @@
     "status": "Status",
     "submit": "Submit",
     "table-empty": "(no results)",
-    "identity-required": "No identities have been registered.  You will be registered as an administrator."
+    "identity-required": "No identities have been registered.  You will be registered as an administrator.",
+    "yes": "Yes"
 }

@@ -50,6 +50,30 @@ const routes: Array<RouteRecordRaw> = [
       permission: "access://role/view",
     },
   },
+  {
+    path: "/role",
+    name: "role",
+    component: () => import("../views/Role.vue"),
+    meta: {
+      permission: "access://role/manage",
+    },
+  },
+  {
+    path: "/role/:id/rename",
+    name: "role-rename",
+    component: () => import("../views/RoleRename.vue"),
+    meta: {
+      permission: "access://role/manage",
+    },
+  },
+  {
+    path: "/roles/:id/permissions",
+    name: "role-permissions",
+    component: () => import("../views/RolePermissions.vue"),
+    meta: {
+      permission: "access://role/view",
+    },
+  },
 ];
 //     {
 //       path: "/identities",
@@ -87,30 +111,6 @@ const routes: Array<RouteRecordRaw> = [
 //       path: "/password/:id",
 //       name: "password",
 //       component: () => import("../views/Password.vue"),
-//     },
-//     {
-//       path: "/role",
-//       name: "role",
-//       component: () => import("../views/Role.vue"),
-//       meta: {
-//         permission: "access://role/manage",
-//       },
-//     },
-//     {
-//       path: "/role/:id/rename",
-//       name: "role-rename",
-//       component: () => import("../views/RoleRename.vue"),
-//       meta: {
-//         permission: "access://role/manage",
-//       },
-//     },
-//     {
-//       path: "/roles/:id/permissions",
-//       name: "role-permissions",
-//       component: () => import("../views/RolePermissions.vue"),
-//       meta: {
-//         permission: "access://role/view",
-//       },
 //     },
 //   ];
 

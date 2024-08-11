@@ -1,7 +1,7 @@
 <template>
     <div>
         <form @submit.prevent="submit" class="sv-form sv-form--sm">
-            <div class="sv-title">{{ $t("permission") }}</div>
+            <div class="sv-title">{{ $t("role") }}</div>
             <v-text-field v-model="state.current" :label="$t('name')" class="mb-2" readonly>
             </v-text-field>
             <v-text-field v-model="state.name" :label="$t('new-value')"
@@ -55,7 +55,7 @@ const submit = async () => {
     busy.value = true;
 
     api
-        .patch(`v1/permissions/${id.value}/name`, {
+        .patch(`v1/roles/${id.value}/name`, {
             name: state.name,
         })
         .then(function () {
@@ -67,15 +67,10 @@ const submit = async () => {
 }
 
 onMounted(() => {
-    busy.value = true;
-
-    api.get(`v1/permissions/${id.value}`)
+    api.get(`v1/roles/${id.value}`)
         .then(item => {
             state.current = item.data.name;
             state.name = item.data.name;
-        })
-        .finally(() => {
-            busy.value = false;
         });
 })
 </script>

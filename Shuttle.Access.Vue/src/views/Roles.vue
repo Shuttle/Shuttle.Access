@@ -26,38 +26,13 @@
             </template>
         </v-data-table>
     </v-card>
-        <!-- <div>
-        <Title>{{ $t("roles") }}</Title>
-        <Strip>
-            <Button :icon="RefreshIcon" size="sm" @click="refresh"></Button>
-            <Button :icon="PlusIcon" size="sm" @click="add"></Button>
-        </Strip>
-        <Table :fields="fields" :items="items" :busy="busy" striped>
-            <template #item(permissions)="data">
-                <Button :icon="ShieldCheckIcon" size="xs" outline @click="permissions(data.item)"></Button>
-            </template>
-            <template #item(rename)="data">
-                <Button :icon="PencilIcon" size="xs" outline @click="rename(data.item)"></Button>
-            </template>
-            <template #item(remove)="data">
-                <Button :icon="TrashIcon" size="xs" outline variant="danger"
-                    @click="confirmationStore.show(data.item, remove)"></Button>
-            </template>
-            <template #busy>
-                <Busy />
-            </template>
-            <template #empty>
-                <TableEmpty />
-            </template>
-        </Table>
-    </div> -->
 </template>
 
 <script setup>
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline } from '@mdi/js';
+import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";

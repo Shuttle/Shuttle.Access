@@ -5,7 +5,7 @@
 @layer components {
   /* Form */
   .sv-form {
-    @apply w-full mx-auto transition-width ease-in duration-300;
+    @apply w-full mx-auto transition-width ease-in duration-300 mt-40;
   }
 
   .sv-form--sm {

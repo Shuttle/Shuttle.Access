@@ -9,7 +9,7 @@ namespace Shuttle.Access.RestClient.v1
     public interface IPermissionsApi
     {
         [Post("/v1/permissions/search")]
-        Task<IApiResponse<List<Messages.v1.Permission>>> SearchAsync(PermissionSpecification specification);
+        Task<IApiResponse<List<Messages.v1.Permission>>> SearchAsync(Messages.v1.Permission.Specification specification);
 
         [Get("/v1/permissions")]
         Task<IApiResponse<List<Messages.v1.Permission>>> GetAsync();

@@ -42,9 +42,8 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequiresSession();
 
-        app.MapPost("/v{version:apiVersion}/permissions/search", async (PermissionSpecification specification, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
+        app.MapPost("/v{version:apiVersion}/permissions/search", async (Messages.v1.Permission.Specification specification, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
             {
-
                 if (specification == null)
                 {
                     return Results.BadRequest();

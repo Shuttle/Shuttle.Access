@@ -19,7 +19,7 @@ import { useValidation } from "@/composables/useValidation"
 import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
 
-const busy = ref();
+const busy = ref(false);
 
 const state = reactive({
     name: "",
