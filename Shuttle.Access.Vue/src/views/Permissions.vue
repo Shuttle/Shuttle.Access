@@ -39,7 +39,7 @@ import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil } from '@mdi/js';
 import { useRouter } from "vue-router";
-import { useSecureTableHeaders } from "@/composables/useSecureTableFields";
+import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
@@ -63,7 +63,6 @@ const statuses = [
 
 const headers = useSecureTableHeaders([
     {
-        title: "",
         value: "rename",
         headerProps: {
             class: "xl:w-1"

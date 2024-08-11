@@ -42,6 +42,14 @@ const routes: Array<RouteRecordRaw> = [
       permission: "access://permission/manage",
     },
   },
+  {
+    path: "/roles",
+    name: "roles",
+    component: () => import("../views/Roles.vue"),
+    meta: {
+      permission: "access://role/view",
+    },
+  },
 ];
 //     {
 //       path: "/identities",
@@ -81,14 +89,6 @@ const routes: Array<RouteRecordRaw> = [
 //       component: () => import("../views/Password.vue"),
 //     },
 //     {
-//       path: "/roles",
-//       name: "roles",
-//       component: () => import("../views/Roles.vue"),
-//       meta: {
-//         permission: "access://role/view",
-//       },
-//     },
-//     {
 //       path: "/role",
 //       name: "role",
 //       component: () => import("../views/Role.vue"),
@@ -119,7 +119,7 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
   const sessionStore = useSessionStore();
 
   if (!sessionStore.initialized) {

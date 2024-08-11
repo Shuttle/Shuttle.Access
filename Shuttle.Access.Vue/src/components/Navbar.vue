@@ -10,7 +10,7 @@
         </template>
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" :location="$vuetify.display.mobile ? 'bottom' : undefined" temporary>
-        <v-list @click="$router.push({ path: item.route })" :items="items"></v-list>
+        <v-list :items="items"></v-list>
     </v-navigation-drawer>
 </template>
 
@@ -76,6 +76,10 @@ const items = computed(() => {
 
     return result.length ? result : [{ title: t("sign-in"), props: { to: "/signin" } }];
 });
+
+const route = (item) => {
+    router.push({ path: item.to });
+}
 
 const profileItems = computed(() => {
     return sessionStore.authenticated ?

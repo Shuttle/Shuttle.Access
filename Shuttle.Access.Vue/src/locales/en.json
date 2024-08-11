@@ -5,7 +5,7 @@
     "change-password": "Change password",
     "confirmation-remove": {
         "title": "Confirmation",
-        "message": "Are you sure that you want to remove the selected item?"
+        "message": "Are you sure that you want to remove the selected item(s)?"
     },
     "dashboard": "Dashboard",
     "date-activated": "Date activated",
@@ -44,7 +44,9 @@
     "permissions-button": "permissions",
     "profile": "Profile",
     "registered-by": "Registered by",
+    "remove": "Remove",
     "removed": "Removed",
+    "rename": "Rename",
     "role": "Role",
     "roles": "Roles",
     "role-permissions": "Permissions",
