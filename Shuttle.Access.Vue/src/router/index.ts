@@ -74,15 +74,15 @@ const routes: Array<RouteRecordRaw> = [
       permission: "access://role/view",
     },
   },
+  {
+    path: "/identities",
+    name: "identities",
+    component: () => import("../views/Identities.vue"),
+    meta: {
+      permission: "access://identity/view",
+    },
+  },
 ];
-//     {
-//       path: "/identities",
-//       name: "identities",
-//       component: () => import("../views/Identities.vue"),
-//       meta: {
-//         permission: "access://identity/view",
-//       },
-//     },
 //     {
 //       path: "/identity",
 //       name: "identity",

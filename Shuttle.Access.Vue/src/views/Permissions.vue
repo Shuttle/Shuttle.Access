@@ -43,7 +43,7 @@ import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
-const busy = ref();
+const busy = ref(false);
 const search = ref('')
 
 const statuses = [
