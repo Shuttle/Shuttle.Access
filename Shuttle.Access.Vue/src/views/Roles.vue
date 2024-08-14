@@ -16,13 +16,13 @@
                     hide-details single-line></v-text-field>
             </template>
             <template v-slot:item.permissions="{ item }">
-                <v-btn :icon="mdiShieldOutline" size="x-small" @click="permissions(item)" v-tooltip="$t('permissions')"/>
+                <v-btn :icon="mdiShieldOutline" size="x-small" @click="permissions(item)" v-tooltip:end="$t('permissions')"/>
             </template>
             <template v-slot:item.rename="{ item }">
-                <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" v-tooltip="$t('rename')" />
+                <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" v-tooltip:end="$t('rename')" />
             </template>
             <template v-slot:item.remove="{ item }">
-                <v-btn :icon="mdiDeleteOutline" size="x-small" @click="confirmationStore.show(item, remove)" v-tooltip="$t('remove')"/>
+                <v-btn :icon="mdiDeleteOutline" size="x-small" @click="confirmationStore.show(item, remove)" v-tooltip:end="$t('remove')"/>
             </template>
         </v-data-table>
     </v-card>

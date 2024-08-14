@@ -53,7 +53,7 @@ const submit = async () => {
     busy.value = true;
 
     api
-        .patch(`v1/roles/${id.value}/name`, {
+        .patch(`v1/identities/${id.value}/name`, {
             name: state.name,
         })
         .then(function () {
@@ -65,7 +65,7 @@ const submit = async () => {
 }
 
 onMounted(() => {
-    api.get(`v1/roles/${id.value}`)
+    api.get(`v1/identities/${id.value}`)
         .then(item => {
             state.current = item.data.name;
             state.name = item.data.name;

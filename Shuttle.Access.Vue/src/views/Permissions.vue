@@ -16,7 +16,7 @@
                     hide-details single-line></v-text-field>
             </template>
             <template v-slot:item.rename="{ item }">
-                <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" />
+                <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" v-tooltip:end="$t('rename')" />
             </template>
             <template v-slot:item.status="{ item }">
                 <div class="flex flex-row items-center my-2">

@@ -16,16 +16,16 @@
                     hide-details single-line></v-text-field>
             </template>
             <template v-slot:item.roles="{ item }">
-                <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click="roles(item)" />
+                <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click="roles(item)" v-tooltip:end="$t('roles')" />
             </template>
-            <template v-slot:item.edit="{ item }">
-                <v-btn :icon="mdiPencil" size="x-small" @click="edit(item)" />
+            <template v-slot:item.rename="{ item }">
+                <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" v-tooltip:end="$t('rename')" />
             </template>
             <template v-slot:item.password="{ item }">
-                <v-btn :icon="mdiShieldOutline" size="x-small" @click="password(item)" />
+                <v-btn :icon="mdiShieldOutline" size="x-small" @click="password(item)" v-tooltip:end="$t('password')" />
             </template>
             <template v-slot:item.remove="{ item }">
-                <v-btn :icon="mdiDeleteOutline" size="x-small" @click="confirmationStore.show(item, remove)" v-tooltip="$t('remove')"/>
+                <v-btn :icon="mdiDeleteOutline" size="x-small" @click="confirmationStore.show(item, remove)" v-tooltip:end="$t('remove')" />
             </template>
         </v-data-table>
     </v-card>
@@ -65,7 +65,7 @@ const headers = useSecureTableHeaders([
         permission: "access://identity/register"
     },
     {
-        value: "edit",
+        value: "rename",
         headerProps: {
             class: "w-1"
         },
@@ -147,7 +147,7 @@ const password = (item) => {
     router.push({ name: "password", params: { id: item.id } });
 }
 
-const edit = (item) => {
+const rename = (item) => {
     router.push({ name: "identity-rename", params: { id: item.id } });
 }
 

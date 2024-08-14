@@ -1,15 +1,13 @@
 <template>
-    <div>
-        <form @submit.prevent="submit" class="sv-form sv-form--sm">
-            <div class="sv-title">{{ $t("role") }}</div>
-            <v-text-field v-model="state.name" :label="$t('name')" class="mb-2"
-                :error-messages="validation.message('name')">
-            </v-text-field>
-            <div class="sv-strip sv-strip--reverse">
-                <v-btn type="submit" :disabled="busy">{{ $t("save") }}</v-btn>
-            </div>
-        </form>
-    </div>
+    <form @submit.prevent="submit" class="sv-form sv-form--sm">
+        <div class="sv-title">{{ $t("role") }}</div>
+        <v-text-field v-model="state.name" :label="$t('name')" class="mb-2"
+            :error-messages="validation.message('name')">
+        </v-text-field>
+        <div class="sv-strip sv-strip--reverse">
+            <v-btn type="submit" :disabled="busy">{{ $t("save") }}</v-btn>
+        </div>
+    </form>
 </template>
 
 <script setup>

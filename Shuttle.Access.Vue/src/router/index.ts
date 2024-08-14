@@ -82,23 +82,28 @@ const routes: Array<RouteRecordRaw> = [
       permission: "access://identity/view",
     },
   },
+  {
+    path: "/identity",
+    name: "identity",
+    component: () => import("../views/Identity.vue"),
+    meta: {
+      permission: "access://identity/manage",
+    },
+  },
+  {
+    path: "/identity/:id/rename",
+    name: "identity-rename",
+    component: () => import("../views/IdentityRename.vue"),
+    meta: {
+      permission: "access://identity/manage",
+    },
+  },
+  {
+    path: "/password/:id",
+    name: "password",
+    component: () => import("../views/Password.vue"),
+  },
 ];
-//     {
-//       path: "/identity",
-//       name: "identity",
-//       component: () => import("../views/Identity.vue"),
-//       meta: {
-//         permission: "access://identity/manage",
-//       },
-//     },
-//     {
-//       path: "/identity/:id/rename",
-//       name: "identity-rename",
-//       component: () => import("../views/IdentityRename.vue"),
-//       meta: {
-//         permission: "access://identity/manage",
-//       },
-//     },
 //     {
 //       path: "/identities/:id/roles",
 //       name: "identity-roles",
@@ -106,11 +111,6 @@ const routes: Array<RouteRecordRaw> = [
 //       meta: {
 //         permission: "access://identity/view",
 //       },
-//     },
-//     {
-//       path: "/password/:id",
-//       name: "password",
-//       component: () => import("../views/Password.vue"),
 //     },
 //   ];
 
