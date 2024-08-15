@@ -44,8 +44,8 @@ const id = ref(useRoute().params.id);
 const name = ref('');
 const rolePermissions = ref([]);
 const permissions = ref([]);
-const busy = ref();
-const search = ref('')
+const busy = ref(false);
+const search = ref('');
 
 const headers = [
     {

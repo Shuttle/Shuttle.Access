@@ -103,16 +103,15 @@ const routes: Array<RouteRecordRaw> = [
     name: "password",
     component: () => import("../views/Password.vue"),
   },
+  {
+    path: "/identities/:id/roles",
+    name: "identity-roles",
+    component: () => import("../views/IdentityRoles.vue"),
+    meta: {
+      permission: "access://identity/view",
+    },
+  },
 ];
-//     {
-//       path: "/identities/:id/roles",
-//       name: "identity-roles",
-//       component: () => import("../views/IdentityRoles.vue"),
-//       meta: {
-//         permission: "access://identity/view",
-//       },
-//     },
-//   ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
