@@ -1,17 +1,23 @@
 <template>
     <form @submit.prevent="signIn" class="sv-form sv-form--sm px-5 pt-20">
         <div class="sv-title">{{ $t("sign-in") }}</div>
-        <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')" class="mb-2" autocomplete="username"
+        <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName"
+            :label="$t('identity-name')" class="mb-2" autocomplete="username"
             :error-messages="validation.message('identityName')">
         </v-text-field>
-        <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')" :icon-end="getPasswordIcon()" icon-end-clickable
-            :append-inner-icon="`svg:${getPasswordIcon()}`" @click:append-inner="togglePasswordIcon"
-            :type="getPasswordType()" autocomplete="current-password" :error-messages="validation.message('password')">
+        <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')"
+            :icon-end="getPasswordIcon()" icon-end-clickable :append-inner-icon="`svg:${getPasswordIcon()}`"
+            @click:append-inner="togglePasswordIcon" :type="getPasswordType()" autocomplete="current-password"
+            :error-messages="validation.message('password')">
         </v-text-field>
         <div class="flex justify-end mt-4">
             <v-btn type="submit" :disabled="busy">{{ $t("sign-in") }}</v-btn>
         </div>
     </form>
+    <div class="mt-5">
+        <div class="sv-title">{{ $t("login-provider") }}</div>
+        <img src="@/assets/github.logo.svg" alt="GitHub logo" class="oauth-provider" @click="oauth('github')" />
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -23,6 +29,7 @@ import { useAlertStore } from "@/stores/alert";
 import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";
 import router from "@/router";
+import configuration from '@/configuration';
 
 const { t } = useI18n({ useScope: 'global' });
 const alertStore = useAlertStore();
@@ -91,4 +98,9 @@ const signIn = async () => {
             busy.value = false;
         });
 }
+
+const oauth = (name: string) => {
+      window.location.href = configuration.getOAuthUrl(name);
+    },
+
 </script>

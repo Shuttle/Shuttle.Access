@@ -12,7 +12,7 @@ namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class PermissionEndpoints
 {
-    public static void MapPermissionEndpoints(this WebApplication app, ApiVersionSet versionSet)
+    public static WebApplication MapPermissionEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
@@ -120,5 +120,7 @@ public static class PermissionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Status.Permission);
+
+        return app;
     }
 }

@@ -6,10 +6,9 @@ namespace Shuttle.Access
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddAccess(this IServiceCollection services,
-            Action<AccessBuilder> builder = null)
+        public static IServiceCollection AddAccess(this IServiceCollection services, Action<AccessBuilder> builder = null)
         {
-            Guard.AgainstNull(services, nameof(services));
+            Guard.AgainstNull(services);
 
             var accessBuilder = new AccessBuilder(services);
 

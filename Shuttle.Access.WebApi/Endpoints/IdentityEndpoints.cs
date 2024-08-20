@@ -14,7 +14,7 @@ namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class IdentityEndpoints
 {
-    public static void MapIdentityEndpoints(this WebApplication app, ApiVersionSet versionSet)
+    public static WebApplication MapIdentityEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
@@ -351,5 +351,7 @@ public static class IdentityEndpoints
             })
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
+
+        return app;
     }
 }

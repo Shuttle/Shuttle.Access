@@ -11,6 +11,8 @@ using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
 using Shuttle.Esb.Sql.Subscription;
+using Shuttle.OAuth;
+using Shuttle.OAuth.GitHub;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
@@ -93,7 +95,11 @@ public class Program
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });
-            }); ;
+            })
+            .AddOAuth(builder =>
+            {
+                builder.AddOAuthProvider<GitHubOAuthProvider>("GitHub", webApplicationBuilder.Configuration.GetSection($"{OAuthOptions.SectionName}:GitHub").Get<OAuthOptions>()!);
+            });
 
         var app = webApplicationBuilder.Build();
 
@@ -105,12 +111,14 @@ public class Program
         app.UseCors("AllowAll");
         app.UseAccessAuthorization();
             
-        app.MapIdentityEndpoints(versionSet);
-        app.MapPermissionEndpoints(versionSet);
-        app.MapRoleEndpoints(versionSet);
-        app.MapServerEndpoints(versionSet);
-        app.MapSessionEndpoints(versionSet);
-        app.MapStatisticEndpoints(versionSet);
+        app
+            .MapIdentityEndpoints(versionSet)
+            .MapOAuthEndpoints(versionSet)
+            .MapPermissionEndpoints(versionSet)
+            .MapRoleEndpoints(versionSet)
+            .MapServerEndpoints(versionSet)
+            .MapSessionEndpoints(versionSet)
+            .MapStatisticEndpoints(versionSet);
 
         if (app.Environment.IsDevelopment())
         {

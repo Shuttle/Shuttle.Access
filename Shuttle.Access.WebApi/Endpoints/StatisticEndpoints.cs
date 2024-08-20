@@ -9,7 +9,7 @@ namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class StatisticEndpoints
 {
-    public static void MapStatisticEndpoints(this WebApplication app, ApiVersionSet versionSet)
+    public static WebApplication MapStatisticEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
@@ -30,5 +30,7 @@ public static class StatisticEndpoints
             .WithTags("Statistics")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
+
+        return app;
     }
 }

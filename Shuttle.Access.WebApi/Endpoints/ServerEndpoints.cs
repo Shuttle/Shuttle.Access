@@ -7,7 +7,7 @@ namespace Shuttle.Access.WebApi.Endpoints;
 
 public static class ServerEndpoints
 {
-    public static void MapServerEndpoints(this WebApplication app, ApiVersionSet versionSet)
+    public static WebApplication MapServerEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
@@ -20,5 +20,7 @@ public static class ServerEndpoints
             .WithTags("Server")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
+
+        return app;
     }
 }
