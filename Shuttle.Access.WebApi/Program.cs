@@ -12,7 +12,6 @@ using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.OAuth;
-using Shuttle.OAuth.GitHub;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
@@ -98,7 +97,7 @@ public class Program
             })
             .AddOAuth(builder =>
             {
-                builder.AddOAuthProvider<GitHubOAuthProvider>("GitHub", webApplicationBuilder.Configuration.GetSection($"{OAuthOptions.SectionName}:GitHub").Get<OAuthOptions>()!);
+                builder.AddOAuthOptions("GitHub", webApplicationBuilder.Configuration.GetSection($"{OAuthOptions.SectionName}:GitHub").Get<OAuthOptions>()!);
             });
 
         var app = webApplicationBuilder.Build();

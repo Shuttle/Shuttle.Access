@@ -32,7 +32,7 @@ namespace Shuttle.Access.Sql
             {
                 Authentication.Invoke(this, new AuthenticationEventArgs(false, string.Format(Resources.InvalidIdentity, identityName)));
 
-                return AuthenticationResult.Failure();
+                return AuthenticationResult.Failure;
             }
 
             var identity = new Identity();
@@ -43,12 +43,12 @@ namespace Shuttle.Access.Sql
             {
                 Authentication.Invoke(this, new AuthenticationEventArgs(true, string.Empty));
 
-                return AuthenticationResult.Success();
+                return AuthenticationResult.Success;
             }
 
             Authentication.Invoke(this, new AuthenticationEventArgs(false, string.Format(Resources.InvalidPassword, identityName)));
 
-            return AuthenticationResult.Failure();
+            return AuthenticationResult.Failure;
         }
 
         public event EventHandler<AuthenticationEventArgs> Authentication = delegate

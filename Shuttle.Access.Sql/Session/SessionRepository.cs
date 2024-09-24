@@ -91,14 +91,14 @@ namespace Shuttle.Access.Sql
             return session;
         }
 
-        public async ValueTask<int> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
+        public async ValueTask<bool> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.ExecuteAsync(_queryFactory.Remove(token), cancellationToken);
+            return await _databaseGateway.ExecuteAsync(_queryFactory.Remove(token), cancellationToken) != 0;
         }
 
-        public async ValueTask<int> RemoveAsync(string identityName, CancellationToken cancellationToken = default)
+        public async ValueTask<bool> RemoveAsync(string identityName, CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.ExecuteAsync(_queryFactory.Remove(identityName), cancellationToken);
+            return await _databaseGateway.ExecuteAsync(_queryFactory.Remove(identityName), cancellationToken) != 0;
         }
     }
 }

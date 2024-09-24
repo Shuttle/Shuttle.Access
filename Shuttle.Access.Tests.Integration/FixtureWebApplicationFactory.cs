@@ -10,6 +10,7 @@ using Shuttle.Access.WebApi;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
+using Shuttle.OAuth;
 
 namespace Shuttle.Access.Tests.Integration;
 
@@ -23,13 +24,13 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
     }
 
     public Mock<IAccessService> AccessService { get; } = new();
+    public Mock<IOAuthGrantRepository> OAuthGrantRepository { get; } = new();
     public Mock<IDatabaseContextFactory> DatabaseContextFactory { get; } = new();
     public Mock<IIdentityQuery> IdentityQuery { get; } = new();
     public Mock<IMediator> Mediator { get; } = new();
     public Mock<IPermissionQuery> PermissionQuery { get; } = new();
     public Mock<IRoleQuery> RoleQuery { get; } = new();
     public Mock<ISessionQuery> SessionQuery { get; } = new();
-    public Mock<ISessionService> SessionService { get; } = new();
     public Mock<ISessionRepository> SessionRepository { get; } = new();
     public Mock<IServiceBus> ServiceBus { get; } = new();
 
@@ -55,6 +56,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
         {
             services.AddSingleton(new Mock<ISubscriptionService>().Object);
             services.AddSingleton(AccessService.Object);
+            services.AddSingleton(OAuthGrantRepository.Object);
             services.AddSingleton(DatabaseContextFactory.Object);
             services.AddSingleton(IdentityQuery.Object);
             services.AddSingleton(Mediator.Object);
@@ -63,7 +65,6 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton(SessionQuery.Object);
             services.AddSingleton(ServiceBus.Object);
             services.AddSingleton(SessionRepository.Object);
-            services.AddSingleton(SessionService.Object);
         });
     }
 }

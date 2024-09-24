@@ -15,6 +15,7 @@
             public const string Role = "access://roles/register";
             public const string Identity = "access://identity/register";
             public const string Permission = "access://permission/register";
+            public const string Session = "access://session/register";
         }
 
         public static class Remove

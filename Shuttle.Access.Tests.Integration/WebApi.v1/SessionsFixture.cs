@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Application;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -61,12 +61,16 @@ public class SessionsFixture
 
         var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", DateTime.Now, DateTime.Now);
 
-        factory.SessionService.Setup(m => m.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(RegisterSessionResult.Success(session)));
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), default))
+            .Callback<object, CancellationToken>((message, _) =>
+            {
+                ((RegisterSession)message).Registered(session);
+            });
 
         var client = factory.GetAccessClient();
 
         var response = await client.Sessions.PostAsync(
-            new RegisterSession
+            new Messages.v1.RegisterSession
             {
                 IdentityName = "identity",
                 Password = "password"
@@ -81,6 +85,6 @@ public class SessionsFixture
         Assert.That(sessionRegistered.Content.IdentityName, Is.EqualTo(session.IdentityName));
 
         factory.DatabaseContextFactory.Verify(m => m.Create(), Times.AtLeast(1));
-        factory.SessionService.Verify(m => m.RegisterAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), CancellationToken.None), Times.Once);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RegisterSession>(), default), Times.Once);
     }
 }

@@ -41,8 +41,6 @@ namespace Shuttle.Access.Application
                 specification.WithName(message.Name);
             }
 
-            Guid id;
-
             var query = (await _identityQuery.SearchAsync(specification, context.CancellationToken)).FirstOrDefault();
 
             if (query == null)
@@ -50,8 +48,7 @@ namespace Shuttle.Access.Application
                 return;
             }
 
-            id = query.Id;
-
+            var id = query.Id;
             var identity = new Identity();
             var stream = await _eventStore.GetAsync(id);
 

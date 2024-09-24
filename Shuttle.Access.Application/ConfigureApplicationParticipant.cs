@@ -18,7 +18,6 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
     {
         "access://identity/view",
         "access://identity/register",
-        "access://identity/register-session",
         "access://identity/remove",
         "access://identity/view",
         "access://permission/view",
@@ -28,7 +27,8 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
         "access://role/view",
         "access://role/register",
         "access://role/remove",
-        "access://sessions/view"
+        "access://session/view",
+        "access://session/register"
     };
 
     private readonly IRoleQuery _roleQuery;

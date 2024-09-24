@@ -75,29 +75,29 @@ internal class Program
                     .AddSingleton<IHostedService, ApplicationHostedService>()
                     .AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Server"));
 
-                services.AddOpenTelemetry()
-                    .WithTracing(
-                        builder => builder
-                            .AddServiceBusInstrumentation(openTelemetryBuilder =>
-                            {
-                                configuration.GetSection(ServiceBusOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
-                            })
-                            .AddMediatorInstrumentation(openTelemetryBuilder =>
-                            {
-                                configuration.GetSection(MediatorOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
-                            })
-                            .AddRecallInstrumentation(openTelemetryBuilder =>
-                            {
-                                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
-                            })
-                            .AddSqlClientInstrumentation(options =>
-                            {
-                                options.SetDbStatementForText = true;
-                            })
-                            .AddJaegerExporter(options =>
-                            {
-                                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
-                            }));
+                //services.AddOpenTelemetry()
+                //    .WithTracing(
+                //        builder => builder
+                //            .AddServiceBusInstrumentation(openTelemetryBuilder =>
+                //            {
+                //                configuration.GetSection(ServiceBusOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                //            })
+                //            .AddMediatorInstrumentation(openTelemetryBuilder =>
+                //            {
+                //                configuration.GetSection(MediatorOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                //            })
+                //            .AddRecallInstrumentation(openTelemetryBuilder =>
+                //            {
+                //                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                //            })
+                //            .AddSqlClientInstrumentation(options =>
+                //            {
+                //                options.SetDbStatementForText = true;
+                //            })
+                //            .AddJaegerExporter(options =>
+                //            {
+                //                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
+                //            }));
             })
             .Build();
 

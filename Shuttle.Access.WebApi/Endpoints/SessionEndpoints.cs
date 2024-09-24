@@ -5,6 +5,7 @@ using Shuttle.Access.AspNetCore;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
+using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.WebApi.Endpoints;
 
@@ -14,7 +15,7 @@ public static class SessionEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/v{version:apiVersion}/sessions", async (ISessionService sessionService, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterSession message) =>
+        app.MapPost("/v{version:apiVersion}/sessions", async (IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterSession message) =>
             {
                 if (string.IsNullOrEmpty(message.IdentityName) ||
                     string.IsNullOrEmpty(message.Password) && Guid.Empty.Equals(message.Token))
@@ -22,29 +23,24 @@ public static class SessionEndpoints
                     return Results.BadRequest();
                 }
 
-                RegisterSessionResult registerSessionResult;
+                var registerSession = new Application.RegisterSession(message.IdentityName);
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
+                if (!string.IsNullOrEmpty(message.Password))
                 {
-                    registerSessionResult = await sessionService.RegisterAsync(message.IdentityName, message.Password, message.Token);
+                    registerSession.UsePassword(message.Password);
+                }
+                else
+                {
+                    registerSession.UseToken(message.Token);
                 }
 
-                return registerSessionResult.Ok
-                    ? Results.Ok(new SessionRegistered
-                    {
-                        IdentityName = registerSessionResult.IdentityName,
-                        Token = registerSessionResult.Token,
-                        TokenExpiryDate = registerSessionResult.TokenExpiryDate,
-                        Permissions = registerSessionResult.Permissions.ToList()
-                    })
-                    : Results.BadRequest();
+                return await RegisterSession(databaseContextFactory, mediator, registerSession);
             })
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapPost("/v{version:apiVersion}/sessions/delegated", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionService sessionService, RegisterDelegatedSession message) =>
+        app.MapPost("/v{version:apiVersion}/sessions/delegated", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, RegisterDelegatedSession message) =>
             {
                 if (string.IsNullOrEmpty(message.IdentityName))
                 {
@@ -58,33 +54,16 @@ public static class SessionEndpoints
                     return Results.Unauthorized();
                 }
 
-                RegisterSessionResult registerSessionResult;
+                var registerSession = new Application.RegisterSession(message.IdentityName).UseDelegation(sessionTokenResult.SessionToken);
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    registerSessionResult = await sessionService.RegisterAsync(message.IdentityName, sessionTokenResult.SessionToken);
-                }
-
-                if (!registerSessionResult.Ok)
-                {
-                    return Results.BadRequest();
-                }
-
-                return Results.Ok(new SessionRegistered
-                {
-                    IdentityName = registerSessionResult.IdentityName,
-                    Token = registerSessionResult.Token,
-                    TokenExpiryDate = registerSessionResult.TokenExpiryDate,
-                    Permissions = registerSessionResult.Permissions.ToList()
-                });
+                return await RegisterSession(databaseContextFactory, mediator, registerSession);
             })
             .WithTags("Sessions")
             .RequiresSession()
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapDelete("/v{version:apiVersion}/sessions", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionService sessionService) =>
+        app.MapDelete("/v{version:apiVersion}/sessions", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
                 var sessionTokenResult = httpContext.GetAccessSessionToken();
 
@@ -96,7 +75,7 @@ public static class SessionEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    return await sessionService.RemoveAsync(sessionTokenResult.SessionToken)
+                    return await sessionRepository.RemoveAsync(sessionTokenResult.SessionToken)
                         ? Results.Ok()
                         : Results.Problem();
                 }
@@ -141,5 +120,24 @@ public static class SessionEndpoints
             .RequiresPermission(Permissions.View.Sessions);
 
         return app;
+    }
+
+    private static async Task<IResult> RegisterSession(IDatabaseContextFactory databaseContextFactory, IMediator mediator, Application.RegisterSession registerSession)
+    {
+        using (new DatabaseContextScope())
+        await using (databaseContextFactory.Create())
+        {
+            await mediator.SendAsync(registerSession);
+        }
+
+        return registerSession.HasSession
+            ? Results.Ok(new SessionRegistered
+            {
+                IdentityName = registerSession.Session.IdentityName,
+                Token = registerSession.Session.Token,
+                TokenExpiryDate = registerSession.Session.ExpiryDate,
+                Permissions = registerSession.Session.Permissions.ToList()
+            })
+            : Results.BadRequest();
     }
 }

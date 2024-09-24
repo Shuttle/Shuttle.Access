@@ -72,22 +72,22 @@ internal class Program
                     .AddSingleton<IHashingService, HashingService>()
                     .AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Projection"));
 
-                services.AddOpenTelemetry()
-                    .WithTracing(builder =>
-                    {
-                        builder.AddRecallInstrumentation(openTelemetryBuilder =>
-                            {
-                                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
-                            })
-                            .AddSqlClientInstrumentation(options =>
-                            {
-                                options.SetDbStatementForText = true;
-                            })
-                            .AddJaegerExporter(options =>
-                            {
-                                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
-                            });
-                    });
+                //services.AddOpenTelemetry()
+                //    .WithTracing(builder =>
+                //    {
+                //        builder.AddRecallInstrumentation(openTelemetryBuilder =>
+                //            {
+                //                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                //            })
+                //            .AddSqlClientInstrumentation(options =>
+                //            {
+                //                options.SetDbStatementForText = true;
+                //            })
+                //            .AddJaegerExporter(options =>
+                //            {
+                //                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
+                //            });
+                //    });
             })
             .Build();
 
