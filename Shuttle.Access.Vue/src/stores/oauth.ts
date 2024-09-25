@@ -14,7 +14,7 @@ export const useOAuthStore = defineStore("oauth", {
       return {
         providers: [{
             name: "github",
-            url: "https://github.com/login/oauth/authorize?client_id=Iv23li348Vg4riZQSXft&redirect_uri=http://localhost:5599/v1/oauth/github"
+            url: "https://github.com/login/oauth/authorize?client_id=Iv23li348Vg4riZQSXft&redirect_uri=http://localhost:5599/v1/oauth"
         }],
       };
     }

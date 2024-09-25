@@ -4,33 +4,32 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
+using Shuttle.Esb;
 
-namespace Shuttle.Access.Tests.Participants
+namespace Shuttle.Access.Tests.Participants;
+
+[TestFixture]
+public class RequestIdentityRegistrationParticipantFixture
 {
-    [TestFixture]
-    public class SessionIdentityRegistrationRequestedParticipantFixture
+    [Test]
+    public async Task Should_be_able_to_request_identity_registration_using_a_session_async()
     {
-        [Test]
-        public async Task Should_be_able_to_request_identity_registration_using_a_session_async()
-        {
-            var now = DateTime.UtcNow;
-            var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", now, now.AddSeconds(5))
-                .AddPermission(Permissions.Register.Identity)
-                .AddPermission(Permissions.Activate.Identity);
-            var sessionRepository = new Mock<ISessionRepository>();
+        var now = DateTime.UtcNow;
+        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", now, now.AddSeconds(5))
+            .AddPermission(Permissions.Register.Identity)
+            .AddPermission(Permissions.Activate.Identity);
+        var sessionRepository = new Mock<ISessionRepository>();
 
-            sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session));
+        sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session));
 
-            var participant = new SessionIdentityRegistrationRequestedParticipant(sessionRepository.Object);
+        var participant = new RequestIdentityRegistrationParticipant(new Mock<IServiceBus>().Object, sessionRepository.Object, new Mock<IMediator>().Object);
 
-            var identityRegistrationRequested = new IdentityRegistrationRequested(session.Token);
+        var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).WithSessionToken(session.Token);
 
-            await participant.ProcessMessageAsync(new ParticipantContext<IdentityRegistrationRequested>(identityRegistrationRequested, CancellationToken.None));
+        await participant.ProcessMessageAsync(new ParticipantContext<RequestIdentityRegistration>(identityRegistrationRequested, CancellationToken.None));
 
-            Assert.That(identityRegistrationRequested.IsAllowed, Is.True);
-            Assert.That(identityRegistrationRequested.IsActivationAllowed, Is.True);
-        }
+        Assert.That(identityRegistrationRequested.IsAllowed, Is.True);
+        Assert.That(identityRegistrationRequested.IsActivationAllowed, Is.True);
     }
 }

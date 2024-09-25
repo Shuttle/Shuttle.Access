@@ -1,3 +1,4 @@
+using System.Configuration;
 using System.Data.Common;
 using System.Reflection;
 using Asp.Versioning;
@@ -24,7 +25,53 @@ public class Program
     {
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
+        Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+
+        var configurationFolder = Environment.GetEnvironmentVariable("CONFIGURATION_FOLDER");
+
+        if (string.IsNullOrEmpty(configurationFolder))
+        {
+            throw new ApplicationException("Environment variable `CONFIGURATION_FOLDER` has not been set.");
+        }
+
+        var appsettingsPath = Path.Combine(configurationFolder, "appsettings.json");
+
+        if (!File.Exists(appsettingsPath))
+        {
+            throw new ApplicationException($"File '{appsettingsPath}' cannot be accessed/found.");
+        }
+
         var webApplicationBuilder = WebApplication.CreateBuilder(args);
+
+        webApplicationBuilder.Configuration
+            .AddJsonFile(appsettingsPath);
+
+        var accessOptions = webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Get<AccessOptions>()!;
+
+        foreach (var providerName in accessOptions.OAuthProviderNames)
+        {
+            webApplicationBuilder.Services.Configure<OAuthOptions>(providerName, options =>
+            {
+                var key = $"{OAuthOptions.SectionName}:{providerName}";
+                var oauthOptions = webApplicationBuilder.Configuration.GetSection(key).Get<OAuthOptions>();
+
+                if (oauthOptions == null)
+                {
+                    throw new ApplicationException($"OAuth options configuration section '{key}' not found.");
+                }
+
+                options.ClientId = oauthOptions.ClientId;
+                options.ClientSecret = oauthOptions.ClientSecret;
+                options.TokenUrl = oauthOptions.TokenUrl;
+                options.TokenContentType = oauthOptions.TokenContentType;
+                options.DataUrl = oauthOptions.DataUrl;
+                options.DataAuthorization = oauthOptions.DataAuthorization;
+                options.DataAccept = oauthOptions.DataAccept;
+                options.CodeChallengeMethod = oauthOptions.CodeChallengeMethod;
+                options.Scope = oauthOptions.Scope;
+                options.EMailPropertyName = oauthOptions.EMailPropertyName;
+            });
+        }
 
         var apiVersion1 = new ApiVersion(1, 0);
 
@@ -51,7 +98,10 @@ public class Program
             })
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
-            .AddAccess()
+            .AddAccess(builder =>
+            {
+                webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Bind(builder.Options);
+            })
             .AddSqlAccess()
             .AddSqlSubscription()
             .AddServiceBus(builder =>
@@ -66,7 +116,7 @@ public class Program
             })
             .AddAzureStorageQueues(builder =>
             {
-                builder.AddOptions("azure", new AzureStorageQueueOptions
+                builder.AddOptions("azure", new()
                 {
                     ConnectionString = webApplicationBuilder.Configuration.GetConnectionString("azure")
                 });
@@ -98,7 +148,8 @@ public class Program
             .AddOAuth(builder =>
             {
                 builder.AddOAuthOptions("GitHub", webApplicationBuilder.Configuration.GetSection($"{OAuthOptions.SectionName}:GitHub").Get<OAuthOptions>()!);
-            });
+            })
+            .AddInMemoryOAuthGrantRepository();
 
         var app = webApplicationBuilder.Build();
 

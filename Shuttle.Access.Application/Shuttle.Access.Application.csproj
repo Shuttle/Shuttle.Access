@@ -18,6 +18,7 @@
 		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
 		<PackageReference Include="Shuttle.Core.Contract" Version="11.1.1" />
 		<PackageReference Include="Shuttle.Core.Mediator" Version="14.0.0" />
+		<PackageReference Include="Shuttle.Esb" Version="15.0.0" />
 		<PackageReference Include="Shuttle.Recall" Version="18.0.0" />
 		<PackageReference Include="Shuttle.Recall.Sql.Storage" Version="18.0.0" />
 	</ItemGroup>

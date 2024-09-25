@@ -7,60 +7,59 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Application
+namespace Shuttle.Access.Application;
+
+public class ActivateIdentityParticipant : IAsyncParticipant<RequestResponseMessage<ActivateIdentity, IdentityActivated>>
 {
-    public class ActivateIdentityParticipant : IAsyncParticipant<RequestResponseMessage<ActivateIdentity, IdentityActivated>>
+    private readonly IEventStore _eventStore;
+    private readonly IIdentityQuery _identityQuery;
+
+    public ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventStore eventStore)
     {
-        private readonly IIdentityQuery _identityQuery;
-        private readonly IEventStore _eventStore;
+        Guard.AgainstNull(identityQuery, nameof(identityQuery));
+        Guard.AgainstNull(eventStore, nameof(eventStore));
 
-        public ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventStore eventStore)
+        _identityQuery = identityQuery;
+        _eventStore = eventStore;
+    }
+
+    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<ActivateIdentity, IdentityActivated>> context)
+    {
+        Guard.AgainstNull(context, nameof(context));
+
+        var message = context.Message.Request;
+        var now = DateTime.UtcNow;
+
+        var specification = new DataAccess.Query.Identity.Specification();
+
+        if (message.Id.HasValue)
         {
-            Guard.AgainstNull(identityQuery, nameof(identityQuery));
-            Guard.AgainstNull(eventStore, nameof(eventStore));
-
-            _identityQuery = identityQuery;
-            _eventStore = eventStore;
+            specification.WithIdentityId(message.Id.Value);
+        }
+        else
+        {
+            specification.WithName(message.Name);
         }
 
-        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<ActivateIdentity, IdentityActivated>> context)
+        var query = (await _identityQuery.SearchAsync(specification, context.CancellationToken)).FirstOrDefault();
+
+        if (query == null)
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            var message = context.Message.Request;
-            var now = DateTime.UtcNow;
-
-            var specification = new DataAccess.Query.Identity.Specification();
-
-            if (message.Id.HasValue)
-            {
-                specification.WithIdentityId(message.Id.Value);
-            }
-            else
-            {
-                specification.WithName(message.Name);
-            }
-
-            var query = (await _identityQuery.SearchAsync(specification, context.CancellationToken)).FirstOrDefault();
-
-            if (query == null)
-            {
-                return;
-            }
-
-            var id = query.Id;
-            var identity = new Identity();
-            var stream = await _eventStore.GetAsync(id);
-
-            stream.Apply(identity);
-            stream.AddEvent(identity.Activate(now));
-
-            context.Message.WithResponse(new IdentityActivated
-            {
-                Id = id,
-                DateActivated = now,
-                SequenceNumber = await _eventStore.SaveAsync(stream)
-            });
+            return;
         }
+
+        var id = query.Id;
+        var identity = new Identity();
+        var stream = await _eventStore.GetAsync(id);
+
+        stream.Apply(identity);
+        stream.AddEvent(identity.Activate(now));
+
+        context.Message.WithResponse(new()
+        {
+            Id = id,
+            DateActivated = now,
+            SequenceNumber = await _eventStore.SaveAsync(stream)
+        });
     }
 }

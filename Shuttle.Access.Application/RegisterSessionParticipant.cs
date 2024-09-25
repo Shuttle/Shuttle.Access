@@ -8,103 +8,6 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public enum SessionRegistrationType
-{
-    None,
-    Password,
-    Token,
-    Delegation,
-    Direct
-}
-
-public class RegisterSession
-{
-    private string _password;
-
-    private Guid? _token;
-
-    public RegisterSession(string identityName)
-    {
-        IdentityName = Guard.AgainstNullOrEmptyString(identityName);
-    }
-
-    public string IdentityName { get; }
-    public bool HasSession => Session != null;
-    public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
-    public Session Session { get; private set; }
-
-    public string GetPassword()
-    {
-        if (string.IsNullOrWhiteSpace(_password))
-        {
-            throw new InvalidOperationException(Resources.RegisterSessionPasswordNotSetException);
-        }
-
-        return _password;
-    }
-
-    public Guid GetToken()
-    {
-        if (!_token.HasValue)
-        {
-            throw new InvalidOperationException(Resources.RegisterSessionTokenNotSetException);
-        }
-
-        return _token.Value;
-    }
-
-    public RegisterSession Registered(Session session)
-    {
-        Session = Guard.AgainstNull(session);
-
-        return this;
-    }
-
-    private void SetRegistrationType(SessionRegistrationType type)
-    {
-        if (RegistrationType != SessionRegistrationType.None)
-        {
-            throw new InvalidOperationException(string.Format(Resources.SessionRegistrationTypeException, RegistrationType));
-        }
-
-        RegistrationType = type;
-    }
-
-    public RegisterSession UseDelegation(Guid token)
-    {
-        SetRegistrationType(SessionRegistrationType.Delegation);
-
-        _token = token;
-
-        return this;
-    }
-
-    public RegisterSession UseDirect()
-    {
-        SetRegistrationType(SessionRegistrationType.Direct);
-
-        return this;
-    }
-
-    public RegisterSession UsePassword(string password)
-    {
-        SetRegistrationType(SessionRegistrationType.Password);
-
-        _password = Guard.AgainstNullOrEmptyString(password);
-
-        return this;
-    }
-
-    public RegisterSession UseToken(Guid token)
-    {
-        SetRegistrationType(SessionRegistrationType.Token);
-
-        _token = token;
-
-        return this;
-    }
-}
-
 public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
 {
     private readonly AccessOptions _accessOptions;
@@ -136,6 +39,7 @@ public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
 
                 if (!authenticationResult.Authenticated)
                 {
+                    message.Forbidden();
                     return;
                 }
 
@@ -147,6 +51,8 @@ public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
 
                 if (requesterSession == null || requesterSession.HasExpired || !requesterSession.HasPermission(Permissions.Register.Session))
                 {
+                    message.DelegationSessionInvalid();
+
                     return;
                 }
 
@@ -165,6 +71,8 @@ public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
 
         if ((await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(message.IdentityName), context.CancellationToken)).SingleOrDefault() == null)
         {
+            message.UnknownIdentity();
+
             return;
         }
 
@@ -182,7 +90,7 @@ public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
         {
             var now = DateTime.UtcNow;
 
-            session = new Session(Guid.NewGuid(), await _identityQuery.IdAsync(message.IdentityName, context.CancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
+            session = new(Guid.NewGuid(), await _identityQuery.IdAsync(message.IdentityName, context.CancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
 
             foreach (var permission in await _authorizationService.GetPermissionsAsync(message.IdentityName, context.CancellationToken))
             {

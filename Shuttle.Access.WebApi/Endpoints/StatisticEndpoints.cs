@@ -26,8 +26,8 @@ public static class StatisticEndpoints
                     });
                 }
             })
-            .RequiresSession()
             .WithTags("Statistics")
+            .RequiresSession()
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 

@@ -4,48 +4,47 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Application
+namespace Shuttle.Access.Application;
+
+public class SetRolePermissionParticipant : IAsyncParticipant<RequestResponseMessage<SetRolePermission, RolePermissionSet>>
 {
-    public class SetRolePermissionParticipant : IAsyncParticipant<RequestResponseMessage<SetRolePermission, RolePermissionSet>>
+    private readonly IEventStore _eventStore;
+
+    public SetRolePermissionParticipant(IEventStore eventStore)
     {
-        private readonly IEventStore _eventStore;
+        Guard.AgainstNull(eventStore, nameof(eventStore));
 
-        public SetRolePermissionParticipant(IEventStore eventStore)
+        _eventStore = eventStore;
+    }
+
+    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetRolePermission, RolePermissionSet>> context)
+    {
+        Guard.AgainstNull(context, nameof(context));
+
+        var message = context.Message;
+        var request = message.Request;
+
+        var role = new Role();
+        var stream = await _eventStore.GetAsync(request.RoleId);
+
+        stream.Apply(role);
+
+        if (request.Active && !role.HasPermission(request.PermissionId))
         {
-            Guard.AgainstNull(eventStore, nameof(eventStore));
-
-            _eventStore = eventStore;
+            stream.AddEvent(role.AddPermission(request.PermissionId));
         }
 
-        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetRolePermission, RolePermissionSet>> context)
+        if (!request.Active && role.HasPermission(request.PermissionId))
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            var message = context.Message;
-            var request = message.Request;
-
-            var role = new Role();
-            var stream = await _eventStore.GetAsync(request.RoleId);
-
-            stream.Apply(role);
-
-            if (request.Active && !role.HasPermission(request.PermissionId))
-            {
-                stream.AddEvent(role.AddPermission(request.PermissionId));
-            }
-
-            if (!request.Active && role.HasPermission(request.PermissionId))
-            {
-                stream.AddEvent(role.RemovePermission(request.PermissionId));
-            }
-
-            message.WithResponse(new RolePermissionSet
-            {
-                RoleId = request.RoleId,
-                PermissionId = request.PermissionId,
-                Active = request.Active,
-                SequenceNumber = await _eventStore.SaveAsync(stream)
-            });
+            stream.AddEvent(role.RemovePermission(request.PermissionId));
         }
+
+        message.WithResponse(new()
+        {
+            RoleId = request.RoleId,
+            PermissionId = request.PermissionId,
+            Active = request.Active,
+            SequenceNumber = await _eventStore.SaveAsync(stream)
+        });
     }
 }

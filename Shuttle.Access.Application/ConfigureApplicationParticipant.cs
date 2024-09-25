@@ -14,7 +14,7 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
     private readonly IMediator _mediator;
     private readonly IPermissionQuery _permissionQuery;
 
-    private readonly List<string> _permissions = new List<string>
+    private readonly List<string> _permissions = new()
     {
         "access://identity/view",
         "access://identity/register",
@@ -56,7 +56,7 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
 
         if (!administratorExists)
         {
-            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(new RegisterRole
+            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(new()
             {
                 Name = "Administrator"
             });
@@ -84,7 +84,7 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
             }
 
             var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
-                new RegisterPermission
+                new()
                 {
                     Name = permission,
                     Status = (int)PermissionStatus.Active
@@ -93,13 +93,13 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
             await _mediator.SendAsync(registerPermissionMessage);
         }
 
-        if (await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification()) == 0)
+        if (await _identityQuery.CountAsync(new()) == 0)
         {
             var generateHash = new GenerateHash { Value = "admin" };
 
             await _mediator.SendAsync(generateHash);
 
-            var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new RegisterIdentity
+            var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new()
             {
                 Name = "admin",
                 System = "system://access",

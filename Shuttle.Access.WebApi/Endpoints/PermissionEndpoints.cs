@@ -25,6 +25,7 @@ public static class PermissionEndpoints
                     return Results.Ok(permissions);
                 }
             })
+            .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresSession();
@@ -38,6 +39,7 @@ public static class PermissionEndpoints
                     return permission != null ? Results.Ok(permission) : Results.BadRequest();
                 }
             })
+            .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresSession();
@@ -56,6 +58,7 @@ public static class PermissionEndpoints
                     return Results.Ok(permissions);
                 }
             })
+            .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresSession();
@@ -75,6 +78,7 @@ public static class PermissionEndpoints
 
                 return Results.Accepted();
             })
+            .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Permission);
@@ -95,6 +99,7 @@ public static class PermissionEndpoints
 
                 return Results.Accepted();
             })
+            .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Permission);
@@ -117,6 +122,7 @@ public static class PermissionEndpoints
 
                 return Results.Accepted();
             })
+            .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Status.Permission);

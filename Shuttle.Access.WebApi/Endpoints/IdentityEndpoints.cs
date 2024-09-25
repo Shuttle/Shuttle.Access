@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages;
@@ -34,6 +35,7 @@ public static class IdentityEndpoints
 
                 return Results.Accepted();
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Role);
@@ -46,6 +48,7 @@ public static class IdentityEndpoints
                     return Results.Ok(await identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification()));
                 }
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.View.Identity);
@@ -73,6 +76,7 @@ public static class IdentityEndpoints
                         : Results.BadRequest();
                 }
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.View.Identity);
@@ -86,6 +90,7 @@ public static class IdentityEndpoints
 
                 return Results.Accepted();
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Remove.Identity);
@@ -120,6 +125,7 @@ public static class IdentityEndpoints
                     return Results.Accepted();
                 }
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Identity);
@@ -161,6 +167,7 @@ public static class IdentityEndpoints
                         : Results.Accepted();
                 }
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
@@ -194,6 +201,7 @@ public static class IdentityEndpoints
                         : Results.Ok();
                 }
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Identity);
@@ -224,6 +232,7 @@ public static class IdentityEndpoints
                         });
                 }
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Identity);
@@ -265,6 +274,7 @@ public static class IdentityEndpoints
                     return Results.Accepted();
                 }
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Identity);
@@ -294,11 +304,12 @@ public static class IdentityEndpoints
                     return !requestResponse.Ok ? Results.BadRequest(requestResponse.Message) : Results.Ok(requestResponse.Response);
                 }
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequiresPermission(Permissions.Register.Identity);
 
-        app.MapPost("/v{version:apiVersion}/identities/", async (HttpContext httpContext, IServiceBus serviceBus, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterIdentity message) =>
+        app.MapPost("/v{version:apiVersion}/identities/", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterIdentity message) =>
             {
                 Guard.AgainstNull(message, nameof(message));
 
@@ -312,43 +323,22 @@ public static class IdentityEndpoints
                 }
 
                 var sessionTokenResult = httpContext.GetAccessSessionToken();
-                var identityRegistrationRequested = new IdentityRegistrationRequested(sessionTokenResult.Ok ? sessionTokenResult.SessionToken : null);
+                var requestIdentityRegistration = new RequestIdentityRegistration(message);
+
+                if (sessionTokenResult.Ok)
+                {
+                    requestIdentityRegistration.WithSessionToken(sessionTokenResult.SessionToken);
+                }
 
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    await mediator.SendAsync(identityRegistrationRequested);
-
-                    if (!identityRegistrationRequested.IsAllowed)
-                    {
-                        return Results.Unauthorized();
-                    }
-
-                    if (string.IsNullOrWhiteSpace(message.Password))
-                    {
-                        var generatePassword = new GeneratePassword();
-
-                        await mediator.SendAsync(generatePassword);
-
-                        message.Password = generatePassword.GeneratedPassword;
-                    }
-
-                    var generateHash = new GenerateHash { Value = message.Password };
-
-                    await mediator.SendAsync(generateHash);
-
-                    message.Password = string.Empty;
-                    message.PasswordHash = generateHash.Hash;
-                    message.RegisteredBy = identityRegistrationRequested.RegisteredBy;
-                    message.Activated = message.Activated && sessionTokenResult.Ok &&
-                                        identityRegistrationRequested.IsActivationAllowed;
-                    message.System = message.System;
-
-                    await serviceBus.SendAsync(message);
-
-                    return Results.Accepted();
+                    await mediator.SendAsync(requestIdentityRegistration);
                 }
+
+                return !requestIdentityRegistration.IsAllowed ? Results.Unauthorized() : Results.Accepted();
             })
+            .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 

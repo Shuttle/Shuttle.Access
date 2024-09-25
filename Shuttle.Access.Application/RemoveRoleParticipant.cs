@@ -5,51 +5,50 @@ using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
 
-namespace Shuttle.Access.Application
+namespace Shuttle.Access.Application;
+
+public class RemoveRoleParticipant : IAsyncParticipant<RequestResponseMessage<RemoveRole, RoleRemoved>>
 {
-    public class RemoveRoleParticipant : IAsyncParticipant<RequestResponseMessage<RemoveRole, RoleRemoved>>
+    private readonly IEventStore _eventStore;
+    private readonly IKeyStore _keyStore;
+
+    public RemoveRoleParticipant(IEventStore eventStore, IKeyStore keyStore)
     {
-        private readonly IEventStore _eventStore;
-        private readonly IKeyStore _keyStore;
+        Guard.AgainstNull(eventStore, nameof(eventStore));
+        Guard.AgainstNull(keyStore, nameof(keyStore));
 
-        public RemoveRoleParticipant(IEventStore eventStore, IKeyStore keyStore)
+        _eventStore = eventStore;
+        _keyStore = keyStore;
+    }
+
+    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RemoveRole, RoleRemoved>> context)
+    {
+        Guard.AgainstNull(context, nameof(context));
+
+        var message = context.Message;
+
+        var stream = await _eventStore.GetAsync(message.Request.Id);
+
+        if (stream.IsEmpty)
         {
-            Guard.AgainstNull(eventStore, nameof(eventStore));
-            Guard.AgainstNull(keyStore, nameof(keyStore));
-
-            _eventStore = eventStore;
-            _keyStore = keyStore;
+            return;
         }
 
-        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RemoveRole, RoleRemoved>> context)
+        var role = new Role();
+
+        stream.Apply(role);
+
+        stream.AddEvent(role.Remove());
+
+        await _keyStore.RemoveAsync(message.Request.Id);
+
+        await _eventStore.SaveAsync(stream);
+
+        context.Message.WithResponse(new()
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            var message = context.Message;
-
-            var stream = await _eventStore.GetAsync(message.Request.Id);
-
-            if (stream.IsEmpty)
-            {
-                return;
-            }
-
-            var role = new Role();
-
-            stream.Apply(role);
-
-            stream.AddEvent(role.Remove());
-
-            await _keyStore.RemoveAsync(message.Request.Id);
-
-            await _eventStore.SaveAsync(stream);
-
-            context.Message.WithResponse(new RoleRemoved
-            {
-                Id = message.Request.Id,                            
-                Name = role.Name,
-                SequenceNumber = await _eventStore.SaveAsync(stream)
-            });
-        }
+            Id = message.Request.Id,
+            Name = role.Name,
+            SequenceNumber = await _eventStore.SaveAsync(stream)
+        });
     }
 }

@@ -1,108 +1,105 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
-using Shuttle.Access.DataAccess.Query;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
 
-namespace Shuttle.Access.Application
+namespace Shuttle.Access.Application;
+
+public class RegisterIdentityParticipant : IAsyncParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
 {
-    public class RegisterIdentityParticipant : IAsyncParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
+    private readonly IEventStore _eventStore;
+    private readonly IIdentityQuery _identityQuery;
+    private readonly IKeyStore _keyStore;
+    private readonly IRoleQuery _roleQuery;
+
+    public RegisterIdentityParticipant(IEventStore eventStore, IKeyStore keyStore, IIdentityQuery identityQuery, IRoleQuery roleQuery)
     {
-        private readonly IEventStore _eventStore;
-        private readonly IKeyStore _keyStore;
-        private readonly IRoleQuery _roleQuery;
-        private readonly IIdentityQuery _identityQuery;
+        Guard.AgainstNull(eventStore, nameof(eventStore));
+        Guard.AgainstNull(keyStore, nameof(keyStore));
+        Guard.AgainstNull(identityQuery, nameof(identityQuery));
+        Guard.AgainstNull(roleQuery, nameof(roleQuery));
 
-        public RegisterIdentityParticipant(IEventStore eventStore, IKeyStore keyStore, IIdentityQuery identityQuery, IRoleQuery roleQuery)
+        _eventStore = eventStore;
+        _keyStore = keyStore;
+        _identityQuery = identityQuery;
+        _roleQuery = roleQuery;
+    }
+
+    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)
+    {
+        Guard.AgainstNull(context, nameof(context));
+
+        var message = context.Message.Request;
+
+        EventStream stream;
+        Identity identity;
+
+        var key = Identity.Key(message.Name);
+        var id = await _keyStore.FindAsync(key);
+
+        if (id.HasValue)
         {
-            Guard.AgainstNull(eventStore, nameof(eventStore));
-            Guard.AgainstNull(keyStore, nameof(keyStore));
-            Guard.AgainstNull(identityQuery, nameof(identityQuery));
-            Guard.AgainstNull(roleQuery, nameof(roleQuery));
+            identity = new();
+            stream = await _eventStore.GetAsync(id.Value);
 
-            _eventStore = eventStore;
-            _keyStore = keyStore;
-            _identityQuery = identityQuery;
-            _roleQuery = roleQuery;
+            stream.Apply(identity);
+
+            if (!identity.Removed)
+            {
+                return;
+            }
+        }
+        else
+        {
+            id = Guid.NewGuid();
+            identity = new();
+
+            await _keyStore.AddAsync(id.Value, key);
+
+            stream = await _eventStore.GetAsync(id.Value);
         }
 
-        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)
+        var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
+
+        stream.AddEvent(registered);
+
+        var count = await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
+
+        if (count == 0)
         {
-            Guard.AgainstNull(context, nameof(context));
+            var roles = (await _roleQuery.SearchAsync(new DataAccess.Query.Role.Specification().AddName("Administrator"))).ToList();
 
-            var message = context.Message.Request;
-
-            EventStream stream;
-            Identity identity;
-
-            var key = Identity.Key(message.Name);
-            var id = await _keyStore.FindAsync(key);
-
-            if (id.HasValue)
+            if (roles.Count != 1)
             {
-                identity = new Identity();
-                stream = await _eventStore.GetAsync(id.Value);
-
-                stream.Apply(identity);
-
-                if (!identity.Removed)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                id = Guid.NewGuid();
-                identity = new Identity();
-
-                await _keyStore.AddAsync(id.Value, key);
-
-                stream = await _eventStore.GetAsync(id.Value);
+                throw new InvalidOperationException(Access.Resources.AdministratorRoleMissingException);
             }
 
-            var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
+            var role = roles[0];
 
-            stream.AddEvent(registered);
-
-            var count = await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
-
-            if (count == 0)
+            if (role.Name.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
             {
-                var roles = (await _roleQuery.SearchAsync(new DataAccess.Query.Role.Specification().AddName("Administrator"))).ToList();
-
-                if (roles.Count != 1)
-                {
-                    throw new InvalidOperationException(Access.Resources.AdministratorRoleMissingException);
-                }
-
-                var role = roles[0];
-
-                if (role.Name.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
-                {
-                    stream.AddEvent(identity.AddRole(role.Id));
-                }
+                stream.AddEvent(identity.AddRole(role.Id));
             }
-
-            if (message.Activated)
-            {
-                stream.AddEvent(identity.Activate(registered.DateRegistered));
-            }
-
-            context.Message.WithResponse(new IdentityRegistered
-            {
-                Id = id.Value,
-                Name = message.Name,
-                RegisteredBy = message.RegisteredBy,
-                GeneratedPassword = message.GeneratedPassword,
-                System = message.System,
-                SequenceNumber = await _eventStore.SaveAsync(stream)
-            });
         }
+
+        if (message.Activated)
+        {
+            stream.AddEvent(identity.Activate(registered.DateRegistered));
+        }
+
+        context.Message.WithResponse(new()
+        {
+            Id = id.Value,
+            Name = message.Name,
+            RegisteredBy = message.RegisteredBy,
+            GeneratedPassword = message.GeneratedPassword,
+            System = message.System,
+            SequenceNumber = await _eventStore.SaveAsync(stream)
+        });
     }
 }

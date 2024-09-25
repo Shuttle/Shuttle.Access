@@ -4,48 +4,47 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Application
+namespace Shuttle.Access.Application;
+
+public class SetIdentityRoleParticipant : IAsyncParticipant<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>
 {
-    public class SetIdentityRoleParticipant : IAsyncParticipant<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>
+    private readonly IEventStore _eventStore;
+
+    public SetIdentityRoleParticipant(IEventStore eventStore)
     {
-        private readonly IEventStore _eventStore;
+        Guard.AgainstNull(eventStore, nameof(eventStore));
 
-        public SetIdentityRoleParticipant(IEventStore eventStore)
+        _eventStore = eventStore;
+    }
+
+    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>> context)
+    {
+        Guard.AgainstNull(context, nameof(context));
+
+        var message = context.Message;
+
+        var identity = new Identity();
+        var request = message.Request;
+        var stream = await _eventStore.GetAsync(request.IdentityId);
+
+        stream.Apply(identity);
+
+        if (request.Active && !identity.IsInRole(request.RoleId))
         {
-            Guard.AgainstNull(eventStore, nameof(eventStore));
-
-            _eventStore = eventStore;
+            stream.AddEvent(identity.AddRole(request.RoleId));
         }
 
-        public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>> context)
+        if (!request.Active && identity.IsInRole(request.RoleId))
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            var message = context.Message;
-
-            var identity = new Identity();
-            var request = message.Request;
-            var stream = await _eventStore.GetAsync(request.IdentityId);
-
-            stream.Apply(identity);
-
-            if (request.Active && !identity.IsInRole(request.RoleId))
-            {
-                stream.AddEvent(identity.AddRole(request.RoleId));
-            }
-
-            if (!request.Active && identity.IsInRole(request.RoleId))
-            {
-                stream.AddEvent(identity.RemoveRole(request.RoleId));
-            }
-
-            message.WithResponse(new IdentityRoleSet
-            {
-                RoleId = request.RoleId,
-                IdentityId = request.IdentityId,
-                Active = request.Active,
-                SequenceNumber = await _eventStore.SaveAsync(stream)
-            });
+            stream.AddEvent(identity.RemoveRole(request.RoleId));
         }
+
+        message.WithResponse(new()
+        {
+            RoleId = request.RoleId,
+            IdentityId = request.IdentityId,
+            Active = request.Active,
+            SequenceNumber = await _eventStore.SaveAsync(stream)
+        });
     }
 }
