@@ -9,10 +9,10 @@ namespace Shuttle.Access.RestClient.v1
     public interface ISessionsApi
     {
         [Post("/v1/sessions")]
-        Task<IApiResponse<SessionRegistered>> PostAsync(RegisterSession message);
+        Task<IApiResponse<SessionResponse>> PostAsync(RegisterSession message);
 
         [Post("/v1/sessions/delegated")]
-        Task<IApiResponse<SessionRegistered>> PostAsync(RegisterDelegatedSession message);
+        Task<IApiResponse<SessionResponse>> PostAsync(RegisterDelegatedSession message);
 
         [Delete("/v1/sessions")]
         Task<IApiResponse> DeleteAsync();

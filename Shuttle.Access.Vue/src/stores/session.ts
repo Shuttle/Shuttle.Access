@@ -3,6 +3,7 @@ import axios from "axios";
 import configuration from "@/configuration";
 
 export const messages = {
+  missingOAuthData: "Missing OAuth data.",
   missingCredentials: "Incomplete credentials specified.",
   signInFailure: "Invalid credentials.",
   invalidSession: "Invalid session.",
@@ -17,6 +18,11 @@ export interface Session {
   identityName: string;
   token: string;
   permissions: string[];
+}
+
+export interface OAuthData {
+  code: string;
+  state: string;
 }
 
 export interface Credentials {
@@ -45,9 +51,7 @@ export const useSessionStore = defineStore("session", {
   },
   getters: {
     status(): string {
-      return !this.token
-        ? "not-signed-in"
-        : "signed-in";
+      return !this.token ? "not-signed-in" : "signed-in";
     },
   },
   actions: {
@@ -130,8 +134,8 @@ export const useSessionStore = defineStore("session", {
               throw new Error("Argument 'response' may not be undefined.");
             }
 
-            if (!response.data){
-                throw new Error("Argument 'response.data' may not be undefined.");
+            if (!response.data) {
+              throw new Error("Argument 'response.data' may not be undefined.");
             }
 
             const data = response.data;
@@ -143,6 +147,45 @@ export const useSessionStore = defineStore("session", {
             });
 
             resolve(response);
+          })
+          .catch(function (error) {
+            reject(error);
+          });
+      });
+    },
+    async oauth(oauthData: OAuthData) {
+      const self = this;
+
+      return new Promise((resolve, reject) => {
+        if (!oauthData || !oauthData.state || !oauthData.code) {
+          reject(new Error(messages.missingOAuthData));
+          return;
+        }
+
+        return axios
+          .get(configuration.getApiUrl(`v1/oauth/session/${oauthData.state}/${oauthData.code}`))
+          .then(function (response) {
+            if (!response) {
+              throw new Error("Argument 'response' may not be undefined.");
+            }
+
+            if (!response.data) {
+              throw new Error("Argument 'response.data' may not be undefined.");
+            }
+
+            const data = response.data;
+
+            if (data.result == "Registered") {
+              self.register({
+                identityName: data.identityName,
+                token: data.token,
+                permissions: data.permissions,
+              });
+
+              resolve(response);
+            } else {
+                reject(data.result);
+            }
           })
           .catch(function (error) {
             reject(error);

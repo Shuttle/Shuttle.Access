@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 
@@ -23,7 +24,8 @@ public class RequestIdentityRegistrationParticipantFixture
 
         sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session));
 
-        var participant = new RequestIdentityRegistrationParticipant(new Mock<IServiceBus>().Object, sessionRepository.Object, new Mock<IMediator>().Object);
+        var serviceBus = new Mock<IServiceBus>();
+        var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, sessionRepository.Object, new Mock<IMediator>().Object);
 
         var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).WithSessionToken(session.Token);
 
@@ -31,5 +33,7 @@ public class RequestIdentityRegistrationParticipantFixture
 
         Assert.That(identityRegistrationRequested.IsAllowed, Is.True);
         Assert.That(identityRegistrationRequested.IsActivationAllowed, Is.True);
+
+        serviceBus.Verify(m => m.SendAsync(It.IsAny<RegisterIdentity>(), null), Times.Once);
     }
 }

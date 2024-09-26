@@ -39,3 +39,7 @@ body {
 .route-leave-active {
     transition: all 0.3s ease;
 }
+
+svg.oauth-provider {
+    fill: var(--color-text);
+}

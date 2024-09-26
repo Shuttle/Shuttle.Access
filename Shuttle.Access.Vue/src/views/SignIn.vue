@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="signIn" class="sv-form sv-form--sm px-5 pt-20">
+    <form @submit.prevent="signIn" class="sv-form sv-form--sm px-5 pt-6">
         <div class="sv-title">{{ $t("sign-in") }}</div>
         <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName"
             :label="$t('identity-name')" class="mb-2" autocomplete="username"
@@ -13,11 +13,14 @@
         <div class="flex justify-end mt-4">
             <v-btn type="submit" :disabled="busy">{{ $t("sign-in") }}</v-btn>
         </div>
+        <v-divider v-if="oauthProviders.length > 0" class="mt-4 mb-2"></v-divider>
+        <div class="flex flex-row justify-start space-x-2" v-if="oauthProviders.length > 0">
+            <div v-for="oauthProvider in oauthProviders" v-bind:key="oauthProvider.name"
+                :alt="`${oauthProvider.name} logo`" class="oauth-provider cursor-pointer w-8 h-12"
+                @click="oauthAuthenticate(oauthProvider.name)" v-html="oauthProvider.svg">
+            </div>
+        </div>
     </form>
-    <div class="mt-5">
-        <div class="sv-title">{{ $t("login-provider") }}</div>
-        <img src="@/assets/github.logo.svg" alt="GitHub logo" class="oauth-provider" @click="oauth('github')" />
-    </div>
 </template>
 
 <script setup lang="ts">
@@ -29,12 +32,18 @@ import { useAlertStore } from "@/stores/alert";
 import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";
 import router from "@/router";
-import configuration from '@/configuration';
+import api from "@/api";
+
+interface OAuthProvider {
+    name: string;
+    svg: string;
+}
 
 const { t } = useI18n({ useScope: 'global' });
 const alertStore = useAlertStore();
 
 const busy = ref(false);
+const oauthProviders = ref<OAuthProvider[]>([]);
 
 const state = reactive({
     identityName: "",
@@ -99,8 +108,52 @@ const signIn = async () => {
         });
 }
 
-const oauth = (name: string) => {
-      window.location.href = configuration.getOAuthUrl(name);
-    },
+const oauthAuthenticate = (name: string) => {
+    busy.value = true;
+
+    api
+        .get("v1/oauth/authenticate/" + name)
+        .then((response) => {
+            window.location.replace(response?.data?.authorizationUrl);
+        })
+        .finally(() => {
+            busy.value = false;
+        });
+}
+
+const refreshOAuthProviders = () => {
+    busy.value = true;
+
+    api
+        .get("v1/oauth/providers")
+        .then(async (response) => {
+            const promises = response?.data.map(async (item: string) => {
+                const response = await fetch(`/src/assets/oauth/${item.toLowerCase()}.svg`)
+                let svg = undefined;
+
+                if (response.ok) {
+                    svg = await response.text();
+                }
+
+                const result = {
+                    name: item,
+                    svg: svg
+                }
+
+                console.log(result);
+
+                return result;
+            });
+
+            oauthProviders.value = await Promise.all(promises);
+        })
+        .finally(function () {
+            busy.value = false;
+        });
+}
+
+onMounted(() => {
+    refreshOAuthProviders();
+})
 
 </script>

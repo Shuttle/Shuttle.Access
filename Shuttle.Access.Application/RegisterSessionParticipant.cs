@@ -80,13 +80,18 @@ public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
             ? await _sessionRepository.FindAsync(message.GetToken(), context.CancellationToken)
             : await _sessionRepository.FindAsync(message.IdentityName, context.CancellationToken);
 
-        if (session is { HasExpired: true } && session.ExpiryDate.Subtract(_accessOptions.SessionRenewalTolerance) < DateTime.UtcNow)
+        if (session is { HasExpired: true } && session.ExpiryDate.Add(_accessOptions.SessionRenewalTolerance) > DateTime.UtcNow)
         {
             session.Renew(DateTime.UtcNow.Add(_accessOptions.SessionDuration));
 
             await _sessionRepository.RenewAsync(session, context.CancellationToken);
+
+            message.Registered(session);
+
+            return;
         }
-        else
+
+        if (message.RegistrationType != SessionRegistrationType.Token)
         {
             var now = DateTime.UtcNow;
 
@@ -98,8 +103,8 @@ public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
             }
 
             await _sessionRepository.SaveAsync(session, context.CancellationToken);
-        }
 
-        message.Registered(session);
+            message.Registered(session);
+        }
     }
 }

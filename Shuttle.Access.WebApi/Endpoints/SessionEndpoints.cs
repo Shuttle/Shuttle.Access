@@ -130,14 +130,19 @@ public static class SessionEndpoints
             await mediator.SendAsync(registerSession);
         }
 
-        return registerSession.HasSession
-            ? Results.Ok(new SessionRegistered
-            {
-                IdentityName = registerSession.Session.IdentityName,
-                Token = registerSession.Session.Token,
-                TokenExpiryDate = registerSession.Session.ExpiryDate,
-                Permissions = registerSession.Session.Permissions.ToList()
-            })
-            : Results.BadRequest();
+        var sessionResponse = new SessionResponse
+        {
+            Result = registerSession.Result.ToString()
+        };
+
+        if (registerSession.HasSession)
+        {
+            sessionResponse.IdentityName = registerSession.Session.IdentityName;
+            sessionResponse.Token = registerSession.Session.Token;
+            sessionResponse.TokenExpiryDate = registerSession.Session.ExpiryDate;
+            sessionResponse.Permissions = registerSession.Session.Permissions.ToList();
+        }
+
+        return Results.Ok(sessionResponse);
     }
 }

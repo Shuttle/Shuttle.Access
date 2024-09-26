@@ -19,7 +19,7 @@ namespace Shuttle.Access
                 options.ConnectionStringName = accessBuilder.Options.ConnectionStringName;
                 options.SessionDuration = accessBuilder.Options.SessionDuration;
                 options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
-                options.SiteUrl = accessBuilder.Options.SiteUrl;
+                options.OAuthRedirectUri = accessBuilder.Options.OAuthRedirectUri;
                 options.OAuthProviderNames = accessBuilder.Options.OAuthProviderNames;
                 options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
             });

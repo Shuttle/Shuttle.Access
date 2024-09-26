@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
+using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 
@@ -19,7 +19,7 @@ public class IdentitiesFixture
     {
         var now = DateTime.UtcNow;
 
-        return new Messages.v1.Identity
+        return new()
         {
             Id = Guid.NewGuid(),
             Name = "name",
@@ -27,7 +27,7 @@ public class IdentitiesFixture
             DateActivated = now,
             GeneratedPassword = "generated-password",
             RegisteredBy = "system",
-            Roles = new List<Messages.v1.Identity.Role>
+            Roles = new()
             {
                 new()
                 {
@@ -52,7 +52,7 @@ public class IdentitiesFixture
                     identity
                 }.AsEnumerable()));
 
-        var response = await factory.GetAccessClient().Identities.ActivateAsync(new ActivateIdentity
+        var response = await factory.GetAccessClient().Identities.ActivateAsync(new()
         {
             Name = "known"
         });
@@ -75,7 +75,7 @@ public class IdentitiesFixture
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None)).Verifiable();
 
-        var response = await factory.GetAccessClient().Identities.ChangePasswordAsync(new ChangePassword
+        var response = await factory.GetAccessClient().Identities.ChangePasswordAsync(new()
         {
             NewPassword = "new-password",
             Token = token
@@ -206,9 +206,9 @@ public class IdentitiesFixture
                     activeRoleId
                 }.AsEnumerable()));
 
-        var response = await factory.GetAccessClient().Identities.RoleAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
+        var response = await factory.GetAccessClient().Identities.RoleAvailabilityAsync(Guid.NewGuid(), new()
         {
-            Values = new List<Guid>
+            Values = new()
             {
                 activeRoleId,
                 inactiveRoleId
@@ -237,25 +237,13 @@ public class IdentitiesFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<IdentityRegistrationRequested>(), CancellationToken.None))
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestIdentityRegistration>(), CancellationToken.None))
             .Callback<object, CancellationToken>((message, _) =>
             {
-                ((IdentityRegistrationRequested)message).Allowed("test", true);
+                ((RequestIdentityRegistration)message).Allowed("test", true);
             });
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<GeneratePassword>(), CancellationToken.None))
-            .Callback<object, CancellationToken>((message, _) =>
-            {
-                ((GeneratePassword)message).GeneratedPassword = "generated-password";
-            });
-
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<GenerateHash>(), CancellationToken.None))
-            .Callback<object, CancellationToken>((message, _) =>
-            {
-                ((GenerateHash)message).Hash = new byte[] { 0, 1, 2, 3, 4 };
-            });
-
-        var response = await factory.GetAccessClient().Identities.RegisterAsync(new RegisterIdentity
+        var response = await factory.GetAccessClient().Identities.RegisterAsync(new()
         {
             Name = "identity"
         });
@@ -264,10 +252,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<IdentityRegistrationRequested>(), CancellationToken.None), Times.Once);
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<GeneratePassword>(), CancellationToken.None), Times.Once);
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<GenerateHash>(), CancellationToken.None), Times.Once);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<RegisterIdentity>(), null), Times.Once);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RequestIdentityRegistration>(), CancellationToken.None), Times.Once);
     }
 
     [Test]
@@ -281,7 +266,7 @@ public class IdentitiesFixture
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<ResetPassword>>(), CancellationToken.None)).Verifiable();
 
-        var response = await factory.GetAccessClient().Identities.ResetPasswordAsync(new ResetPassword
+        var response = await factory.GetAccessClient().Identities.ResetPasswordAsync(new()
         {
             Name = "identity",
             Password = "password",
@@ -306,7 +291,7 @@ public class IdentitiesFixture
         factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetIdentityRole>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<SetIdentityRole>>(), CancellationToken.None)).Verifiable();
 
-        var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new SetIdentityRole
+        var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
         {
             Active = true
         });
@@ -324,7 +309,7 @@ public class IdentitiesFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var response = await factory.GetAccessClient().Identities.ActivateAsync(new ActivateIdentity
+        var response = await factory.GetAccessClient().Identities.ActivateAsync(new()
         {
             Name = "unknown"
         });
@@ -347,7 +332,7 @@ public class IdentitiesFixture
                 ((RequestMessage<ChangePassword>)message).Failed("reason");
             });
 
-        var response = await factory.GetAccessClient().Identities.ChangePasswordAsync(new ChangePassword
+        var response = await factory.GetAccessClient().Identities.ChangePasswordAsync(new()
         {
             NewPassword = "new-password",
             Token = token
@@ -371,7 +356,7 @@ public class IdentitiesFixture
         var response = await factory.GetAccessClient(httpClient =>
         {
             httpClient.DefaultRequestHeaders.Remove("Authorization");
-        }).Identities.ChangePasswordAsync(new ChangePassword
+        }).Identities.ChangePasswordAsync(new()
         {
             NewPassword = "new-password",
             Token = token
@@ -418,7 +403,7 @@ public class IdentitiesFixture
                 ((RequestMessage<ResetPassword>)message).Failed("reason");
             });
 
-        var response = await factory.GetAccessClient().Identities.ResetPasswordAsync(new ResetPassword
+        var response = await factory.GetAccessClient().Identities.ResetPasswordAsync(new()
         {
             Name = "identity",
             Password = "password",
@@ -443,7 +428,7 @@ public class IdentitiesFixture
         var response = await factory.GetAccessClient(httpClient =>
         {
             httpClient.DefaultRequestHeaders.Remove("Authorization");
-        }).Identities.ResetPasswordAsync(new ResetPassword
+        }).Identities.ResetPasswordAsync(new()
         {
             Name = "identity",
             Password = "password",
@@ -471,7 +456,7 @@ public class IdentitiesFixture
                 ((RequestMessage<SetIdentityRole>)message).Failed("reason");
             });
 
-        var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new SetIdentityRole
+        var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
         {
             IdentityId = Guid.NewGuid()
         });

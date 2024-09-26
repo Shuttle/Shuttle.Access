@@ -19,6 +19,11 @@ public static class OAuthEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
+        app.MapGet("/v{version:apiVersion}/oauth/providers", (IOptions<AccessOptions> accessOptions) => Results.Ok((object?)accessOptions.Value.OAuthProviderNames))
+            .WithTags("OAuth")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
+
         app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}", async (HttpContext httpContext, IOptions<AccessOptions> accessOptions, IOptionsMonitor<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName) =>
             {
                 if (string.IsNullOrWhiteSpace(providerName))
@@ -40,21 +45,22 @@ public static class OAuthEndpoints
 
                 var providerOptions = oauthOptions.Get(providerName);
 
-                var redirectUrl = providerOptions.AuthorizationUrl
-                    .Replace("__ClientId__", providerOptions.ClientId)
-                    .Replace("__ClientSecret__", providerOptions.ClientSecret)
-                    .Replace("__CodeChallengeMethod__", providerOptions.CodeChallengeMethod)
-                    .Replace("__Scope__", providerOptions.Scope)
-                    .Replace("__RedirectUri__", $"{httpContext.Request.Scheme}://{httpContext.Request.Host}{httpContext.Request.PathBase}/v1/oauth/session")
-                                  + $"&state={grant.Id}";
-
-                return Results.Redirect(redirectUrl);
+                return Results.Ok(new
+                {
+                    AuthorizationUrl = providerOptions.AuthorizationUrl
+                                          .Replace("__ClientId__", providerOptions.ClientId)
+                                          .Replace("__ClientSecret__", providerOptions.ClientSecret)
+                                          .Replace("__CodeChallengeMethod__", providerOptions.CodeChallengeMethod)
+                                          .Replace("__Scope__", providerOptions.Scope)
+                                          .Replace("__RedirectUri__", accessOptions.Value.OAuthRedirectUri)
+                                      + $"&state={grant.Id}"
+                });
             })
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/session", async (IOptions<AccessOptions> accessOptions, IOptionsMonitor<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IDatabaseContextFactory databaseContextFactory, IMediator mediator, IServiceBus serviceBus, string state, string code) =>
+        app.MapGet("/v{version:apiVersion}/oauth/session/{state}/{code}", async (IOptions<AccessOptions> accessOptions, IOptionsMonitor<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IDatabaseContextFactory databaseContextFactory, IMediator mediator, string state, string code) =>
             {
                 if (string.IsNullOrWhiteSpace(state) ||
                     !Guid.TryParse(state, out var requestId))
@@ -92,15 +98,20 @@ public static class OAuthEndpoints
                     await mediator.SendAsync(requestIdentityRegistration);
                 }
 
-                return registerSession.HasSession
-                    ? Results.Ok(new SessionRegistered
-                    {
-                        IdentityName = registerSession.Session.IdentityName,
-                        Token = registerSession.Session.Token,
-                        TokenExpiryDate = registerSession.Session.ExpiryDate,
-                        Permissions = registerSession.Session.Permissions.ToList()
-                    })
-                    : Results.BadRequest(registerSession.Result);
+                var sessionResponse = new SessionResponse
+                {
+                    Result = registerSession.Result.ToString()
+                };
+
+                if (registerSession.HasSession)
+                {
+                    sessionResponse.IdentityName = registerSession.Session.IdentityName;
+                    sessionResponse.Token = registerSession.Session.Token;
+                    sessionResponse.TokenExpiryDate = registerSession.Session.ExpiryDate;
+                    sessionResponse.Permissions = registerSession.Session.Permissions.ToList();
+                }
+
+                return Results.Ok(sessionResponse);
             })
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)

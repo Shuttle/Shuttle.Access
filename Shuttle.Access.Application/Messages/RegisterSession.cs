@@ -18,7 +18,7 @@ public class RegisterSession
 
     public string IdentityName { get; }
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
-    public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.None;
+    public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;
     public Session Session { get; private set; }
 
     public RegisterSession DelegationSessionInvalid()
