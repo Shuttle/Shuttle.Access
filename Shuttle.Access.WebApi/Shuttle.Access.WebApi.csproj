@@ -28,4 +28,13 @@
     <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include=".files\GitHub.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include=".files\Microsoft.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

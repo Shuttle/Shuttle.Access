@@ -1,14 +1,10 @@
 ﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
-using Azure.Core;
-using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
-using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
-using Shuttle.Esb;
 using Shuttle.OAuth;
 
 namespace Shuttle.Access.WebApi.Endpoints;
@@ -19,12 +15,32 @@ public static class OAuthEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapGet("/v{version:apiVersion}/oauth/providers", (IOptions<AccessOptions> accessOptions) => Results.Ok((object?)accessOptions.Value.OAuthProviderNames))
+        app.MapGet("/v{version:apiVersion}/oauth/providers", (IOptions<AccessOptions> accessOptions, IOptionsMonitor<OAuthOptions> oauthOptions) =>
+            {
+                var result = new List<OAuthProvider>();
+
+                foreach (var providerName in accessOptions.Value.OAuthProviderNames)
+                {
+                    var oauthProvider = new OAuthProvider
+                    {
+                        Name = providerName
+                    };
+
+                    if (File.Exists(Path.Combine(accessOptions.Value.OAuthProviderSvgFolder, $"{providerName}.svg")))
+                    {
+                        oauthProvider.Svg = File.ReadAllText(Path.Combine(accessOptions.Value.OAuthProviderSvgFolder, $"{providerName}.svg"));
+                    }
+
+                    result.Add(oauthProvider);
+                }
+
+                return Results.Ok(result);
+            })
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}", async (HttpContext httpContext, IOptions<AccessOptions> accessOptions, IOptionsMonitor<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName) =>
+        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}", async (IOptions<AccessOptions> accessOptions, IOptionsMonitor<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName) =>
             {
                 if (string.IsNullOrWhiteSpace(providerName))
                 {

@@ -13,5 +13,6 @@ namespace Shuttle.Access
         public List<string> OAuthProviderNames { get; set; } = new();
         public bool OAuthRegisterUnknownIdentities { get; set; } = true;
         public string OAuthRedirectUri { get; set; } = default!;
+        public string OAuthProviderSvgFolder { get; set; } = "./.files";
     }
 }
