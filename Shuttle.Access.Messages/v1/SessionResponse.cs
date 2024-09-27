@@ -10,5 +10,6 @@ namespace Shuttle.Access.Messages.v1
         public Guid Token { get; set; }
         public DateTime TokenExpiryDate { get; set; }
         public List<string> Permissions { get; set; } = new();
+        public bool RegistrationRequested { get; set; }
     }
 }

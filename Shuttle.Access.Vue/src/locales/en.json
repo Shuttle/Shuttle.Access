@@ -22,13 +22,16 @@
     "identity-name": "Identity name",
     "last-administrator": "You cannot remove the administrator role as this identity is the last administrator.",
     "messages": {
+        "missing-oauth-data": "Missing OAuth data.",
         "invalid-session": "Invalid session.",
         "missing-credentials": "Incomplete credentials specified.",
         "no-items": "There are no items to display.",
         "password-changed": "Identity password has been changed successfully.",
         "request-sent": "The request has been submitted.  It may take a moment to process.",
-        "sign-in-failure": "Invalid credentials.",
-        "working": "Please wait until the current operation completes and then try again."
+        "invalid-credentials": "Invalid credentials.",
+        "working": "Please wait until the current operation completes and then try again.",
+        "unknown-identity": "Unknown identity.",
+        "registration-requested": "Registration requested."
     },
     "name": "Name",
     "new-password": "New password",

@@ -14,7 +14,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../views/SignIn.vue"),
   },
   {
-    path: "/oauth",
+    path: "/oauth/:",
     name: "oauth",
     component: () => import("../views/OAuth.vue"),
   },

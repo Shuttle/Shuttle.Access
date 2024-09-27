@@ -86,8 +86,9 @@ public static class OAuthEndpoints
                     await mediator.SendAsync(registerSession);
                 }
 
-                if (registerSession.Result == SessionRegistrationResult.UnknownIdentity &&
-                    accessOptions.Value.OAuthRegisterUnknownIdentities)
+                var requestRegistration = registerSession.Result == SessionRegistrationResult.UnknownIdentity &&
+                                                          accessOptions.Value.OAuthRegisterUnknownIdentities;
+                if (requestRegistration)
                 {
                     var requestIdentityRegistration = new RequestIdentityRegistration(new()
                     {
@@ -100,7 +101,8 @@ public static class OAuthEndpoints
 
                 var sessionResponse = new SessionResponse
                 {
-                    Result = registerSession.Result.ToString()
+                    Result = registerSession.Result.ToString(),
+                    RegistrationRequested = requestRegistration
                 };
 
                 if (registerSession.HasSession)
