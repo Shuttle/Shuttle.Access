@@ -17,7 +17,7 @@ api.interceptors.request.use(function (config) {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response.status == 401) {
+    if (error.response?.status === 401) {
       router.push("signin");
 
       return error;
@@ -25,8 +25,8 @@ api.interceptors.response.use(
 
     alertStore.add({
       message:
-        error.response.data ||
-        error.response.statusText ||
+        error.response?.data ||
+        error.response?.statusText ||
         "(unknown communication/network error)",
       type: "error",
       name: "api-error",

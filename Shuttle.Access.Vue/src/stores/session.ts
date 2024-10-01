@@ -135,13 +135,17 @@ export const useSessionStore = defineStore("session", {
 
             const data = response.data;
 
-            self.register({
-              identityName: credentials.identityName,
-              token: data.token,
-              permissions: data.permissions,
-            });
+            if (data.result === "Registered") {
+              self.register({
+                identityName: credentials.identityName,
+                token: data.token,
+                permissions: data.permissions,
+              });
 
-            resolve(response);
+              resolve(response);
+            } else {
+              reject(getSessionFailureMessage(data))
+            }
           })
           .catch(function (error) {
             reject(error);
@@ -183,19 +187,7 @@ export const useSessionStore = defineStore("session", {
 
               resolve(response);
             } else {
-              let message = "";
-              switch (data.result) {
-                case "DelegationSessionInvalid":
-                case "Forbidden": {
-                  message = i18n.global.t("messages.invalid-credentials");
-                  break;
-                }
-                case "UnknownIdentity":{
-                    message = i18n.global.t("messages.unknown-identity") + (data.registrationRequested ? `  ${i18n.global.t("messages.registration-requested")}` : "");
-                }
-
-              }
-              reject(message);
+              reject(getSessionFailureMessage(data.result));
             }
           })
           .catch(function (error) {
@@ -241,3 +233,23 @@ export const useSessionStore = defineStore("session", {
     },
   },
 });
+
+function getSessionFailureMessage(data: any): string {
+    let message = "";
+    switch (data.result) {
+      case "DelegationSessionInvalid":
+      case "Forbidden": {
+        message = i18n.global.t("messages.invalid-credentials");
+        break;
+      }
+      case "UnknownIdentity": {
+        message =
+          i18n.global.t("messages.unknown-identity") +
+          (data.registrationRequested
+            ? `  ${i18n.global.t("messages.registration-requested")}`
+            : "");
+      }
+    }
+    return message;
+}
+

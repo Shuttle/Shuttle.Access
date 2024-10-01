@@ -2,7 +2,6 @@ export interface Configuration {
   url: string;
   debugging: () => boolean;
   getApiUrl: (path: string) => string;
-  getOAuthUrl: (name: string) => string
 }
 
 const configuration: Configuration = {
@@ -17,26 +16,6 @@ const configuration: Configuration = {
   getApiUrl(path: string) {
     return this.url + path;
   },
-
-  getOAuthUrl(name) {
-    let url = this.oauth[name];
-
-    if (!url) {
-        var providers = this.oauth[this.environment];
-
-        if (!providers) {
-            throw new Error(`Could not find oauth providers for environment '${this.environment}'.`);
-        }
-
-        url = providers[name];
-    }
-
-    if (!url) {
-        throw new Error(`Could not find oauth provider url for name '${name}'.`);
-    }
-
-    return url.replace('{register}', register ? "-register" : "");
-}
 };
 
 if (!import.meta.env.VITE_API_URL) {
