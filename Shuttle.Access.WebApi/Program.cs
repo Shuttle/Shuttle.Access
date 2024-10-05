@@ -48,7 +48,7 @@ public class Program
 
         var accessOptions = webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Get<AccessOptions>()!;
 
-        foreach (var providerName in accessOptions.OAuthProviderNames)
+        foreach (var providerName in (accessOptions?.OAuthProviderNames ?? Enumerable.Empty<string>()))
         {
             webApplicationBuilder.Services.Configure<OAuthOptions>(providerName, options =>
             {
