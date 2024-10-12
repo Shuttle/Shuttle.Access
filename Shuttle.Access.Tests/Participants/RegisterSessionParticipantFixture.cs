@@ -77,7 +77,11 @@ public class RegisterSessionParticipantFixture
 
         identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Messages.v1.Identity() }.AsEnumerable()));
 
-        var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new Mock<ISessionRepository>().Object, identityQuery.Object);
+        var sessionRepository = new Mock<ISessionRepository>();
+
+        sessionRepository.Setup(m => m.FindAsync(token, CancellationToken.None)).Returns(Task.FromResult(new Session(token, Guid.NewGuid(), IdentityName, DateTime.UtcNow, DateTime.UtcNow.AddMinutes(1))));
+
+        var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, sessionRepository.Object, identityQuery.Object);
 
         Assert.That(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);

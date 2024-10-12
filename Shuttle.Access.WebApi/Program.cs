@@ -1,10 +1,11 @@
-using System.Configuration;
 using System.Data.Common;
 using System.Reflection;
 using Asp.Versioning;
 using Microsoft.Data.SqlClient;
+using Microsoft.OpenApi.Models;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.RestClient;
 using Shuttle.Access.Sql;
 using Shuttle.Access.WebApi.Endpoints;
 using Shuttle.Core.Data;
@@ -48,31 +49,6 @@ public class Program
 
         var accessOptions = webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Get<AccessOptions>()!;
 
-        foreach (var providerName in (accessOptions?.OAuthProviderNames ?? Enumerable.Empty<string>()))
-        {
-            webApplicationBuilder.Services.Configure<OAuthOptions>(providerName, options =>
-            {
-                var key = $"{OAuthOptions.SectionName}:{providerName}";
-                var oauthOptions = webApplicationBuilder.Configuration.GetSection(key).Get<OAuthOptions>();
-
-                if (oauthOptions == null)
-                {
-                    throw new ApplicationException($"OAuth options configuration section '{key}' not found.");
-                }
-
-                options.ClientId = oauthOptions.ClientId;
-                options.ClientSecret = oauthOptions.ClientSecret;
-                options.TokenUrl = oauthOptions.TokenUrl;
-                options.TokenContentType = oauthOptions.TokenContentType;
-                options.DataUrl = oauthOptions.DataUrl;
-                options.DataAuthorization = oauthOptions.DataAuthorization;
-                options.DataAccept = oauthOptions.DataAccept;
-                options.CodeChallengeMethod = oauthOptions.CodeChallengeMethod;
-                options.Scope = oauthOptions.Scope;
-                options.EMailPropertyName = oauthOptions.EMailPropertyName;
-            });
-        }
-
         var apiVersion1 = new ApiVersion(1, 0);
 
         webApplicationBuilder.Services
@@ -90,7 +66,33 @@ public class Program
 
         webApplicationBuilder.Services
             .AddEndpointsApiExplorer()
-            .AddSwaggerGen()
+            .AddSwaggerGen(options =>
+            {
+                options.AddSecurityDefinition("Bearer", new()
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "Token",
+                    In = ParameterLocation.Header,
+                    Description = "Enter 'Bearer' [space] and then your Shuttle session token in the text input below.\r\n\r\nExample: \"Bearer {token}\""
+                });
+
+                options.AddSecurityRequirement(new()
+                {
+                    {
+                        new()
+                        {
+                            Reference = new()
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        []
+                    }
+                });
+            })
             .AddDataAccess(builder =>
             {
                 builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
@@ -102,7 +104,6 @@ public class Program
             {
                 webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Bind(builder.Options);
             })
-            .AddSqlAccess()
             .AddSqlSubscription()
             .AddServiceBus(builder =>
             {
@@ -135,6 +136,8 @@ public class Program
                 builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
             })
             .AddAccessAuthorization()
+            .AddSqlAccess()
+            .AddDataStoreAccessService()
             .AddCors(options =>
             {
                 options.AddPolicy("AllowAll", builder =>
@@ -147,7 +150,10 @@ public class Program
             })
             .AddOAuth(builder =>
             {
-                builder.AddOAuthOptions("GitHub", webApplicationBuilder.Configuration.GetSection($"{OAuthOptions.SectionName}:GitHub").Get<OAuthOptions>()!);
+                foreach (var providerName in accessOptions?.OAuthProviderNames ?? Enumerable.Empty<string>())
+                {
+                    builder.AddOAuthOptions(providerName, webApplicationBuilder.Configuration.GetSection($"{OAuthOptions.SectionName}:{providerName}").Get<OAuthOptions>()!);
+                }
             })
             .AddInMemoryOAuthGrantRepository();
 
@@ -160,7 +166,7 @@ public class Program
 
         app.UseCors("AllowAll");
         app.UseAccessAuthorization();
-            
+
         app
             .MapIdentityEndpoints(versionSet)
             .MapOAuthEndpoints(versionSet)
@@ -170,11 +176,8 @@ public class Program
             .MapSessionEndpoints(versionSet)
             .MapStatisticEndpoints(versionSet);
 
-        if (app.Environment.IsDevelopment())
-        {
-            app.UseSwagger();
-            app.UseSwaggerUI();
-        }
+        app.UseSwagger()
+            .UseSwaggerUI();
 
         app.Run();
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -9,7 +10,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry;
 using OpenTelemetry.Trace;
 using Shuttle.Access.Projection.v1;
 using Shuttle.Core.Data;
@@ -17,7 +17,6 @@ using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Pipelines;
 using Shuttle.Recall;
 using Shuttle.Recall.Logging;
-using Shuttle.Recall.OpenTelemetry;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
 
@@ -31,10 +30,24 @@ internal class Program
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+        var configurationFolder = Environment.GetEnvironmentVariable("CONFIGURATION_FOLDER");
+
+        if (string.IsNullOrEmpty(configurationFolder))
+        {
+            throw new ApplicationException("Environment variable `CONFIGURATION_FOLDER` has not been set.");
+        }
+
+        var appsettingsPath = Path.Combine(configurationFolder, "appsettings.json");
+
+        if (!File.Exists(appsettingsPath))
+        {
+            throw new ApplicationException($"File '{appsettingsPath}' cannot be accessed/found.");
+        }
+
         var host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
-                var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+                var configuration = new ConfigurationBuilder().AddJsonFile(appsettingsPath).Build();
 
                 services
                     .AddSingleton<IConfiguration>(configuration)
@@ -59,7 +72,7 @@ internal class Program
                     .AddEventStore(builder =>
                     {
                         configuration.GetSection(EventStoreOptions.SectionName).Bind(builder.Options);
-                        //builder.Options.Asynchronous = true;
+                        builder.Options.Asynchronous = true;
 
                         builder.AddEventHandler<IdentityHandler>(ProjectionNames.Identity);
                         builder.AddEventHandler<PermissionHandler>(ProjectionNames.Permission);

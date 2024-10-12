@@ -1,4 +1,6 @@
-﻿using Shuttle.Access.DataAccess;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -20,35 +22,35 @@ namespace Shuttle.Access.Sql
             _queryFactory = queryFactory;
         }
 
-        public void Register(PrimitiveEvent primitiveEvent, Registered domainEvent)
+        public async Task RegisterAsync(PrimitiveEvent primitiveEvent, Registered domainEvent, CancellationToken cancellationToken = default)
         {
-            _databaseGateway.Execute(_queryFactory.Register(primitiveEvent.Id, domainEvent));
+            await _databaseGateway.ExecuteAsync(_queryFactory.Register(primitiveEvent.Id, domainEvent), cancellationToken);
         }
 
-        public void RoleAdded(PrimitiveEvent primitiveEvent, RoleAdded domainEvent)
+        public async Task RoleAddedAsync(PrimitiveEvent primitiveEvent, RoleAdded domainEvent, CancellationToken cancellationToken = default)
         {
-            _databaseGateway.Execute(_queryFactory.RoleAdded(primitiveEvent.Id, domainEvent));
+            await _databaseGateway.ExecuteAsync(_queryFactory.RoleAdded(primitiveEvent.Id, domainEvent), cancellationToken);
         }
 
-        public void RoleRemoved(PrimitiveEvent primitiveEvent, RoleRemoved domainEvent)
+        public async Task RoleRemovedAsync(PrimitiveEvent primitiveEvent, RoleRemoved domainEvent, CancellationToken cancellationToken = default)
         {
-            _databaseGateway.Execute(_queryFactory.RoleRemoved(primitiveEvent.Id, domainEvent));
+            await _databaseGateway.ExecuteAsync(_queryFactory.RoleRemoved(primitiveEvent.Id, domainEvent), cancellationToken);
         }
 
-        public void Removed(PrimitiveEvent primitiveEvent)
+        public async Task RemovedAsync(PrimitiveEvent primitiveEvent, CancellationToken cancellationToken = default)
         {
-            _databaseGateway.Execute(_queryFactory.RemoveRoles(primitiveEvent.Id));
-            _databaseGateway.Execute(_queryFactory.Remove(primitiveEvent.Id));
+            await _databaseGateway.ExecuteAsync(_queryFactory.RemoveRoles(primitiveEvent.Id), cancellationToken);
+            await _databaseGateway.ExecuteAsync(_queryFactory.Remove(primitiveEvent.Id), cancellationToken);
         }
 
-        public void Activated(PrimitiveEvent primitiveEvent, Activated domainEvent)
+        public async Task ActivatedAsync(PrimitiveEvent primitiveEvent, Activated domainEvent, CancellationToken cancellationToken = default)
         {
-            _databaseGateway.Execute(_queryFactory.Activated(primitiveEvent.Id, domainEvent));
+            await _databaseGateway.ExecuteAsync(_queryFactory.Activated(primitiveEvent.Id, domainEvent), cancellationToken);
         }
 
-        public void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent)
+        public async Task NameSetAsync(PrimitiveEvent primitiveEvent, NameSet domainEvent, CancellationToken cancellationToken = default)
         {
-            _databaseGateway.Execute(_queryFactory.NameSet(primitiveEvent.Id, domainEvent));
+            await _databaseGateway.ExecuteAsync(_queryFactory.NameSet(primitiveEvent.Id, domainEvent), cancellationToken);
         }
     }
 }

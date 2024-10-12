@@ -80,15 +80,25 @@ public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
             ? await _sessionRepository.FindAsync(message.GetToken(), context.CancellationToken)
             : await _sessionRepository.FindAsync(message.IdentityName, context.CancellationToken);
 
-        if (session is { HasExpired: true } && session.ExpiryDate.Add(_accessOptions.SessionRenewalTolerance) > DateTime.UtcNow)
+        if (session != null)
         {
-            session.Renew(DateTime.UtcNow.Add(_accessOptions.SessionDuration));
+            if (!session.HasExpired)
+            {
+                message.Registered(session);
 
-            await _sessionRepository.RenewAsync(session, context.CancellationToken);
+                return;
+            }
 
-            message.Registered(session);
+            if (session.ExpiryDate.Add(_accessOptions.SessionRenewalTolerance) > DateTime.UtcNow)
+            {
+                session.Renew(DateTime.UtcNow.Add(_accessOptions.SessionDuration));
 
-            return;
+                await _sessionRepository.RenewAsync(session, context.CancellationToken);
+
+                message.Registered(session);
+
+                return;
+            }
         }
 
         if (message.RegistrationType != SessionRegistrationType.Token)

@@ -13,11 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Shuttle.Access" Version="6.0.0" />
     <PackageReference Include="Shuttle.Core.Contract" Version="11.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
   </ItemGroup>
 
   <ItemGroup>

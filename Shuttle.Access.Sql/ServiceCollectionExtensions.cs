@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Shuttle.Core.Contract;
 using Shuttle.Core.DependencyInjection;
 
@@ -12,7 +11,6 @@ namespace Shuttle.Access.Sql
         {
             Guard.AgainstNull(services, nameof(services));
 
-            services.TryAddSingleton<IAccessService, DataStoreAccessService>();
             services.FromAssembly(typeof(ServiceCollectionExtensions).GetTypeInfo().Assembly).Add();
 
             return services;

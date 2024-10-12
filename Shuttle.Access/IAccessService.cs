@@ -7,6 +7,6 @@ namespace Shuttle.Access
         bool Contains(Guid token);
         bool HasPermission(Guid token, string permission);
         void Remove(Guid token);
-        void Flush(Guid session);
+        void Flush(Guid token);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data.Common;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -12,13 +13,10 @@ using OpenTelemetry.Trace;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
-using Shuttle.Core.Mediator.OpenTelemetry;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
-using Shuttle.Esb.OpenTelemetry;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
-using Shuttle.Recall.OpenTelemetry;
 using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Server;
@@ -31,10 +29,24 @@ internal class Program
 
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
+        var configurationFolder = Environment.GetEnvironmentVariable("CONFIGURATION_FOLDER");
+
+        if (string.IsNullOrEmpty(configurationFolder))
+        {
+            throw new ApplicationException("Environment variable `CONFIGURATION_FOLDER` has not been set.");
+        }
+
+        var appsettingsPath = Path.Combine(configurationFolder, "appsettings.json");
+
+        if (!File.Exists(appsettingsPath))
+        {
+            throw new ApplicationException($"File '{appsettingsPath}' cannot be accessed/found.");
+        }
+
         var host = Host.CreateDefaultBuilder()
             .ConfigureServices(services =>
             {
-                var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+                var configuration = new ConfigurationBuilder().AddJsonFile(appsettingsPath).Build();
 
                 services
                     .AddSingleton<IConfiguration>(configuration)
@@ -51,11 +63,10 @@ internal class Program
                         builder.Options.Subscription.ConnectionStringName = "Access";
 
                         builder.Options.Asynchronous = true;
-
                     })
                     .AddAzureStorageQueues(builder =>
                     {
-                        builder.AddOptions("azure", new AzureStorageQueueOptions
+                        builder.AddOptions("azure", new()
                         {
                             ConnectionString = configuration.GetConnectionString("azure")
                         });

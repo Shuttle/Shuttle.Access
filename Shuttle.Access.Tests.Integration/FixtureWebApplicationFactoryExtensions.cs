@@ -21,7 +21,7 @@ public static class FixtureWebApplicationFactoryExtensions
             BaseAddress = new Uri("http://localhost/"),
             IdentityName = "identity",
             Password = "password"
-        }), new HttpClientFactory(httpClient));
+        }), httpClient);
     }
 
 }

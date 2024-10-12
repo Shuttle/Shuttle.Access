@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.Mvc.DataStore;
+using Shuttle.Access.DataAccess;
 using Shuttle.Core.Data;
 
 namespace Shuttle.Access.Tests

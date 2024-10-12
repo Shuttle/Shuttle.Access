@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Mvc.DataStore
+namespace Shuttle.Access.DataAccess
 {
     public class DataStoreAccessService : CachedAccessService, IAccessService
     {
@@ -12,7 +12,8 @@ namespace Shuttle.Access.Mvc.DataStore
         private readonly ISessionRepository _sessionRepository;
         private readonly string _connectionStringName;
 
-        public DataStoreAccessService(IOptionsMonitor<ConnectionStringOptions> connectionStringOptions, IOptions<AccessOptions> accessOptions, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) {
+        public DataStoreAccessService(IOptionsMonitor<ConnectionStringOptions> connectionStringOptions, IOptions<AccessOptions> accessOptions, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) 
+        {
             Guard.AgainstNull(connectionStringOptions, nameof(connectionStringOptions));
             Guard.AgainstNull(accessOptions, nameof(accessOptions));
             Guard.AgainstNull(accessOptions.Value, nameof(accessOptions.Value));

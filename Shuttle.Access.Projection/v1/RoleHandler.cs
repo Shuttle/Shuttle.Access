@@ -1,59 +1,57 @@
-﻿using Shuttle.Access.Events.Role.v1;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.Events.Role.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Projection.v1
+namespace Shuttle.Access.Projection.v1;
+
+public class RoleHandler :
+    IAsyncEventHandler<Registered>,
+    IAsyncEventHandler<Removed>,
+    IAsyncEventHandler<PermissionAdded>,
+    IAsyncEventHandler<PermissionRemoved>,
+    IAsyncEventHandler<NameSet>
 {
-    public class RoleHandler :
-        IEventHandler<Registered>,
-        IEventHandler<Removed>,
-        IEventHandler<PermissionAdded>,
-        IEventHandler<PermissionRemoved>, 
-        IEventHandler<NameSet>
+    private readonly IRoleProjectionQuery _query;
+
+    public RoleHandler(IRoleProjectionQuery query)
     {
-        private readonly IRoleProjectionQuery _query;
+        _query = Guard.AgainstNull(query);
+    }
 
-        public RoleHandler(IRoleProjectionQuery query)
-        {
-            Guard.AgainstNull(query, nameof(query));
+    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query = query;
-        }
+        await _query.NameSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+    }
 
-        public void ProcessEvent(IEventHandlerContext<Registered> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<PermissionAdded> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.Registered(context.PrimitiveEvent, context.Event);
-        }
+        await _query.PermissionAddedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+    }
 
-        public void ProcessEvent(IEventHandlerContext<PermissionAdded> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<PermissionRemoved> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.PermissionAdded(context.PrimitiveEvent, context.Event);
-        }
+        await _query.PermissionRemovedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+    }
 
-        public void ProcessEvent(IEventHandlerContext<PermissionRemoved> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.PermissionRemoved(context.PrimitiveEvent, context.Event);
-        }
+        await _query.RegisteredAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+    }
 
-        public void ProcessEvent(IEventHandlerContext<Removed> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<Removed> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.Removed(context.PrimitiveEvent);
-        }
-
-        public void ProcessEvent(IEventHandlerContext<NameSet> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
-
-            _query.NameSet(context.PrimitiveEvent, context.Event);
-        }
+        await _query.RemovedAsync(context.PrimitiveEvent, context.CancellationToken);
     }
 }

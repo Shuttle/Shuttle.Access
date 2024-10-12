@@ -1,14 +1,16 @@
-﻿using Shuttle.Access.Events.Permission.v1;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Sql
 {
     public interface IPermissionProjectionQuery
     {
-        void Registered(PrimitiveEvent primitiveEvent, Registered domainEvent);
-        void Activated(PrimitiveEvent primitiveEvent, Activated domainEvent);
-        void Deactivated(PrimitiveEvent primitiveEvent, Deactivated domainEvent);
-        void Removed(PrimitiveEvent primitiveEvent, Removed domainEvent);
-        void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent);
+        Task RegisteredAsync(PrimitiveEvent primitiveEvent, Registered domainEvent, CancellationToken cancellationToken = default);
+        Task ActivatedAsync(PrimitiveEvent primitiveEvent, Activated domainEvent, CancellationToken cancellationToken = default);
+        Task DeactivatedAsync(PrimitiveEvent primitiveEvent, Deactivated domainEvent, CancellationToken cancellationToken = default);
+        Task RemovedAsync(PrimitiveEvent primitiveEvent, Removed domainEvent, CancellationToken cancellationToken = default);
+        Task NameSetAsync(PrimitiveEvent primitiveEvent, NameSet domainEvent, CancellationToken cancellationToken = default);
     }
 }

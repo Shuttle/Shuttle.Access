@@ -1,59 +1,57 @@
-﻿using Shuttle.Access.Events.Permission.v1;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Projection.v1
+namespace Shuttle.Access.Projection.v1;
+
+public class PermissionHandler :
+    IAsyncEventHandler<Registered>,
+    IAsyncEventHandler<Activated>,
+    IAsyncEventHandler<Deactivated>,
+    IAsyncEventHandler<Removed>,
+    IAsyncEventHandler<NameSet>
 {
-    public class PermissionHandler :
-        IEventHandler<Registered>,
-        IEventHandler<Activated>,
-        IEventHandler<Deactivated>,
-        IEventHandler<Removed>,
-        IEventHandler<NameSet>
+    private readonly IPermissionProjectionQuery _query;
+
+    public PermissionHandler(IPermissionProjectionQuery query)
     {
-        private readonly IPermissionProjectionQuery _query;
+        _query = Guard.AgainstNull(query);
+    }
 
-        public PermissionHandler(IPermissionProjectionQuery query)
-        {
-            Guard.AgainstNull(query, nameof(query));
+    public async Task ProcessEventAsync(IEventHandlerContext<Activated> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query = query;
-        }
+        await _query.ActivatedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+    }
 
-        public void ProcessEvent(IEventHandlerContext<Registered> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<Deactivated> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.Registered(context.PrimitiveEvent, context.Event);
-        }
+        await _query.DeactivatedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+    }
 
-        public void ProcessEvent(IEventHandlerContext<Activated> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.Activated(context.PrimitiveEvent, context.Event);
-        }
+        await _query.NameSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+    }
 
-        public void ProcessEvent(IEventHandlerContext<Deactivated> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.Deactivated(context.PrimitiveEvent, context.Event);
-        }
+        await _query.RegisteredAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+    }
 
-        public void ProcessEvent(IEventHandlerContext<Removed> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<Removed> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.Removed(context.PrimitiveEvent, context.Event);
-        }
-
-        public void ProcessEvent(IEventHandlerContext<NameSet> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
-
-            _query.NameSet(context.PrimitiveEvent, context.Event);
-        }
+        await _query.RemovedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
     }
 }

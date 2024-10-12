@@ -39,8 +39,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".azure", ".azure", "{D53FED
 		.azure\WebApi.web.config = .azure\WebApi.web.config
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Mvc.DataStore", "Shuttle.Access.Mvc.DataStore\Shuttle.Access.Mvc.DataStore.csproj", "{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Application", "Shuttle.Access.Application\Shuttle.Access.Application.csproj", "{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{5417FE2A-8368-4E91-B58D-CF4DE6AA596C}"
@@ -109,10 +107,6 @@ Global
 		{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{685DD2AB-DA4B-4D6D-ACDB-B2D07677908B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}.Release|Any CPU.ActiveCfg = Release|Any CPU

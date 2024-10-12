@@ -2,24 +2,27 @@
 
 <package>
 	<metadata>
-		<id>Shuttle.Access.Mvc.Rest</id>
+		<id>Shuttle.Access.AspNetCore</id>
 		<version>6.0.0</version>
 		<authors>Eben Roux</authors>
 		<owners>Eben Roux</owners>
 		<license type="expression">BSD-3-Clause</license>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
 		<icon>images\logo.png</icon>
+		<readme>docs\README.md</readme>
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
-		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
-		<description>Infrastructure components for use in Mvc/Web-Api Shuttle.Access implementations that retrieve the session information from the rest api.</description>
-		<copyright>Copyright (c) 2022, Eben Roux</copyright>
-		<tags>iam identity authorization authentication security permissions</tags>
+		<projectUrl>https://github.com/Shuttle/Shuttle.Access</projectUrl>
+		<description>Authorization middleware for web API endpoints using Shuttle.Access.</description>
+		<copyright>Copyright (c) 2024, Eben Roux</copyright>
+		<tags>iam middleware authorization permissions</tags>
 		<dependencies>
-
+      <dependency id="Shuttle.Access" version="6.0.0" />
+      <dependency id="Shuttle.Core.Contract" version="11.1.1" />
 		</dependencies>
 	</metadata>
 	<files>
 		<file src="..\..\..\.media\logo.png" target="images" />
+		<file src="..\..\..\README.md" target="docs" />
 		<file src="lib\**\*.*" target="lib" />
 	</files>
 </package>

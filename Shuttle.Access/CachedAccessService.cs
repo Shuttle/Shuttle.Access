@@ -5,10 +5,22 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access
 {
-    public abstract class CachedAccessService 
+    public abstract class CachedAccessService
     {
-        private MemoryCache _sessions = new MemoryCache(new MemoryCacheOptions());
-        private readonly object _lock = new object();
+        private readonly object _lock = new();
+        private readonly MemoryCache _sessions = new(new MemoryCacheOptions());
+
+        protected void Cache(Guid token, IEnumerable<string> permissions, TimeSpan slidingExpiration)
+        {
+            lock (_lock)
+            {
+                using (var entry = _sessions.CreateEntry(token))
+                {
+                    entry.Value = new List<string>(Guard.AgainstNull(permissions));
+                    entry.SlidingExpiration = slidingExpiration;
+                }
+            }
+        }
 
         protected bool Contains(Guid token)
         {
@@ -18,17 +30,11 @@ namespace Shuttle.Access
             }
         }
 
-        protected void Cache(Guid token, IEnumerable<string> permissions, TimeSpan slidingExpiration)
+        public void Flush(Guid token)
         {
-            Guard.AgainstNull(permissions, nameof(permissions));
-
             lock (_lock)
             {
-                using (var entry = _sessions.CreateEntry(token))
-                {
-                    entry.Value = new List<string>(permissions);
-                    entry.SlidingExpiration = slidingExpiration;
-                }
+                _sessions.Remove(token);
             }
         }
 
@@ -40,22 +46,12 @@ namespace Shuttle.Access
                 {
                     return permissions.Contains(permission) || permissions.Contains("*");
                 }
-                else
-                {
-                    return false;
-                }
+
+                return false;
             }
         }
 
         protected void Remove(Guid token)
-        {
-            lock (_lock)
-            {
-                _sessions.Remove(token);
-            }
-        }
-
-        public void Flush(Guid token)
         {
             lock (_lock)
             {

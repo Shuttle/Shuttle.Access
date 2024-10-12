@@ -15,23 +15,17 @@ namespace Shuttle.Access.RestClient
         private static readonly SemaphoreSlim Lock = new(1, 1);
         private readonly AccessClientOptions _accessClientOptions;
 
-        public AccessClient(IOptions<AccessClientOptions> accessClientOptions, IHttpClientFactory httpClientFactory)
+        public AccessClient(IOptions<AccessClientOptions> accessClientOptions, HttpClient httpClient)
         {
-            Guard.AgainstNull(accessClientOptions, nameof(accessClientOptions));
-            Guard.AgainstNull(accessClientOptions.Value, nameof(accessClientOptions.Value));
-            Guard.AgainstNull(httpClientFactory, nameof(httpClientFactory));
+            _accessClientOptions = Guard.AgainstNull(accessClientOptions).Value;
 
-            _accessClientOptions = accessClientOptions.Value;
+            Guard.AgainstNull(httpClient);
 
-            var client = httpClientFactory.CreateClient("AccessClient");
-
-            client.BaseAddress = _accessClientOptions.BaseAddress;
-
-            Server = RestService.For<IServerApi>(client);
-            Permissions = RestService.For<IPermissionsApi>(client);
-            Sessions = RestService.For<ISessionsApi>(client);
-            Identities = RestService.For<IIdentitiesApi>(client);
-            Roles = RestService.For<IRolesApi>(client);
+            Server = RestService.For<IServerApi>(httpClient);
+            Permissions = RestService.For<IPermissionsApi>(httpClient);
+            Sessions = RestService.For<ISessionsApi>(httpClient);
+            Identities = RestService.For<IIdentitiesApi>(httpClient);
+            Roles = RestService.For<IRolesApi>(httpClient);
         }
 
         public ISessionsApi Sessions { get; }
@@ -86,14 +80,13 @@ namespace Shuttle.Access.RestClient
                     Password = _accessClientOptions.Password
                 }).Result;
 
-                if (!response.IsSuccessStatusCode ||
-                    response.Content == null)
+                if (!response.IsSuccessStatusCode || response.Content == null)
                 {
                     throw new ApiException(Access.Resources.RegisterSessionException);
                 }
 
                 Token = response.Content.Token;
-                TokenExpiryDate = response.Content.TokenExpiryDate.Subtract(TimeSpan.FromMinutes(1));
+                TokenExpiryDate = response.Content.TokenExpiryDate;
             }
             catch (OperationCanceledException)
             {
@@ -115,6 +108,7 @@ namespace Shuttle.Access.RestClient
         private void ResetSession()
         {
             Token = null;
+            TokenExpiryDate = null;
         }
     }
 }

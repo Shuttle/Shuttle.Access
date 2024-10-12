@@ -14,18 +14,14 @@ namespace Shuttle.Access.Server.v1
         IAsyncMessageHandler<SetPermissionName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly IPermissionQuery _permissionQuery;
         private readonly IMediator _mediator;
 
-        public PermissionHandler(IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery,
-            IMediator mediator)
+        public PermissionHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
         {
             Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            Guard.AgainstNull(permissionQuery, nameof(permissionQuery));
             Guard.AgainstNull(mediator, nameof(mediator));
 
             _databaseContextFactory = databaseContextFactory;
-            _permissionQuery = permissionQuery;
             _mediator = mediator;
         }
 
@@ -37,14 +33,15 @@ namespace Shuttle.Access.Server.v1
 
             var requestResponse = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(message);
 
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
             {
-                context.Publish(requestResponse.Response);
+                await context.PublishAsync(requestResponse.Response);
             }
         }
 
@@ -56,14 +53,15 @@ namespace Shuttle.Access.Server.v1
 
             var requestResponse = new RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>(message);
 
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
             {
-                context.Publish(requestResponse.Response);
+                await context.PublishAsync(requestResponse.Response);
             }
         }
 
@@ -78,14 +76,15 @@ namespace Shuttle.Access.Server.v1
 
             var requestResponse = new RequestResponseMessage<SetPermissionName, PermissionNameSet>(message);
 
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
             {
-                context.Publish(requestResponse.Response);
+                await context.PublishAsync(requestResponse.Response);
             }
         }
     }

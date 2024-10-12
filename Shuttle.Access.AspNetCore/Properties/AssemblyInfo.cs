@@ -1,21 +1,17 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-#if NETFRAMEWORK
-[assembly: AssemblyTitle(".NET Framework")]
-#endif
-
-#if NETCOREAPP
-[assembly: AssemblyTitle(".NET Core")]
-#endif
-
 #if NETSTANDARD
 [assembly: AssemblyTitle(".NET Standard")]
 #endif
 
+#if NET6_0_OR_GREATER
+[assembly: AssemblyTitle(".NET Unified Platform")]
+#endif
+
 [assembly: AssemblyVersion("6.0.0.0")]
-[assembly: AssemblyCopyright("Copyright (c) 2022, Eben Roux")]
-[assembly: AssemblyProduct("Shuttle.Access.Mvc.Rest")]
+[assembly: AssemblyCopyright("Copyright (c) 2024, Eben Roux")]
+[assembly: AssemblyProduct("Shuttle.Access.AspNetCore")]
 [assembly: AssemblyCompany("Eben Roux")]
 [assembly: AssemblyConfiguration("Release")]
 [assembly: AssemblyInformationalVersion("6.0.0")]

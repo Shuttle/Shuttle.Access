@@ -33,14 +33,15 @@ namespace Shuttle.Access.Server.v1
 
             var requestResponse = new RequestResponseMessage<ActivateIdentity, IdentityActivated>(context.Message);
 
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
             {
-                context.Publish(requestResponse.Response);
+                await context.PublishAsync(requestResponse.Response);
             }
         }
 
@@ -60,24 +61,26 @@ namespace Shuttle.Access.Server.v1
 
             var requestResponse = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(message);
 
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
             {
-                context.Publish(requestResponse.Response);
+                await context.PublishAsync(requestResponse.Response);
             }
         }
 
         public async Task ProcessMessageAsync(IHandlerContext<RemoveIdentity> context)
         {
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(context.Message);
 
-                context.Publish(new IdentityRemoved
+                await context.PublishAsync(new IdentityRemoved
                 {
                     Id = context.Message.Id
                 });
@@ -92,7 +95,8 @@ namespace Shuttle.Access.Server.v1
             var reviewRequest = new RequestMessage<SetIdentityRole>(message);
             var requestResponse = new RequestResponseMessage<SetIdentityRole, IdentityRoleSet>(message);
 
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(reviewRequest);
 
@@ -105,7 +109,7 @@ namespace Shuttle.Access.Server.v1
 
                 if (requestResponse.Response != null)
                 {
-                    context.Publish(requestResponse.Response);
+                    await context.PublishAsync(requestResponse.Response);
                 }
             }
         }
@@ -114,7 +118,8 @@ namespace Shuttle.Access.Server.v1
         {
             Guard.AgainstNull(context, nameof(context));
 
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(context.Message);
             }
@@ -131,14 +136,15 @@ namespace Shuttle.Access.Server.v1
 
             var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
 
-            using (_databaseContextFactory.Create())
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 await _mediator.SendAsync(requestResponse);
             }
 
             if (requestResponse.Response != null)
             {
-                context.Publish(requestResponse.Response);
+                await context.PublishAsync(requestResponse.Response);
             }
         }
     }

@@ -1,5 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access
@@ -24,6 +26,15 @@ namespace Shuttle.Access
                 options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
                 options.OAuthProviderSvgFolder = accessBuilder.Options.OAuthProviderSvgFolder;
             });
+
+            return services;
+        }
+
+        public static IServiceCollection AddDataStoreAccessService(this IServiceCollection services)
+        {
+            Guard.AgainstNull(services, nameof(services));
+
+            services.TryAddSingleton<IAccessService, DataStoreAccessService>();
 
             return services;
         }

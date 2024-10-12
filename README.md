@@ -4,7 +4,7 @@ An Identity and Access Management (IAM) platform.
 
 ## Getting Started
 
-The quickest way to get started is to install [Docker](https://www.docker.com/get-started/) and then create a `docker-compose.yml` file that contains the [following](https://raw.githubusercontent.com/Shuttle/Shuttle.Access/master/.package/docker-compose.yml):
+The quickest way to get started is to install [Docker](https://www.docker.com/get-started/) and then create a `docker-compose.yml` file that contains the:
 
 ```
 version: "3.9"
@@ -18,12 +18,16 @@ services:
     server:
         image:
             shuttle/access-server
+        environment:
+            - CONFIGURATION_FOLDER=.
         depends_on:
             - "azurite"
             - "database"
     projection:
         image:
             shuttle/access-projection:latest
+        environment:
+            - CONFIGURATION_FOLDER=.
         depends_on:
             - "database"
     web-api:
@@ -31,6 +35,7 @@ services:
             shuttle/access-webapi:latest
         environment:
             - ASPNETCORE_URLS=http://*:5599
+            - CONFIGURATION_FOLDER=.
         depends_on:
             - "azurite"
             - "server"
@@ -43,16 +48,22 @@ services:
             - "8080:80"
 ```
 
-You will now be able to `docker-compose up` in the folder containing the above file:
+You will now be able to run `docker-compose up` in the folder containing the above file:
 
 ```
 > docker-compose up
 ```
 
-The various container will be downloaded and, once everything have started up, you can browse to:
+The various images will be downloaded and, once all the containers have started up, you can browse to:
 
 ```
 http://locahost:8080
 ```
 
 Which should bring you to the sign-in page where `admin` is the identity as well as the password.
+
+To view the web-api endpoints you can browse to:
+
+```
+http://locahost:5599/swagger/index.html
+```
