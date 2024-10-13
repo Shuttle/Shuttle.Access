@@ -53,7 +53,7 @@ public class RegisterSessionParticipantFixture
 
         var now = DateTime.UtcNow;
         var session = new Session(token, Guid.NewGuid(), IdentityName, now, now.AddMinutes(1))
-            .AddPermission(Permissions.Register.Session);
+            .AddPermission(AccessPermissions.Identities.Register);
 
         sessionRepository.Setup(m => m.FindAsync(token, CancellationToken.None)).Returns(Task.FromResult(session));
 

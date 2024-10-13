@@ -1,25 +1,30 @@
 const Permissions = {
-  Register: {
-    IdentityRequired: "access://identity/required",
-    Role: "access://roles/register",
-    Identity: "access://identity/register",
-    Permission: "access://permission/register",
-  },
-  Remove: {
-    Role: "access://role/remove",
-    Identity: "access://identity/remove",
-    Permission: "access://permission/remove",
-  },
-  View: {
-    Dashboard: "access://dashboard/view",
-    Role: "access://role/view",
-    Identity: "access://identity/view",
-    Permission: "access://permission/view",
-    Sessions: "access://sessions/view",
-  },
-  Activate: {
-    Identity: "access://identity/activate",
-  },
+    Dashboard: {
+        View: "access://dashboard/view",
+    },
+    Identities: {
+        Activate: "access://identities/activate",
+        Manage: "access://identities/manage",
+        Register: "access://identities/register",
+        Remove: "access://identities/remove",
+        View: "access://identities/view"
+    },
+    Permissions: {
+        Manage: "access://permissions/manage",
+        Register: "access://permissions/register",
+        Remove: "access://permissions/remove",
+        View: "access://permissions/view",
+    },
+    Roles: {
+        Manage: "access://roles/manage",
+        Register: "access://roles/register",
+        Remove: "access://roles/remove",
+        View: "access://roles/view",
+    },
+    Sessions: {
+        Remove: "access://sessions/remove",
+        View: "access://sessions/view",
+    }
 };
 
 export default Permissions;

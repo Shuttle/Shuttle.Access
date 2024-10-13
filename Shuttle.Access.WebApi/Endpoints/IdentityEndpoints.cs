@@ -38,7 +38,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Register.Role);
+            .RequiresPermission(AccessPermissions.Roles.Register);
 
         app.MapGet("/v{version:apiVersion}/identities/", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery) =>
             {
@@ -51,7 +51,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.View.Identity);
+            .RequiresPermission(AccessPermissions.Identities.View);
 
         app.MapGet("/v{version:apiVersion}/identities/{value}", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, string value) =>
             {
@@ -79,7 +79,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.View.Identity);
+            .RequiresPermission(AccessPermissions.Identities.View);
 
         app.MapDelete("/v{version:apiVersion}/identities/{id}", async (IServiceBus serviceBus, Guid id) =>
             {
@@ -93,7 +93,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Remove.Identity);
+            .RequiresPermission(AccessPermissions.Identities.Remove);
 
         app.MapPatch("/v{version:apiVersion}/identities/{id}/roles/{roleId}", async (IMediator mediator, IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus, Guid id, Guid roleId, [FromBody] SetIdentityRole message) =>
             {
@@ -128,7 +128,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Register.Identity);
+            .RequiresPermission(AccessPermissions.Identities.Register);
 
         app.MapPut("/v{version:apiVersion}/identities/password/change", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository, [FromBody] ChangePassword message) =>
             {
@@ -153,7 +153,7 @@ public static class IdentityEndpoints
                 {
                     var session = await sessionRepository.GetAsync(sessionTokenResult.SessionToken);
 
-                    if (message.Id.HasValue && !session.HasPermission(Permissions.Register.Identity))
+                    if (message.Id.HasValue && !session.HasPermission(AccessPermissions.Identities.Register))
                     {
                         return Results.Unauthorized();
                     }
@@ -204,7 +204,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Register.Identity);
+            .RequiresPermission(AccessPermissions.Identities.Register);
 
         app.MapPost("/v{version:apiVersion}/identities/{id}/roles/availability", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, Guid id, [FromBody] Identifiers<Guid> identifiers) =>
             {
@@ -235,7 +235,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Register.Identity);
+            .RequiresPermission(AccessPermissions.Identities.Register);
 
         app.MapPut("/v{version:apiVersion}/identities/activate", async (IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, [FromBody] ActivateIdentity message) =>
             {
@@ -277,7 +277,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Register.Identity);
+            .RequiresPermission(AccessPermissions.Identities.Register);
 
         app.MapGet("/v{version:apiVersion}/identities/{name}/password/reset-token", async (IMediator mediator, IDatabaseContextFactory databaseContextFactory, string name) =>
             {
@@ -307,7 +307,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Register.Identity);
+            .RequiresPermission(AccessPermissions.Identities.Register);
 
         app.MapPost("/v{version:apiVersion}/identities/", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterIdentity message) =>
             {

@@ -23,7 +23,7 @@ public static class ServiceCollectionExtensions
             options.Password = accessRestClientBuilder.Options.Password;
         });
 
-        services.AddSingleton<AuthenticationHeaderHandler>();
+        services.AddTransient<AuthenticationHeaderHandler>();
         services.AddHttpClient<IAccessClient, AccessClient>("AccessClient", (serviceProvider, client) =>
             {
                 var options = serviceProvider.GetRequiredService<IOptions<AccessClientOptions>>().Value;

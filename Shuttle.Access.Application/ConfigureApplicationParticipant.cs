@@ -13,25 +13,24 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
     private readonly IIdentityQuery _identityQuery;
     private readonly IMediator _mediator;
     private readonly IPermissionQuery _permissionQuery;
-
-    private readonly List<string> _permissions = new()
-    {
-        "access://identity/view",
-        "access://identity/register",
-        "access://identity/remove",
-        "access://identity/view",
-        "access://permission/view",
-        "access://permission/register",
-        "access://permission/status",
-        "access://dashboard/view",
-        "access://role/view",
-        "access://role/register",
-        "access://role/remove",
-        "access://session/view",
-        "access://session/register"
-    };
-
     private readonly IRoleQuery _roleQuery;
+
+    private readonly List<string> _permissions =
+    [
+        AccessPermissions.Identities.Activate,
+        AccessPermissions.Identities.Manage,
+        AccessPermissions.Identities.Register,
+        AccessPermissions.Identities.Remove,
+        AccessPermissions.Identities.View,
+        AccessPermissions.Roles.View,
+        AccessPermissions.Roles.Register,
+        AccessPermissions.Roles.Remove,
+        AccessPermissions.Permissions.Manage,
+        AccessPermissions.Permissions.Register,
+        AccessPermissions.Permissions.View,
+        AccessPermissions.Sessions.View,
+        AccessPermissions.Sessions.Register
+    ];
 
     public ConfigureApplicationParticipant(IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
     {

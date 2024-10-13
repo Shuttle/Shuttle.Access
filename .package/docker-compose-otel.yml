@@ -1,19 +1,27 @@
 ﻿version: "3.9"
 services:
+    jeager:
+        image: jaegertracing/all-in-one:1.38
+        ports:
+            - "16686:16686"
+        hostname: jaeger
     azurite:
         image: mcr.microsoft.com/azure-storage/azurite
         hostname: azurite
     database:
         image: shuttle/access-sqlserver-linux:latest
         hostname: database
+        ports:
+          - "1433:1433"
     server:
         image:
             shuttle/access-server:latest
         environment:
-            - CONFIGURATION_FOLDER=.
+            - JAEGER_AGENT_HOST=jaeger
         depends_on:
             - "azurite"
             - "database"
+            - "jeager"
         volumes:
             - type: bind
               source: ./server-appsettings.json
@@ -22,9 +30,10 @@ services:
         image:
             shuttle/access-projection:latest
         environment:
-            - CONFIGURATION_FOLDER=.
+            - JAEGER_AGENT_HOST=jaeger
         depends_on:
             - "database"
+            - "jeager"
         volumes:
             - type: bind
               source: ./projection-appsettings.json
@@ -34,10 +43,11 @@ services:
             shuttle/access-webapi:latest
         environment:
             - ASPNETCORE_URLS=http://*:5599
-            - CONFIGURATION_FOLDER=.
+            - JAEGER_AGENT_HOST=jaeger
         depends_on:
             - "azurite"
             - "server"
+            - "jeager"
         ports:
             - "5599:5599"
         volumes:

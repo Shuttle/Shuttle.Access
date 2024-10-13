@@ -49,7 +49,7 @@ public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
             {
                 var requesterSession = await _sessionRepository.FindAsync(message.GetToken(), context.CancellationToken);
 
-                if (requesterSession == null || requesterSession.HasExpired || !requesterSession.HasPermission(Permissions.Register.Session))
+                if (requesterSession == null || requesterSession.HasExpired || !requesterSession.HasPermission(AccessPermissions.Sessions.Register))
                 {
                     message.DelegationSessionInvalid();
 

@@ -41,6 +41,7 @@ import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
 import { useRouter } from "vue-router";
 import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";
+import Permissions from "@/permissions";
 
 var confirmationStore = useConfirmationStore();
 
@@ -55,28 +56,28 @@ const headers = useSecureTableHeaders([
         headerProps: {
             class: "w-1"
         },
-        permission: "access://identity/register"
+        permission: Permissions.Identities.Manage
     },
     {
         value: "password",
         headerProps: {
             class: "w-1"
         },
-        permission: "access://identity/register"
+        permission: Permissions.Identities.Manage
     },
     {
         value: "rename",
         headerProps: {
             class: "w-1"
         },
-        permission: "access://identity/register"
+        permission: Permissions.Identities.Manage
     },
     {
         value: "remove",
         headerProps: {
             class: "w-1"
         },
-        permission: "access://identity/register"
+        permission: Permissions.Identities.Manage
     },
     {
         title: t("name"),

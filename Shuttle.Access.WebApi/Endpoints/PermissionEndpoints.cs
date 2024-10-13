@@ -81,7 +81,7 @@ public static class PermissionEndpoints
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Register.Permission);
+            .RequiresPermission(AccessPermissions.Permissions.Register);
 
         app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/name", async (Guid id, SetPermissionName message, IServiceBus serviceBus) =>
             {
@@ -102,7 +102,7 @@ public static class PermissionEndpoints
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Register.Permission);
+            .RequiresPermission(AccessPermissions.Permissions.Register);
 
         app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, SetPermissionStatus message, IServiceBus serviceBus) =>
             {
@@ -125,7 +125,7 @@ public static class PermissionEndpoints
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.Status.Permission);
+            .RequiresPermission(AccessPermissions.Permissions.Manage);
 
         return app;
     }

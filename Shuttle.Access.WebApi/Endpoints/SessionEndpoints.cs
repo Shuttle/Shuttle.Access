@@ -81,7 +81,7 @@ public static class SessionEndpoints
                 }
             })
             .WithTags("Sessions")
-            .RequiresPermission(Permissions.View.Sessions)
+            .RequiresPermission(AccessPermissions.Sessions.View)
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
@@ -100,7 +100,7 @@ public static class SessionEndpoints
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.View.Sessions);
+            .RequiresPermission(AccessPermissions.Sessions.View);
 
         app.MapGet("/v{version:apiVersion}/sessions/{token:Guid}/permissions", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
@@ -117,7 +117,7 @@ public static class SessionEndpoints
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(Permissions.View.Sessions);
+            .RequiresPermission(AccessPermissions.Sessions.View);
 
         return app;
     }

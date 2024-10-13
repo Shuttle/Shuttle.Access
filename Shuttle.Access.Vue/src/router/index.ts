@@ -1,6 +1,7 @@
 import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
 import { useSessionStore } from "@/stores/session";
 import { useAlertStore } from "@/stores/alert";
+import Permissions from "../permissions";
 
 export const messages = {
   insufficientPermission:
@@ -28,7 +29,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "permissions",
     component: () => import("../views/Permissions.vue"),
     meta: {
-      permission: "access://permission/view",
+      permission: Permissions.Permissions.View,
     },
   },
   {
@@ -36,7 +37,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "permission",
     component: () => import("../views/Permission.vue"),
     meta: {
-      permission: "access://permission/manage",
+        permission: Permissions.Permissions.Manage,
     },
   },
   {
@@ -44,7 +45,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "permission-rename",
     component: () => import("../views/PermissionRename.vue"),
     meta: {
-      permission: "access://permission/manage",
+        permission: Permissions.Permissions.Manage,
     },
   },
   {
@@ -52,7 +53,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "roles",
     component: () => import("../views/Roles.vue"),
     meta: {
-      permission: "access://role/view",
+        permission: Permissions.Roles.View
     },
   },
   {
@@ -60,7 +61,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "role",
     component: () => import("../views/Role.vue"),
     meta: {
-      permission: "access://role/manage",
+        permission: Permissions.Roles.Manage,
     },
   },
   {
@@ -68,7 +69,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "role-rename",
     component: () => import("../views/RoleRename.vue"),
     meta: {
-      permission: "access://role/manage",
+        permission: Permissions.Roles.Manage,
     },
   },
   {
@@ -76,7 +77,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "role-permissions",
     component: () => import("../views/RolePermissions.vue"),
     meta: {
-      permission: "access://role/view",
+        permission: Permissions.Roles.View,
     },
   },
   {
@@ -84,7 +85,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "identities",
     component: () => import("../views/Identities.vue"),
     meta: {
-      permission: "access://identity/view",
+        permission: Permissions.Identities.View
     },
   },
   {
@@ -92,7 +93,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "identity",
     component: () => import("../views/Identity.vue"),
     meta: {
-      permission: "access://identity/manage",
+        permission: Permissions.Identities.Manage,
     },
   },
   {
@@ -100,7 +101,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "identity-rename",
     component: () => import("../views/IdentityRename.vue"),
     meta: {
-      permission: "access://identity/manage",
+        permission: Permissions.Identities.Manage,
     },
   },
   {
@@ -113,7 +114,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "identity-roles",
     component: () => import("../views/IdentityRoles.vue"),
     meta: {
-      permission: "access://identity/view",
+        permission: Permissions.Identities.View,
     },
   },
 ];

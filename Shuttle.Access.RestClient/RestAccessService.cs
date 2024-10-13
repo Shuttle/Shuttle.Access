@@ -11,12 +11,8 @@ namespace Shuttle.Access.RestClient
 
         public RestAccessService(IOptions<AccessOptions> accessOptions, IAccessClient accessClient)
         {
-            Guard.AgainstNull(accessOptions, nameof(accessOptions));
-            Guard.AgainstNull(accessOptions.Value, nameof(accessOptions.Value));
-            Guard.AgainstNull(accessClient, nameof(accessClient));
-
-            _accessOptions = accessOptions.Value;
-            _accessClient = accessClient;
+            _accessOptions = Guard.AgainstNull(accessOptions).Value;
+            _accessClient = Guard.AgainstNull(accessClient);
         }
 
         public new bool Contains(Guid token)

@@ -40,6 +40,7 @@ import { useI18n } from "vue-i18n";
 import { mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
+import Permissions from "@/permissions";
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
@@ -67,7 +68,7 @@ const headers = useSecureTableHeaders([
         headerProps: {
             class: "xl:w-1"
         },
-        permission: "access://pemission/manage",
+        permission: Permissions.Permissions.Manage,
         filterable: false
     },
     {
@@ -76,7 +77,7 @@ const headers = useSecureTableHeaders([
         headerProps: {
             class: "xl:w-72"
         },
-        permission: "access://pemission/manage",
+        permission: Permissions.Permissions.Manage,
         filterable: false
     },
     {

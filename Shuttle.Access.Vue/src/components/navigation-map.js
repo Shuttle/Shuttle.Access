@@ -4,22 +4,22 @@ var map = [
     {
         to: '/dashboard',
         text: 'dashboard',
-        permission: Permissions.View.Dashboard
+        permission: Permissions.Dashboard.View
     },
     {
         to: '/identities',
         text: 'identities',
-        permission: Permissions.View.Identity
+        permission: Permissions.Identities.View
     },
     {
         to: '/roles',
         text: 'roles',
-        permission: Permissions.View.Role
+        permission: Permissions.Roles.View
     },
     {
         to: '/permissions',
         text: 'permissions',
-        permission: Permissions.View.Permission
+        permission: Permissions.Permissions.View
     },
 ];
 

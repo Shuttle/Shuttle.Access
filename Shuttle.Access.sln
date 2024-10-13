@@ -43,6 +43,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Application"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{5417FE2A-8368-4E91-B58D-CF4DE6AA596C}"
 	ProjectSection(SolutionItems) = preProject
+		.package\docker-compose-otel.yml = .package\docker-compose-otel.yml
 		.package\docker-compose.yml = .package\docker-compose.yml
 		.package\docker-pull.cmd = .package\docker-pull.cmd
 		.package\docker-push.cmd = .package\docker-push.cmd

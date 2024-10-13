@@ -37,6 +37,7 @@ import { useRouter } from "vue-router";
 import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
+import Permissions from "@/permissions";
 
 var confirmationStore = useConfirmationStore();
 
@@ -51,7 +52,7 @@ const headers = useSecureTableHeaders([
         headerProps: {
             class: "w-1",
         },
-        permission: "access://role/manage",
+        permission: Permissions.Roles.Manage,
         filterable: false
     },
     {
@@ -59,7 +60,7 @@ const headers = useSecureTableHeaders([
         headerProps: {
             class: "w-1",
         },
-        permission: "access://role/manage",
+        permission: Permissions.Roles.Manage,
         filterable: false
     },
     {
@@ -67,7 +68,7 @@ const headers = useSecureTableHeaders([
         headerProps: {
             class: "w-1",
         },
-        permission: "access://role/manage",
+        permission: Permissions.Roles.Manage,
         filterable: false
     },
     {

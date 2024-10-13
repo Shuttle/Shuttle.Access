@@ -27,9 +27,9 @@ public class RequestIdentityRegistrationParticipant : IAsyncParticipant<RequestI
         {
             var session = await _sessionRepository.FindAsync(context.Message.SessionToken.Value, context.CancellationToken);
 
-            if (session != null && session.HasPermission(Permissions.Register.Identity))
+            if (session != null && session.HasPermission(AccessPermissions.Identities.Register))
             {
-                context.Message.Allowed(session.IdentityName, session.HasPermission(Permissions.Activate.Identity));
+                context.Message.Allowed(session.IdentityName, session.HasPermission(AccessPermissions.Identities.Activate));
             }
         }
 
