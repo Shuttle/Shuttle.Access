@@ -109,6 +109,7 @@ public class Program
             {
                 webApplicationBuilder.Configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
 
+                builder.Options.Asynchronous = true;
                 builder.Options.Subscription.ConnectionStringName = "Access";
 
                 builder.AddSubscription<IdentityRoleSet>();
@@ -117,10 +118,14 @@ public class Program
             })
             .AddAzureStorageQueues(builder =>
             {
-                builder.AddOptions("azure", new()
+                var queueOptions = webApplicationBuilder.Configuration.GetSection($"{AzureStorageQueueOptions.SectionName}:Access").Get<AzureStorageQueueOptions>() ?? new();
+
+                if (string.IsNullOrWhiteSpace(queueOptions.StorageAccount))
                 {
-                    ConnectionString = webApplicationBuilder.Configuration.GetConnectionString("azure")
-                });
+                    queueOptions.ConnectionString = webApplicationBuilder.Configuration.GetConnectionString("azure") ?? string.Empty;
+                }
+
+                builder.AddOptions("azure", queueOptions);
             })
             .AddEventStore()
             .AddSqlEventStorage(builder =>

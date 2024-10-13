@@ -77,6 +77,7 @@ internal class Program
                     })
                     .AddEventStore()
                     .AddSqlSubscription()
+                    .AddDataStoreAccessService()
                     .AddMediator(builder =>
                     {
                         builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
