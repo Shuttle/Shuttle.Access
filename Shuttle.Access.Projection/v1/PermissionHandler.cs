@@ -7,11 +7,11 @@ using Shuttle.Recall;
 namespace Shuttle.Access.Projection.v1;
 
 public class PermissionHandler :
-    IAsyncEventHandler<Registered>,
-    IAsyncEventHandler<Activated>,
-    IAsyncEventHandler<Deactivated>,
-    IAsyncEventHandler<Removed>,
-    IAsyncEventHandler<NameSet>
+    IEventHandler<Registered>,
+    IEventHandler<Activated>,
+    IEventHandler<Deactivated>,
+    IEventHandler<Removed>,
+    IEventHandler<NameSet>
 {
     private readonly IPermissionProjectionQuery _query;
 

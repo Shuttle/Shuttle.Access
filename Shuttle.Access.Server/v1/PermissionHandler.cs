@@ -9,17 +9,17 @@ using Shuttle.Esb;
 namespace Shuttle.Access.Server.v1
 {
     public class PermissionHandler :
-        IAsyncMessageHandler<RegisterPermission>,
-        IAsyncMessageHandler<SetPermissionStatus>,
-        IAsyncMessageHandler<SetPermissionName>
+        IMessageHandler<RegisterPermission>,
+        IMessageHandler<SetPermissionStatus>,
+        IMessageHandler<SetPermissionName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IMediator _mediator;
 
         public PermissionHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
         {
-            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            Guard.AgainstNull(mediator, nameof(mediator));
+            Guard.AgainstNull(databaseContextFactory);
+            Guard.AgainstNull(mediator);
 
             _databaseContextFactory = databaseContextFactory;
             _mediator = mediator;
@@ -27,7 +27,7 @@ namespace Shuttle.Access.Server.v1
 
         public async Task ProcessMessageAsync(IHandlerContext<RegisterPermission> context)
         {
-            Guard.AgainstNull(context, nameof(context));
+            Guard.AgainstNull(context);
 
             var message = context.Message;
 
@@ -47,7 +47,7 @@ namespace Shuttle.Access.Server.v1
 
         public async Task ProcessMessageAsync(IHandlerContext<SetPermissionStatus> context)
         {
-            Guard.AgainstNull(context, nameof(context));
+            Guard.AgainstNull(context);
 
             var message = context.Message;
 

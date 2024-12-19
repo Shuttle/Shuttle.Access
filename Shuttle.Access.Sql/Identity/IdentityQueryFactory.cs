@@ -53,7 +53,7 @@ values
         {
             if (specification == null)
                 throw new ArgumentNullException(nameof(specification));
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             return new Query($@"
 select distinct
@@ -152,7 +152,7 @@ where
 
         public IQuery Roles(DataAccess.Query.Identity.Specification specification)
         {
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             return new Query(@"
 select 

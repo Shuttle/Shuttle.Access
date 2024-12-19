@@ -31,7 +31,7 @@ public class SessionsFixture
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content.Token, Is.EqualTo(session.Token));
+        Assert.That(response.Content!.Token, Is.EqualTo(session.Token));
     }
 
     [Test]
@@ -51,7 +51,7 @@ public class SessionsFixture
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content.FirstOrDefault(item => item.Equals(Permission, StringComparison.InvariantCultureIgnoreCase)), Is.Not.Null);
+        Assert.That(response.Content!.FirstOrDefault(item => item.Equals(Permission, StringComparison.InvariantCultureIgnoreCase)), Is.Not.Null);
     }
 
     [Test]
@@ -81,7 +81,7 @@ public class SessionsFixture
         Assert.That(sessionRegistered, Is.Not.Null);
         Assert.That(sessionRegistered.IsSuccessStatusCode, Is.True);
         Assert.That(sessionRegistered.Content, Is.Not.Null);
-        Assert.That(sessionRegistered.Content.Token, Is.EqualTo(session.Token));
+        Assert.That(sessionRegistered.Content!.Token, Is.EqualTo(session.Token));
         Assert.That(sessionRegistered.Content.IdentityName, Is.EqualTo(session.IdentityName));
 
         factory.DatabaseContextFactory.Verify(m => m.Create(), Times.AtLeast(1));

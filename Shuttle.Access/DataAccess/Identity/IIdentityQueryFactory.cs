@@ -2,23 +2,22 @@
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.DataAccess
+namespace Shuttle.Access.DataAccess;
+
+public interface IIdentityQueryFactory
 {
-    public interface IIdentityQueryFactory
-    {
-        IQuery Register(Guid id, Registered domainEvent);
-        IQuery Count(Query.Identity.Specification specification);
-        IQuery RoleAdded(Guid id, RoleAdded domainEvent);
-        IQuery Search(Query.Identity.Specification specification);
-        IQuery Get(Guid id);
-        IQuery Roles(Query.Identity.Specification specification);
-        IQuery RoleRemoved(Guid id, RoleRemoved domainEvent);
-        IQuery AdministratorCount();
-        IQuery RemoveRoles(Guid id);
-        IQuery Remove(Guid id);
-        IQuery GetId(string identityName);
-        IQuery Permissions(Guid id);
-        IQuery Activated(Guid id, Activated domainEvent);
-        IQuery NameSet(Guid id, NameSet domainEvent);
-    }
+    IQuery Activated(Guid id, Activated domainEvent);
+    IQuery AdministratorCount();
+    IQuery Count(Query.Identity.Specification specification);
+    IQuery Get(Guid id);
+    IQuery GetId(string identityName);
+    IQuery NameSet(Guid id, NameSet domainEvent);
+    IQuery Permissions(Guid id);
+    IQuery Register(Guid id, Registered domainEvent);
+    IQuery Remove(Guid id);
+    IQuery RemoveRoles(Guid id);
+    IQuery RoleAdded(Guid id, RoleAdded domainEvent);
+    IQuery RoleRemoved(Guid id, RoleRemoved domainEvent);
+    IQuery Roles(Query.Identity.Specification specification);
+    IQuery Search(Query.Identity.Specification specification);
 }

@@ -5,6 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RuntimeIdentifiers>win-x64;linux-x64</RuntimeIdentifiers>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,10 +20,10 @@
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
     <PackageReference Include="OpenTelemetry.Instrumentation.SqlClient" Version="1.0.0-rc9.9" />
-    <PackageReference Include="Shuttle.Core.DependencyInjection" Version="1.0.1" />
-    <PackageReference Include="Shuttle.Recall.Logging" Version="18.0.0" />
+    <PackageReference Include="Shuttle.Core.DependencyInjection" Version="20.0.0" />
+    <PackageReference Include="Shuttle.Recall.Logging" Version="20.0.0" />
     <PackageReference Include="Shuttle.Recall.OpenTelemetry" Version="18.0.0" />
-    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="18.0.0" />
+    <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="20.0.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
   </ItemGroup>

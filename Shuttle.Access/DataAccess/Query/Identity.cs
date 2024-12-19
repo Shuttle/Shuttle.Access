@@ -1,67 +1,66 @@
 ﻿using System;
 
-namespace Shuttle.Access.DataAccess.Query
+namespace Shuttle.Access.DataAccess.Query;
+
+public class Identity
 {
-    public class Identity
+    public class Specification
     {
-        public class Specification
+        public Guid? Id { get; private set; }
+        public string Name { get; private set; } = string.Empty;
+        public Guid? PermissionId { get; private set; }
+        public Guid? RoleId { get; private set; }
+        public string RoleName { get; private set; } = string.Empty;
+        public bool RolesIncluded { get; private set; }
+        public DateTime? StartDateRegistered { get; private set; }
+
+        public Specification IncludeRoles()
         {
-            public Guid? Id { get; private set; }
-            public string Name { get; private set; }
-            public Guid? PermissionId { get; private set; }
-            public Guid? RoleId { get; private set; }
-            public string RoleName { get; private set; }
-            public bool RolesIncluded { get; private set; }
-            public DateTime? StartDateRegistered { get; private set; }
+            RolesIncluded = true;
 
-            public Specification IncludeRoles()
-            {
-                RolesIncluded = true;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithIdentityId(Guid id)
+        {
+            Id = id;
 
-            public Specification WithIdentityId(Guid id)
-            {
-                Id = id;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithName(string name)
+        {
+            Name = name;
 
-            public Specification WithName(string name)
-            {
-                Name = name;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithPermissionId(Guid permissionId)
+        {
+            PermissionId = permissionId;
 
-            public Specification WithPermissionId(Guid permissionId)
-            {
-                PermissionId = permissionId;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithRoleId(Guid roleId)
+        {
+            RoleId = roleId;
 
-            public Specification WithRoleId(Guid roleId)
-            {
-                RoleId = roleId;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithRoleName(string roleName)
+        {
+            RoleName = roleName;
 
-            public Specification WithRoleName(string roleName)
-            {
-                RoleName = roleName;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithStartDateRegistered(DateTime date)
+        {
+            StartDateRegistered = date;
 
-            public Specification WithStartDateRegistered(DateTime date)
-            {
-                StartDateRegistered = date;
-
-                return this;
-            }
+            return this;
         }
     }
 }

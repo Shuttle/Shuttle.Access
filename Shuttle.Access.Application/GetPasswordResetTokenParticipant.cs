@@ -8,7 +8,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class GetPasswordResetTokenParticipant : IAsyncParticipant<RequestResponseMessage<GetPasswordResetToken, Guid>>
+public class GetPasswordResetTokenParticipant : IParticipant<RequestResponseMessage<GetPasswordResetToken, Guid>>
 {
     private readonly IEventStore _eventStore;
     private readonly IIdentityQuery _identityQuery;
@@ -40,7 +40,7 @@ public class GetPasswordResetTokenParticipant : IAsyncParticipant<RequestRespons
         {
             if (!identity.HasPasswordResetToken)
             {
-                stream.AddEvent(identity.RegisterPasswordResetToken());
+                stream.Add(identity.RegisterPasswordResetToken());
 
                 await _eventStore.SaveAsync(stream);
             }

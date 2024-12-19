@@ -5,14 +5,14 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
-using Shuttle.Recall;
+using Shuttle.Recall.Sql.EventProcessing;
 
 namespace Shuttle.Access.WebApi.Handlers;
 
 public class AccessServiceHandler :
-    IAsyncMessageHandler<IdentityRoleSet>,
-    IAsyncMessageHandler<RolePermissionSet>,
-    IAsyncMessageHandler<PermissionStatusSet>
+    IMessageHandler<IdentityRoleSet>,
+    IMessageHandler<RolePermissionSet>,
+    IMessageHandler<PermissionStatusSet>
 {
     private readonly IMediator _mediator;
     private readonly IDatabaseContextFactory _databaseContextFactory;
@@ -33,14 +33,14 @@ public class AccessServiceHandler :
 
     public async Task ProcessMessageAsync(IHandlerContext<IdentityRoleSet> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message;
 
         using (new DatabaseContextScope())
         await using (_databaseContextFactory.Create())
         {
-            if (await _projectionRepository.GetSequenceNumberAsync(ProjectionNames.Identity) < message.SequenceNumber)
+            if ((await _projectionRepository.GetAsync(ProjectionNames.Identity)).SequenceNumber < message.SequenceNumber)
             {
                 await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
 
@@ -62,14 +62,14 @@ public class AccessServiceHandler :
 
     public async Task ProcessMessageAsync(IHandlerContext<PermissionStatusSet> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message;
 
         using (new DatabaseContextScope())
         await using (_databaseContextFactory.Create())
         {
-            if (await _projectionRepository.GetSequenceNumberAsync(ProjectionNames.Permission) < message.SequenceNumber)
+            if ((await _projectionRepository.GetAsync(ProjectionNames.Identity)).SequenceNumber < message.SequenceNumber)
             {
                 await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
 
@@ -89,14 +89,14 @@ public class AccessServiceHandler :
 
     public async Task ProcessMessageAsync(IHandlerContext<RolePermissionSet> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message;
 
         using (new DatabaseContextScope())
         await using (_databaseContextFactory.Create())
         {
-            if (await _projectionRepository.GetSequenceNumberAsync(ProjectionNames.Role) < message.SequenceNumber)
+            if ((await _projectionRepository.GetAsync(ProjectionNames.Identity)).SequenceNumber < message.SequenceNumber)
             {
                 await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
 

@@ -5,147 +5,146 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 
-namespace Shuttle.Access.Server.v1
+namespace Shuttle.Access.Server.v1;
+
+public class IdentityHandler :
+    IMessageHandler<RegisterIdentity>,
+    IMessageHandler<SetIdentityRole>,
+    IMessageHandler<RemoveIdentity>,
+    IMessageHandler<SetPassword>,
+    IMessageHandler<ActivateIdentity>,
+    IMessageHandler<SetIdentityName>
 {
-    public class IdentityHandler :
-        IAsyncMessageHandler<RegisterIdentity>,
-        IAsyncMessageHandler<SetIdentityRole>,
-        IAsyncMessageHandler<RemoveIdentity>,
-        IAsyncMessageHandler<SetPassword>,
-        IAsyncMessageHandler<ActivateIdentity>,
-        IAsyncMessageHandler<SetIdentityName>
+    private readonly IDatabaseContextFactory _databaseContextFactory;
+    private readonly IMediator _mediator;
+
+    public IdentityHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
     {
-        private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly IMediator _mediator;
+        Guard.AgainstNull(databaseContextFactory);
+        Guard.AgainstNull(mediator);
 
-        public IdentityHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
+        _databaseContextFactory = databaseContextFactory;
+        _mediator = mediator;
+    }
+
+    public async Task ProcessMessageAsync(IHandlerContext<ActivateIdentity> context)
+    {
+        Guard.AgainstNull(context);
+
+        var requestResponse = new RequestResponseMessage<ActivateIdentity, IdentityActivated>(context.Message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
         {
-            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            Guard.AgainstNull(mediator, nameof(mediator));
-
-            _databaseContextFactory = databaseContextFactory;
-            _mediator = mediator;
+            await _mediator.SendAsync(requestResponse);
         }
 
-        public async Task ProcessMessageAsync(IHandlerContext<ActivateIdentity> context)
+        if (requestResponse.Response != null)
         {
-            Guard.AgainstNull(context, nameof(context));
+            await context.PublishAsync(requestResponse.Response);
+        }
+    }
 
-            var requestResponse = new RequestResponseMessage<ActivateIdentity, IdentityActivated>(context.Message);
+    public async Task ProcessMessageAsync(IHandlerContext<RegisterIdentity> context)
+    {
+        Guard.AgainstNull(context);
 
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(requestResponse);
-            }
+        var message = context.Message;
 
-            if (requestResponse.Response != null)
-            {
-                await context.PublishAsync(requestResponse.Response);
-            }
+        if (string.IsNullOrEmpty(message.Name) ||
+            string.IsNullOrEmpty(message.RegisteredBy) ||
+            message.PasswordHash == null ||
+            message.PasswordHash.Length == 0)
+        {
+            return;
         }
 
-        public async Task ProcessMessageAsync(IHandlerContext<RegisterIdentity> context)
+        var requestResponse = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
         {
-            Guard.AgainstNull(context, nameof(context));
+            await _mediator.SendAsync(requestResponse);
+        }
 
-            var message = context.Message;
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response);
+        }
+    }
 
-            if (string.IsNullOrEmpty(message.Name) ||
-                string.IsNullOrEmpty(message.RegisteredBy) ||
-                message.PasswordHash == null ||
-                message.PasswordHash.Length == 0)
+    public async Task ProcessMessageAsync(IHandlerContext<RemoveIdentity> context)
+    {
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
+        {
+            await _mediator.SendAsync(context.Message);
+
+            await context.PublishAsync(new IdentityRemoved
+            {
+                Id = context.Message.Id
+            });
+        }
+    }
+
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityRole> context)
+    {
+        Guard.AgainstNull(context);
+
+        var message = context.Message;
+        var reviewRequest = new RequestMessage<SetIdentityRole>(message);
+        var requestResponse = new RequestResponseMessage<SetIdentityRole, IdentityRoleSet>(message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
+        {
+            await _mediator.SendAsync(reviewRequest);
+
+            if (!reviewRequest.Ok)
             {
                 return;
             }
 
-            var requestResponse = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(message);
-
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(requestResponse);
-            }
+            await _mediator.SendAsync(requestResponse);
 
             if (requestResponse.Response != null)
             {
                 await context.PublishAsync(requestResponse.Response);
             }
         }
+    }
 
-        public async Task ProcessMessageAsync(IHandlerContext<RemoveIdentity> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetPassword> context)
+    {
+        Guard.AgainstNull(context);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
         {
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(context.Message);
+            await _mediator.SendAsync(context.Message);
+        }
+    }
 
-                await context.PublishAsync(new IdentityRemoved
-                {
-                    Id = context.Message.Id
-                });
-            }
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context)
+    {
+        var message = context.Message;
+
+        if (string.IsNullOrEmpty(message.Name))
+        {
+            return;
         }
 
-        public async Task ProcessMessageAsync(IHandlerContext<SetIdentityRole> context)
+        var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            var message = context.Message;
-            var reviewRequest = new RequestMessage<SetIdentityRole>(message);
-            var requestResponse = new RequestResponseMessage<SetIdentityRole, IdentityRoleSet>(message);
-
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(reviewRequest);
-
-                if (!reviewRequest.Ok)
-                {
-                    return;
-                }
-
-                await _mediator.SendAsync(requestResponse);
-
-                if (requestResponse.Response != null)
-                {
-                    await context.PublishAsync(requestResponse.Response);
-                }
-            }
+            await _mediator.SendAsync(requestResponse);
         }
 
-        public async Task ProcessMessageAsync(IHandlerContext<SetPassword> context)
+        if (requestResponse.Response != null)
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(context.Message);
-            }
-        }
-
-        public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context)
-        {
-            var message = context.Message;
-
-            if (string.IsNullOrEmpty(message.Name))
-            {
-                return;
-            }
-
-            var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
-
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(requestResponse);
-            }
-
-            if (requestResponse.Response != null)
-            {
-                await context.PublishAsync(requestResponse.Response);
-            }
+            await context.PublishAsync(requestResponse.Response);
         }
     }
 }

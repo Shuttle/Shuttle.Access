@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Shuttle.Access.Events.Role.v1
+namespace Shuttle.Access.Events.Role.v1;
+
+public class PermissionAdded
 {
-    public class PermissionAdded
-    {
-        public Guid PermissionId { get; set; }
-    }
+    public Guid PermissionId { get; set; }
 }

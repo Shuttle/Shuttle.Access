@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
-
 #if NETSTANDARD
 [assembly: AssemblyTitle(".NET Standard")]
 #endif

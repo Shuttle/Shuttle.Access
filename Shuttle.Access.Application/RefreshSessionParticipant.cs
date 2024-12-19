@@ -6,7 +6,7 @@ using Shuttle.Esb;
 
 namespace Shuttle.Access.Application;
 
-public class RefreshSessionParticipant : IAsyncParticipant<RefreshSession>
+public class RefreshSessionParticipant : IParticipant<RefreshSession>
 {
     private readonly IAccessService _accessService;
     private readonly IAuthorizationService _authorizationService;

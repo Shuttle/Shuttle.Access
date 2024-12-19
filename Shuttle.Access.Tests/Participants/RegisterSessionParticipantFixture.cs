@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.DataAccess;
@@ -53,7 +52,7 @@ public class RegisterSessionParticipantFixture
 
         var now = DateTime.UtcNow;
         var session = new Session(token, Guid.NewGuid(), IdentityName, now, now.AddMinutes(1))
-            .AddPermission(AccessPermissions.Identities.Register);
+            .AddPermission(AccessPermissions.Sessions.Register);
 
         sessionRepository.Setup(m => m.FindAsync(token, CancellationToken.None)).Returns(Task.FromResult(session));
 

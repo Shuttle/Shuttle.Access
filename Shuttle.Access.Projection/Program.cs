@@ -64,21 +64,24 @@ internal class Program
                     .AddSqlEventStorage(builder =>
                     {
                         builder.Options.ConnectionStringName = "Access";
+
+                        builder.UseSqlServer();
                     })
                     .AddSqlEventProcessing(builder =>
                     {
                         builder.Options.ConnectionStringName = "Access";
+
+                        builder.UseSqlServer();
                     })
                     .AddEventStore(builder =>
                     {
                         configuration.GetSection(EventStoreOptions.SectionName).Bind(builder.Options);
-                        builder.Options.Asynchronous = true;
 
-                        builder.AddEventHandler<IdentityHandler>(ProjectionNames.Identity);
-                        builder.AddEventHandler<PermissionHandler>(ProjectionNames.Permission);
-                        builder.AddEventHandler<RoleHandler>(ProjectionNames.Role);
+                        builder.AddProjection(ProjectionNames.Identity).AddEventHandler<IdentityHandler>();
+                        builder.AddProjection(ProjectionNames.Permission).AddEventHandler<PermissionHandler>();
+                        builder.AddProjection(ProjectionNames.Role).AddEventHandler<RoleHandler>();
                     })
-                    .AddRecallLogging(builder =>
+                    .AddEventStoreLogging(builder =>
                     {
                         builder.Options.AddPipelineEventType<OnPipelineException>();
                     })

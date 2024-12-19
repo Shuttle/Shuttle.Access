@@ -125,7 +125,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
 
-        Assert.That(response.Content.Count, Is.EqualTo(1));
+        Assert.That(response.Content!.Count, Is.EqualTo(1));
 
         var responseIdentity = response.Content[0];
 
@@ -141,8 +141,6 @@ public class IdentitiesFixture
     [Test]
     public async Task Should_be_able_to_get_identity_by_value_async()
     {
-        var identityQuery = new Mock<IIdentityQuery>();
-
         var identity = CreateIdentity();
 
         var factory = new FixtureWebApplicationFactory();
@@ -158,7 +156,7 @@ public class IdentitiesFixture
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content.Id, Is.EqualTo(identity.Id));
+        Assert.That(response.Content!.Id, Is.EqualTo(identity.Id));
         Assert.That(response.Content.Name, Is.EqualTo(identity.Name));
         Assert.That(response.Content.DateRegistered, Is.EqualTo(identity.DateRegistered));
         Assert.That(response.Content.DateActivated, Is.EqualTo(identity.DateActivated));
@@ -208,28 +206,28 @@ public class IdentitiesFixture
 
         var response = await factory.GetAccessClient().Identities.RoleAvailabilityAsync(Guid.NewGuid(), new()
         {
-            Values = new()
-            {
+            Values =
+            [
                 activeRoleId,
                 inactiveRoleId
-            }
+            ]
         });
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
 
-        Assert.That(response.Content.Count, Is.EqualTo(2));
+        Assert.That(response.Content!.Count, Is.EqualTo(2));
 
         var identityRoleStatus = response.Content.Find(item => item.Id == activeRoleId);
 
         Assert.That(identityRoleStatus, Is.Not.Null);
-        Assert.That(identityRoleStatus.Active, Is.True);
+        Assert.That(identityRoleStatus!.Active, Is.True);
 
         identityRoleStatus = response.Content.Find(item => item.Id == inactiveRoleId);
 
         Assert.That(identityRoleStatus, Is.Not.Null);
-        Assert.That(identityRoleStatus.Active, Is.False);
+        Assert.That(identityRoleStatus!.Active, Is.False);
     }
 
     [Test]

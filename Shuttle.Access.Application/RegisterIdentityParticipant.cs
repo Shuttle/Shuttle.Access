@@ -10,29 +10,29 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterIdentityParticipant : IAsyncParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
+public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
 {
     private readonly IEventStore _eventStore;
     private readonly IIdentityQuery _identityQuery;
-    private readonly IKeyStore _keyStore;
+    private readonly  IIdKeyRepository _idKeyRepository;
     private readonly IRoleQuery _roleQuery;
 
-    public RegisterIdentityParticipant(IEventStore eventStore, IKeyStore keyStore, IIdentityQuery identityQuery, IRoleQuery roleQuery)
+    public RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IIdentityQuery identityQuery, IRoleQuery roleQuery)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
-        Guard.AgainstNull(keyStore, nameof(keyStore));
-        Guard.AgainstNull(identityQuery, nameof(identityQuery));
-        Guard.AgainstNull(roleQuery, nameof(roleQuery));
+        Guard.AgainstNull(eventStore);
+        Guard.AgainstNull(idKeyRepository);
+        Guard.AgainstNull(identityQuery);
+        Guard.AgainstNull(roleQuery);
 
         _eventStore = eventStore;
-        _keyStore = keyStore;
+        _idKeyRepository = idKeyRepository;
         _identityQuery = identityQuery;
         _roleQuery = roleQuery;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message.Request;
 
@@ -40,7 +40,7 @@ public class RegisterIdentityParticipant : IAsyncParticipant<RequestResponseMess
         Identity identity;
 
         var key = Identity.Key(message.Name);
-        var id = await _keyStore.FindAsync(key);
+        var id = await _idKeyRepository.FindAsync(key);
 
         if (id.HasValue)
         {
@@ -59,14 +59,14 @@ public class RegisterIdentityParticipant : IAsyncParticipant<RequestResponseMess
             id = Guid.NewGuid();
             identity = new();
 
-            await _keyStore.AddAsync(id.Value, key);
+            await _idKeyRepository.AddAsync(id.Value, key);
 
             stream = await _eventStore.GetAsync(id.Value);
         }
 
         var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
-        stream.AddEvent(registered);
+        stream.Add(registered);
 
         var count = await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
 
@@ -83,13 +83,13 @@ public class RegisterIdentityParticipant : IAsyncParticipant<RequestResponseMess
 
             if (role.Name.Equals("Administrator", StringComparison.InvariantCultureIgnoreCase))
             {
-                stream.AddEvent(identity.AddRole(role.Id));
+                stream.Add(identity.AddRole(role.Id));
             }
         }
 
         if (message.Activated)
         {
-            stream.AddEvent(identity.Activate(registered.DateRegistered));
+            stream.Add(identity.Activate(registered.DateRegistered));
         }
 
         context.Message.WithResponse(new()

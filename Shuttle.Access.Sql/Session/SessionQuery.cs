@@ -12,29 +12,29 @@ namespace Shuttle.Access.Sql
 {
     public class SessionQuery : ISessionQuery
     {
-        private readonly IDatabaseGateway _databaseGateway;
+        private readonly IDatabaseContextService _databaseContextService;
         private readonly IQueryMapper _queryMapper;
         private readonly ISessionQueryFactory _queryFactory;
 
-        public SessionQuery(IDatabaseGateway databaseGateway, IQueryMapper queryMapper, ISessionQueryFactory queryFactory)
+        public SessionQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, ISessionQueryFactory queryFactory)
         {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(queryMapper, nameof(queryMapper));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
+            Guard.AgainstNull(databaseContextService);
+            Guard.AgainstNull(queryMapper);
+            Guard.AgainstNull(queryFactory);
 
-            _databaseGateway = databaseGateway;
+            _databaseContextService = databaseContextService;
             _queryMapper = queryMapper;
             _queryFactory = queryFactory;
         }
 
         public async ValueTask<bool> ContainsAsync(Guid token, CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Contains(token), cancellationToken) == 1;
+            return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(token), cancellationToken) == 1;
         }
 
         public async ValueTask<bool> ContainsAsync(Guid token, string permission, CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Contains(token, permission), cancellationToken) == 1;
+            return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(token, permission), cancellationToken) == 1;
         }
 
         public async Task<Messages.v1.Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
@@ -50,7 +50,7 @@ namespace Shuttle.Access.Sql
 
         public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
         {
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             return await _queryMapper.MapObjectsAsync<Messages.v1.Session>(_queryFactory.Search(specification), cancellationToken);
         }

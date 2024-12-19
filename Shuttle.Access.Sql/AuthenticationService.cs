@@ -11,22 +11,22 @@ namespace Shuttle.Access.Sql
     {
         private readonly IEventStore _eventStore;
         private readonly IHashingService _hashingService;
-        private readonly IKeyStore _keyStore;
+        private readonly IIdKeyRepository _idKeyRepository;
 
-        public AuthenticationService(IEventStore eventStore, IKeyStore keyStore, IHashingService hashingService)
+        public AuthenticationService(IEventStore eventStore, IIdKeyRepository idKeyRepository, IHashingService hashingService)
         {
-            Guard.AgainstNull(eventStore, nameof(eventStore));
-            Guard.AgainstNull(keyStore, nameof(keyStore));
-            Guard.AgainstNull(hashingService, nameof(hashingService));
+            Guard.AgainstNull(eventStore);
+            Guard.AgainstNull(idKeyRepository);
+            Guard.AgainstNull(hashingService);
 
             _eventStore = eventStore;
-            _keyStore = keyStore;
+            _idKeyRepository = idKeyRepository;
             _hashingService = hashingService;
         }
 
         public async Task<AuthenticationResult> AuthenticateAsync(string identityName, string password, CancellationToken cancellationToken = default)
         {
-            var id = await _keyStore.FindAsync(Identity.Key(identityName), cancellationToken);
+            var id = await _idKeyRepository.FindAsync(Identity.Key(identityName), cancellationToken);
 
             if (!id.HasValue)
             {

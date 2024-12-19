@@ -17,7 +17,7 @@ public class RequiresSessionAttribute : TypeFilterAttribute
 
         public RequiresSession(IAccessService accessService)
         {
-            Guard.AgainstNull(accessService, nameof(accessService));
+            Guard.AgainstNull(accessService);
 
             _accessService = accessService;
         }

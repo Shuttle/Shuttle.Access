@@ -1,7 +1,6 @@
-﻿namespace Shuttle.Access
+﻿namespace Shuttle.Access;
+
+public interface IPasswordGenerator
 {
-    public interface IPasswordGenerator
-    {
-        string Generate();
-    }
+    string Generate();
 }

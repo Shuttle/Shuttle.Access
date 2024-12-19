@@ -7,60 +7,59 @@ using NUnit.Framework;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Tests
+namespace Shuttle.Access.Tests;
+
+[TestFixture]
+public class DataStoreAccessServiceFixture
 {
-    [TestFixture]
-    public class DataStoreAccessServiceFixture
+    private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow, DateTime.UtcNow.AddHours(1));
+
+    [Test]
+    public void Should_be_able_check_for_non_existent_session()
     {
-        private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow, DateTime.UtcNow.AddHours(1));
+        var repository = new Mock<ISessionRepository>();
 
-        [Test]
-        public void Should_be_able_check_for_non_existent_session()
+        repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult((Session)null));
+
+        var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
+
+        connectionStringOptions.Setup(m => m.Get("Access")).Returns(new ConnectionStringOptions
         {
-            var repository = new Mock<ISessionRepository>();
+            Name = "Access",
+            ConnectionString = "connection-string"
+        });
 
-            repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult((Session)null));
-
-            var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
-
-            connectionStringOptions.Setup(m => m.Get("Access")).Returns(new ConnectionStringOptions
-            {
-                Name = "Access",
-                ConnectionString = "connection-string"
-            });
-
-            var service = new DataStoreAccessService(connectionStringOptions.Object, Options.Create(new AccessOptions
-                {
-                    SessionDuration = TimeSpan.FromHours(1)
-                }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
-
-            Assert.That(service.Contains(Guid.NewGuid()), Is.False);
-        }
-
-        [Test]
-        public void Should_be_able_check_for_and_cache_existent_session()
+        var service = new DataStoreAccessService(connectionStringOptions.Object, Options.Create(new AccessOptions
         {
-            var repository = new Mock<ISessionRepository>();
+            SessionDuration = TimeSpan.FromHours(1)
+        }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
 
-            repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(_session));
+        Assert.That(service.Contains(Guid.NewGuid()), Is.False);
+    }
 
-            var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
+    [Test]
+    public void Should_be_able_check_for_and_cache_existent_session()
+    {
+        var repository = new Mock<ISessionRepository>();
 
-            connectionStringOptions.Setup(m => m.Get("Access")).Returns(new ConnectionStringOptions
-            {
-                Name = "Access",
-                ConnectionString = "connection-string"
-            });
+        repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(_session));
 
-            var service = new DataStoreAccessService(connectionStringOptions.Object, Options.Create(new AccessOptions
-                {
-                    SessionDuration = TimeSpan.FromHours(1)
-                }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
+        var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
-            Assert.That(service.Contains(_session.Token), Is.True);
-            Assert.That(service.Contains(_session.Token), Is.True);
+        connectionStringOptions.Setup(m => m.Get("Access")).Returns(new ConnectionStringOptions
+        {
+            Name = "Access",
+            ConnectionString = "connection-string"
+        });
 
-            repository.Verify(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None), Times.Exactly(1));
-        }
+        var service = new DataStoreAccessService(connectionStringOptions.Object, Options.Create(new AccessOptions
+        {
+            SessionDuration = TimeSpan.FromHours(1)
+        }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
+
+        Assert.That(service.Contains(_session.Token), Is.True);
+        Assert.That(service.Contains(_session.Token), Is.True);
+
+        repository.Verify(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None), Times.Exactly(1));
     }
 }

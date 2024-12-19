@@ -16,7 +16,7 @@ namespace Shuttle.Access.Sql
 
         public IQuery Registered(Guid id, Registered domainEvent)
         {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+            Guard.AgainstNull(domainEvent);
 
             return new Query(@"
 if not exists
@@ -117,7 +117,7 @@ where
 
         public IQuery Permissions(DataAccess.Query.Role.Specification specification)
         {
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             return new Query($@"
 select 
@@ -179,7 +179,7 @@ where
 
         private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
         {
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             var what = columns
                 ? @"

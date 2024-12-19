@@ -311,7 +311,7 @@ public static class IdentityEndpoints
 
         app.MapPost("/v{version:apiVersion}/identities/", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterIdentity message) =>
             {
-                Guard.AgainstNull(message, nameof(message));
+                Guard.AgainstNull(message);
 
                 try
                 {

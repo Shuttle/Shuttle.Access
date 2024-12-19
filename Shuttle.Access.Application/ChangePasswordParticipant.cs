@@ -7,7 +7,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class ChangePasswordParticipant : IAsyncParticipant<RequestMessage<ChangePassword>>
+public class ChangePasswordParticipant : IParticipant<RequestMessage<ChangePassword>>
 {
     private readonly IEventStore _eventStore;
     private readonly IHashingService _hashingService;
@@ -15,9 +15,9 @@ public class ChangePasswordParticipant : IAsyncParticipant<RequestMessage<Change
 
     public ChangePasswordParticipant(IHashingService hashingService, ISessionRepository sessionRepository, IEventStore eventStore)
     {
-        Guard.AgainstNull(hashingService, nameof(hashingService));
-        Guard.AgainstNull(sessionRepository, nameof(sessionRepository));
-        Guard.AgainstNull(eventStore, nameof(eventStore));
+        Guard.AgainstNull(hashingService);
+        Guard.AgainstNull(sessionRepository);
+        Guard.AgainstNull(eventStore);
 
         _hashingService = hashingService;
         _sessionRepository = sessionRepository;
@@ -26,7 +26,7 @@ public class ChangePasswordParticipant : IAsyncParticipant<RequestMessage<Change
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<ChangePassword>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var request = context.Message.Request;
 
@@ -70,7 +70,7 @@ public class ChangePasswordParticipant : IAsyncParticipant<RequestMessage<Change
         }
 
         stream.Apply(user);
-        stream.AddEvent(user.SetPassword(_hashingService.Sha256(request.NewPassword)));
+        stream.Add(user.SetPassword(_hashingService.Sha256(request.NewPassword)));
 
         await _eventStore.SaveAsync(stream);
     }

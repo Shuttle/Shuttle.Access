@@ -8,35 +8,34 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall.Sql.Storage;
 
-namespace Shuttle.Access.Tests.Participants
+namespace Shuttle.Access.Tests.Participants;
+
+[TestFixture]
+public class RegisterRoleParticipantFixture
 {
-    [TestFixture]
-    public class RegisterRoleParticipantFixture
+    [Test]
+    public async Task Should_be_able_to_add_role_async()
     {
-        [Test]
-        public async Task Should_be_able_to_add_role_async()
-        {
-            var eventStore = new FixtureEventStore();
-            var keyStore = new Mock<IKeyStore>();
+        var eventStore = new FixtureEventStore();
+        var idKeyRepository = new Mock<IIdKeyRepository>();
 
-            keyStore.Setup(m => m.Contains(It.IsAny<string>(), null)).Returns(false);
+        idKeyRepository.Setup(m => m.ContainsAsync(It.IsAny<string>(), default)).ReturnsAsync(await ValueTask.FromResult(false));
 
-            var participant =
-                new RegisterRoleParticipant(eventStore, keyStore.Object);
+        var participant =
+            new RegisterRoleParticipant(eventStore, idKeyRepository.Object);
 
-            var addRole = new RegisterRole { Name = "role-name" };
+        var addRole = new RegisterRole { Name = "role-name" };
 
-            var requestResponseMessage =
-                new RequestResponseMessage<RegisterRole, RoleRegistered>(addRole);
+        var requestResponseMessage =
+            new RequestResponseMessage<RegisterRole, RoleRegistered>(addRole);
 
-            await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>>(requestResponseMessage, CancellationToken.None));
+        await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>>(requestResponseMessage, CancellationToken.None));
 
-            Assert.That(requestResponseMessage.Response, Is.Not.Null);
+        Assert.That(requestResponseMessage.Response, Is.Not.Null);
 
-            var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response.Id);
+        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response.Id);
 
-            Assert.That(@event, Is.Not.Null);
-            Assert.That(@event.Name, Is.EqualTo(addRole.Name));
-        }
+        Assert.That(@event, Is.Not.Null);
+        Assert.That(@event.Name, Is.EqualTo(addRole.Name));
     }
 }

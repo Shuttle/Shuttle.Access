@@ -7,23 +7,23 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class SetIdentityNameParticipant : IAsyncParticipant<RequestResponseMessage<SetIdentityName, IdentityNameSet>>
+public class SetIdentityNameParticipant : IParticipant<RequestResponseMessage<SetIdentityName, IdentityNameSet>>
 {
     private readonly IEventStore _eventStore;
-    private readonly IKeyStore _keyStore;
+    private readonly IIdKeyRepository _idKeyRepository;
 
-    public SetIdentityNameParticipant(IEventStore eventStore, IKeyStore keyStore)
+    public SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
-        Guard.AgainstNull(keyStore, nameof(keyStore));
+        Guard.AgainstNull(eventStore);
+        Guard.AgainstNull(idKeyRepository);
 
         _eventStore = eventStore;
-        _keyStore = keyStore;
+        _idKeyRepository = idKeyRepository;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetIdentityName, IdentityNameSet>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var request = context.Message.Request;
 
@@ -40,14 +40,14 @@ public class SetIdentityNameParticipant : IAsyncParticipant<RequestResponseMessa
         var key = Identity.Key(identity.Name);
         var rekey = Identity.Key(request.Name);
 
-        if (await _keyStore.ContainsAsync(rekey) || !await _keyStore.ContainsAsync(key))
+        if (await _idKeyRepository.ContainsAsync(rekey) || !await _idKeyRepository.ContainsAsync(key))
         {
             return;
         }
 
-        await _keyStore.RekeyAsync(key, rekey);
+        await _idKeyRepository.RekeyAsync(key, rekey);
 
-        stream.AddEvent(identity.SetName(request.Name));
+        stream.Add(identity.SetName(request.Name));
 
         context.Message.WithResponse(new()
         {

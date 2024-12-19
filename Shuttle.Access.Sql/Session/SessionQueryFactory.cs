@@ -82,7 +82,7 @@ where
 
 		public IQuery Add(Session session)
 		{
-            Guard.AgainstNull(session, nameof(session));
+            Guard.AgainstNull(session);
             
 			return new Query(@"
 insert into [dbo].[Session] 
@@ -203,7 +203,7 @@ where
 
         private IQuery Specification(DataAccess.Query.Session.Specification specification, bool columns)
         {
-			Guard.AgainstNull(specification, nameof(specification));
+			Guard.AgainstNull(specification);
 
 			return new Query($@"
 select distinct

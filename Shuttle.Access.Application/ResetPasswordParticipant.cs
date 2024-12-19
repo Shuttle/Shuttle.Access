@@ -8,7 +8,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class ResetPasswordParticipant : IAsyncParticipant<RequestMessage<ResetPassword>>
+public class ResetPasswordParticipant : IParticipant<RequestMessage<ResetPassword>>
 {
     private readonly IEventStore _eventStore;
     private readonly IHashingService _hashingService;
@@ -16,9 +16,9 @@ public class ResetPasswordParticipant : IAsyncParticipant<RequestMessage<ResetPa
 
     public ResetPasswordParticipant(IHashingService hashingService, IEventStore eventStore, IIdentityQuery identityQuery)
     {
-        Guard.AgainstNull(hashingService, nameof(hashingService));
-        Guard.AgainstNull(eventStore, nameof(eventStore));
-        Guard.AgainstNull(identityQuery, nameof(identityQuery));
+        Guard.AgainstNull(hashingService);
+        Guard.AgainstNull(eventStore);
+        Guard.AgainstNull(identityQuery);
 
         _eventStore = eventStore;
         _hashingService = hashingService;
@@ -27,7 +27,7 @@ public class ResetPasswordParticipant : IAsyncParticipant<RequestMessage<ResetPa
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<ResetPassword>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var queryIdentity = (await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(context.Message.Request.Name))).SingleOrDefault();
 
@@ -50,7 +50,7 @@ public class ResetPasswordParticipant : IAsyncParticipant<RequestMessage<ResetPa
             return;
         }
 
-        stream.AddEvent(identity.SetPassword(_hashingService.Sha256(context.Message.Request.Password)));
+        stream.Add(identity.SetPassword(_hashingService.Sha256(context.Message.Request.Password)));
 
         await _eventStore.SaveAsync(stream);
     }

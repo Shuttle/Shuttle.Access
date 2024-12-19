@@ -11,7 +11,7 @@ public static class HttpContextExtensions
 
     public static SessionTokenResult GetAccessSessionToken(this HttpContext context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         try
         {

@@ -11,30 +11,30 @@ namespace Shuttle.Access.Sql
 {
     public class IdentityQuery : IIdentityQuery
     {
-        private readonly IDatabaseGateway _databaseGateway;
+        private readonly IDatabaseContextService _databaseContextService;
         private readonly IIdentityQueryFactory _queryFactory;
         private readonly IQueryMapper _queryMapper;
 
-        public IdentityQuery(IDatabaseGateway databaseGateway,
+        public IdentityQuery(IDatabaseContextService databaseContextService,
             IQueryMapper queryMapper, IIdentityQueryFactory queryFactory)
         {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
-            Guard.AgainstNull(queryMapper, nameof(queryMapper));
+            Guard.AgainstNull(databaseContextService);
+            Guard.AgainstNull(queryFactory);
+            Guard.AgainstNull(queryMapper);
 
-            _databaseGateway = databaseGateway;
+            _databaseContextService = databaseContextService;
             _queryFactory = queryFactory;
             _queryMapper = queryMapper;
         }
 
         public async ValueTask<int> AdministratorCountAsync(CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.AdministratorCount(), cancellationToken);
+            return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.AdministratorCount(), cancellationToken);
         }
 
         public async ValueTask<Guid> IdAsync(string identityName, CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.GetScalarAsync<Guid>(_queryFactory.GetId(identityName), cancellationToken);
+            return await _databaseContextService.Active.GetScalarAsync<Guid>(_queryFactory.GetId(identityName), cancellationToken);
         }
 
         public async Task<IEnumerable<string>> PermissionsAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -44,13 +44,13 @@ namespace Shuttle.Access.Sql
 
         public async Task<IEnumerable<Messages.v1.Identity>> SearchAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             var result = await _queryMapper.MapObjectsAsync< Messages.v1.Identity >(_queryFactory.Search(specification), cancellationToken);
 
             if (specification.RolesIncluded)
             {
-                var roleRows = await _databaseGateway.GetRowsAsync(_queryFactory.Roles(specification), cancellationToken);
+                var roleRows = await _databaseContextService.Active.GetRowsAsync(_queryFactory.Roles(specification), cancellationToken);
 
                 foreach (var roleGroup in roleRows.GroupBy(row => Columns.IdentityId.Value(row)))
                 {
@@ -71,12 +71,12 @@ namespace Shuttle.Access.Sql
 
         public async Task<IEnumerable<Guid>> RoleIdsAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
-            return (await _databaseGateway.GetRowsAsync(_queryFactory.Roles(Guard.AgainstNull(specification, nameof(specification))), cancellationToken)).Select(row => Columns.RoleId.Value(row));
+            return (await _databaseContextService.Active.GetRowsAsync(_queryFactory.Roles(Guard.AgainstNull(specification, nameof(specification))), cancellationToken)).Select(row => Columns.RoleId.Value(row));
         }
 
         public async ValueTask<int> CountAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Count(Guard.AgainstNull(specification, nameof(specification))), cancellationToken);
+            return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(Guard.AgainstNull(specification, nameof(specification))), cancellationToken);
         }
     }
 }

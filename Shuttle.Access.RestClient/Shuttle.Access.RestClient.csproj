@@ -3,12 +3,13 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Refit" Version="7.2.1" />
-		<PackageReference Include="Refit.HttpClientFactory" Version="7.2.1" />
-		<PackageReference Include="Shuttle.Core.Contract" Version="11.1.1" />
+		<PackageReference Include="Refit" Version="8.0.0" />
+		<PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
+		<PackageReference Include="Shuttle.Core.Contract" Version="20.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>

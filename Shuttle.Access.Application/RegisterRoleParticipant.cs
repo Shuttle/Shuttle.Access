@@ -8,41 +8,41 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterRoleParticipant : IAsyncParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
+public class RegisterRoleParticipant : IParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
 {
     private readonly IEventStore _eventStore;
-    private readonly IKeyStore _keyStore;
+    private readonly IIdKeyRepository _idKeyRepository;
 
-    public RegisterRoleParticipant(IEventStore eventStore, IKeyStore keyStore)
+    public RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
-        Guard.AgainstNull(keyStore, nameof(keyStore));
+        Guard.AgainstNull(eventStore);
+        Guard.AgainstNull(idKeyRepository);
 
         _eventStore = eventStore;
-        _keyStore = keyStore;
+        _idKeyRepository = idKeyRepository;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message.Request;
 
         var key = Role.Key(message.Name);
 
-        if (await _keyStore.ContainsAsync(key))
+        if (await _idKeyRepository.ContainsAsync(key))
         {
             return;
         }
 
         var id = Guid.NewGuid();
 
-        await _keyStore.AddAsync(id, key);
+        await _idKeyRepository.AddAsync(id, key);
 
         var role = new Role();
         var stream = await _eventStore.GetAsync(id);
 
-        stream.AddEvent(role.Register(message.Name));
+        stream.Add(role.Register(message.Name));
 
         context.Message.WithResponse(new()
         {

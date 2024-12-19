@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
@@ -59,24 +60,27 @@ internal class Program
                     .AddServiceBus(builder =>
                     {
                         configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
-
-                        builder.Options.Subscription.ConnectionStringName = "Access";
-
-                        builder.Options.Asynchronous = true;
                     })
                     .AddAzureStorageQueues(builder =>
                     {
                         builder.AddOptions("azure", new()
                         {
-                            ConnectionString = configuration.GetConnectionString("azure")
+                            ConnectionString = Guard.AgainstNullOrEmptyString(configuration.GetConnectionString("azure"))
                         });
                     })
                     .AddSqlEventStorage(builder =>
                     {
                         builder.Options.ConnectionStringName = "Access";
+
+                        builder.UseSqlServer();
                     })
                     .AddEventStore()
-                    .AddSqlSubscription()
+                    .AddSqlSubscription(builder =>
+                    {
+                        builder.Options.ConnectionStringName = "Access";
+                        
+                        builder.UseSqlServer();
+                    })
                     .AddDataStoreAccessService()
                     .AddMediator(builder =>
                     {

@@ -29,7 +29,7 @@ public class PermissionsFixture
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content.Find(item => item.Id == permission.Id), Is.Not.Null);
+        Assert.That(response.Content!.Find(item => item.Id == permission.Id), Is.Not.Null);
     }
 
     [Test]
@@ -41,7 +41,7 @@ public class PermissionsFixture
 
         factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RegisterPermission>(message => message.Name.Equals(permission)), null)).Verifiable();
 
-        var response = await factory.GetAccessClient().Permissions.PostAsync(new RegisterPermission
+        var response = await factory.GetAccessClient().Permissions.PostAsync(new()
         {
             Name = permission
         });
@@ -61,7 +61,7 @@ public class PermissionsFixture
 
         factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)), null)).Verifiable();
 
-        var response = await factory.GetAccessClient().Permissions.SetStatusAsync(permissionId, new SetPermissionStatus
+        var response = await factory.GetAccessClient().Permissions.SetStatusAsync(permissionId, new()
         {
             Id = permissionId,
             Status = (int)PermissionStatus.Deactivated

@@ -9,7 +9,7 @@ namespace Shuttle.Access.Sql
     {
         public static IServiceCollection AddSqlAccess(this IServiceCollection services)
         {
-            Guard.AgainstNull(services, nameof(services));
+            Guard.AgainstNull(services);
 
             services.FromAssembly(typeof(ServiceCollectionExtensions).GetTypeInfo().Assembly).Add();
 

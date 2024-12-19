@@ -5,20 +5,20 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class GenerateHashParticipant : IAsyncParticipant<GenerateHash>
+public class GenerateHashParticipant : IParticipant<GenerateHash>
 {
     private readonly IHashingService _hashingService;
 
     public GenerateHashParticipant(IHashingService hashingService)
     {
-        Guard.AgainstNull(hashingService, nameof(hashingService));
+        Guard.AgainstNull(hashingService);
 
         _hashingService = hashingService;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<GenerateHash> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         context.Message.Hash = _hashingService.Sha256(context.Message.Value);
 

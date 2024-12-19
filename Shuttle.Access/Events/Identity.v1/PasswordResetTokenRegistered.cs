@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Shuttle.Access.Events.Identity.v1
+namespace Shuttle.Access.Events.Identity.v1;
+
+public class PasswordResetTokenRegistered
 {
-    public class PasswordResetTokenRegistered
-    {
-        public Guid Token { get; set; }
-    }
+    public Guid Token { get; set; }
 }

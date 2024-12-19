@@ -7,23 +7,23 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RemoveRoleParticipant : IAsyncParticipant<RequestResponseMessage<RemoveRole, RoleRemoved>>
+public class RemoveRoleParticipant : IParticipant<RequestResponseMessage<RemoveRole, RoleRemoved>>
 {
     private readonly IEventStore _eventStore;
-    private readonly IKeyStore _keyStore;
+    private readonly IIdKeyRepository _idKeyRepository;
 
-    public RemoveRoleParticipant(IEventStore eventStore, IKeyStore keyStore)
+    public RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
-        Guard.AgainstNull(keyStore, nameof(keyStore));
+        Guard.AgainstNull(eventStore);
+        Guard.AgainstNull(idKeyRepository);
 
         _eventStore = eventStore;
-        _keyStore = keyStore;
+        _idKeyRepository = idKeyRepository;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RemoveRole, RoleRemoved>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message;
 
@@ -38,9 +38,9 @@ public class RemoveRoleParticipant : IAsyncParticipant<RequestResponseMessage<Re
 
         stream.Apply(role);
 
-        stream.AddEvent(role.Remove());
+        stream.Add(role.Remove());
 
-        await _keyStore.RemoveAsync(message.Request.Id);
+        await _idKeyRepository.RemoveAsync(message.Request.Id);
 
         await _eventStore.SaveAsync(stream);
 

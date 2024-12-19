@@ -8,7 +8,7 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterSessionParticipant : IAsyncParticipant<RegisterSession>
+public class RegisterSessionParticipant : IParticipant<RegisterSession>
 {
     private readonly AccessOptions _accessOptions;
     private readonly IAuthenticationService _authenticationService;

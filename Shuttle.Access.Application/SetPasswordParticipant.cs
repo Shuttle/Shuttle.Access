@@ -6,27 +6,27 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetPasswordParticipant : IAsyncParticipant<SetPassword>
+public class SetPasswordParticipant : IParticipant<SetPassword>
 {
     private readonly IEventStore _eventStore;
 
     public SetPasswordParticipant(IEventStore eventStore)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
+        Guard.AgainstNull(eventStore);
 
         _eventStore = eventStore;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<SetPassword> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message;
         var identity = new Identity();
         var stream = await _eventStore.GetAsync(message.Id);
 
         stream.Apply(identity);
-        stream.AddEvent(identity.SetPassword(message.PasswordHash));
+        stream.Add(identity.SetPassword(message.PasswordHash));
 
         await _eventStore.SaveAsync(stream);
     }

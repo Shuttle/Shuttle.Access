@@ -17,8 +17,8 @@ public class ApplicationHostedService: IHostedService
     {
         Guard.AgainstNull(hostApplicationLifetime, nameof(hostApplicationLifetime)).ApplicationStarted.Register(OnStarted);
 
-        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-        _mediator = Guard.AgainstNull(mediator, nameof(mediator));
+        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
+        _mediator = Guard.AgainstNull(mediator);
     }
 
     private void OnStarted()

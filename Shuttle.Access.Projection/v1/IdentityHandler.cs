@@ -7,12 +7,12 @@ using Shuttle.Recall;
 namespace Shuttle.Access.Projection.v1;
 
 public class IdentityHandler :
-    IAsyncEventHandler<Registered>,
-    IAsyncEventHandler<RoleAdded>,
-    IAsyncEventHandler<RoleRemoved>,
-    IAsyncEventHandler<Removed>,
-    IAsyncEventHandler<Activated>,
-    IAsyncEventHandler<NameSet>
+    IEventHandler<Registered>,
+    IEventHandler<RoleAdded>,
+    IEventHandler<RoleRemoved>,
+    IEventHandler<Removed>,
+    IEventHandler<Activated>,
+    IEventHandler<NameSet>
 {
     private readonly IIdentityProjectionQuery _query;
 

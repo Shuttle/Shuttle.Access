@@ -5,8 +5,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.DataAccess.Query;
-using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
@@ -16,12 +14,12 @@ public class RolesFixture
 {
     private static Messages.v1.Role CreateRole()
     {
-        return new Messages.v1.Role
+        return new()
         {
             Id = Guid.NewGuid(),
             Name = "name",
-            Permissions = new List<Messages.v1.Role.Permission>
-            {
+            Permissions =
+            [
                 new()
                 {
                     Id = Guid.NewGuid(),
@@ -32,7 +30,7 @@ public class RolesFixture
                     Id = Guid.NewGuid(),
                     Name = "system://permission-b"
                 }
-            }
+            ]
         };
     }
 
@@ -56,7 +54,7 @@ public class RolesFixture
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content.Count, Is.EqualTo(1));
+        Assert.That(response.Content!.Count, Is.EqualTo(1));
 
         var responseRole = response.Content[0];
 
@@ -86,7 +84,7 @@ public class RolesFixture
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content.Id, Is.EqualTo(role.Id));
+        Assert.That(response.Content!.Id, Is.EqualTo(role.Id));
         Assert.That(response.Content.Name, Is.EqualTo(role.Name));
         Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions[0].Id), Is.Not.Null);
         Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions[1].Id), Is.Not.Null);
@@ -120,7 +118,7 @@ public class RolesFixture
                 m.SendAsync(It.Is<SetRolePermission>(message => message.PermissionId.Equals(permissionId)), null))
             .Verifiable();
 
-        var response = await factory.GetAccessClient().Roles.SetPermissionAsync(Guid.NewGuid(), new SetRolePermission
+        var response = await factory.GetAccessClient().Roles.SetPermissionAsync(Guid.NewGuid(), new()
         {
             PermissionId = permissionId,
             Active = true
@@ -151,30 +149,30 @@ public class RolesFixture
                 }
             }.AsEnumerable()));
 
-        var response = await factory.GetAccessClient().Roles.PermissionAvailabilityAsync(Guid.NewGuid(), new Identifiers<Guid>
+        var response = await factory.GetAccessClient().Roles.PermissionAvailabilityAsync(Guid.NewGuid(), new()
         {
-            Values = new List<Guid>
-            {
+            Values =
+            [
                 activePermissionId,
                 inactivePermissionId
-            }
+            ]
         });
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
 
-        Assert.That(response.Content.Count, Is.EqualTo(2));
+        Assert.That(response.Content!.Count, Is.EqualTo(2));
 
         var permission = response.Content.Find(item => item.Id == activePermissionId);
 
         Assert.That(permission, Is.Not.Null);
-        Assert.That(permission.Active, Is.True);
+        Assert.That(permission!.Active, Is.True);
 
         permission = response.Content.Find(item => item.Id == inactivePermissionId);
 
         Assert.That(permission, Is.Not.Null);
-        Assert.That(permission.Active, Is.False);
+        Assert.That(permission!.Active, Is.False);
     }
 
     [Test]
@@ -182,7 +180,7 @@ public class RolesFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var response = await factory.GetAccessClient().Roles.RegisterAsync(new RegisterRole
+        var response = await factory.GetAccessClient().Roles.RegisterAsync(new()
         {
             Name = "role"
         });

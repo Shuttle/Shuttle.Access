@@ -18,7 +18,7 @@ public class RequiresPermissionAttribute : TypeFilterAttribute
 
         public RequiresPermission(IAccessService accessService, string permission)
         {
-            Guard.AgainstNull(accessService, nameof(accessService));
+            Guard.AgainstNull(accessService);
             Guard.AgainstNullOrEmptyString(permission);
 
             _accessService = accessService;

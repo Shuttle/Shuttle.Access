@@ -23,7 +23,7 @@ public class RemoveIdentityParticipantFixture
             Id = Guid.NewGuid()
         };
 
-        var participant = new RemoveIdentityParticipant(eventStore, new Mock<IKeyStore>().Object);
+        var participant = new RemoveIdentityParticipant(eventStore, new Mock<IIdKeyRepository>().Object);
 
         await participant.ProcessMessageAsync(new ParticipantContext<RemoveIdentity>(removeIdentity, CancellationToken.None));
 

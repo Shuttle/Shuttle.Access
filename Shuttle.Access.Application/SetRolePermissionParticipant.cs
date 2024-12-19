@@ -6,20 +6,20 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetRolePermissionParticipant : IAsyncParticipant<RequestResponseMessage<SetRolePermission, RolePermissionSet>>
+public class SetRolePermissionParticipant : IParticipant<RequestResponseMessage<SetRolePermission, RolePermissionSet>>
 {
     private readonly IEventStore _eventStore;
 
     public SetRolePermissionParticipant(IEventStore eventStore)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
+        Guard.AgainstNull(eventStore);
 
         _eventStore = eventStore;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetRolePermission, RolePermissionSet>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message;
         var request = message.Request;
@@ -31,12 +31,12 @@ public class SetRolePermissionParticipant : IAsyncParticipant<RequestResponseMes
 
         if (request.Active && !role.HasPermission(request.PermissionId))
         {
-            stream.AddEvent(role.AddPermission(request.PermissionId));
+            stream.Add(role.AddPermission(request.PermissionId));
         }
 
         if (!request.Active && role.HasPermission(request.PermissionId))
         {
-            stream.AddEvent(role.RemovePermission(request.PermissionId));
+            stream.Add(role.RemovePermission(request.PermissionId));
         }
 
         message.WithResponse(new()

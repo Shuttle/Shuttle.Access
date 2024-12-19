@@ -7,23 +7,23 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RemoveIdentityParticipant : IAsyncParticipant<RemoveIdentity>
+public class RemoveIdentityParticipant : IParticipant<RemoveIdentity>
 {
     private readonly IEventStore _eventStore;
-    private readonly IKeyStore _keyStore;
+    private readonly IIdKeyRepository _idKeyRepository;
 
-    public RemoveIdentityParticipant(IEventStore eventStore, IKeyStore keyStore)
+    public RemoveIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
-        Guard.AgainstNull(keyStore, nameof(keyStore));
+        Guard.AgainstNull(eventStore);
+        Guard.AgainstNull(idKeyRepository);
 
         _eventStore = eventStore;
-        _keyStore = keyStore;
+        _idKeyRepository = idKeyRepository;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RemoveIdentity> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message;
         var id = message.Id;
@@ -32,9 +32,9 @@ public class RemoveIdentityParticipant : IAsyncParticipant<RemoveIdentity>
 
         stream.Apply(identity);
 
-        stream.AddEvent(identity.Remove());
+        stream.Add(identity.Remove());
 
-        await _keyStore.RemoveAsync(id);
+        await _idKeyRepository.RemoveAsync(id);
 
         await _eventStore.SaveAsync(stream);
     }

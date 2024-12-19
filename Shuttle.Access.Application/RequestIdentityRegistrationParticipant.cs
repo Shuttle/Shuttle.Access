@@ -6,7 +6,7 @@ using Shuttle.Esb;
 
 namespace Shuttle.Access.Application;
 
-public class RequestIdentityRegistrationParticipant : IAsyncParticipant<RequestIdentityRegistration>
+public class RequestIdentityRegistrationParticipant : IParticipant<RequestIdentityRegistration>
 {
     private readonly IServiceBus _serviceBus;
     private readonly ISessionRepository _sessionRepository;
@@ -21,7 +21,7 @@ public class RequestIdentityRegistrationParticipant : IAsyncParticipant<RequestI
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestIdentityRegistration> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         if (context.Message.SessionToken.HasValue)
         {

@@ -6,20 +6,20 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetPermissionStatusParticipant : IAsyncParticipant<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>>
+public class SetPermissionStatusParticipant : IParticipant<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>>
 {
     private readonly IEventStore _eventStore;
 
     public SetPermissionStatusParticipant(IEventStore eventStore)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
+        Guard.AgainstNull(eventStore);
 
         _eventStore = eventStore;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message;
 
@@ -42,17 +42,17 @@ public class SetPermissionStatusParticipant : IAsyncParticipant<RequestResponseM
         {
             case PermissionStatus.Active:
             {
-                stream.AddEvent(permission.Activate());
+                stream.Add(permission.Activate());
                 break;
             }
             case PermissionStatus.Deactivated:
             {
-                stream.AddEvent(permission.Deactivate());
+                stream.Add(permission.Deactivate());
                 break;
             }
             case PermissionStatus.Removed:
             {
-                stream.AddEvent(permission.Remove());
+                stream.Add(permission.Remove());
                 break;
             }
         }

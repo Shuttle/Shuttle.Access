@@ -8,36 +8,36 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterPermissionParticipant : IAsyncParticipant<RequestResponseMessage<RegisterPermission, PermissionRegistered>>
+public class RegisterPermissionParticipant : IParticipant<RequestResponseMessage<RegisterPermission, PermissionRegistered>>
 {
     private readonly IEventStore _eventStore;
-    private readonly IKeyStore _keyStore;
+    private readonly IIdKeyRepository _idKeyRepository;
 
-    public RegisterPermissionParticipant(IEventStore eventStore, IKeyStore keyStore)
+    public RegisterPermissionParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
-        Guard.AgainstNull(keyStore, nameof(keyStore));
+        Guard.AgainstNull(eventStore);
+        Guard.AgainstNull(idKeyRepository);
 
         _eventStore = eventStore;
-        _keyStore = keyStore;
+        _idKeyRepository = idKeyRepository;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterPermission, PermissionRegistered>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message.Request;
 
         var key = Permission.Key(message.Name);
 
-        if (await _keyStore.ContainsAsync(key))
+        if (await _idKeyRepository.ContainsAsync(key))
         {
             return;
         }
 
         var id = Guid.NewGuid();
 
-        await _keyStore.AddAsync(id, key);
+        await _idKeyRepository.AddAsync(id, key);
 
         var aggregate = new Permission();
         var stream = await _eventStore.GetAsync(id);
@@ -48,7 +48,7 @@ public class RegisterPermissionParticipant : IAsyncParticipant<RequestResponseMe
             status = (int)PermissionStatus.Active;
         }
 
-        stream.AddEvent(aggregate.Register(message.Name, (PermissionStatus)status));
+        stream.Add(aggregate.Register(message.Name, (PermissionStatus)status));
 
         context.Message.WithResponse(new()
         {

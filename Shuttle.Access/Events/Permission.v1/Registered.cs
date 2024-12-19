@@ -1,8 +1,7 @@
-﻿namespace Shuttle.Access.Events.Permission.v1
+﻿namespace Shuttle.Access.Events.Permission.v1;
+
+public class Registered
 {
-    public class Registered
-    {
-        public string Name { get; set; }
-        public PermissionStatus Status { get; set; }
-    }
+    public string Name { get; set; } = string.Empty;
+    public PermissionStatus Status { get; set; }
 }

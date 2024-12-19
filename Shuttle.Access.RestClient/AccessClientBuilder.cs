@@ -16,7 +16,7 @@ namespace Shuttle.Access.RestClient
 
         public AccessClientBuilder(IServiceCollection services)
         {
-            Guard.AgainstNull(services, nameof(services));
+            Guard.AgainstNull(services);
 
             Services = services;
         }

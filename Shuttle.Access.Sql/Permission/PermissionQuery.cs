@@ -11,16 +11,16 @@ namespace Shuttle.Access.Sql
     public class PermissionQuery : IPermissionQuery
     {
         private readonly IPermissionQueryFactory _queryFactory;
-        private readonly IDatabaseGateway _databaseGateway;
+        private readonly IDatabaseContextService _databaseContextService;
         private readonly IQueryMapper _queryMapper;
 
-        public PermissionQuery(IDatabaseGateway databaseGateway, IQueryMapper queryMapper, IPermissionQueryFactory queryFactory)
+        public PermissionQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, IPermissionQueryFactory queryFactory)
         {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(queryMapper, nameof(queryMapper));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
+            Guard.AgainstNull(databaseContextService);
+            Guard.AgainstNull(queryMapper);
+            Guard.AgainstNull(queryFactory);
 
-            _databaseGateway = databaseGateway;
+            _databaseContextService = databaseContextService;
             _queryMapper = queryMapper;
             _queryFactory = queryFactory;
         }
@@ -32,12 +32,12 @@ namespace Shuttle.Access.Sql
 
         public async ValueTask<int> CountAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
+            return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
         }
 
         public async ValueTask<bool> ContainsAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)
         {
-            return await _databaseGateway.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;
+            return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;
         }
     }
 }

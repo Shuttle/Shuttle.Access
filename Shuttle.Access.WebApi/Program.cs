@@ -5,7 +5,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.OpenApi.Models;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.RestClient;
 using Shuttle.Access.Sql;
 using Shuttle.Access.WebApi.Endpoints;
 using Shuttle.Core.Data;
@@ -104,13 +103,15 @@ public class Program
             {
                 webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Bind(builder.Options);
             })
-            .AddSqlSubscription()
+            .AddSqlSubscription(builder =>
+            {
+                builder.Options.ConnectionStringName = "Access";
+
+                builder.UseSqlServer();
+            })
             .AddServiceBus(builder =>
             {
                 webApplicationBuilder.Configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
-
-                builder.Options.Asynchronous = true;
-                builder.Options.Subscription.ConnectionStringName = "Access";
 
                 builder.AddSubscription<IdentityRoleSet>();
                 builder.AddSubscription<RolePermissionSet>();
@@ -131,10 +132,14 @@ public class Program
             .AddSqlEventStorage(builder =>
             {
                 builder.Options.ConnectionStringName = "Access";
+
+                builder.UseSqlServer();
             })
             .AddSqlEventProcessing(builder =>
             {
                 builder.Options.ConnectionStringName = "Access";
+
+                builder.UseSqlServer();
             })
             .AddMediator(builder =>
             {

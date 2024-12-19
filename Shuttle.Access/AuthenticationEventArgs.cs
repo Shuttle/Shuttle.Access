@@ -1,20 +1,19 @@
 using System;
 
-namespace Shuttle.Access
+namespace Shuttle.Access;
+
+public class AuthenticationEventArgs : EventArgs
 {
-    public class AuthenticationEventArgs : EventArgs
+    public AuthenticationEventArgs()
     {
-        public bool Authenticated { get; }
-        public string Message { get; }
-
-        public AuthenticationEventArgs()
-        {
-        }
-
-        public AuthenticationEventArgs(bool authenticated, string message)
-        {
-            Authenticated = authenticated;
-            Message = message ?? string.Empty;
-        }
     }
+
+    public AuthenticationEventArgs(bool authenticated, string message)
+    {
+        Authenticated = authenticated;
+        Message = message;
+    }
+
+    public bool Authenticated { get; }
+    public string Message { get; } = string.Empty;
 }

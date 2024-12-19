@@ -7,23 +7,23 @@ using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class SetPermissionNameParticipant : IAsyncParticipant<RequestResponseMessage<SetPermissionName, PermissionNameSet>>
+public class SetPermissionNameParticipant : IParticipant<RequestResponseMessage<SetPermissionName, PermissionNameSet>>
 {
     private readonly IEventStore _eventStore;
-    private readonly IKeyStore _keyStore;
+    private readonly IIdKeyRepository _idKeyRepository;
 
-    public SetPermissionNameParticipant(IEventStore eventStore, IKeyStore keyStore)
+    public SetPermissionNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore, nameof(eventStore));
-        Guard.AgainstNull(keyStore, nameof(keyStore));
+        Guard.AgainstNull(eventStore);
+        Guard.AgainstNull(idKeyRepository);
 
         _eventStore = eventStore;
-        _keyStore = keyStore;
+        _idKeyRepository = idKeyRepository;
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetPermissionName, PermissionNameSet>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var request = context.Message.Request;
 
@@ -40,14 +40,14 @@ public class SetPermissionNameParticipant : IAsyncParticipant<RequestResponseMes
         var key = Permission.Key(permission.Name);
         var rekey = Permission.Key(request.Name);
 
-        if (await _keyStore.ContainsAsync(rekey) || !await _keyStore.ContainsAsync(key))
+        if (await _idKeyRepository.ContainsAsync(rekey) || !await _idKeyRepository.ContainsAsync(key))
         {
             return;
         }
 
-        await _keyStore.RekeyAsync(key, rekey);
+        await _idKeyRepository.RekeyAsync(key, rekey);
 
-        stream.AddEvent(permission.SetName(request.Name));
+        stream.Add(permission.SetName(request.Name));
 
         context.Message.WithResponse(new()
         {

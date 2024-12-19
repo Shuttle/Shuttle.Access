@@ -19,8 +19,8 @@ namespace Shuttle.Access.Sql
 
         public AuthorizationService(IRoleQuery roleQuery, IIdentityQuery identityQuery)
         {
-            Guard.AgainstNull(roleQuery, nameof(roleQuery));
-            Guard.AgainstNull(identityQuery, nameof(identityQuery));
+            Guard.AgainstNull(roleQuery);
+            Guard.AgainstNull(identityQuery);
 
             _roleQuery = roleQuery;
             _identityQuery = identityQuery;

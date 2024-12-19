@@ -26,7 +26,7 @@ public class SessionTokenResult
 
     public static SessionTokenResult Failure(IActionResult httpActionResult)
     {
-        Guard.AgainstNull(httpActionResult, nameof(httpActionResult));
+        Guard.AgainstNull(httpActionResult);
 
         return new SessionTokenResult
         {

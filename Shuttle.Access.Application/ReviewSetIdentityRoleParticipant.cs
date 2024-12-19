@@ -7,15 +7,15 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class ReviewSetIdentityRoleParticipant : IAsyncParticipant<RequestMessage<SetIdentityRole>>
+public class ReviewSetIdentityRoleParticipant : IParticipant<RequestMessage<SetIdentityRole>>
 {
     private readonly IIdentityQuery _identityQuery;
     private readonly IRoleQuery _roleQuery;
 
     public ReviewSetIdentityRoleParticipant(IRoleQuery roleQuery, IIdentityQuery identityQuery)
     {
-        Guard.AgainstNull(roleQuery, nameof(roleQuery));
-        Guard.AgainstNull(identityQuery, nameof(identityQuery));
+        Guard.AgainstNull(roleQuery);
+        Guard.AgainstNull(identityQuery);
 
         _roleQuery = roleQuery;
         _identityQuery = identityQuery;
@@ -23,7 +23,7 @@ public class ReviewSetIdentityRoleParticipant : IAsyncParticipant<RequestMessage
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<SetIdentityRole>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var request = context.Message.Request;
         var roles = (await _roleQuery.SearchAsync(new DataAccess.Query.Role.Specification().AddName("Administrator"))).ToList();

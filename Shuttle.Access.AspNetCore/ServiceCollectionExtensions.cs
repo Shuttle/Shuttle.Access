@@ -7,7 +7,7 @@ namespace Shuttle.Access.AspNetCore
     {
         public static IServiceCollection AddAccessAuthorization(this IServiceCollection services)
         {
-            Guard.AgainstNull(services, nameof(services));
+            Guard.AgainstNull(services);
 
             services.AddSingleton<AccessAuthorizationMiddleware>();
 

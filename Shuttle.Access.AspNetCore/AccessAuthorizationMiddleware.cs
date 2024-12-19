@@ -11,7 +11,7 @@ public class AccessAuthorizationMiddleware : IMiddleware
 
     public AccessAuthorizationMiddleware(IAccessService accessService)
     {
-        _accessService = Guard.AgainstNull(accessService, nameof(accessService));
+        _accessService = Guard.AgainstNull(accessService);
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)

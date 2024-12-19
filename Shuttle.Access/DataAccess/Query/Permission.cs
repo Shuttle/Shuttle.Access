@@ -1,84 +1,83 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Shuttle.Access.DataAccess.Query
+namespace Shuttle.Access.DataAccess.Query;
+
+public class Permission
 {
-    public class Permission
+    public class Specification
     {
-        public class Specification
+        private readonly List<Guid> _ids = new();
+        private readonly List<string> _names = new();
+        private readonly List<Guid> _roleIds = new();
+        private readonly List<int> _statuses = new();
+        public IEnumerable<Guid> Ids => _ids.AsReadOnly();
+
+        public string NameMatch { get; private set; } = string.Empty;
+        public IEnumerable<string> Names => _names.AsReadOnly();
+        public IEnumerable<Guid> RoleIds => _roleIds.AsReadOnly();
+        public IEnumerable<int> Statuses => _statuses.AsReadOnly();
+
+        public Specification AddId(Guid id)
         {
-            private readonly List<Guid> _ids = new();
-            private readonly List<string> _names = new();
-            private readonly List<Guid> _roleIds = new();
-            private readonly List<int> _statuses = new();
-            public IEnumerable<Guid> Ids => _ids.AsReadOnly();
-
-            public string NameMatch { get; private set; }
-            public IEnumerable<string> Names => _names.AsReadOnly();
-            public IEnumerable<Guid> RoleIds => _roleIds.AsReadOnly();
-            public IEnumerable<int> Statuses => _statuses.AsReadOnly();
-
-            public Specification AddId(Guid id)
+            if (!_ids.Contains(id))
             {
-                if (!_ids.Contains(id))
-                {
-                    _ids.Add(id);
-                }
+                _ids.Add(id);
+            }
 
+            return this;
+        }
+
+        public Specification AddIds(IEnumerable<Guid> ids)
+        {
+            if (ids == null)
+            {
                 return this;
             }
 
-            public Specification AddIds(IEnumerable<Guid> ids)
+            foreach (var id in ids)
             {
-                if (ids == null)
-                {
-                    return this;
-                }
-
-                foreach (var id in ids)
-                {
-                    AddId(id);
-                }
-
-                return this;
+                AddId(id);
             }
 
-            public Specification AddName(string name)
-            {
-                if (!_names.Contains(name))
-                {
-                    _names.Add(name);
-                }
+            return this;
+        }
 
-                return this;
+        public Specification AddName(string name)
+        {
+            if (!_names.Contains(name))
+            {
+                _names.Add(name);
             }
 
-            public Specification AddRoleId(Guid roleId)
-            {
-                if (!_roleIds.Contains(roleId))
-                {
-                    _roleIds.Add(roleId);
-                }
+            return this;
+        }
 
-                return this;
+        public Specification AddRoleId(Guid roleId)
+        {
+            if (!_roleIds.Contains(roleId))
+            {
+                _roleIds.Add(roleId);
             }
 
-            public Specification AddStatus(int status)
-            {
-                if (!_statuses.Contains(status))
-                {
-                    _statuses.Add(status);
-                }
+            return this;
+        }
 
-                return this;
+        public Specification AddStatus(int status)
+        {
+            if (!_statuses.Contains(status))
+            {
+                _statuses.Add(status);
             }
 
-            public Specification WithNameMatch(string nameMatch)
-            {
-                NameMatch = nameMatch;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithNameMatch(string nameMatch)
+        {
+            NameMatch = nameMatch;
+
+            return this;
         }
     }
 }

@@ -9,15 +9,15 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class ActivateIdentityParticipant : IAsyncParticipant<RequestResponseMessage<ActivateIdentity, IdentityActivated>>
+public class ActivateIdentityParticipant : IParticipant<RequestResponseMessage<ActivateIdentity, IdentityActivated>>
 {
     private readonly IEventStore _eventStore;
     private readonly IIdentityQuery _identityQuery;
 
     public ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventStore eventStore)
     {
-        Guard.AgainstNull(identityQuery, nameof(identityQuery));
-        Guard.AgainstNull(eventStore, nameof(eventStore));
+        Guard.AgainstNull(identityQuery);
+        Guard.AgainstNull(eventStore);
 
         _identityQuery = identityQuery;
         _eventStore = eventStore;
@@ -25,7 +25,7 @@ public class ActivateIdentityParticipant : IAsyncParticipant<RequestResponseMess
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<ActivateIdentity, IdentityActivated>> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var message = context.Message.Request;
         var now = DateTime.UtcNow;
@@ -53,7 +53,7 @@ public class ActivateIdentityParticipant : IAsyncParticipant<RequestResponseMess
         var stream = await _eventStore.GetAsync(id);
 
         stream.Apply(identity);
-        stream.AddEvent(identity.Activate(now));
+        stream.Add(identity.Activate(now));
 
         context.Message.WithResponse(new()
         {

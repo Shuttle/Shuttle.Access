@@ -8,7 +8,7 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplication>
+public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication>
 {
     private readonly IIdentityQuery _identityQuery;
     private readonly IMediator _mediator;
@@ -34,10 +34,10 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
 
     public ConfigureApplicationParticipant(IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
     {
-        Guard.AgainstNull(mediator, nameof(mediator));
-        Guard.AgainstNull(roleQuery, nameof(roleQuery));
-        Guard.AgainstNull(permissionQuery, nameof(permissionQuery));
-        Guard.AgainstNull(identityQuery, nameof(identityQuery));
+        Guard.AgainstNull(mediator);
+        Guard.AgainstNull(roleQuery);
+        Guard.AgainstNull(permissionQuery);
+        Guard.AgainstNull(identityQuery);
 
         _mediator = mediator;
         _roleQuery = roleQuery;
@@ -47,7 +47,7 @@ public class ConfigureApplicationParticipant : IAsyncParticipant<ConfigureApplic
 
     public async Task ProcessMessageAsync(IParticipantContext<ConfigureApplication> context)
     {
-        Guard.AgainstNull(context, nameof(context));
+        Guard.AgainstNull(context);
 
         var roleSpecification = new DataAccess.Query.Role.Specification().AddName("Administrator");
 

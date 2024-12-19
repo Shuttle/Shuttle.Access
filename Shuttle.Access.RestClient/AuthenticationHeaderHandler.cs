@@ -30,7 +30,7 @@ public class AuthenticationHeaderHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        Guard.AgainstNull(request, nameof(request));
+        Guard.AgainstNull(request);
 
         request.Headers.Add("User-Agent", _userAgent);
 

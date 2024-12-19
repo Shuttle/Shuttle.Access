@@ -22,7 +22,7 @@ namespace Shuttle.Access.Sql
 
         public IQuery Specification(DataAccess.Query.Permission.Specification specification, bool columns)
         {
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             var what = columns
                 ? @"
@@ -72,7 +72,7 @@ and
 
         public IQuery Registered(Guid id, Registered domainEvent)
         {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+            Guard.AgainstNull(domainEvent);
 
             return new Query(@"
 if not exists
@@ -104,7 +104,7 @@ if not exists
 
         public IQuery Activated(Guid id, Activated domainEvent)
         {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+            Guard.AgainstNull(domainEvent);
 
             return SetStatus(id, (int)PermissionStatus.Active);
         }
@@ -125,21 +125,21 @@ where
 
         public IQuery Deactivated(Guid id, Deactivated domainEvent)
         {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+            Guard.AgainstNull(domainEvent);
 
             return SetStatus(id, (int)PermissionStatus.Deactivated);
         }
 
         public IQuery Removed(Guid id, Removed domainEvent)
         {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+            Guard.AgainstNull(domainEvent);
 
             return SetStatus(id, (int)PermissionStatus.Removed);
         }
 
         public IQuery Contains(DataAccess.Query.Permission.Specification specification)
         {
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             return new Query($@"
 if exists

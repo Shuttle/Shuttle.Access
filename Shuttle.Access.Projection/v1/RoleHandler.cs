@@ -7,11 +7,11 @@ using Shuttle.Recall;
 namespace Shuttle.Access.Projection.v1;
 
 public class RoleHandler :
-    IAsyncEventHandler<Registered>,
-    IAsyncEventHandler<Removed>,
-    IAsyncEventHandler<PermissionAdded>,
-    IAsyncEventHandler<PermissionRemoved>,
-    IAsyncEventHandler<NameSet>
+    IEventHandler<Registered>,
+    IEventHandler<Removed>,
+    IEventHandler<PermissionAdded>,
+    IEventHandler<PermissionRemoved>,
+    IEventHandler<NameSet>
 {
     private readonly IRoleProjectionQuery _query;
 

@@ -14,6 +14,6 @@ public class ServerFixture
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content.Version, Is.EqualTo("1.0.0"));
+        Assert.That(response.Content!.Version, Is.EqualTo("1.0.0"));
     }
 }

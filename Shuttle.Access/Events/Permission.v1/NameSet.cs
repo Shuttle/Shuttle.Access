@@ -1,7 +1,6 @@
-﻿namespace Shuttle.Access.Events.Permission.v1
+﻿namespace Shuttle.Access.Events.Permission.v1;
+
+public class NameSet
 {
-    public class NameSet
-    {
-        public string Name { get; set; }
-    }
+    public string Name { get; set; } = string.Empty;
 }

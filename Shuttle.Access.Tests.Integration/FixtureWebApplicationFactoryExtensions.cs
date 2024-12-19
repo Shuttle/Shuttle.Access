@@ -1,27 +1,23 @@
-﻿using Microsoft.Extensions.Options;
-using Shuttle.Access.RestClient;
-using System;
+﻿using System;
 using System.Net.Http;
+using Microsoft.Extensions.Options;
+using Shuttle.Access.RestClient;
 
 namespace Shuttle.Access.Tests.Integration;
 
 public static class FixtureWebApplicationFactoryExtensions
 {
-    public static IAccessClient GetAccessClient(this FixtureWebApplicationFactory factory, Action<HttpClient> configureHttpClient = null)
+    public static IAccessClient GetAccessClient(this FixtureWebApplicationFactory factory, Action<HttpClient>? configureHttpClient = null)
     {
         var httpClient = factory.CreateClient();
 
-        if (configureHttpClient != null)
-        {
-            configureHttpClient(httpClient);
-        }
+        configureHttpClient?.Invoke(httpClient);
 
         return new AccessClient(Options.Create(new AccessClientOptions
         {
-            BaseAddress = new Uri("http://localhost/"),
+            BaseAddress = new("http://localhost/"),
             IdentityName = "identity",
             Password = "password"
         }), httpClient);
     }
-
 }

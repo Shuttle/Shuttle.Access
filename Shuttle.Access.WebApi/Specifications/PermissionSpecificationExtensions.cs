@@ -7,7 +7,7 @@ namespace Shuttle.Access.WebApi.Specifications
     {
         public static DataAccess.Query.Permission.Specification Create(this Messages.v1.Permission.Specification specification)
         {
-            Guard.AgainstNull(specification, nameof(specification));
+            Guard.AgainstNull(specification);
 
             return new DataAccess.Query.Permission.Specification()
                 .AddIds(specification.Ids);

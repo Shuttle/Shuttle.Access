@@ -1,108 +1,105 @@
-﻿using System;
-using Shuttle.Access.Events.Permission.v1;
+﻿using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access
+namespace Shuttle.Access;
+
+public enum PermissionStatus
 {
-    public enum PermissionStatus
+    Active = 1,
+    Deactivated = 2,
+    Removed = 3
+}
+
+public class Permission
+{
+    public string Name { get; private set; } = string.Empty;
+    public PermissionStatus Status { get; private set; }
+
+    public Activated Activate()
     {
-        Active = 1,
-        Deactivated = 2,
-        Removed = 3
+        return On(new Activated());
     }
 
-    public class Permission
+    public Deactivated Deactivate()
     {
-        public PermissionStatus Status { get; private set; }
+        return On(new Deactivated());
+    }
 
-        public string Name { get; private set; }
+    public static string Key(string name)
+    {
+        return $"[permission]:name={name}";
+    }
 
-        public static string Key(string name)
+    private Registered On(Registered registered)
+    {
+        Guard.AgainstNull(registered);
+
+        Name = registered.Name;
+        Status = registered.Status;
+
+        return registered;
+    }
+
+    private Deactivated On(Deactivated deactivated)
+    {
+        Guard.AgainstNull(deactivated);
+
+        Status = PermissionStatus.Deactivated;
+
+        return deactivated;
+    }
+
+    private Activated On(Activated activated)
+    {
+        Guard.AgainstNull(activated);
+
+        Status = PermissionStatus.Active;
+
+        return activated;
+    }
+
+    private Removed On(Removed removed)
+    {
+        Guard.AgainstNull(removed);
+
+        Status = PermissionStatus.Removed;
+
+        return removed;
+    }
+
+    private NameSet On(NameSet nameSet)
+    {
+        Guard.AgainstNull(nameSet);
+
+        Name = nameSet.Name;
+
+        return nameSet;
+    }
+
+    public Registered Register(string name, PermissionStatus status)
+    {
+        return On(new Registered
         {
-            return $"[permission]:name={name}";
+            Name = name,
+            Status = status
+        });
+    }
+
+    public Removed Remove()
+    {
+        return On(new Removed());
+    }
+
+    public NameSet SetName(string name)
+    {
+        if (name.Equals(Name))
+        {
+            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
         }
 
-        public Registered Register(string name, PermissionStatus status)
+        return On(new NameSet
         {
-            return On(new Registered
-            {
-                Name = name,
-                Status = status
-            });
-        }
-
-        private Registered On(Registered registered)
-        {
-            Guard.AgainstNull(registered, nameof(registered));
-
-            Name = registered.Name;
-            Status = registered.Status;
-
-            return registered;
-        }
-
-        public Deactivated Deactivate()
-        {
-            return On(new Deactivated());
-        }
-
-        private Deactivated On(Deactivated deactivated)
-        {
-            Guard.AgainstNull(deactivated, nameof(deactivated));
-
-            Status = PermissionStatus.Deactivated;
-
-            return deactivated;
-        }
-
-        public Activated Activate()
-        {
-            return On(new Activated());
-        }
-
-        private Activated On(Activated activated)
-        {
-            Guard.AgainstNull(activated, nameof(activated));
-
-            Status = PermissionStatus.Active;
-
-            return activated;
-        }
-
-        public Removed Remove()
-        {
-            return On(new Removed());
-        }
-
-        private Removed On(Removed removed)
-        {
-            Guard.AgainstNull(removed, nameof(removed));
-
-            Status = PermissionStatus.Removed;
-
-            return removed;
-        }
-
-        public NameSet SetName(string name)
-        {
-            if (name.Equals(Name))
-            {
-                throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
-            }
-
-            return On(new NameSet
-            {
-                Name = name
-            });
-        }
-
-        private NameSet On(NameSet nameSet)
-        {
-            Guard.AgainstNull(nameSet, nameof(nameSet));
-
-            Name = nameSet.Name;
-
-            return nameSet;
-        }
+            Name = name
+        });
     }
 }

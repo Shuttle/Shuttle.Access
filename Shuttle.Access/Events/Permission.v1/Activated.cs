@@ -1,7 +1,5 @@
-﻿namespace Shuttle.Access.Events.Permission.v1
+﻿namespace Shuttle.Access.Events.Permission.v1;
+
+public class Activated
 {
-    public class Activated
-    {
-        
-    }
 }

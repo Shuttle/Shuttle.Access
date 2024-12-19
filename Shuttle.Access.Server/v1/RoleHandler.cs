@@ -8,18 +8,18 @@ using Shuttle.Esb;
 namespace Shuttle.Access.Server.v1
 {
     public class RoleHandler :
-        IAsyncMessageHandler<RegisterRole>,
-        IAsyncMessageHandler<RemoveRole>,
-        IAsyncMessageHandler<SetRolePermission>,
-        IAsyncMessageHandler<SetRoleName>
+        IMessageHandler<RegisterRole>,
+        IMessageHandler<RemoveRole>,
+        IMessageHandler<SetRolePermission>,
+        IMessageHandler<SetRoleName>
     {
         private readonly IDatabaseContextFactory _databaseContextFactory;
         private readonly IMediator _mediator;
 
         public RoleHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
         {
-            Guard.AgainstNull(databaseContextFactory, nameof(databaseContextFactory));
-            Guard.AgainstNull(mediator, nameof(mediator));
+            Guard.AgainstNull(databaseContextFactory);
+            Guard.AgainstNull(mediator);
 
             _databaseContextFactory = databaseContextFactory;
             _mediator = mediator;
