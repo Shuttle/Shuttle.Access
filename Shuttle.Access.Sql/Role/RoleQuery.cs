@@ -11,9 +11,9 @@ namespace Shuttle.Access.Sql;
 public class RoleQuery : IRoleQuery
 {
     private readonly IDatabaseContextService _databaseContextService;
+    private readonly IDataRowMapper _dataRowMapper;
     private readonly IRoleQueryFactory _queryFactory;
     private readonly IQueryMapper _queryMapper;
-    private readonly IDataRowMapper _dataRowMapper;
 
     public RoleQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, IDataRowMapper dataRowMapper, IRoleQueryFactory queryFactory)
     {
@@ -38,7 +38,7 @@ public class RoleQuery : IRoleQuery
         {
             var permissionRows = await _databaseContextService.Active.GetRowsAsync(_queryFactory.Permissions(specification), cancellationToken);
 
-            foreach (var permissionGroup in permissionRows.GroupBy(row=>Columns.RoleId.Value(row)))
+            foreach (var permissionGroup in permissionRows.GroupBy(row => Columns.RoleId.Value(row)))
             {
                 var role = result.FirstOrDefault(item => item.Id == permissionGroup.Key);
 

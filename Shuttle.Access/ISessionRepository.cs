@@ -6,8 +6,8 @@ namespace Shuttle.Access;
 
 public interface ISessionRepository
 {
-    Task<Session> FindAsync(Guid token, CancellationToken cancellationToken = default);
-    Task<Session> FindAsync(string identityName, CancellationToken cancellationToken = default);
+    Task<Session?> FindAsync(Guid token, CancellationToken cancellationToken = default);
+    Task<Session?> FindAsync(string identityName, CancellationToken cancellationToken = default);
     Task<Session> GetAsync(Guid token, CancellationToken cancellationToken = default);
     ValueTask<bool> RemoveAsync(Guid token, CancellationToken cancellationToken = default);
     ValueTask<bool> RemoveAsync(string identityName, CancellationToken cancellationToken = default);

@@ -1,15 +1,14 @@
 using System;
 using System.Linq;
 using Shuttle.Access.DataAccess;
-using Shuttle.Access.DataAccess.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class SessionQueryFactory : ISessionQueryFactory
 {
-    public class SessionQueryFactory : ISessionQueryFactory
-	{
-		private const string SelectedColumns = @"
+    private const string SelectedColumns = @"
 	Token, 
 	IdentityId, 
 	IdentityName, 
@@ -17,9 +16,9 @@ namespace Shuttle.Access.Sql
 	ExpiryDate 
 ";
 
-		public IQuery Get(Guid token)
-		{
-			return new Query(@"
+    public IQuery Get(Guid token)
+    {
+        return new Query(@"
 select 
 	Token, 
 	IdentityId, 
@@ -31,14 +30,14 @@ from
 where 
 	Token = @Token
 ")
-				.AddParameter(Columns.Token, token);
-		}
+            .AddParameter(Columns.Token, token);
+    }
 
-        public IQuery Get(string identityName)
-        {
-            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
-            
-            return new Query(@"
+    public IQuery Get(string identityName)
+    {
+        Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+
+        return new Query(@"
 select 
 	Token, 
 	IdentityId, 
@@ -50,12 +49,12 @@ from
 where 
 	IdentityName = @IdentityName
 ")
-                .AddParameter(Columns.IdentityName, identityName);
-        }
+            .AddParameter(Columns.IdentityName, identityName);
+    }
 
-		public IQuery GetPermissions(Guid token)
-		{
-			return new Query(@"
+    public IQuery GetPermissions(Guid token)
+    {
+        return new Query(@"
 select 
 	PermissionName 
 from 
@@ -63,28 +62,28 @@ from
 where 
 	Token = @Token
 ")
-				.AddParameter(Columns.Token, token);
-		}
+            .AddParameter(Columns.Token, token);
+    }
 
-		public IQuery Remove(string identityName)
-		{
-            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+    public IQuery Remove(string identityName)
+    {
+        Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
-			return new Query(@"
+        return new Query(@"
 delete 
 from 
 	[dbo].[Session] 
 where 
 	IdentityName = @IdentityName
 ")
-				.AddParameter(Columns.IdentityName, identityName);
-		}
+            .AddParameter(Columns.IdentityName, identityName);
+    }
 
-		public IQuery Add(Session session)
-		{
-            Guard.AgainstNull(session);
-            
-			return new Query(@"
+    public IQuery Add(Session session)
+    {
+        Guard.AgainstNull(session);
+
+        return new Query(@"
 insert into [dbo].[Session] 
 (
 	Token, 
@@ -102,18 +101,18 @@ values
     @ExpiryDate
 )
 ")
-				.AddParameter(Columns.Token, session.Token)
-				.AddParameter(Columns.IdentityName, session.IdentityName)
-				.AddParameter(Columns.IdentityId, session.IdentityId)
-				.AddParameter(Columns.DateRegistered, session.DateRegistered)
-				.AddParameter(Columns.ExpiryDate, session.ExpiryDate);
-		}
+            .AddParameter(Columns.Token, session.Token)
+            .AddParameter(Columns.IdentityName, session.IdentityName)
+            .AddParameter(Columns.IdentityId, session.IdentityId)
+            .AddParameter(Columns.DateRegistered, session.DateRegistered)
+            .AddParameter(Columns.ExpiryDate, session.ExpiryDate);
+    }
 
-		public IQuery AddPermission(Guid token, string permission)
-		{
-            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
-            
-			return new Query(@"
+    public IQuery AddPermission(Guid token, string permission)
+    {
+        Guard.AgainstNullOrEmptyString(permission, nameof(permission));
+
+        return new Query(@"
 insert into [dbo].[SessionPermission]
 (
 	Token,
@@ -125,25 +124,25 @@ values
 	@PermissionName
 )
 ")
-				.AddParameter(Columns.Token, token)
-				.AddParameter(Columns.PermissionName, permission);
-		}
+            .AddParameter(Columns.Token, token)
+            .AddParameter(Columns.PermissionName, permission);
+    }
 
-		public IQuery Remove(Guid token)
-		{
-			return new Query(@"
+    public IQuery Remove(Guid token)
+    {
+        return new Query(@"
 delete 
 from 
 	[dbo].[Session] 
 here 
 	Token = @Token
 ")
-				.AddParameter(Columns.Token, token);
-		}
+            .AddParameter(Columns.Token, token);
+    }
 
-	    public IQuery Contains(Guid token)
-	    {
-            return new Query(@"
+    public IQuery Contains(Guid token)
+    {
+        return new Query(@"
 if exists 
 (
 	select 
@@ -155,14 +154,14 @@ where
 ) 
 	select 1 else select 0
 ")
-                .AddParameter(Columns.Token, token);
-        }
+            .AddParameter(Columns.Token, token);
+    }
 
-	    public IQuery Contains(Guid token, string permission)
-	    {
-            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
+    public IQuery Contains(Guid token, string permission)
+    {
+        Guard.AgainstNullOrEmptyString(permission, nameof(permission));
 
-            return new Query(@"
+        return new Query(@"
 if exists 
 (
 	select 
@@ -176,13 +175,13 @@ if exists
 ) 
 	select 1 else select 0
 ")
-                .AddParameter(Columns.Token, token)
-                .AddParameter(Columns.PermissionName, permission);
-        }
+            .AddParameter(Columns.Token, token)
+            .AddParameter(Columns.PermissionName, permission);
+    }
 
-        public IQuery Renew(Session session)
-        {
-            return new Query(@"
+    public IQuery Renew(Session session)
+    {
+        return new Query(@"
 update
     [dbo].[Session]
 set
@@ -191,21 +190,21 @@ set
 where
     IdentityName = @IdentityName
 ")
-                .AddParameter(Columns.Token, session.Token)
-                .AddParameter(Columns.ExpiryDate, session.ExpiryDate)
-                .AddParameter(Columns.IdentityName, session.IdentityName);
-        }
+            .AddParameter(Columns.Token, session.Token)
+            .AddParameter(Columns.ExpiryDate, session.ExpiryDate)
+            .AddParameter(Columns.IdentityName, session.IdentityName);
+    }
 
-        public IQuery Search(DataAccess.Query.Session.Specification specification)
-        {
-			return Specification(specification, true);
-		}
+    public IQuery Search(DataAccess.Query.Session.Specification specification)
+    {
+        return Specification(specification, true);
+    }
 
-        private IQuery Specification(DataAccess.Query.Session.Specification specification, bool columns)
-        {
-			Guard.AgainstNull(specification);
+    private IQuery Specification(DataAccess.Query.Session.Specification specification, bool columns)
+    {
+        Guard.AgainstNull(specification);
 
-			return new Query($@"
+        return new Query($@"
 select distinct
 {(columns ? SelectedColumns : "count (*)")}
 from
@@ -219,6 +218,5 @@ and
     Token in (select distinct Token from [dbo].[SessionPermission] where PermissionName in ({string.Join(",", specification.Permissions.Select(item => $"'{item}'"))}))
 ")}
 ");
-        }
-	}
+    }
 }

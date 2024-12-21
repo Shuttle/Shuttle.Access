@@ -5,20 +5,20 @@ using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class RoleQueryFactory : IRoleQueryFactory
 {
-    public class RoleQueryFactory : IRoleQueryFactory
+    public IQuery Search(DataAccess.Query.Role.Specification specification)
     {
-        public IQuery Search(DataAccess.Query.Role.Specification specification)
-        {
-            return Specification(specification, true);
-        }
+        return Specification(specification, true);
+    }
 
-        public IQuery Registered(Guid id, Registered domainEvent)
-        {
-            Guard.AgainstNull(domainEvent);
+    public IQuery Registered(Guid id, Registered domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-            return new Query(@"
+        return new Query(@"
 if not exists
 (
     select
@@ -39,13 +39,13 @@ if not exists
 	    @Name
     )
 ")
-                .AddParameter(Columns.Id, id)
-                .AddParameter(Columns.Name, domainEvent.Name);
-        }
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Name, domainEvent.Name);
+    }
 
-        public IQuery Get(Guid id)
-        {
-            return new Query(@"
+    public IQuery Get(Guid id)
+    {
+        return new Query(@"
 select
     Name
 from
@@ -53,12 +53,12 @@ from
 where
     Id = @Id
 ")
-                .AddParameter(Columns.Id, id);
-        }
+            .AddParameter(Columns.Id, id);
+    }
 
-        public IQuery PermissionAdded(Guid id, PermissionAdded domainEvent)
-        {
-            return new Query(@"
+    public IQuery PermissionAdded(Guid id, PermissionAdded domainEvent)
+    {
+        return new Query(@"
 insert into [dbo].[RolePermission]
 (
 	[RoleId],
@@ -72,14 +72,14 @@ values
     @DateRegistered
 )
 ")
-                .AddParameter(Columns.RoleId, id)
-                .AddParameter(Columns.PermissionId, domainEvent.PermissionId)
-                .AddParameter(Columns.DateRegistered, DateTime.UtcNow);
-        }
+            .AddParameter(Columns.RoleId, id)
+            .AddParameter(Columns.PermissionId, domainEvent.PermissionId)
+            .AddParameter(Columns.DateRegistered, DateTime.UtcNow);
+    }
 
-        public IQuery PermissionRemoved(Guid id, PermissionRemoved domainEvent)
-        {
-            return new Query(@"
+    public IQuery PermissionRemoved(Guid id, PermissionRemoved domainEvent)
+    {
+        return new Query(@"
 delete 
 from 
     [dbo].[RolePermission]
@@ -88,13 +88,13 @@ where
 and
 	[PermissionId] = @PermissionId
 ")
-                .AddParameter(Columns.RoleId, id)
-                .AddParameter(Columns.PermissionId, domainEvent.PermissionId);
-        }
+            .AddParameter(Columns.RoleId, id)
+            .AddParameter(Columns.PermissionId, domainEvent.PermissionId);
+    }
 
-        public IQuery Removed(Guid id)
-        {
-            return new Query(@"
+    public IQuery Removed(Guid id)
+    {
+        return new Query(@"
 delete 
 from 
     [dbo].[Role]
@@ -107,19 +107,19 @@ from
 where	
     [RoleId] = @Id;
 ")
-                .AddParameter(Columns.Id, id);
-        }
+            .AddParameter(Columns.Id, id);
+    }
 
-        public IQuery Count(DataAccess.Query.Role.Specification specification)
-        {
-            return Specification(specification, false);
-        }
+    public IQuery Count(DataAccess.Query.Role.Specification specification)
+    {
+        return Specification(specification, false);
+    }
 
-        public IQuery Permissions(DataAccess.Query.Role.Specification specification)
-        {
-            Guard.AgainstNull(specification);
+    public IQuery Permissions(DataAccess.Query.Role.Specification specification)
+    {
+        Guard.AgainstNull(specification);
 
-            return new Query($@"
+        return new Query($@"
 select 
     rp.RoleId,
     p.Id,
@@ -158,14 +158,13 @@ and
 order by
     p.Name
 ")
-                .AddParameter(Columns.NameMatch, specification.NameMatch)
-                .AddParameter(Columns.DateRegistered, specification.StartDateRegistered);
+            .AddParameter(Columns.NameMatch, specification.NameMatch)
+            .AddParameter(Columns.DateRegistered, specification.StartDateRegistered);
+    }
 
-        }
-
-        public IQuery NameSet(Guid id, NameSet domainEvent)
-        {
-            return new Query(@"
+    public IQuery NameSet(Guid id, NameSet domainEvent)
+    {
+        return new Query(@"
 update
     Role
 set
@@ -173,22 +172,22 @@ set
 where
     Id = @Id
 ")
-                .AddParameter(Columns.Id, id)
-                .AddParameter(Columns.Name, domainEvent.Name);
-        }
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Name, domainEvent.Name);
+    }
 
-        private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
-        {
-            Guard.AgainstNull(specification);
+    private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
+    {
+        Guard.AgainstNull(specification);
 
-            var what = columns
-                ? @"
+        var what = columns
+            ? @"
     Id,
     [Name]
 "
-                : "count(*)";
+            : "count(*)";
 
-            return new Query($@"
+        return new Query($@"
 select
 {what}
 from
@@ -212,7 +211,6 @@ order by
     Name
 " : string.Empty)}
 ")
-                .AddParameter(Columns.NameMatch, specification.NameMatch);
-        }
+            .AddParameter(Columns.NameMatch, specification.NameMatch);
     }
 }

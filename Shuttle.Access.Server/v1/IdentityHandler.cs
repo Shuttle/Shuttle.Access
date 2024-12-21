@@ -53,7 +53,6 @@ public class IdentityHandler :
 
         if (string.IsNullOrEmpty(message.Name) ||
             string.IsNullOrEmpty(message.RegisteredBy) ||
-            message.PasswordHash == null ||
             message.PasswordHash.Length == 0)
         {
             return;

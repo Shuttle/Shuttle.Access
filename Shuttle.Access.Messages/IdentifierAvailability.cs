@@ -1,8 +1,7 @@
-﻿namespace Shuttle.Access.Messages
+﻿namespace Shuttle.Access.Messages;
+
+public class IdentifierAvailability<T>
 {
-    public class IdentifierAvailability<T>
-    {
-        public T Id { get; set; }
-        public bool Active { get; set; }
-    }
+    public bool Active { get; set; }
+    public T Id { get; set; } = default!;
 }

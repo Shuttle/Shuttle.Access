@@ -1,13 +1,14 @@
-﻿namespace Shuttle.Access.Messages.v1
+﻿using System;
+
+namespace Shuttle.Access.Messages.v1;
+
+public class RegisterIdentity
 {
-    public class RegisterIdentity
-    {
-		public string Name { get; set; }
-        public string Password { get; set; }
-	    public byte[] PasswordHash { get; set; }
-	    public string RegisteredBy { get; set; }
-	    public string GeneratedPassword { get; set; }
-        public string System { get; set; }
-        public bool Activated { get; set; }
-    }
+    public bool Activated { get; set; }
+    public string GeneratedPassword { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public byte[] PasswordHash { get; set; } = [];
+    public string RegisteredBy { get; set; } = string.Empty;
+    public string System { get; set; } = string.Empty;
 }

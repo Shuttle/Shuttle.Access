@@ -8,6 +8,6 @@ public class Registered
     public DateTime DateRegistered { get; set; }
     public string GeneratedPassword { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
+    public byte[] PasswordHash { get; set; } = [];
     public string RegisteredBy { get; set; } = string.Empty;
 }

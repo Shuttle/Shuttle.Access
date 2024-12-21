@@ -1,7 +1,6 @@
-﻿namespace Shuttle.Access.Messages
+﻿namespace Shuttle.Access.Messages;
+
+public class Patch<T>
 {
-    public class Patch<T>
-    {
-        public T Value { get; set; }
-    }
+    public T Value { get; set; } = default!;
 }

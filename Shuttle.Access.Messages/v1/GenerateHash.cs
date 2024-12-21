@@ -1,8 +1,9 @@
-﻿namespace Shuttle.Access.Messages.v1
+﻿using System;
+
+namespace Shuttle.Access.Messages.v1;
+
+public class GenerateHash
 {
-    public class GenerateHash
-    {
-        public string Value { get; set; }
-        public byte[] Hash { get; set; }
-    }
+    public byte[] Hash { get; set; } = [];
+    public string Value { get; set; } = string.Empty;
 }

@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace Shuttle.Access.Messages.v1
+namespace Shuttle.Access.Messages.v1;
+
+public class PasswordSet
 {
-    public class PasswordSet
-    {
-        public Guid Id { get; set; }
-        public string Token { get; set; }
-    }
+    public Guid Id { get; set; }
+    public string Token { get; set; } = string.Empty;
 }

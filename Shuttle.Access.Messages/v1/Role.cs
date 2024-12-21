@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Shuttle.Access.Messages.v1
-{
-    public class Role
-    {
-        public string Name { get; set; }
-        public Guid Id { get; set; }
-        public List<Permission> Permissions { get; set; } = new List<Permission>();
+namespace Shuttle.Access.Messages.v1;
 
-        public class Permission : v1.Permission
-        {
-            public Guid RoleId { get; set; }
-        }
+public class Role
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public List<Permission> Permissions { get; set; } = [];
+
+    public class Permission : v1.Permission
+    {
+        public Guid RoleId { get; set; }
     }
 }

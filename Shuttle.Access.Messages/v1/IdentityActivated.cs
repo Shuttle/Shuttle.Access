@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace Shuttle.Access.Messages.v1
+namespace Shuttle.Access.Messages.v1;
+
+public class IdentityActivated
 {
-    public class IdentityActivated
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public DateTime DateActivated { get; set; }
-        public long SequenceNumber { get; set; }
-    }
+    public DateTime DateActivated { get; set; }
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public long SequenceNumber { get; set; }
 }

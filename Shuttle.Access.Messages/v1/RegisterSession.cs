@@ -1,11 +1,10 @@
 using System;
 
-namespace Shuttle.Access.Messages.v1
+namespace Shuttle.Access.Messages.v1;
+
+public class RegisterSession
 {
-    public class RegisterSession
-    {
-        public string IdentityName { get; set; }
-        public string Password { get; set; }
-        public Guid Token { get; set; }
-    }
+    public string IdentityName { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public Guid Token { get; set; }
 }

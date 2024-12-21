@@ -1,80 +1,29 @@
 ﻿using System;
 using System.Linq;
 using Shuttle.Access.DataAccess;
-using Shuttle.Access.DataAccess.Query;
 using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class PermissionQueryFactory : IPermissionQueryFactory
 {
-    public class PermissionQueryFactory : IPermissionQueryFactory
+    public IQuery Search(DataAccess.Query.Permission.Specification specification)
     {
-        public IQuery Search(DataAccess.Query.Permission.Specification specification)
-        {
-            return Specification(specification, true);
-        }
+        return Specification(specification, true);
+    }
 
-        public IQuery Count(DataAccess.Query.Permission.Specification specification)
-        {
-            return Specification(specification, false);
-        }
+    public IQuery Count(DataAccess.Query.Permission.Specification specification)
+    {
+        return Specification(specification, false);
+    }
 
-        public IQuery Specification(DataAccess.Query.Permission.Specification specification, bool columns)
-        {
-            Guard.AgainstNull(specification);
+    public IQuery Registered(Guid id, Registered domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-            var what = columns
-                ? @"
-    p.[Id],
-    p.[Name],
-    p.[Status]
-"
-                : "count(*)";
-
-            return new Query($@"
-select distinct
-{what}
-from
-    Permission p
-{(!specification.RoleIds.Any() ? string.Empty : @"
-inner join
-    RolePermission rp on (rp.PermissionId = p.Id)
-")}
-{Where(specification)}
-")
-                .AddParameter(Columns.NameMatch, specification.NameMatch);
-        }
-
-        private string Where(DataAccess.Query.Permission.Specification specification)
-        {
-            return $@"
-where
-(
-    isnull(@NameMatch, '') = ''
-    or
-    p.[Name] like '%' + @NameMatch + '%'
-)
-{(!specification.Names.Any() ? string.Empty : $@"
-and
-    p.[Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
-")}
-{(!specification.Ids.Any() ? string.Empty : $@"
-and
-    p.Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
-")}
-{(!specification.RoleIds.Any() ? string.Empty : $@"
-and
-    rp.RoleId in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
-")}
-";
-        }
-
-        public IQuery Registered(Guid id, Registered domainEvent)
-        {
-            Guard.AgainstNull(domainEvent);
-
-            return new Query(@"
+        return new Query(@"
 if not exists
 (
     select
@@ -97,51 +46,37 @@ if not exists
         @Status
     )
 ")
-                .AddParameter(Columns.Id, id)
-                .AddParameter(Columns.Name, domainEvent.Name)
-                .AddParameter(Columns.Status, (int)domainEvent.Status);
-        }
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Name, domainEvent.Name)
+            .AddParameter(Columns.Status, (int)domainEvent.Status);
+    }
 
-        public IQuery Activated(Guid id, Activated domainEvent)
-        {
-            Guard.AgainstNull(domainEvent);
+    public IQuery Activated(Guid id, Activated domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-            return SetStatus(id, (int)PermissionStatus.Active);
-        }
+        return SetStatus(id, (int)PermissionStatus.Active);
+    }
 
-        private static IQuery SetStatus(Guid id, int status)
-        {
-            return new Query(@"
-update
-    Permission
-set
-    Status = @Status
-where
-    Id = @Id
-")
-                .AddParameter(Columns.Id, id)
-                .AddParameter(Columns.Status, status);
-        }
+    public IQuery Deactivated(Guid id, Deactivated domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-        public IQuery Deactivated(Guid id, Deactivated domainEvent)
-        {
-            Guard.AgainstNull(domainEvent);
+        return SetStatus(id, (int)PermissionStatus.Deactivated);
+    }
 
-            return SetStatus(id, (int)PermissionStatus.Deactivated);
-        }
+    public IQuery Removed(Guid id, Removed domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-        public IQuery Removed(Guid id, Removed domainEvent)
-        {
-            Guard.AgainstNull(domainEvent);
+        return SetStatus(id, (int)PermissionStatus.Removed);
+    }
 
-            return SetStatus(id, (int)PermissionStatus.Removed);
-        }
+    public IQuery Contains(DataAccess.Query.Permission.Specification specification)
+    {
+        Guard.AgainstNull(specification);
 
-        public IQuery Contains(DataAccess.Query.Permission.Specification specification)
-        {
-            Guard.AgainstNull(specification);
-
-            return new Query($@"
+        return new Query($@"
 if exists
 (
 select
@@ -154,12 +89,12 @@ from
 else
     select 0
 ")
-                .AddParameter(Columns.NameMatch, specification.NameMatch);
-        }
+            .AddParameter(Columns.NameMatch, specification.NameMatch);
+    }
 
-        public IQuery NameSet(Guid id, NameSet domainEvent)
-        {
-            return new Query(@"
+    public IQuery NameSet(Guid id, NameSet domainEvent)
+    {
+        return new Query(@"
 update
     Permission
 set
@@ -167,8 +102,71 @@ set
 where
     Id = @Id
 ")
-                .AddParameter(Columns.Id, id)
-                .AddParameter(Columns.Name, domainEvent.Name);
-        }
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Name, domainEvent.Name);
+    }
+
+    private static IQuery SetStatus(Guid id, int status)
+    {
+        return new Query(@"
+update
+    Permission
+set
+    Status = @Status
+where
+    Id = @Id
+")
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Status, status);
+    }
+
+    public IQuery Specification(DataAccess.Query.Permission.Specification specification, bool columns)
+    {
+        Guard.AgainstNull(specification);
+
+        var what = columns
+            ? @"
+    p.[Id],
+    p.[Name],
+    p.[Status]
+"
+            : "count(*)";
+
+        return new Query($@"
+select distinct
+{what}
+from
+    Permission p
+{(!specification.RoleIds.Any() ? string.Empty : @"
+inner join
+    RolePermission rp on (rp.PermissionId = p.Id)
+")}
+{Where(specification)}
+")
+            .AddParameter(Columns.NameMatch, specification.NameMatch);
+    }
+
+    private string Where(DataAccess.Query.Permission.Specification specification)
+    {
+        return $@"
+where
+(
+    isnull(@NameMatch, '') = ''
+    or
+    p.[Name] like '%' + @NameMatch + '%'
+)
+{(!specification.Names.Any() ? string.Empty : $@"
+and
+    p.[Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+")}
+{(!specification.Ids.Any() ? string.Empty : $@"
+and
+    p.Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+")}
+{(!specification.RoleIds.Any() ? string.Empty : $@"
+and
+    rp.RoleId in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
+")}
+";
     }
 }

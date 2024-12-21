@@ -102,6 +102,7 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
             {
                 Name = "admin",
                 System = "system://access",
+                GeneratedPassword = "admin",
                 PasswordHash = generateHash.Hash,
                 RegisteredBy = "system",
                 Activated = true

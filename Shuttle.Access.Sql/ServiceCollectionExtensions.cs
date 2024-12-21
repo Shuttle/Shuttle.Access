@@ -3,17 +3,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Shuttle.Core.Contract;
 using Shuttle.Core.DependencyInjection;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    public static IServiceCollection AddSqlAccess(this IServiceCollection services)
     {
-        public static IServiceCollection AddSqlAccess(this IServiceCollection services)
-        {
-            Guard.AgainstNull(services);
+        Guard.AgainstNull(services);
 
-            services.FromAssembly(typeof(ServiceCollectionExtensions).GetTypeInfo().Assembly).Add();
+        services.FromAssembly(typeof(ServiceCollectionExtensions).GetTypeInfo().Assembly).Add();
 
-            return services;
-        }
+        return services;
     }
 }
