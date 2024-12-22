@@ -1,37 +1,37 @@
 <template>
-    <v-app class="pt-16">
-        <Navbar />
-        <div v-if="alertStore.alerts.length" class="my-4 lg:w-1/2 md:w-100 lg:mx-auto md:mx-2">
-            <v-alert :type="alert.type" v-bind:key="alert.key" v-for="alert in alertStore.alerts" :text="alert.message">
-                <template v-slot:close>
-                    <v-icon :icon="`svg:${mdiCloseCircleOutline}`" @click="closeClicked(alert.name)" />
-                </template>
-            </v-alert>
-        </div>
-        <div class="p-4">
-            <RouterView v-slot="{ Component, route }">
-                <!-- <transition name="route" mode="out-in">
-                    <component :is="Component" :key="route.fullPath"></component>
-                </transition> -->
-                <component :is="Component" :key="route.fullPath"></component>
-            </RouterView>
-        </div>
-        <v-dialog v-model="confirmationStore.isOpen"
-            class="flex flex-row items-center justify-end mt-4 lg:w-2/4 md:w-3/4lg:w-1/4 md:w-2/4">
-            <v-card :title="$t('confirmation-remove.title')">
-                <v-card-text>
-                    {{ $t("confirmation-remove.message") }}
-                </v-card-text>
-                <v-spacer></v-spacer>
-                <v-card-actions>
-                    <v-btn :text="$t('yes')" @click="confirmationStore.confirmed()" color="warning"
-                        variant="outlined"></v-btn>
-                    <v-btn :text="$t('cancel')" @click="confirmationStore.setIsOpen(false)" color="secondary"
-                        variant="flat"></v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-    </v-app>
+  <v-app class="pt-16">
+    <Navbar />
+    <div v-if="alertStore.alerts.length" class="my-4 lg:w-1/2 md:w-100 lg:mx-auto md:mx-2">
+      <v-alert :type="alert.type" v-bind:key="alert.key" v-for="alert in alertStore.alerts" :text="alert.message"
+        class="mb-2">
+        <template v-slot:close>
+          <v-icon :icon="`svg:${mdiCloseCircleOutline}`" @click="closeClicked(alert.name)" />
+        </template>
+      </v-alert>
+    </div>
+    <div class="p-4">
+      <RouterView v-slot="{ Component, route }">
+        <transition name="route" mode="out-in">
+          <component :is="Component" :key="route.fullPath"></component>
+        </transition>
+        <!-- <component :is="Component" :key="route.fullPath"></component> -->
+      </RouterView>
+    </div>
+    <v-dialog v-model="confirmationStore.isOpen"
+      class="flex flex-row items-center justify-end mt-4 lg:w-2/4 md:w-3/4lg:w-1/4 md:w-2/4">
+      <v-card :title="$t('confirmation-remove.title')">
+        <v-card-text>
+          {{ $t("confirmation-remove.message") }}
+        </v-card-text>
+        <v-spacer></v-spacer>
+        <v-card-actions>
+          <v-btn :text="$t('yes')" @click="confirmationStore.confirmed()" color="warning" variant="outlined"></v-btn>
+          <v-btn :text="$t('cancel')" @click="confirmationStore.setIsOpen(false)" color="secondary"
+            variant="flat"></v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-app>
 </template>
 
 <script lang="ts" setup>
@@ -46,10 +46,6 @@ var alertStore = useAlertStore();
 var confirmationStore = useConfirmationStore();
 
 const closeClicked = (name: string) => {
-    alertStore.remove(name);
+  alertStore.remove(name);
 }
 </script>
-
-<style>
-@import "@/assets/base.css";
-</style>

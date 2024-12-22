@@ -1,5 +1,6 @@
-@forward 'vuetify/settings' with (
-  $utilities: false,
+@forward "vuetify/settings" with (
+  $utilities: false
 );
 
-@import './tailwind.scss'
+@use "./base.css";
+@use "./tailwind.scss";

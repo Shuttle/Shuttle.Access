@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 export interface Alert {
   message: string;
   name: string;
-  type?: string;
+  type?: "error" | "success" | "warning" | "info" | undefined;
   expire?: boolean;
   expirySeconds?: number;
   dismissable?: boolean;

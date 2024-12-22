@@ -2,12 +2,11 @@
     <form @submit.prevent="signIn" class="sv-form sv-form--sm px-5 pt-6">
         <div class="sv-title">{{ $t("sign-in") }}</div>
         <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName"
-            :label="$t('identity-name')" class="mb-2" autocomplete="username"
-            :error-messages="validation.message('identityName')">
+            :label="$t('identity-name')" class="mb-2" :error-messages="validation.message('identityName')">
         </v-text-field>
         <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')"
-            :icon-end="getPasswordIcon()" icon-end-clickable :append-inner-icon="`svg:${getPasswordIcon()}`"
-            @click:append-inner="togglePasswordIcon" :type="getPasswordType()" autocomplete="current-password"
+            :icon-end="getPasswordIcon()" icon-end-clickable :append-icon="`svg:${getPasswordIcon()}`"
+            @click:append="togglePasswordIcon" :type="getPasswordType()"
             :error-messages="validation.message('password')">
         </v-text-field>
         <div class="flex justify-end mt-4">
@@ -18,9 +17,11 @@
             <div v-for="oauthProvider in oauthProviders" v-bind:key="oauthProvider.name"
                 :alt="`${oauthProvider.name} logo`" class="cursor-pointer"
                 @click="oauthAuthenticate(oauthProvider.name)">
-                <div v-if="oauthProvider.svg" v-html="oauthProvider.svg" class="oauth-provider w-10 h-10">
+                <div v-if="oauthProvider.svg" v-html="oauthProvider.svg" class="v-icon__svg w-10 h-10">
                 </div>
-                <div v-else class="rounded-full bg-zinc-800 text-gray-400 h-10 flex justify-center items-center px-4 uppercase font-semibold">{{ oauthProvider.name }}</div>
+                <div v-else
+                    class="rounded-full bg-zinc-800 text-gray-400 h-10 flex justify-center items-center px-4 uppercase font-semibold">
+                    {{ oauthProvider.name }}</div>
             </div>
         </div>
     </form>
@@ -140,5 +141,4 @@ const refreshOAuthProviders = () => {
 onMounted(() => {
     refreshOAuthProviders();
 })
-
 </script>

@@ -1,4 +1,5 @@
-import { RouteRecordRaw, createRouter, createWebHistory } from "vue-router";
+import type { RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import { useSessionStore } from "@/stores/session";
 import { useAlertStore } from "@/stores/alert";
 import Permissions from "../permissions";
@@ -37,7 +38,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "permission",
     component: () => import("../views/Permission.vue"),
     meta: {
-        permission: Permissions.Permissions.Manage,
+      permission: Permissions.Permissions.Manage,
     },
   },
   {
@@ -45,7 +46,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "permission-rename",
     component: () => import("../views/PermissionRename.vue"),
     meta: {
-        permission: Permissions.Permissions.Manage,
+      permission: Permissions.Permissions.Manage,
     },
   },
   {
@@ -53,7 +54,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "roles",
     component: () => import("../views/Roles.vue"),
     meta: {
-        permission: Permissions.Roles.View
+      permission: Permissions.Roles.View,
     },
   },
   {
@@ -61,7 +62,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "role",
     component: () => import("../views/Role.vue"),
     meta: {
-        permission: Permissions.Roles.Manage,
+      permission: Permissions.Roles.Manage,
     },
   },
   {
@@ -69,7 +70,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "role-rename",
     component: () => import("../views/RoleRename.vue"),
     meta: {
-        permission: Permissions.Roles.Manage,
+      permission: Permissions.Roles.Manage,
     },
   },
   {
@@ -77,7 +78,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "role-permissions",
     component: () => import("../views/RolePermissions.vue"),
     meta: {
-        permission: Permissions.Roles.View,
+      permission: Permissions.Roles.View,
     },
   },
   {
@@ -85,7 +86,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "identities",
     component: () => import("../views/Identities.vue"),
     meta: {
-        permission: Permissions.Identities.View
+      permission: Permissions.Identities.View,
     },
   },
   {
@@ -93,7 +94,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "identity",
     component: () => import("../views/Identity.vue"),
     meta: {
-        permission: Permissions.Identities.Manage,
+      permission: Permissions.Identities.Manage,
     },
   },
   {
@@ -101,7 +102,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "identity-rename",
     component: () => import("../views/IdentityRename.vue"),
     meta: {
-        permission: Permissions.Identities.Manage,
+      permission: Permissions.Identities.Manage,
     },
   },
   {
@@ -114,7 +115,7 @@ const routes: Array<RouteRecordRaw> = [
     name: "identity-roles",
     component: () => import("../views/IdentityRoles.vue"),
     meta: {
-        permission: Permissions.Identities.View,
+      permission: Permissions.Identities.View,
     },
   },
 ];
@@ -131,7 +132,10 @@ router.beforeEach(async (to) => {
     return;
   }
 
-  if (!!to.meta.permission && !sessionStore.hasPermission(to.meta.permission as string)) {
+  if (
+    !!to.meta.permission &&
+    !sessionStore.hasPermission(to.meta.permission as string)
+  ) {
     useAlertStore().add({
       message: messages.insufficientPermission,
       type: "info",
