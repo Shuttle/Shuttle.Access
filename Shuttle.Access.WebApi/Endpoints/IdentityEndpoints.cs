@@ -151,9 +151,9 @@ public static class IdentityEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var session = await sessionRepository.GetAsync(sessionTokenResult.SessionToken);
+                    var session = await sessionRepository.FindAsync(sessionTokenResult.SessionToken);
 
-                    if (message.Id.HasValue && !session.HasPermission(AccessPermissions.Identities.Register))
+                    if (message.Id.HasValue && !(session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
                     {
                         return Results.Unauthorized();
                     }

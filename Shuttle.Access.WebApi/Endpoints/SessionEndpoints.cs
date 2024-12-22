@@ -90,7 +90,7 @@ public static class SessionEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var session = await sessionQuery.GetAsync(token);
+                    var session = (await sessionQuery.SearchAsync(new DataAccess.Query.Session.Specification().WithToken(token))).FirstOrDefault();
 
                     return session == null
                         ? Results.BadRequest()
@@ -137,7 +137,7 @@ public static class SessionEndpoints
 
         if (registerSession.HasSession)
         {
-            sessionResponse.IdentityName = registerSession.Session.IdentityName;
+            sessionResponse.IdentityName = registerSession.Session!.IdentityName;
             sessionResponse.Token = registerSession.Session.Token;
             sessionResponse.TokenExpiryDate = registerSession.Session.ExpiryDate;
             sessionResponse.Permissions = registerSession.Session.Permissions.ToList();

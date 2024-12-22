@@ -123,7 +123,7 @@ public static class OAuthEndpoints
 
                 if (registerSession.HasSession)
                 {
-                    sessionResponse.IdentityName = registerSession.Session.IdentityName;
+                    sessionResponse.IdentityName = registerSession.Session!.IdentityName;
                     sessionResponse.Token = registerSession.Session.Token;
                     sessionResponse.TokenExpiryDate = registerSession.Session.ExpiryDate;
                     sessionResponse.Permissions = registerSession.Session.Permissions.ToList();
