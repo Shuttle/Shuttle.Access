@@ -2,11 +2,10 @@
 using Refit;
 using Shuttle.Access.Messages.v1;
 
-namespace Shuttle.Access.RestClient.v1
+namespace Shuttle.Access.RestClient.v1;
+
+public interface IServerApi
 {
-    public interface IServerApi
-    {
-        [Get("/v1/server/configuration")]
-        Task<IApiResponse<ServerConfiguration>> ConfigurationAsync();
-    }
+    [Get("/v1/server/configuration")]
+    Task<IApiResponse<ServerConfiguration>> ConfigurationAsync();
 }

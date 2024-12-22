@@ -15,11 +15,11 @@ public class DataStoreAccessServiceFixture
     private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow, DateTime.UtcNow.AddHours(1));
 
     [Test]
-    public void Should_be_able_check_for_non_existent_session()
+    public async Task Should_be_able_check_for_non_existent_session_async()
     {
         var repository = new Mock<ISessionRepository>();
 
-        repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult((Session)null));
+        repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult<Session?>(null));
 
         var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -29,20 +29,20 @@ public class DataStoreAccessServiceFixture
             ConnectionString = "connection-string"
         });
 
-        var service = new DataStoreAccessService(connectionStringOptions.Object, Options.Create(new AccessOptions
+        var service = new DataStoreAccessService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
         }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
 
-        Assert.That(service.Contains(Guid.NewGuid()), Is.False);
+        Assert.That(await service.ContainsAsync(Guid.NewGuid()), Is.False);
     }
 
     [Test]
-    public void Should_be_able_check_for_and_cache_existent_session()
+    public async Task Should_be_able_check_for_and_cache_existent_session_async()
     {
-        var repository = new Mock<ISessionRepository>();
+        var sessionRepository = new Mock<ISessionRepository>();
 
-        repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(_session));
+        sessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(_session)!);
 
         var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -52,14 +52,13 @@ public class DataStoreAccessServiceFixture
             ConnectionString = "connection-string"
         });
 
-        var service = new DataStoreAccessService(connectionStringOptions.Object, Options.Create(new AccessOptions
+        var service = new DataStoreAccessService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
+        }), new Mock<IDatabaseContextFactory>().Object, sessionRepository.Object);
 
-        Assert.That(service.Contains(_session.Token), Is.True);
-        Assert.That(service.Contains(_session.Token), Is.True);
+        Assert.That(await service.ContainsAsync(_session.Token), Is.True);
 
-        repository.Verify(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None), Times.Exactly(1));
+        sessionRepository.Verify(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None), Times.Exactly(1));
     }
 }

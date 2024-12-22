@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.DataAccess.Query;
@@ -7,7 +8,7 @@ public class Session
 {
     public class Specification
     {
-        private readonly List<string> _permissions = new();
+        private readonly List<string> _permissions = [];
 
         public IEnumerable<string> Permissions => _permissions.AsReadOnly();
 
@@ -34,5 +35,31 @@ public class Session
 
             return this;
         }
+
+        public Specification WithToken(Guid token)
+        {
+            Token = token;
+
+            return this;
+        }
+
+        public Guid Token { get; private set; }
+
+        public Specification WithIdentityName(string identityName)
+        {
+            IdentityName = Guard.AgainstNullOrEmptyString(identityName);
+
+            return this;
+        }
+
+        public string? IdentityName { get; private set; }
+
+        public Specification IncludePermissions()
+        {
+            ShouldIncludePermissions = true;
+            return this;
+        }
+
+        public bool ShouldIncludePermissions { get; private set; } = false;
     }
 }

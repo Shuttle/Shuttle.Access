@@ -43,7 +43,7 @@ public class RegisterIdentityParticipantFixture
         Assert.That(requestResponseMessage.Ok, Is.True);
         Assert.That(requestResponseMessage.Response, Is.Not.Null);
 
-        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response.Id);
+        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response!.Id);
 
         Assert.That(@event, Is.Not.Null);
 

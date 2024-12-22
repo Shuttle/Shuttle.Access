@@ -22,7 +22,7 @@ public class RequestIdentityRegistrationParticipantFixture
             .AddPermission(AccessPermissions.Identities.Activate);
         var sessionRepository = new Mock<ISessionRepository>();
 
-        sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session));
+        sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session)!);
 
         var serviceBus = new Mock<IServiceBus>();
         var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, sessionRepository.Object, new Mock<IMediator>().Object);

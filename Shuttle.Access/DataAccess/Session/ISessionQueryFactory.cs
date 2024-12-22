@@ -5,15 +5,11 @@ namespace Shuttle.Access.DataAccess;
 
 public interface ISessionQueryFactory
 {
-    IQuery Add(Session session);
+    IQuery Save(Session session);
     IQuery AddPermission(Guid token, string permission);
-    IQuery Contains(Guid token);
-    IQuery Contains(Guid token, string permission);
-    IQuery Get(Guid token);
-    IQuery Get(string identityName);
+    IQuery Contains(Query.Session.Specification specification);
     IQuery GetPermissions(Guid token);
-    IQuery Remove(string identityName);
     IQuery Remove(Guid token);
-    IQuery Renew(Session session);
     IQuery Search(Query.Session.Specification specification);
+    IQuery Find(Guid token);
 }

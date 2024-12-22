@@ -25,7 +25,7 @@ public class ChangePasswordParticipantFixture
         var sessionRepository = new Mock<ISessionRepository>();
         var hashingService = new Mock<IHashingService>();
 
-        sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session));
+        sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session)!);
         hashingService.Setup(m => m.Sha256(changePassword.NewPassword)).Returns(hash);
 
         var participant = new ChangePasswordParticipant(hashingService.Object, sessionRepository.Object, eventStore);
@@ -44,6 +44,6 @@ public class ChangePasswordParticipantFixture
         var @event = eventStore.FindEvent<PasswordSet>(session.IdentityId);
 
         Assert.That(@event, Is.Not.Null);
-        Assert.That(@event.PasswordHash, Is.EqualTo(hash));
+        Assert.That(@event!.PasswordHash, Is.EqualTo(hash));
     }
 }

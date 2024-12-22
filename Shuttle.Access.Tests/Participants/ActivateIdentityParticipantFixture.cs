@@ -40,6 +40,6 @@ public class ActivateIdentityParticipantFixture
         Assert.That(@event, Is.Not.Null);
 
         Assert.That(requestResponseMessage.Response, Is.Not.Null);
-        Assert.That(requestResponseMessage.Response.Id, Is.EqualTo(identity.Id));
+        Assert.That(requestResponseMessage.Response!.Id, Is.EqualTo(identity.Id));
     }
 }

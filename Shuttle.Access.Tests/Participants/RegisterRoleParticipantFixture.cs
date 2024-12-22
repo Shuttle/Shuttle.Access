@@ -33,9 +33,9 @@ public class RegisterRoleParticipantFixture
 
         Assert.That(requestResponseMessage.Response, Is.Not.Null);
 
-        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response.Id);
+        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response!.Id);
 
         Assert.That(@event, Is.Not.Null);
-        Assert.That(@event.Name, Is.EqualTo(addRole.Name));
+        Assert.That(@event!.Name, Is.EqualTo(addRole.Name));
     }
 }

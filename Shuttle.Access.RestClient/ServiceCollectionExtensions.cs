@@ -8,7 +8,7 @@ namespace Shuttle.Access.RestClient;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAccessClient(this IServiceCollection services, Action<AccessClientBuilder> builder = null)
+    public static IServiceCollection AddAccessClient(this IServiceCollection services, Action<AccessClientBuilder>? builder = null)
     {
         Guard.AgainstNull(services);
 

@@ -8,7 +8,7 @@ public class RequiresSessionAttribute : TypeFilterAttribute
 {
     public RequiresSessionAttribute() : base(typeof(RequiresSession))
     {
-        Arguments = new object[] { };
+        Arguments = [];
     }
 
     private class RequiresSession : IAuthorizationFilter
@@ -32,7 +32,7 @@ public class RequiresSessionAttribute : TypeFilterAttribute
                 return;
             }
 
-            if (!_accessService.Contains(sessionTokenResult.SessionToken))
+            if (!_accessService.ContainsAsync(sessionTokenResult.SessionToken).GetAwaiter().GetResult())
             {
                 SetUnauthorized(context);
             }

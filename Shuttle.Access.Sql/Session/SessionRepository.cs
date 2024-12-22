@@ -29,8 +29,7 @@ public class SessionRepository : ISessionRepository
     {
         Guard.AgainstNull(session);
 
-        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Remove(session.IdentityName), cancellationToken);
-        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Add(session), cancellationToken);
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Save(session), cancellationToken);
 
         foreach (var permission in session.Permissions)
         {
@@ -38,66 +37,25 @@ public class SessionRepository : ISessionRepository
         }
     }
 
-    public async Task RenewAsync(Session session, CancellationToken cancellationToken = default)
-    {
-        Guard.AgainstNull(session);
-
-        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Renew(session), cancellationToken);
-    }
-
-    public async Task<Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
-    {
-        var result = await FindAsync(token, cancellationToken);
-
-        if (result == null)
-        {
-            throw RecordNotFoundException.For("Session", token);
-        }
-
-        return result;
-    }
-
     public async Task<Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
     {
-        var session = await _dataRepository.FetchItemAsync(_queryFactory.Get(token), cancellationToken);
+        var result = await _dataRepository.FetchItemAsync(_queryFactory.Find(token), cancellationToken);
 
-        if (session == null)
+        if (result == null)
         {
             return null;
         }
 
         foreach (var row in await _databaseContextService.Active.GetRowsAsync(_queryFactory.GetPermissions(token), cancellationToken))
         {
-            session.AddPermission(Columns.PermissionName.Value(row)!);
+            result.AddPermission(Columns.PermissionName.Value(row)!);
         }
 
-        return session;
-    }
-
-    public async Task<Session?> FindAsync(string identityName, CancellationToken cancellationToken = default)
-    {
-        var session = await _dataRepository.FetchItemAsync(_queryFactory.Get(identityName), cancellationToken);
-
-        if (session == null)
-        {
-            return null;
-        }
-
-        foreach (var row in await _databaseContextService.Active.GetRowsAsync(_queryFactory.GetPermissions(session.Token), cancellationToken))
-        {
-            session.AddPermission(Columns.PermissionName.Value(row)!);
-        }
-
-        return session;
+        return result;
     }
 
     public async ValueTask<bool> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
     {
         return await _databaseContextService.Active.ExecuteAsync(_queryFactory.Remove(token), cancellationToken) != 0;
-    }
-
-    public async ValueTask<bool> RemoveAsync(string identityName, CancellationToken cancellationToken = default)
-    {
-        return await _databaseContextService.Active.ExecuteAsync(_queryFactory.Remove(identityName), cancellationToken) != 0;
     }
 }

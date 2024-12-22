@@ -8,7 +8,7 @@ public class RequiresPermissionAttribute : TypeFilterAttribute
 {
     public RequiresPermissionAttribute(string permission) : base(typeof(RequiresPermission))
     {
-        Arguments = new object[] { permission };
+        Arguments = [permission];
     }
 
     private class RequiresPermission : IAuthorizationFilter
@@ -35,7 +35,7 @@ public class RequiresPermissionAttribute : TypeFilterAttribute
                 return;
             }
 
-            if (!_accessService.HasPermission(sessionTokenResult.SessionToken, _permission))
+            if (!_accessService.HasPermissionAsync(sessionTokenResult.SessionToken, _permission).GetAwaiter().GetResult())
             {
                 SetUnauthorized(context);
             }

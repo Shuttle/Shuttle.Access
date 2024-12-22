@@ -16,7 +16,7 @@ public class RequestIdentityRegistration
     public bool IsActivationAllowed { get; private set; }
     public bool IsAllowed { get; private set; }
 
-    public string RegisteredBy { get; private set; }
+    public string RegisteredBy { get; private set; } = string.Empty;
 
     public Guid? SessionToken { get; private set; }
 

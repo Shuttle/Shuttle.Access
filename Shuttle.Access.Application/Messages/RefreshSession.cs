@@ -4,7 +4,7 @@ namespace Shuttle.Access.Application;
 
 public class RefreshSession
 {
-    public string IdentityName { get; }
+    public string IdentityName { get; } = string.Empty;
     public Guid? Token { get; }
 
     public RefreshSession(Guid token)

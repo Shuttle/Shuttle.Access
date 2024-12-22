@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
 
 public class Session
 {
-    private readonly List<string> _permissions = new();
+    private readonly List<string> _permissions = [];
 
     public Session(Guid token, Guid identityId, string identityName, DateTime dateRegistered, DateTime expiryDate)
     {
@@ -30,6 +31,7 @@ public class Session
 
     public IEnumerable<string> Permissions => new ReadOnlyCollection<string>(_permissions);
     public Guid Token { get; private set; }
+    public bool HasPermissions => _permissions.Any();
 
     public Session AddPermission(string permission)
     {

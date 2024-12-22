@@ -26,31 +26,25 @@ public class SessionQuery : ISessionQuery
         _queryFactory = queryFactory;
     }
 
-    public async ValueTask<bool> ContainsAsync(Guid token, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> ContainsAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
     {
-        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(token), cancellationToken) == 1;
-    }
-
-    public async ValueTask<bool> ContainsAsync(Guid token, string permission, CancellationToken cancellationToken = default)
-    {
-        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(token, permission), cancellationToken) == 1;
-    }
-
-    public async Task<Messages.v1.Session> GetAsync(Guid token, CancellationToken cancellationToken = default)
-    {
-        var result = await _queryMapper.MapObjectAsync<Messages.v1.Session>(_queryFactory.Get(token), cancellationToken);
-
-        result.GuardAgainstRecordNotFound(token);
-
-        result.Permissions = (await _queryMapper.MapValuesAsync<string>(_queryFactory.GetPermissions(token), cancellationToken)).ToList();
-
-        return result;
+        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;
     }
 
     public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 
-        return await _queryMapper.MapObjectsAsync<Messages.v1.Session>(_queryFactory.Search(specification), cancellationToken);
+        var sessions = await _queryMapper.MapObjectsAsync<Messages.v1.Session>(_queryFactory.Search(specification), cancellationToken);
+
+        if (specification.ShouldIncludePermissions)
+        {
+            foreach (var session in sessions)
+            {
+                session.Permissions = (await _queryMapper.MapValuesAsync<string>(_queryFactory.GetPermissions(session.Token), cancellationToken)).ToList();
+            }
+        }
+
+        return sessions;
     }
 }

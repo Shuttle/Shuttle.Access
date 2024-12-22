@@ -86,6 +86,29 @@ public class IdentityHandler :
         }
     }
 
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context)
+    {
+        var message = context.Message;
+
+        if (string.IsNullOrEmpty(message.Name))
+        {
+            return;
+        }
+
+        var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
+        {
+            await _mediator.SendAsync(requestResponse);
+        }
+
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response);
+        }
+    }
+
     public async Task ProcessMessageAsync(IHandlerContext<SetIdentityRole> context)
     {
         Guard.AgainstNull(context);
@@ -121,29 +144,6 @@ public class IdentityHandler :
         await using (_databaseContextFactory.Create())
         {
             await _mediator.SendAsync(context.Message);
-        }
-    }
-
-    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context)
-    {
-        var message = context.Message;
-
-        if (string.IsNullOrEmpty(message.Name))
-        {
-            return;
-        }
-
-        var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
-
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
-
-        if (requestResponse.Response != null)
-        {
-            await context.PublishAsync(requestResponse.Response);
         }
     }
 }

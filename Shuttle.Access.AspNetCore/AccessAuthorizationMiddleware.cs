@@ -49,7 +49,7 @@ public class AccessAuthorizationMiddleware : IMiddleware
         }
 
         if (permissionRequirement != null &&
-            !_accessService.HasPermission(sessionToken, permissionRequirement.Permission))
+            !await _accessService.HasPermissionAsync(sessionToken, permissionRequirement.Permission))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
 
@@ -57,7 +57,7 @@ public class AccessAuthorizationMiddleware : IMiddleware
         }
 
         if (sessionRequirement != null &&
-            !_accessService.Contains(sessionToken))
+            !await _accessService.ContainsAsync(sessionToken))
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
 

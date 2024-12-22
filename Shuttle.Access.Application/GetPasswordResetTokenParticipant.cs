@@ -45,7 +45,7 @@ public class GetPasswordResetTokenParticipant : IParticipant<RequestResponseMess
                 await _eventStore.SaveAsync(stream);
             }
 
-            context.Message.WithResponse(identity.PasswordResetToken.Value);
+            context.Message.WithResponse(identity.PasswordResetToken!.Value);
         }
         else
         {

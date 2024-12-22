@@ -10,7 +10,7 @@ public class SessionMapper : IDataRowMapper<Session>
         return new(row, new(
             Columns.Token.Value(row),
             Columns.IdentityId.Value(row),
-            Columns.IdentityName.Value(row),
+            Columns.IdentityName.Value(row)!,
             Columns.DateRegistered.Value(row),
             Columns.ExpiryDate.Value(row)));
     }

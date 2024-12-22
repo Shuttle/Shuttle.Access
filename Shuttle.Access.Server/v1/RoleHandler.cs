@@ -5,106 +5,105 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 
-namespace Shuttle.Access.Server.v1
+namespace Shuttle.Access.Server.v1;
+
+public class RoleHandler :
+    IMessageHandler<RegisterRole>,
+    IMessageHandler<RemoveRole>,
+    IMessageHandler<SetRolePermission>,
+    IMessageHandler<SetRoleName>
 {
-    public class RoleHandler :
-        IMessageHandler<RegisterRole>,
-        IMessageHandler<RemoveRole>,
-        IMessageHandler<SetRolePermission>,
-        IMessageHandler<SetRoleName>
+    private readonly IDatabaseContextFactory _databaseContextFactory;
+    private readonly IMediator _mediator;
+
+    public RoleHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
     {
-        private readonly IDatabaseContextFactory _databaseContextFactory;
-        private readonly IMediator _mediator;
+        Guard.AgainstNull(databaseContextFactory);
+        Guard.AgainstNull(mediator);
 
-        public RoleHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
+        _databaseContextFactory = databaseContextFactory;
+        _mediator = mediator;
+    }
+
+    public async Task ProcessMessageAsync(IHandlerContext<RegisterRole> context)
+    {
+        var message = context.Message;
+
+        if (string.IsNullOrEmpty(message.Name))
         {
-            Guard.AgainstNull(databaseContextFactory);
-            Guard.AgainstNull(mediator);
-
-            _databaseContextFactory = databaseContextFactory;
-            _mediator = mediator;
+            return;
         }
 
-        public async Task ProcessMessageAsync(IHandlerContext<RegisterRole> context)
+        var requestResponse = new RequestResponseMessage<RegisterRole, RoleRegistered>(message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
         {
-            var message = context.Message;
-
-            if (string.IsNullOrEmpty(message.Name))
-            {
-                return;
-            }
-
-            var requestResponse = new RequestResponseMessage<RegisterRole, RoleRegistered>(message);
-
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(requestResponse);
-            }
-
-            if (requestResponse.Response != null)
-            {
-                await context.PublishAsync(requestResponse.Response);
-            }
+            await _mediator.SendAsync(requestResponse);
         }
 
-        public async Task ProcessMessageAsync(IHandlerContext<RemoveRole> context)
+        if (requestResponse.Response != null)
         {
-            var message = context.Message;
+            await context.PublishAsync(requestResponse.Response);
+        }
+    }
 
-            var requestResponse = new RequestResponseMessage<RemoveRole, RoleRemoved>(message);
+    public async Task ProcessMessageAsync(IHandlerContext<RemoveRole> context)
+    {
+        var message = context.Message;
 
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(requestResponse);
-            }
+        var requestResponse = new RequestResponseMessage<RemoveRole, RoleRemoved>(message);
 
-            if (requestResponse.Response != null)
-            {
-                await context.PublishAsync(requestResponse.Response);
-            }
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
+        {
+            await _mediator.SendAsync(requestResponse);
         }
 
-        public async Task ProcessMessageAsync(IHandlerContext<SetRolePermission> context)
+        if (requestResponse.Response != null)
         {
-            var message = context.Message;
+            await context.PublishAsync(requestResponse.Response);
+        }
+    }
 
-            var requestResponse = new RequestResponseMessage<SetRolePermission, RolePermissionSet>(message);
+    public async Task ProcessMessageAsync(IHandlerContext<SetRoleName> context)
+    {
+        var message = context.Message;
 
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(requestResponse);
-            }
-
-            if (requestResponse.Response != null)
-            {
-                await context.PublishAsync(requestResponse.Response);
-            }
+        if (string.IsNullOrEmpty(message.Name))
+        {
+            return;
         }
 
-        public async Task ProcessMessageAsync(IHandlerContext<SetRoleName> context)
+        var requestResponse = new RequestResponseMessage<SetRoleName, RoleNameSet>(message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
         {
-            var message = context.Message;
+            await _mediator.SendAsync(requestResponse);
+        }
 
-            if (string.IsNullOrEmpty(message.Name))
-            {
-                return;
-            }
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response);
+        }
+    }
 
-            var requestResponse = new RequestResponseMessage<SetRoleName, RoleNameSet>(message);
+    public async Task ProcessMessageAsync(IHandlerContext<SetRolePermission> context)
+    {
+        var message = context.Message;
 
-            using (new DatabaseContextScope())
-            await using (_databaseContextFactory.Create())
-            {
-                await _mediator.SendAsync(requestResponse);
-            }
+        var requestResponse = new RequestResponseMessage<SetRolePermission, RolePermissionSet>(message);
 
-            if (requestResponse.Response != null)
-            {
-                await context.PublishAsync(requestResponse.Response);
-            }
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
+        {
+            await _mediator.SendAsync(requestResponse);
+        }
+
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response);
         }
     }
 }

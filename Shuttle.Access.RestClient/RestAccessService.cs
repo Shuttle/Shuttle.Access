@@ -1,63 +1,62 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.RestClient
+namespace Shuttle.Access.RestClient;
+
+public class RestAccessService : CachedAccessService, IAccessService
 {
-    public class RestAccessService : CachedAccessService, IAccessService
+    private readonly IAccessClient _accessClient;
+    private readonly AccessOptions _accessOptions;
+
+    public RestAccessService(IOptions<AccessOptions> accessOptions, IAccessClient accessClient)
     {
-        private readonly IAccessClient _accessClient;
-        private readonly AccessOptions _accessOptions;
+        _accessOptions = Guard.AgainstNull(accessOptions).Value;
+        _accessClient = Guard.AgainstNull(accessClient);
+    }
 
-        public RestAccessService(IOptions<AccessOptions> accessOptions, IAccessClient accessClient)
+    public async ValueTask<bool> ContainsAsync(Guid token)
+    {
+        var result = Contains(token);
+
+        if (!result)
         {
-            _accessOptions = Guard.AgainstNull(accessOptions).Value;
-            _accessClient = Guard.AgainstNull(accessClient);
+            await CacheAsync(token);
+
+            return Contains(token);
         }
 
-        public new bool Contains(Guid token)
+        return true;
+    }
+
+    public async ValueTask<bool> HasPermissionAsync(Guid token, string permission)
+    {
+        if (!Contains(token))
         {
-            var result = base.Contains(token);
-
-            if (!result)
-            {
-                Cache(token);
-
-                return base.Contains(token);
-            }
-
-            return true;
+            await CacheAsync(token);
         }
 
-        public new bool HasPermission(Guid token, string permission)
-        {
-            if (!base.Contains(token))
-            {
-                Cache(token);
-            }
+        return HasPermission(token, permission);
+    }
 
-            return base.HasPermission(token, permission);
+    public new void Remove(Guid token)
+    {
+        base.Remove(token);
+    }
+
+    private async Task CacheAsync(Guid token)
+    {
+        if (Contains(token))
+        {
+            return;
         }
 
-        public new void Remove(Guid token)
+        var session = await _accessClient.Sessions.GetAsync(token);
+
+        if (session is { IsSuccessStatusCode: true, Content: not null })
         {
-            base.Remove(token);
-        }
-
-        private void Cache(Guid token)
-        {
-            if (base.Contains(token))
-            {
-                return;
-            }
-
-            var session = _accessClient.Sessions.GetAsync(token).Result;
-
-            if (session.IsSuccessStatusCode &&
-                session.Content != null)
-            {
-                Cache(token, session.Content.Permissions, _accessOptions.SessionDuration);
-            }
+            Cache(token, session.Content.Permissions, _accessOptions.SessionDuration);
         }
     }
 }

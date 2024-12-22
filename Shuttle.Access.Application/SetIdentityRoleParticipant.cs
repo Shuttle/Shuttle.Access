@@ -39,12 +39,15 @@ public class SetIdentityRoleParticipant : IParticipant<RequestResponseMessage<Se
             stream.Add(identity.RemoveRole(request.RoleId));
         }
 
-        message.WithResponse(new()
+        if (stream.ShouldSave())
         {
-            RoleId = request.RoleId,
-            IdentityId = request.IdentityId,
-            Active = request.Active,
-            SequenceNumber = await _eventStore.SaveAsync(stream)
-        });
+            message.WithResponse(new()
+            {
+                RoleId = request.RoleId,
+                IdentityId = request.IdentityId,
+                Active = request.Active,
+                SequenceNumber = await _eventStore.SaveAsync(stream)
+            });
+        }
     }
 }

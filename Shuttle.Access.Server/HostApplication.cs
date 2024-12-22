@@ -8,7 +8,7 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Server;
 
-public class ApplicationHostedService: IHostedService
+public class ApplicationHostedService : IHostedService
 {
     private readonly IDatabaseContextFactory _databaseContextFactory;
     private readonly IMediator _mediator;
@@ -21,14 +21,6 @@ public class ApplicationHostedService: IHostedService
         _mediator = Guard.AgainstNull(mediator);
     }
 
-    private void OnStarted()
-    {
-        using (_databaseContextFactory.Create())
-        {
-            _mediator.SendAsync(new ConfigureApplication()).GetAwaiter().GetResult();
-        }
-    }
-
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
@@ -37,5 +29,13 @@ public class ApplicationHostedService: IHostedService
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
+    }
+
+    private void OnStarted()
+    {
+        using (_databaseContextFactory.Create())
+        {
+            _mediator.SendAsync(new ConfigureApplication()).GetAwaiter().GetResult();
+        }
     }
 }

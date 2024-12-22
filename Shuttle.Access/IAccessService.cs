@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Shuttle.Access;
 
 public interface IAccessService
 {
-    bool Contains(Guid token);
+    ValueTask<bool> ContainsAsync(Guid token);
     void Flush(Guid token);
-    bool HasPermission(Guid token, string permission);
+    ValueTask<bool> HasPermissionAsync(Guid token, string permission);
     void Remove(Guid token);
 }

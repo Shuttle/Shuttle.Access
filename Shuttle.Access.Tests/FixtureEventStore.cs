@@ -12,12 +12,12 @@ public class FixtureEventStore : IEventStore
     private readonly Dictionary<Guid, EventStream> _eventStreams = new();
     private long _sequenceNumber = 1;
 
-    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder> builder = null)
+    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null)
     {
         return await Task.FromResult(Get(id, builder));
     }
 
-    public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder> builder = null)
+    public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
     {
         return await Task.FromResult(Save(eventStream, builder));
     }
@@ -43,7 +43,7 @@ public class FixtureEventStore : IEventStore
         return result;
     }
 
-    public T FindEvent<T>(Guid id, int index = -1) where T : class
+    public T? FindEvent<T>(Guid id, int index = -1) where T : class
     {
         var events = Get(id).GetEvents(EventStream.EventRegistrationType.All);
 
@@ -51,7 +51,7 @@ public class FixtureEventStore : IEventStore
         {
             if (index > -1)
             {
-                return (T)events.ElementAtOrDefault(index)?.Event;
+                return events.ElementAtOrDefault(index)?.Event as T;
             }
 
             var type = typeof(T);
@@ -74,12 +74,12 @@ public class FixtureEventStore : IEventStore
         return null;
     }
 
-    public EventStream Get(Guid id, Action<EventStreamBuilder> builder = null)
+    public EventStream Get(Guid id, Action<EventStreamBuilder>? builder = null)
     {
         return _eventStreams.TryGetValue(id, out var stream) ? stream : CreateEventStream(id);
     }
 
-    public long Save(EventStream eventStream, Action<EventStreamBuilder> builder = null)
+    public long Save(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
     {
         Guard.AgainstNull(eventStream, nameof(eventStream)).Commit();
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -12,42 +13,36 @@ public class DataStoreAccessService : CachedAccessService, IAccessService
     private readonly IDatabaseContextFactory _databaseContextFactory;
     private readonly ISessionRepository _sessionRepository;
 
-    public DataStoreAccessService(IOptionsMonitor<ConnectionStringOptions> connectionStringOptions, IOptions<AccessOptions> accessOptions, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository)
+    public DataStoreAccessService(IOptions<AccessOptions> accessOptions, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository)
     {
-        Guard.AgainstNull(connectionStringOptions);
-        Guard.AgainstNull(accessOptions);
-        Guard.AgainstNull(accessOptions.Value, nameof(accessOptions.Value));
-        Guard.AgainstNull(databaseContextFactory);
-        Guard.AgainstNull(sessionRepository);
-
-        _accessOptions = accessOptions.Value;
-        _connectionStringName = accessOptions.Value.ConnectionStringName;
-        _databaseContextFactory = databaseContextFactory;
-        _sessionRepository = sessionRepository;
+        _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+        _connectionStringName = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value).ConnectionStringName;
+        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
+        _sessionRepository = Guard.AgainstNull(sessionRepository);
     }
 
-    public new bool Contains(Guid token)
+    public async ValueTask<bool> ContainsAsync(Guid token)
     {
-        var result = base.Contains(token);
+        var result = Contains(token);
 
         if (!result)
         {
-            Cache(token);
+            await CacheAsync(token);
 
-            return base.Contains(token);
+            return Contains(token);
         }
 
         return true;
     }
 
-    public new bool HasPermission(Guid token, string permission)
+    public async ValueTask<bool> HasPermissionAsync(Guid token, string permission)
     {
-        if (!base.Contains(token))
+        if (!Contains(token))
         {
-            Cache(token);
+            await CacheAsync(token);
         }
 
-        return base.HasPermission(token, permission);
+        return HasPermission(token, permission);
     }
 
     public new void Remove(Guid token)
@@ -55,16 +50,16 @@ public class DataStoreAccessService : CachedAccessService, IAccessService
         base.Remove(token);
     }
 
-    private void Cache(Guid token)
+    private async Task CacheAsync(Guid token)
     {
-        if (base.Contains(token))
+        if (Contains(token))
         {
             return;
         }
 
-        using (_databaseContextFactory.Create(_connectionStringName))
+        await using (_databaseContextFactory.Create(_connectionStringName))
         {
-            var session = _sessionRepository.FindAsync(token).GetAwaiter().GetResult();
+            var session = await _sessionRepository.FindAsync(token);
 
             if (session != null)
             {

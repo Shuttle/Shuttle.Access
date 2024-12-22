@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ public class SessionsFixture
             Token = Guid.NewGuid()
         };
 
-        factory.SessionQuery.Setup(m => m.GetAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Messages.v1.Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 
@@ -42,7 +43,7 @@ public class SessionsFixture
         var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
             .AddPermission(Permission);
 
-        factory.SessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session));
+        factory.SessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
 
         var client = factory.GetAccessClient();
 

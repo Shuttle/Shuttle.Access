@@ -78,7 +78,7 @@ internal class Program
                     .AddSqlSubscription(builder =>
                     {
                         builder.Options.ConnectionStringName = "Access";
-                        
+
                         builder.UseSqlServer();
                     })
                     .AddDataStoreAccessService()

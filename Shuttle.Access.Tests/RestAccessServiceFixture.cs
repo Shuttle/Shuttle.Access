@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
@@ -12,11 +13,10 @@ namespace Shuttle.Access.Tests;
 [TestFixture]
 public class RestAccessServiceFixture
 {
-    private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow,
-        DateTime.UtcNow.AddHours(1));
+    private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow, DateTime.UtcNow.AddHours(1));
 
     [Test]
-    public void Should_be_able_check_for_non_existent_session()
+    public async Task Should_be_able_check_for_non_existent_session_async()
     {
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
@@ -26,11 +26,11 @@ public class RestAccessServiceFixture
 
         var service = new RestAccessService(Options.Create(new AccessOptions()), accessClient.Object);
 
-        Assert.That(service.Contains(Guid.NewGuid()), Is.False);
+        Assert.That(await service.ContainsAsync(Guid.NewGuid()), Is.False);
     }
 
     [Test]
-    public void Should_be_able_check_for_and_cache_existing_session()
+    public async Task Should_be_able_check_for_and_cache_existing_session()
     {
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
@@ -44,7 +44,7 @@ public class RestAccessServiceFixture
             SessionDuration = TimeSpan.FromHours(1)
         }), accessClient.Object);
 
-        Assert.That(service.Contains(_session.Token), Is.True);
+        Assert.That(await service.ContainsAsync(_session.Token), Is.True);
 
         accessClient.Verify(m => m.Sessions.GetAsync(It.IsAny<Guid>()).Result, Times.Exactly(1));
     }

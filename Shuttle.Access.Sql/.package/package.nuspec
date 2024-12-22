@@ -15,10 +15,10 @@
 		<copyright>Copyright (c) 2024, Eben Roux</copyright>
     <tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
-      <dependency id="Shuttle.Core.Data" version="17.0.0" />
-      <dependency id="Shuttle.Core.DependencyInjection" version="1.0.1" />
-      <dependency id="Shuttle.Recall" version="18.0.0" />
-      <dependency id="Shuttle.Recall.Sql.Storage" version="18.0.0" />
+      <dependency id="Shuttle.Core.Data" version="20.0.0" />
+      <dependency id="Shuttle.Core.DependencyInjection" version="20.0.0" />
+      <dependency id="Shuttle.Recall" version="20.0.0" />
+      <dependency id="Shuttle.Recall.Sql.Storage" version="20.0.0" />
 		</dependencies>
 	</metadata>
 	<files>
