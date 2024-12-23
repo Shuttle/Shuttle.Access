@@ -20,9 +20,9 @@ public static class StatisticEndpoints
                 {
                     return Results.Ok(new
                     {
-                        IdentityCount = await Guard.AgainstNull(identityQuery).CountAsync(new DataAccess.Query.Identity.Specification()),
-                        RoleCount = await Guard.AgainstNull(roleQuery).CountAsync(new DataAccess.Query.Role.Specification()),
-                        PermissionCount = await Guard.AgainstNull(permissionQuery).CountAsync(new DataAccess.Query.Permission.Specification())
+                        IdentityCount = await Guard.AgainstNull(identityQuery).CountAsync(new()),
+                        RoleCount = await Guard.AgainstNull(roleQuery).CountAsync(new()),
+                        PermissionCount = await Guard.AgainstNull(permissionQuery).CountAsync(new())
                     });
                 }
             })
