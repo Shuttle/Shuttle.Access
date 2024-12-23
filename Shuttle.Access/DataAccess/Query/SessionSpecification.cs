@@ -43,7 +43,7 @@ public class Session
             return this;
         }
 
-        public Guid Token { get; private set; }
+        public Guid? Token { get; private set; }
 
         public Specification WithIdentityName(string identityName)
         {

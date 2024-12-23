@@ -55,7 +55,7 @@ WHERE
         Guard.AgainstNull(session);
 
         return new Query($@"
-IF EXISTS (SELECT NULL FROM [dbo].[Session] WHERE Token = @Token) 
+IF NOT EXISTS (SELECT NULL FROM [dbo].[Session] WHERE Token = @Token) 
 BEGIN
     INSERT INTO [dbo].[Session] 
     (
@@ -69,7 +69,9 @@ BEGIN
 	    @DateRegistered,
         @ExpiryDate
     )
+END
 ELSE
+BEGIN
     UPDATE
         [dbo].[Session]
     SET
@@ -96,11 +98,11 @@ INSERT INTO [dbo].[SessionPermission]
     PermissionName
 )
 VALUES
-{string.Join("", session.Permissions.Select(permission => $@"
+{string.Join(",", session.Permissions.Select(permission => $@"
 (
     @Token,
     '{permission}'
-),
+)
 "))}
 ")}
 ")
@@ -109,26 +111,6 @@ VALUES
             .AddParameter(Columns.IdentityId, session.IdentityId)
             .AddParameter(Columns.DateRegistered, session.DateRegistered)
             .AddParameter(Columns.ExpiryDate, session.ExpiryDate);
-    }
-
-    public IQuery AddPermission(Guid token, string permission)
-    {
-        Guard.AgainstNullOrEmptyString(permission, nameof(permission));
-
-        return new Query(@"
-insert into [dbo].[SessionPermission]
-(
-	Token,
-	PermissionName
-)
-values
-(
-	@Token,
-	@PermissionName
-)
-")
-            .AddParameter(Columns.Token, token)
-            .AddParameter(Columns.PermissionName, permission);
     }
 
     public IQuery Remove(Guid token)

@@ -30,11 +30,6 @@ public class SessionRepository : ISessionRepository
         Guard.AgainstNull(session);
 
         await _databaseContextService.Active.ExecuteAsync(_queryFactory.Save(session), cancellationToken);
-
-        foreach (var permission in session.Permissions)
-        {
-            await _databaseContextService.Active.ExecuteAsync(_queryFactory.AddPermission(session.Token, permission), cancellationToken);
-        }
     }
 
     public async Task<Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
