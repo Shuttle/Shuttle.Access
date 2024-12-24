@@ -1,18 +1,5 @@
+import type { Alert, AlertStoreState } from "@/access";
 import { defineStore } from "pinia";
-
-export interface Alert {
-  message: string;
-  name: string;
-  type?: "error" | "success" | "warning" | "info" | undefined;
-  expire?: boolean;
-  expirySeconds?: number;
-  dismissable?: boolean;
-  key?: string;
-}
-
-export interface AlertStoreState {
-  alerts: Alert[];
-}
 
 export const messages = {
   requestSent:

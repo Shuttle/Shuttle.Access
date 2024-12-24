@@ -1,8 +1,4 @@
-export interface Configuration {
-  url: string;
-  debugging: () => boolean;
-  getApiUrl: (path: string) => string;
-}
+import type { Configuration } from "./access";
 
 const configuration: Configuration = {
   url: `${import.meta.env.VITE_API_URL}${

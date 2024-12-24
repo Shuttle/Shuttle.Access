@@ -1,74 +1,80 @@
 <template>
-    <form @submit.prevent="submit" class="sv-form sv-form--sm">
-        <div class="sv-title">{{ $t("role") }}</div>
-        <v-text-field v-model="state.current" :label="$t('name')" class="mb-2" readonly>
-        </v-text-field>
-        <v-text-field v-model="state.name" :label="$t('new-value')"
-            class="mb-2" :error-messages="validation.message('name')">
-        </v-text-field>
-        <div class="sv-strip sv-strip--reverse">
-            <v-btn type="submit" :disabled="busy || same">{{ $t("save") }}</v-btn>
-        </div>
-    </form>
+  <form @submit.prevent="submit" class="sv-form sv-form--sm">
+    <div class="sv-title">{{ $t("role") }}</div>
+    <v-text-field v-model="state.current" :label="$t('name')" class="mb-2" readonly>
+    </v-text-field>
+    <v-text-field v-model="state.name" :label="$t('new-value')" class="mb-2"
+      :error-messages="validation.message('name')">
+    </v-text-field>
+    <div class="sv-strip sv-strip--reverse">
+      <v-btn type="submit" :disabled="busy || same">{{ $t("save") }}</v-btn>
+    </div>
+  </form>
 </template>
 
-<script setup>
-import { computed, onMounted, reactive, ref } from "vue";
+<script setup lang="ts">
+import { computed, onMounted, reactive, ref, type Reactive } from "vue";
 import { required } from '@vuelidate/validators';
-import { useRoute } from 'vue-router';
 import { useValidation } from "@/composables/useValidation"
 import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
 
-const id = ref(useRoute().params.id);
+const props = defineProps<{
+  id: string;
+}>();
 
-const busy = ref(false);
+const busy: Ref<boolean> = ref(false);
 
-const same = computed(() => {
-    return state.current === state.name;
+const same: ComputedRef<boolean> = computed(() => {
+  return state.current === state.name;
 })
 
-const state = reactive({
-    current: "",
-    name: "",
+type State = {
+  current: string;
+  name: string;
+}
+
+const state: Reactive<State> = reactive({
+  current: "",
+  name: "",
 });
 
 const rules = computed(() => {
-    return {
-        name: {
-            required
-        },
-    }
+  return {
+    name: {
+      required
+    },
+  }
 });
 
 const validation = useValidation(rules, state);
 
 const submit = async () => {
-    const errors = await validation.errors();
+  const errors = await validation.errors();
 
-    if (errors.length) {
-        return;
-    }
+  if (errors.length) {
+    return;
+  }
 
-    busy.value = true;
+  busy.value = true;
 
-    api
-        .patch(`v1/roles/${id.value}/name`, {
-            name: state.name,
-        })
-        .then(function () {
-            useAlertStore().requestSent();
-        })
-        .finally(() => {
-            busy.value = false;
-        });
+  api
+    .patch(`v1/roles/${props.id}/name`, {
+      name: state.name,
+    })
+    .then(function () {
+      useAlertStore().requestSent();
+    })
+    .finally(() => {
+      busy.value = false;
+    });
 }
 
 onMounted(() => {
-    api.get(`v1/roles/${id.value}`)
-        .then(item => {
-            state.current = item.data.name;
-            state.name = item.data.name;
-        });
+  api.get(`v1/roles/${props.id}`)
+    .then(item => {
+      state.current = item.data.name;
+      state.name = item.data.name;
+    });
 })
 </script>

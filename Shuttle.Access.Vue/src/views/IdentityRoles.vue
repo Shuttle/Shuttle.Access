@@ -27,7 +27,7 @@ import { useRoute } from 'vue-router';
 import { useAlertStore } from "@/stores/alert";
 import { mdiTimerSand, mdiMagnify, mdiRefresh } from '@mdi/js';
 
-import type { IdentifierAvailability, RoleAssignment } from "@/access";
+import type { IdentifierAvailability } from "@/access";
 import type { AxiosResponse } from "axios";
 
 const { t } = useI18n({ useScope: 'global' });
@@ -54,18 +54,26 @@ const headers: any = [
   }
 ];
 
+export type RoleItem = {
+  roleId: string;
+  roleName: string;
+  active: boolean;
+  activeOnToggle?: boolean;
+  working: boolean;
+};
+
 const items = computed(() => {
-  var result: RoleAssignment[] = [];
+  var result: RoleItem[] = [];
 
   identityRoles.value.forEach((item: any) => {
     result.push(reactive({
       roleId: item.id,
       roleName: item.name,
       active: true,
-      activeOnToggle: true,
       working: false,
     }));
   });
+
   roles.value.filter((item: any) => {
     return !result.some((r) => r.roleId == item.id);
   }).forEach((item: any) => {
@@ -73,7 +81,6 @@ const items = computed(() => {
       roleId: item.id,
       roleName: item.name,
       active: false,
-      activeOnToggle: false,
       working: false,
     }));
   });
@@ -102,7 +109,7 @@ const workingCount = computed(() => {
   return workingItems.value.length;
 });
 
-const getRoleAssignment = (id: string): RoleAssignment | undefined => {
+const getRoleAssignment = (id: string): RoleItem | undefined => {
   return items.value.find(item => item.roleId === id);
 };
 
@@ -123,7 +130,7 @@ const getWorkingRoles = () => {
           return;
         }
 
-        roleItem.working = roleItem.activeOnToggle == availability.active;
+        roleItem.working = roleItem.activeOnToggle ? availability.active : !availability.active;
       });
     })
     .then(() => {
@@ -133,13 +140,14 @@ const getWorkingRoles = () => {
     });
 };
 
-const toggle = (item: RoleAssignment) => {
+const toggle = (item: RoleItem) => {
   if (item.working) {
     alertStore.working();
     return;
   }
 
   item.working = true;
+  item.activeOnToggle = !item.active;
 
   api
     .patch(`v1/identities/${id.value}/roles/${item.roleId}`, {

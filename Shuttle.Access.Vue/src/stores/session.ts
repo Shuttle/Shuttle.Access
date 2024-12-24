@@ -2,36 +2,12 @@ import { defineStore } from "pinia";
 import axios from "axios";
 import configuration from "@/configuration";
 import { i18n } from "@/i18n";
-
-export interface Permission {
-  type: string;
-  permission: string;
-}
-
-export interface Session {
-  identityName: string;
-  token: string;
-  permissions: string[];
-}
-
-export interface OAuthData {
-  code: string;
-  state: string;
-}
-
-export interface Credentials {
-  identityName: string;
-  token?: string;
-  password?: string;
-}
-
-export interface SessionStoreState {
-  authenticated: boolean;
-  initialized: boolean;
-  identityName?: string;
-  token?: string;
-  permissions: Permission[];
-}
+import type {
+  Session,
+  SessionStoreState,
+  Credentials,
+  OAuthData,
+} from "@/access";
 
 export const useSessionStore = defineStore("session", {
   state: (): SessionStoreState => {
@@ -144,7 +120,7 @@ export const useSessionStore = defineStore("session", {
 
               resolve(response);
             } else {
-              reject(getSessionFailureMessage(data))
+              reject(getSessionFailureMessage(data));
             }
           })
           .catch(function (error) {
@@ -235,21 +211,20 @@ export const useSessionStore = defineStore("session", {
 });
 
 function getSessionFailureMessage(data: any): string {
-    let message = "";
-    switch (data.result) {
-      case "DelegationSessionInvalid":
-      case "Forbidden": {
-        message = i18n.global.t("messages.invalid-credentials");
-        break;
-      }
-      case "UnknownIdentity": {
-        message =
-          i18n.global.t("messages.unknown-identity") +
-          (data.registrationRequested
-            ? `  ${i18n.global.t("messages.registration-requested")}`
-            : "");
-      }
+  let message = "";
+  switch (data.result) {
+    case "DelegationSessionInvalid":
+    case "Forbidden": {
+      message = i18n.global.t("messages.invalid-credentials");
+      break;
     }
-    return message;
+    case "UnknownIdentity": {
+      message =
+        i18n.global.t("messages.unknown-identity") +
+        (data.registrationRequested
+          ? `  ${i18n.global.t("messages.registration-requested")}`
+          : "");
+    }
+  }
+  return message;
 }
-

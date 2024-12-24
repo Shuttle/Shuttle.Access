@@ -12,10 +12,6 @@
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy">
-      <template v-slot:text>
-        <v-text-field v-model="search" label="Search" prepend-inner-icon="mdi-magnify" variant="outlined" hide-details
-          single-line></v-text-field>
-      </template>
       <template v-slot:item.roles="{ item }">
         <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click="roles(item)" v-tooltip:end="$t('roles')" />
       </template>
@@ -33,7 +29,7 @@
   </v-card>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -44,6 +40,8 @@ import { useRouter } from "vue-router";
 import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";
 import Permissions from "@/permissions";
+import type { Identity } from "@/access";
+import type { AxiosResponse } from "axios";
 
 var confirmationStore = useConfirmationStore();
 
@@ -92,7 +90,7 @@ const headers = useSecureTableHeaders([
   {
     title: t("date-registered"),
     key: "item.dateRegistered",
-    value: (item) => {
+    value: (item: any) => {
       return useDateFormatter(item.dateRegistered);
     }
   },
@@ -103,20 +101,20 @@ const headers = useSecureTableHeaders([
   {
     title: t("date-activated"),
     key: "item.dateActivated",
-    value: (item) => {
+    value: (item: any) => {
       return useDateFormatter(item.dateActivated);
     }
   },
 ]);
 
-const items = ref([]);
+const items: Ref<Identity[]> = ref([]);
 
 const refresh = () => {
   busy.value = true;
 
   api
     .get("v1/identities")
-    .then(function (response) {
+    .then(function (response: AxiosResponse<Identity[]>) {
       if (!response || !response.data) {
         return;
       }
@@ -128,7 +126,7 @@ const refresh = () => {
     });
 }
 
-const remove = (item) => {
+const remove = (item: Identity) => {
   confirmationStore.setIsOpen(false);
 
   api
@@ -144,15 +142,15 @@ const add = () => {
   router.push({ name: "identity" })
 }
 
-const roles = (item) => {
+const roles = (item: Identity) => {
   router.push({ name: "identity-roles", params: { id: item.id } });
 }
 
-const password = (item) => {
+const password = (item: Identity) => {
   router.push({ name: "password", params: { id: item.id } });
 }
 
-const rename = (item) => {
+const rename = (item: Identity) => {
   router.push({ name: "identity-rename", params: { id: item.id } });
 }
 

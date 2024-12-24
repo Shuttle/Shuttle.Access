@@ -1,10 +1,5 @@
+import type { ConfirmationStoreState } from "@/access";
 import { defineStore } from "pinia";
-
-export interface ConfirmationStoreState {
-  item: any;
-  isOpen: boolean;
-  callback?: (item: any) => void;
-}
 
 export const useConfirmationStore = defineStore("confirmation", {
   state: (): ConfirmationStoreState => {

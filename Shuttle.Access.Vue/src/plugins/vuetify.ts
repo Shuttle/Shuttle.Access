@@ -15,8 +15,9 @@ import { createVuetify, type ThemeDefinition } from "vuetify";
 const theme: ThemeDefinition = {
   dark: true,
   colors: {
-    primary: "#6200EE",
-    "primary-darken-1": "#3700B3",
+    primary: "#F97316",
+    "primary--hover": "#fa7d24",
+    "primary--active": "#eb7826",
     secondary: "#03DAC6",
     "secondary-darken-1": "#018786",
     error: "#bb4445",
