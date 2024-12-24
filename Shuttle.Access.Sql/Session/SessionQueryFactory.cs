@@ -55,7 +55,7 @@ WHERE
         Guard.AgainstNull(session);
 
         return new Query($@"
-IF NOT EXISTS (SELECT NULL FROM [dbo].[Session] WHERE Token = @Token) 
+IF NOT EXISTS (SELECT NULL FROM [dbo].[Session] WHERE IdentityName = @IdentityName)
 BEGIN
     INSERT INTO [dbo].[Session] 
     (
