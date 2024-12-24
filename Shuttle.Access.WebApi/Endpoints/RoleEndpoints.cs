@@ -74,12 +74,14 @@ public static class RoleEndpoints
                 {
                     var permissions = (await roleQuery.PermissionsAsync(new DataAccess.Query.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
 
-                    return Results.Ok(from permissionId in identifiers.Values
+                    var result = from permissionId in identifiers.Values
                         select new IdentifierAvailability<Guid>
                         {
                             Id = permissionId,
                             Active = permissions.Any(item => item.Id.Equals(permissionId))
-                        });
+                        };
+
+                    return Results.Ok(result);
                 }
             })
             .WithTags("Roles")

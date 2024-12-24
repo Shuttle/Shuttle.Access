@@ -45,7 +45,7 @@ public static class IdentityEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    return Results.Ok(await identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification()));
+                    return Results.Ok(await identityQuery.SearchAsync(new()));
                 }
             })
             .WithTags("Identities")

@@ -21,7 +21,7 @@ public static class PermissionEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var permissions = (await permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification())).ToList();
+                    var permissions = (await permissionQuery.SearchAsync(new())).ToList();
                     return Results.Ok(permissions);
                 }
             })
