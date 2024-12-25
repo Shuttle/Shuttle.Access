@@ -18,6 +18,8 @@ const theme: ThemeDefinition = {
     primary: "#F97316",
     "primary--hover": "#fa7d24",
     "primary--active": "#eb7826",
+    "primary-text--hover": "#f9f9f9",
+    "primary-text--active": "#d1d1d1",
     secondary: "#03DAC6",
     "secondary-darken-1": "#018786",
     error: "#bb4445",

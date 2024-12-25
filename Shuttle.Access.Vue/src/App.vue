@@ -9,7 +9,8 @@
         </template>
       </v-alert>
     </div>
-    <div class="p-4">
+    <div class="p-2">
+      <Breadcrumb />
       <RouterView v-slot="{ Component, route }">
         <transition name="route" mode="out-in">
           <component :is="Component" :key="route.fullPath"></component>
@@ -36,6 +37,7 @@
 
 <script lang="ts" setup>
 import Navbar from "@/components/Navbar.vue";
+import Breadcrumb from '@/components/Breadcrumb.vue';
 import { mdiCloseCircleOutline } from '@mdi/js';
 import { useAlertStore } from "@/stores/alert";
 import { RouterView } from "vue-router";

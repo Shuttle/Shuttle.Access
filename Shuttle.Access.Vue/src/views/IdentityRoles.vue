@@ -1,6 +1,6 @@
 <template>
   <v-card flat>
-    <v-card-title class="d-flex align-center pe-2">
+    <v-card-title class="sv-card-title">
       <div class="sv-title">{{ `${t("roles")} - ${name}` }}</div>
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>

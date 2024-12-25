@@ -13,6 +13,15 @@ export type AlertStoreState = {
   alerts: Alert[];
 };
 
+export type Breadcrumb = {
+  name: RouteRecordNameGeneric;
+  path: string;
+};
+
+export type BreadcrumbStoreState = {
+  breadcrumbs: Breadcrumb[];
+};
+
 export type Configuration = {
   url: string;
   debugging: () => boolean;

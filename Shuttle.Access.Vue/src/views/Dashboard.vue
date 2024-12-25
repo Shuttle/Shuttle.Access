@@ -2,10 +2,9 @@
   <div>
     <div class="flex flex-col sm:flex-row items-stretch gap-2 p-2">
       <div v-for="item in items" :key="item.route"
-        class="group flex flex-col items-center justify-center border border-solid rounded-lg p-2 w-full cursor-pointer hover:bg-[color:rgb(var(--v-theme-primary--hover))] active:bg-[color:rgb(var(--v-theme-primary--hover))]"
+        class="group flex flex-col items-center justify-center border border-solid rounded-lg p-2 w-full cursor-pointer hover:bg-[color:rgb(var(--v-theme-primary--hover))] active:bg-[color:rgb(var(--v-theme-primary--active))]"
         @click="click(item)">
-        <div
-          class="text-2xl font-bold text-[color:rgb(var(--sv-text-title-primary))] group-hover:text-[color:rgb(var(--sv-text-fg-primary--hover))]">
+        <div class="text-2xl font-bold group-hover:text-[color:rgb(var(--v-theme-primary-text--hover))]">
           {{ item.title }}</div>
         <div class="text-xl font-semibold">{{ item.value }}</div>
       </div>

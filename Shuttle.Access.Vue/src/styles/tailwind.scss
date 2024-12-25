@@ -3,6 +3,11 @@
 @tailwind utilities;
 
 @layer components {
+  /* Card */
+  .sv-card {
+    @apply text-center;
+  }
+
   /* Form */
   .sv-form {
     @apply w-full mx-auto transition-width ease-in duration-300 mt-10;

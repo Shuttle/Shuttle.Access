@@ -1,8 +1,10 @@
-import type { RouteRecordRaw } from "vue-router";
+import type { RouteLocationNormalized, RouteRecordRaw } from "vue-router";
 import { createRouter, createWebHistory } from "vue-router";
 import { useSessionStore } from "@/stores/session";
 import { useAlertStore } from "@/stores/alert";
 import Permissions from "../permissions";
+import { useBreadcrumbStore } from "@/stores/breadcrumb";
+import type { Breadcrumb } from "@/access";
 
 export const messages = {
   insufficientPermission:
@@ -156,6 +158,23 @@ router.beforeEach(async (to) => {
     to.name !== "signin"
   ) {
     return { name: "signin" };
+  }
+});
+
+router.afterEach(async (to) => {
+  const breadcrumbStore = useBreadcrumbStore();
+
+  const existingIndex = breadcrumbStore.breadcrumbs.findIndex(
+    (route: Breadcrumb) => route.path === to.path
+  );
+
+  if (existingIndex === -1) {
+    breadcrumbStore.addBreadcrumb({
+      name: to.name,
+      path: to.path,
+    });
+  } else {
+    breadcrumbStore.removeBreadcrumbsAfter(existingIndex);
   }
 });
 
