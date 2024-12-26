@@ -1,17 +1,27 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Claims;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Primitives;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
 public class AccessAuthorizationMiddleware : IMiddleware
 {
-    public static readonly string AuthorizationScheme = "Bearer";
-    private static readonly char[] Space = { ' ' };
+    public static readonly string AuthorizationScheme = "Shuttle.Access";
+    private static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
     private readonly IAccessService _accessService;
+    private readonly StringValues _wwwAuthenticate;
 
-    public AccessAuthorizationMiddleware(IAccessService accessService)
+
+    public AccessAuthorizationMiddleware(IOptions<AccessOptions> accessOptions, IAccessService accessService)
     {
+        var options = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+
         _accessService = Guard.AgainstNull(accessService);
+
+        _wwwAuthenticate = $"Shuttle.Access realm=\"{options.Realm}\", token=\"GUID\"; Bearer realm=\"{options.Realm}\"";
     }
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -28,25 +38,41 @@ public class AccessAuthorizationMiddleware : IMiddleware
             return;
         }
 
-        var headers = context.Request.Headers["Authorization"];
+        var header = context.Request.Headers["Authorization"].FirstOrDefault();
 
-        if (headers.Count != 1)
+        if (header == null)
         {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-
+            Unauthorized(context);
             return;
         }
 
-        var values = headers[0]!.Split(Space);
-
-        if (values.Length != 2 ||
-            !values[0].Equals(AuthorizationScheme) ||
-            !Guid.TryParse(values[1], out var sessionToken))
+        if (!header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
         {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-
+            Unauthorized(context);
             return;
         }
+
+        var match = TokenExpression.Match(header["Shuttle.Access ".Length..].Trim());
+
+        if (!match.Success)
+        {
+            Unauthorized(context);
+            return;
+        }
+
+        if (!Guid.TryParse(match.Groups["token"].Value, out var sessionToken))
+        {
+            Unauthorized(context);
+            return;
+        }
+
+        if (!await _accessService.ContainsAsync(sessionToken))
+        {
+            Unauthorized(context);
+            return;
+        }
+
+        context.User = new(new ClaimsIdentity([new(ClaimTypes.Name, "AuthenticatedUser"), new("scheme", AuthorizationScheme)], AuthorizationScheme));
 
         if (permissionRequirement != null &&
             !await _accessService.HasPermissionAsync(sessionToken, permissionRequirement.Permission))
@@ -56,14 +82,12 @@ public class AccessAuthorizationMiddleware : IMiddleware
             return;
         }
 
-        if (sessionRequirement != null &&
-            !await _accessService.ContainsAsync(sessionToken))
-        {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-
-            return;
-        }
-
         await next(context);
+    }
+
+    private void Unauthorized(HttpContext context)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        context.Response.Headers.Append("WWW-Authenticate", _wwwAuthenticate);
     }
 }

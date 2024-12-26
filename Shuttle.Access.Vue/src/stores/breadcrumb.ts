@@ -8,6 +8,9 @@ export const useBreadcrumbStore = defineStore("breadcrumb", {
     };
   },
   actions: {
+    clear() {
+      this.breadcrumbs = [];
+    },
     addBreadcrumb(breadcrumb: Breadcrumb) {
       this.breadcrumbs.push(breadcrumb);
     },

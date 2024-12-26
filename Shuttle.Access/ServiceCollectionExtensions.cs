@@ -25,6 +25,7 @@ public static class ServiceCollectionExtensions
             options.OAuthProviderNames = accessBuilder.Options.OAuthProviderNames;
             options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
             options.OAuthProviderSvgFolder = accessBuilder.Options.OAuthProviderSvgFolder;
+            options.Realm = accessBuilder.Options.Realm;
         });
 
         return services;

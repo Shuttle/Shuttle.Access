@@ -11,6 +11,8 @@ export const messages = {
     "You do not have permission to access the requested view.  Please contact your system administrator if you require access.",
 };
 
+const ignoreBreadcrumbs = ["sign-in", "oauth"];
+
 const routes: Array<RouteRecordRaw> = [
   {
     path: "/signin",
@@ -163,6 +165,13 @@ router.beforeEach(async (to) => {
 
 router.afterEach(async (to) => {
   const breadcrumbStore = useBreadcrumbStore();
+
+  var name = typeof to.name === "string" ? to.name : undefined;
+
+  if (!name || ignoreBreadcrumbs.includes(name)) {
+    breadcrumbStore.clear();
+    return;
+  }
 
   const existingIndex = breadcrumbStore.breadcrumbs.findIndex(
     (route: Breadcrumb) => route.path === to.path
