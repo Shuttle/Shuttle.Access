@@ -27,19 +27,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests.Integration", "Shuttle.Access.Tests.Integration\Shuttle.Access.Tests.Integration.csproj", "{AFC0D1D0-588B-4E9B-9B2E-230A769C929D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".azure", ".azure", "{D53FEDEF-EE4C-4F47-8248-F3C8AB932585}"
-	ProjectSection(SolutionItems) = preProject
-		.azure\access.projection.service = .azure\access.projection.service
-		.azure\access.server.service = .azure\access.server.service
-		.azure\access.webapi.service = .azure\access.webapi.service
-		.azure\build-pipeline.yml = .azure\build-pipeline.yml
-		.azure\Projection.App.config = .azure\Projection.App.config
-		.azure\Server.App.config = .azure\Server.App.config
-		.azure\WebApi.App.config = .azure\WebApi.App.config
-		.azure\WebApi.log4net.xml = .azure\WebApi.log4net.xml
-		.azure\WebApi.web.config = .azure\WebApi.web.config
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Application", "Shuttle.Access.Application\Shuttle.Access.Application.csproj", "{A9DC3DDF-2047-42E1-BDE2-DE1F4336FEE9}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{5417FE2A-8368-4E91-B58D-CF4DE6AA596C}"

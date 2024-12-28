@@ -3,6 +3,7 @@ using System.Reflection;
 using Asp.Versioning;
 using Microsoft.Data.SqlClient;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
@@ -46,6 +47,10 @@ public class Program
         webApplicationBuilder.Configuration
             .AddJsonFile(appsettingsPath);
 
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(webApplicationBuilder.Configuration)
+            .CreateLogger();
+
         var accessOptions = webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Get<AccessOptions>()!;
 
         var apiVersion1 = new ApiVersion(1, 0);
@@ -64,6 +69,10 @@ public class Program
             });
 
         webApplicationBuilder.Services
+            .AddLogging(builder =>
+            {
+                builder.AddSerilog();
+            })
             .AddEndpointsApiExplorer()
             .AddSwaggerGen(options =>
             {
@@ -186,7 +195,8 @@ public class Program
             .MapSessionEndpoints(versionSet)
             .MapStatisticEndpoints(versionSet);
 
-        app.UseSwagger()
+        app
+            .UseSwagger()
             .UseSwaggerUI();
 
         app.Run();

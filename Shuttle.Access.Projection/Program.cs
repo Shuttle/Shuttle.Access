@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using Serilog;
 using Shuttle.Access.Projection.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
@@ -49,11 +50,15 @@ internal class Program
             {
                 var configuration = new ConfigurationBuilder().AddJsonFile(appsettingsPath).Build();
 
+                Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(configuration)
+                    .CreateLogger();
+
                 services
                     .AddSingleton<IConfiguration>(configuration)
-                    .AddLogging(configure =>
+                    .AddLogging(builder =>
                     {
-                        configure.AddConsole();
+                        builder.AddSerilog();
                     })
                     .FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add()
                     .AddDataAccess(builder =>
