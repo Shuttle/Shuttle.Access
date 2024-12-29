@@ -106,10 +106,11 @@ public static class OAuthEndpoints
                 logger.LogDebug($"[oauth/retrieve] : grant id = '{requestId}'");
 
                 var grant = await oauthGrantRepository.GetAsync(requestId);
-                var data = await oauthService.GetDataAsync(grant, code);
-                var options = oauthOptions.Get(grant.ProviderName);
 
                 logger.LogDebug($"[oauth/e-mail request] : grant id = '{requestId}'");
+
+                var data = await oauthService.GetDataAsync(grant, code);
+                var options = oauthOptions.Get(grant.ProviderName);
 
                 var email = data.GetProperty(options.EMailPropertyName).ToString();
 
