@@ -89,6 +89,7 @@ internal class Program
                     .AddEventStoreLogging(builder =>
                     {
                         builder.Options.AddPipelineEventType<OnPipelineException>();
+                        builder.Options.AddPipelineEventType<OnAfterAcknowledgeEvent>();
                     })
                     .AddSingleton<IHashingService, HashingService>()
                     .AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Projection"));
