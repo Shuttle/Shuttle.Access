@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 import configuration from "@/configuration";
 import { i18n } from "@/i18n";
 import type {
@@ -7,6 +7,7 @@ import type {
   SessionStoreState,
   Credentials,
   OAuthData,
+  SessionResponse,
 } from "@/access";
 
 export const useSessionStore = defineStore("session", {
@@ -81,7 +82,9 @@ export const useSessionStore = defineStore("session", {
 
       this.authenticated = true;
     },
-    async signIn(credentials: Credentials) {
+    async signIn(
+      credentials: Credentials
+    ): Promise<AxiosResponse<SessionResponse>> {
       const self = this;
 
       return new Promise((resolve, reject) => {
@@ -117,33 +120,31 @@ export const useSessionStore = defineStore("session", {
                 token: data.token,
                 permissions: data.permissions,
               });
-
-              resolve(response);
-            } else {
-              reject(getSessionFailureMessage(data));
             }
+
+            resolve(response);
           })
           .catch(function (error) {
             reject(error);
           });
       });
     },
-    async oauth(oauthData: OAuthData) {
+    async oauth(oauthData: OAuthData): Promise<AxiosResponse<SessionResponse>> {
       const self = this;
 
       return new Promise((resolve, reject) => {
         if (!oauthData || !oauthData.state || !oauthData.code) {
-          reject(new Error(i18n.global.t("messages.missing-oauth-data")));
+          reject(new Error(i18n.global.t("messages.oauth-missing-data")));
           return;
         }
 
         return axios
-          .get(
+          .get<SessionResponse>(
             configuration.getApiUrl(
               `v1/oauth/session/${oauthData.state}/${oauthData.code}`
             )
           )
-          .then(function (response) {
+          .then(function (response: AxiosResponse<SessionResponse>) {
             if (!response) {
               throw new Error("Argument 'response' may not be undefined.");
             }
@@ -160,11 +161,9 @@ export const useSessionStore = defineStore("session", {
                 token: data.token,
                 permissions: data.permissions,
               });
-
-              resolve(response);
-            } else {
-              reject(getSessionFailureMessage(data.result));
             }
+
+            resolve(response);
           })
           .catch(function (error) {
             reject(error);
@@ -182,6 +181,8 @@ export const useSessionStore = defineStore("session", {
       localStorage.removeItem("shuttle-access.token");
 
       this.removePermissions("identity");
+
+      this.authenticated = false;
     },
     removePermissions(type: string) {
       this.permissions = this.permissions.filter(function (item) {
@@ -209,22 +210,3 @@ export const useSessionStore = defineStore("session", {
     },
   },
 });
-
-function getSessionFailureMessage(data: any): string {
-  let message = "";
-  switch (data.result) {
-    case "DelegationSessionInvalid":
-    case "Forbidden": {
-      message = i18n.global.t("messages.invalid-credentials");
-      break;
-    }
-    case "UnknownIdentity": {
-      message =
-        i18n.global.t("messages.unknown-identity") +
-        (data.registrationRequested
-          ? `  ${i18n.global.t("messages.registration-requested")}`
-          : "");
-    }
-  }
-  return message;
-}

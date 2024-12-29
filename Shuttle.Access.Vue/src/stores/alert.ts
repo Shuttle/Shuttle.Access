@@ -25,15 +25,18 @@ export const useAlertStore = defineStore("alert", {
       this.remove(alert.name);
 
       alert.expire = alert.expire ?? true;
+      alert.expirySeconds = alert.expirySeconds ?? 10;
       alert.dismissable = alert.dismissable || !!alert.name;
-
-      if (alert.expire) {
-        alert.expirySeconds = 10;
-      }
 
       alert.key = `${alert.name}-${key++}`;
 
       this.alerts.push(alert);
+
+      if (alert.expire) {
+        setTimeout(() => {
+          this.remove(alert.name);
+        }, alert.expirySeconds * 1000);
+      }
     },
     remove(name: String) {
       if (!name) {

@@ -134,7 +134,8 @@ public static class OAuthEndpoints
                 {
                     var requestIdentityRegistration = new RequestIdentityRegistration(new()
                     {
-                        Name = email
+                        Name = email,
+                        Activated = true
                     })
                     .Allowed(grant.ProviderName);
 
@@ -144,7 +145,8 @@ public static class OAuthEndpoints
                 var sessionResponse = new SessionResponse
                 {
                     Result = registerSession.Result.ToString(),
-                    RegistrationRequested = requestRegistration
+                    RegistrationRequested = requestRegistration,
+                    IdentityName = email
                 };
 
                 if (registerSession.HasSession)

@@ -173,6 +173,10 @@ router.afterEach(async (to) => {
     return;
   }
 
+  if (name === "dashboard") {
+    breadcrumbStore.clear();
+  }
+
   const existingIndex = breadcrumbStore.breadcrumbs.findIndex(
     (route: Breadcrumb) => route.path === to.path
   );

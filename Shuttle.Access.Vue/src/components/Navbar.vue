@@ -6,7 +6,7 @@
     <v-app-bar-title class="cursor-pointer" @click="$router.push('/dashboard')">Shuttle.Access</v-app-bar-title>
     <template v-slot:append>
       <v-btn :icon="mdiLogin" v-if="!sessionStore.authenticated" @click.prevent="signIn"></v-btn>
-      <v-btn :icon="mdiLogout" v-if="sessionStore.authenticated" @click.prevent="signOut"></v-btn>
+      <v-btn :icon="mdiLogout" v-else @click.prevent="signOut"></v-btn>
     </template>
   </v-app-bar>
   <v-navigation-drawer v-model="drawer" :location="$vuetify.display.mobile ? 'bottom' : undefined" temporary>

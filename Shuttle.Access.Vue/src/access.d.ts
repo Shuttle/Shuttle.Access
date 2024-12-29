@@ -106,6 +106,15 @@ export type SessionPermission = {
   permission: string;
 };
 
+export type SessionResponse = {
+  identityName: string;
+  permissions: string[];
+  registrationRequested: boolean;
+  result: string;
+  token: string;
+  tokenExpiryDate: string;
+};
+
 export type SessionStoreState = {
   authenticated: boolean;
   initialized: boolean;
