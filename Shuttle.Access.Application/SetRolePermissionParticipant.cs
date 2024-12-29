@@ -12,9 +12,7 @@ public class SetRolePermissionParticipant : IParticipant<RequestResponseMessage<
 
     public SetRolePermissionParticipant(IEventStore eventStore)
     {
-        Guard.AgainstNull(eventStore);
-
-        _eventStore = eventStore;
+        _eventStore = Guard.AgainstNull(eventStore);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetRolePermission, RolePermissionSet>> context)

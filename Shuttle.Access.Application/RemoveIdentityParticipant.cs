@@ -14,11 +14,8 @@ public class RemoveIdentityParticipant : IParticipant<RemoveIdentity>
 
     public RemoveIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore);
-        Guard.AgainstNull(idKeyRepository);
-
-        _eventStore = eventStore;
-        _idKeyRepository = idKeyRepository;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RemoveIdentity> context)

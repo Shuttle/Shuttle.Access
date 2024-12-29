@@ -19,15 +19,10 @@ public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<R
 
     public RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IIdentityQuery identityQuery, IRoleQuery roleQuery)
     {
-        Guard.AgainstNull(eventStore);
-        Guard.AgainstNull(idKeyRepository);
-        Guard.AgainstNull(identityQuery);
-        Guard.AgainstNull(roleQuery);
-
-        _eventStore = eventStore;
-        _idKeyRepository = idKeyRepository;
-        _identityQuery = identityQuery;
-        _roleQuery = roleQuery;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
+        _identityQuery = Guard.AgainstNull(identityQuery);
+        _roleQuery = Guard.AgainstNull(roleQuery);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)

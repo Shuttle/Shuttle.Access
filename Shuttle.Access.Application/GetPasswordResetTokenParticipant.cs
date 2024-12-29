@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
@@ -15,8 +16,8 @@ public class GetPasswordResetTokenParticipant : IParticipant<RequestResponseMess
 
     public GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEventStore eventStore)
     {
-        _identityQuery = identityQuery;
-        _eventStore = eventStore;
+        _identityQuery = Guard.AgainstNull(identityQuery);
+        _eventStore = Guard.AgainstNull(eventStore);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<GetPasswordResetToken, Guid>> context)

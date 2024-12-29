@@ -14,11 +14,8 @@ public class RemoveRoleParticipant : IParticipant<RequestResponseMessage<RemoveR
 
     public RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore);
-        Guard.AgainstNull(idKeyRepository);
-
-        _eventStore = eventStore;
-        _idKeyRepository = idKeyRepository;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RemoveRole, RoleRemoved>> context)

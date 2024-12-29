@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -11,6 +13,7 @@ namespace Shuttle.Access.Application;
 public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication>
 {
     private readonly IIdentityQuery _identityQuery;
+    private readonly ILogger<ConfigureApplicationParticipant> _logger;
     private readonly IMediator _mediator;
     private readonly IPermissionQuery _permissionQuery;
     private readonly IRoleQuery _roleQuery;
@@ -32,17 +35,13 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
         AccessPermissions.Sessions.Register
     ];
 
-    public ConfigureApplicationParticipant(IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
+    public ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
     {
-        Guard.AgainstNull(mediator);
-        Guard.AgainstNull(roleQuery);
-        Guard.AgainstNull(permissionQuery);
-        Guard.AgainstNull(identityQuery);
-
-        _mediator = mediator;
-        _roleQuery = roleQuery;
-        _permissionQuery = permissionQuery;
-        _identityQuery = identityQuery;
+        _logger = Guard.AgainstNull(logger);
+        _mediator = Guard.AgainstNull(mediator);
+        _roleQuery = Guard.AgainstNull(roleQuery);
+        _permissionQuery = Guard.AgainstNull(permissionQuery);
+        _identityQuery = Guard.AgainstNull(identityQuery);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<ConfigureApplication> context)
@@ -53,8 +52,12 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
 
         var administratorExists = await _roleQuery.CountAsync(roleSpecification) > 0;
 
+        _logger.LogDebug($"[role] : name = 'Administrator' / exists = {administratorExists}");
+
         if (!administratorExists)
         {
+            _logger.LogDebug("[role/registration] : name = 'Administrator'");
+
             var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(new()
             {
                 Name = "Administrator"

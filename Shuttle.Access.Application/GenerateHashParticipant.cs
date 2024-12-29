@@ -11,9 +11,7 @@ public class GenerateHashParticipant : IParticipant<GenerateHash>
 
     public GenerateHashParticipant(IHashingService hashingService)
     {
-        Guard.AgainstNull(hashingService);
-
-        _hashingService = hashingService;
+        _hashingService = Guard.AgainstNull(hashingService);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<GenerateHash> context)

@@ -15,13 +15,9 @@ public class ChangePasswordParticipant : IParticipant<RequestMessage<ChangePassw
 
     public ChangePasswordParticipant(IHashingService hashingService, ISessionRepository sessionRepository, IEventStore eventStore)
     {
-        Guard.AgainstNull(hashingService);
-        Guard.AgainstNull(sessionRepository);
-        Guard.AgainstNull(eventStore);
-
-        _hashingService = hashingService;
-        _sessionRepository = sessionRepository;
-        _eventStore = eventStore;
+        _hashingService = Guard.AgainstNull(hashingService);
+        _sessionRepository = Guard.AgainstNull(sessionRepository);
+        _eventStore = Guard.AgainstNull(eventStore);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<ChangePassword>> context)

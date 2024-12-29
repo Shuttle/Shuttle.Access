@@ -15,11 +15,8 @@ public class RegisterPermissionParticipant : IParticipant<RequestResponseMessage
 
     public RegisterPermissionParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore);
-        Guard.AgainstNull(idKeyRepository);
-
-        _eventStore = eventStore;
-        _idKeyRepository = idKeyRepository;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterPermission, PermissionRegistered>> context)

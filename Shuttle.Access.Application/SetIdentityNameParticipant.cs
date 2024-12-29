@@ -14,11 +14,8 @@ public class SetIdentityNameParticipant : IParticipant<RequestResponseMessage<Se
 
     public SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore);
-        Guard.AgainstNull(idKeyRepository);
-
-        _eventStore = eventStore;
-        _idKeyRepository = idKeyRepository;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetIdentityName, IdentityNameSet>> context)

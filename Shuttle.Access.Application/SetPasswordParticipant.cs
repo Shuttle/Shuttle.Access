@@ -12,9 +12,7 @@ public class SetPasswordParticipant : IParticipant<SetPassword>
 
     public SetPasswordParticipant(IEventStore eventStore)
     {
-        Guard.AgainstNull(eventStore);
-
-        _eventStore = eventStore;
+        _eventStore = Guard.AgainstNull(eventStore);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<SetPassword> context)

@@ -12,9 +12,7 @@ public class SetIdentityRoleParticipant : IParticipant<RequestResponseMessage<Se
 
     public SetIdentityRoleParticipant(IEventStore eventStore)
     {
-        Guard.AgainstNull(eventStore);
-
-        _eventStore = eventStore;
+        _eventStore = Guard.AgainstNull(eventStore);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>> context)

@@ -14,11 +14,8 @@ public class SetPermissionNameParticipant : IParticipant<RequestResponseMessage<
 
     public SetPermissionNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        Guard.AgainstNull(eventStore);
-        Guard.AgainstNull(idKeyRepository);
-
-        _eventStore = eventStore;
-        _idKeyRepository = idKeyRepository;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetPermissionName, PermissionNameSet>> context)

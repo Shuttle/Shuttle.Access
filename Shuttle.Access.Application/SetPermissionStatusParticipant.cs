@@ -12,9 +12,7 @@ public class SetPermissionStatusParticipant : IParticipant<RequestResponseMessag
 
     public SetPermissionStatusParticipant(IEventStore eventStore)
     {
-        Guard.AgainstNull(eventStore);
-
-        _eventStore = eventStore;
+        _eventStore = Guard.AgainstNull(eventStore);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>> context)

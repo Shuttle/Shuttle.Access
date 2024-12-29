@@ -11,9 +11,7 @@ public class GeneratePasswordParticipant : IParticipant<GeneratePassword>
 
     public GeneratePasswordParticipant(IPasswordGenerator passwordGenerator)
     {
-        Guard.AgainstNull(passwordGenerator);
-
-        _passwordGenerator = passwordGenerator;
+        _passwordGenerator = Guard.AgainstNull(passwordGenerator);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<GeneratePassword> context)

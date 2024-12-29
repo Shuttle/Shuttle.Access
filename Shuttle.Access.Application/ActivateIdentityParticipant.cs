@@ -16,11 +16,8 @@ public class ActivateIdentityParticipant : IParticipant<RequestResponseMessage<A
 
     public ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventStore eventStore)
     {
-        Guard.AgainstNull(identityQuery);
-        Guard.AgainstNull(eventStore);
-
-        _identityQuery = identityQuery;
-        _eventStore = eventStore;
+        _identityQuery = Guard.AgainstNull(identityQuery);
+        _eventStore = Guard.AgainstNull(eventStore);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<ActivateIdentity, IdentityActivated>> context)

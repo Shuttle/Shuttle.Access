@@ -14,11 +14,8 @@ public class ReviewSetIdentityRoleParticipant : IParticipant<RequestMessage<SetI
 
     public ReviewSetIdentityRoleParticipant(IRoleQuery roleQuery, IIdentityQuery identityQuery)
     {
-        Guard.AgainstNull(roleQuery);
-        Guard.AgainstNull(identityQuery);
-
-        _roleQuery = roleQuery;
-        _identityQuery = identityQuery;
+        _roleQuery = Guard.AgainstNull(roleQuery);
+        _identityQuery = Guard.AgainstNull(identityQuery);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<SetIdentityRole>> context)

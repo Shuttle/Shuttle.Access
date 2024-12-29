@@ -16,13 +16,9 @@ public class ResetPasswordParticipant : IParticipant<RequestMessage<ResetPasswor
 
     public ResetPasswordParticipant(IHashingService hashingService, IEventStore eventStore, IIdentityQuery identityQuery)
     {
-        Guard.AgainstNull(hashingService);
-        Guard.AgainstNull(eventStore);
-        Guard.AgainstNull(identityQuery);
-
-        _eventStore = eventStore;
-        _hashingService = hashingService;
-        _identityQuery = identityQuery;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _hashingService = Guard.AgainstNull(hashingService);
+        _identityQuery = Guard.AgainstNull(identityQuery);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<ResetPassword>> context)
