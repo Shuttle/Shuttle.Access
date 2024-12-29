@@ -6,6 +6,8 @@ services:
     database:
         image: shuttle/access-sqlserver-linux:latest
         hostname: database
+        ports:
+            - "2433:1433"
     server:
         image:
             shuttle/access-server:latest
@@ -18,9 +20,6 @@ services:
             - type: bind
               source: ./server-appsettings.json
               target: /opt/shuttle.access.server/appsettings.json
-            - type: bind
-              source: ./logs/Shuttle.Access.Server
-              target: /opt/shuttle.access.server/logs
     projection:
         image:
             shuttle/access-projection:latest
@@ -28,13 +27,11 @@ services:
             - CONFIGURATION_FOLDER=.
         depends_on:
             - "database"
+            - "server"
         volumes:
             - type: bind
               source: ./projection-appsettings.json
               target: /opt/shuttle.access.projection/appsettings.json
-            - type: bind
-              source: ./logs/Shuttle.Access.Projection
-              target: /opt/shuttle.access.projection/logs
     web-api:
         image:
             shuttle/access-webapi:latest
@@ -50,11 +47,8 @@ services:
             - type: bind
               source: ./webapi-appsettings.json
               target: /opt/shuttle.access.webapi/appsettings.json
-            - type: bind
-              source: ./logs/Shuttle.Access.WebApi
-              target: /opt/shuttle.access.webapi/logs
     front-end:
         image:
             shuttle/access-vue:latest
         ports:
-            - "8080:80"
+            - "3000:80"
