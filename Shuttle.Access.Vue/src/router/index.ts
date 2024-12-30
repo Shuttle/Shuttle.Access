@@ -15,9 +15,34 @@ const ignoreBreadcrumbs = ["sign-in", "oauth"];
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: "/signin",
-    name: "sign-in",
-    component: () => import("../views/SignIn.vue"),
+    path: "/dashboard",
+    name: "dashboard",
+    component: () => import("../views/Dashboard.vue"),
+  },
+  {
+    path: "/identities",
+    name: "identities",
+    component: () => import("../views/Identities.vue"),
+    meta: {
+      permission: Permissions.Identities.View,
+    },
+  },
+  {
+    path: "/identity",
+    name: "identity",
+    component: () => import("../views/Identity.vue"),
+    meta: {
+      permission: Permissions.Identities.Manage,
+    },
+  },
+  {
+    path: "/identity/:id/rename",
+    name: "identity-rename",
+    component: () => import("../views/IdentityRename.vue"),
+    props: true,
+    meta: {
+      permission: Permissions.Identities.Manage,
+    },
   },
   {
     path: "/oauth/:",
@@ -25,9 +50,18 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../views/OAuth.vue"),
   },
   {
-    path: "/dashboard",
-    name: "dashboard",
-    component: () => import("../views/Dashboard.vue"),
+    path: "/password/:id",
+    name: "password",
+    props: true,
+    component: () => import("../views/Password.vue"),
+  },
+  {
+    path: "/identities/:id/roles",
+    name: "identity-roles",
+    component: () => import("../views/IdentityRoles.vue"),
+    meta: {
+      permission: Permissions.Identities.View,
+    },
   },
   {
     path: "/permissions",
@@ -89,43 +123,17 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/identities",
-    name: "identities",
-    component: () => import("../views/Identities.vue"),
+    path: "/sessions",
+    name: "sessions",
+    component: () => import("../views/Sessions.vue"),
     meta: {
-      permission: Permissions.Identities.View,
+      permission: Permissions.Sessions.View,
     },
   },
   {
-    path: "/identity",
-    name: "identity",
-    component: () => import("../views/Identity.vue"),
-    meta: {
-      permission: Permissions.Identities.Manage,
-    },
-  },
-  {
-    path: "/identity/:id/rename",
-    name: "identity-rename",
-    component: () => import("../views/IdentityRename.vue"),
-    props: true,
-    meta: {
-      permission: Permissions.Identities.Manage,
-    },
-  },
-  {
-    path: "/password/:id",
-    name: "password",
-    props: true,
-    component: () => import("../views/Password.vue"),
-  },
-  {
-    path: "/identities/:id/roles",
-    name: "identity-roles",
-    component: () => import("../views/IdentityRoles.vue"),
-    meta: {
-      permission: Permissions.Identities.View,
-    },
+    path: "/signin",
+    name: "sign-in",
+    component: () => import("../views/SignIn.vue"),
   },
 ];
 

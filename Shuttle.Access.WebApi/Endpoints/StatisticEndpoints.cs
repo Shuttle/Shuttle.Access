@@ -13,7 +13,7 @@ public static class StatisticEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapGet("/v{version:apiVersion}/statistics/dashboard", async (IDatabaseContextFactory databaseContextFactory, IRoleQuery roleQuery, IIdentityQuery identityQuery, IPermissionQuery permissionQuery) =>
+        app.MapGet("/v{version:apiVersion}/statistics/dashboard", async (IDatabaseContextFactory databaseContextFactory, IRoleQuery roleQuery, IIdentityQuery identityQuery, IPermissionQuery permissionQuery, ISessionQuery sessionQuery) =>
             {
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
@@ -22,7 +22,8 @@ public static class StatisticEndpoints
                     {
                         IdentityCount = await Guard.AgainstNull(identityQuery).CountAsync(new()),
                         RoleCount = await Guard.AgainstNull(roleQuery).CountAsync(new()),
-                        PermissionCount = await Guard.AgainstNull(permissionQuery).CountAsync(new())
+                        PermissionCount = await Guard.AgainstNull(permissionQuery).CountAsync(new()),
+                        SessionCount = await Guard.AgainstNull(sessionQuery).CountAsync(new())
                     });
                 }
             })

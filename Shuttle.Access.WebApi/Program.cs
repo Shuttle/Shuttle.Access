@@ -5,6 +5,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shuttle.Access.AspNetCore;
+using Shuttle.Access.AspNetCore.OAuth;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Access.WebApi.Endpoints;
@@ -76,6 +77,8 @@ public class Program
             .AddEndpointsApiExplorer()
             .AddSwaggerGen(options =>
             {
+                options.CustomSchemaIds(type => type.FullName);
+
                 options.AddSecurityDefinition("Bearer", new()
                 {
                     Name = "Authorization",
@@ -169,10 +172,7 @@ public class Program
             })
             .AddOAuth(builder =>
             {
-                foreach (var providerName in accessOptions?.OAuthProviderNames ?? Enumerable.Empty<string>())
-                {
-                    builder.AddOAuthOptions(providerName, webApplicationBuilder.Configuration.GetSection($"{OAuthOptions.SectionName}:{providerName}").Get<OAuthOptions>()!);
-                }
+                webApplicationBuilder.Configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);
             })
             .AddInMemoryOAuthGrantRepository();
 

@@ -26,8 +26,20 @@ onMounted(() => {
   const sessionStore = useSessionStore();
   const route = useRoute();
 
+  if (!!route.query.error) {
+    alertStore.add({
+      message: t("exceptions.oauth-error", { error: route.query.error_description }),
+      type: "error",
+      name: "oauth-error"
+    });
+
+    router.push({ name: "sign-in" });
+
+    return;
+  }
+
   const state = (route.query.state?.toString() || "");
-  var code = (route.query.code?.toString() || "");
+  const code = (route.query.code?.toString() || "");
 
   sessionStore.oauth({
     state: state,

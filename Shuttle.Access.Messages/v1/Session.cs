@@ -11,4 +11,10 @@ public class Session
     public string IdentityName { get; set; } = string.Empty;
     public List<string> Permissions { get; set; } = [];
     public Guid Token { get; set; }
+
+    public class Specification
+    {
+        public string IdentityNameMatch { get; set; } = string.Empty;
+        public bool ShouldIncludePermissions { get; set; }
+    }
 }

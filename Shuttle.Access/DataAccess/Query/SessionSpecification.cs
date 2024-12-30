@@ -52,7 +52,15 @@ public class Session
             return this;
         }
 
+        public Specification WithIdentityNameMatch(string identityNameMatch)
+        {
+            IdentityNameMatch = Guard.AgainstNullOrEmptyString(identityNameMatch);
+
+            return this;
+        }
+
         public string? IdentityName { get; private set; }
+        public string? IdentityNameMatch { get; private set; }
 
         public Specification IncludePermissions()
         {

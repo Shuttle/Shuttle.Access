@@ -5,6 +5,7 @@
     </template>
     <v-app-bar-title class="cursor-pointer" @click="$router.push('/dashboard')">Shuttle.Access</v-app-bar-title>
     <template v-slot:append>
+      <span class="select-none mr-4" v-if="sessionStore.authenticated">{{ sessionStore.identityName }}</span>
       <v-btn :icon="mdiLogin" v-if="!sessionStore.authenticated" @click.prevent="signIn"></v-btn>
       <v-btn :icon="mdiLogout" v-else @click.prevent="signOut"></v-btn>
     </template>

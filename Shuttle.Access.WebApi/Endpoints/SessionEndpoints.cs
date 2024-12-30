@@ -15,6 +15,31 @@ public static class SessionEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
+        app.MapPost("/v{version:apiVersion}/sessions/search", async (IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery, [FromBody] Messages.v1.Session.Specification model) =>
+            {
+                var specification = new DataAccess.Query.Session.Specification();
+
+                if (!string.IsNullOrWhiteSpace(model.IdentityNameMatch))
+                {
+                    specification.WithIdentityNameMatch(model.IdentityNameMatch);
+                }
+
+                if (model.ShouldIncludePermissions)
+                {
+                    specification.IncludePermissions();
+                }
+
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    return Results.Ok((await sessionQuery.SearchAsync(specification)).ToList());
+                }
+            })
+            .WithTags("Sessions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequiresPermission(AccessPermissions.Sessions.View);
+
         app.MapPost("/v{version:apiVersion}/sessions", async (IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterSession message) =>
             {
                 if (string.IsNullOrEmpty(message.IdentityName) ||

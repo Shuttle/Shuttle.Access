@@ -5,8 +5,8 @@
       class="mb-2" :error-messages="validation.message('identityName')" readonly>
     </v-text-field>
     <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')"
-      :icon-end="getPasswordIcon()" icon-end-clickable :append-inner-icon="`svg:${getPasswordIcon()}`"
-      @click:append-inner="togglePasswordIcon" :type="getPasswordType()" autocomplete="current-password"
+      :icon-end="getPasswordIcon()" icon-end-clickable :append-icon="`svg:${getPasswordIcon()}`"
+      @click:append="togglePasswordIcon" :type="getPasswordType()" autocomplete="current-password"
       :error-messages="validation.message('password')">
     </v-text-field>
     <div class="flex justify-end mt-4">

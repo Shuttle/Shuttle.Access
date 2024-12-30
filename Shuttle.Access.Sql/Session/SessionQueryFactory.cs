@@ -34,7 +34,8 @@ ELSE
     SELECT 0
 ")
             .AddParameter(Columns.Token, specification.Token)
-            .AddParameter(Columns.Token, specification.IdentityName);
+            .AddParameter(Columns.IdentityName, specification.IdentityName)
+            .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
     }
 
     public IQuery GetPermissions(Guid token)
@@ -140,7 +141,8 @@ ORDER BY
     DateRegistered DESC
 ")
             .AddParameter(Columns.Token, specification.Token)
-            .AddParameter(Columns.IdentityName, specification.IdentityName);
+            .AddParameter(Columns.IdentityName, specification.IdentityName)
+            .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
     }
 
     public IQuery Find(Guid token)
@@ -154,6 +156,22 @@ WHERE
 	Token = @Token
 ")
             .AddParameter(Columns.Token, token);
+    }
+
+    public IQuery Count(DataAccess.Query.Session.Specification specification)
+    {
+        Guard.AgainstNull(specification);
+
+        return new Query($@"
+SELECT 
+    COUNT(*)
+FROM
+	[dbo].[Session] 
+{Where(specification)}
+")
+            .AddParameter(Columns.Token, specification.Token)
+            .AddParameter(Columns.IdentityName, specification.IdentityName)
+            .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
     }
 
     public IQuery Get(string identityName)
@@ -199,6 +217,12 @@ AND
     @IdentityName IS NULL
     OR
     IdentityName = @IdentityName
+)
+AND
+(
+    @IdentityNameMatch IS NULL
+    OR
+    IdentityName LIKE '%' + @IdentityNameMatch + '%'
 )
 {(!specification.Permissions.Any() ? string.Empty : $@"
 AND

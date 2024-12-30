@@ -12,6 +12,7 @@
   "date-registered": "Date registered",
   "deactivated": "Deactivated",
   "exceptions": {
+    "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}",
     "session-initialize": "Your session has expired.  Please sign in again.",
     "invalid-credentials": "Invalid credentials.",
     "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access."
@@ -57,6 +58,7 @@
   "role-name": "Role Name",
   "save": "Save",
   "search": "Search",
+  "sessions": "Sessions",
   "sign-in": "Sign in",
   "sign-out": "Sign out",
   "signing-in": "Signing in",

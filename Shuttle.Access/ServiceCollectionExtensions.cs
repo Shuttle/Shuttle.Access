@@ -21,8 +21,6 @@ public static class ServiceCollectionExtensions
             options.ConnectionStringName = accessBuilder.Options.ConnectionStringName;
             options.SessionDuration = accessBuilder.Options.SessionDuration;
             options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
-            options.OAuthRedirectUri = accessBuilder.Options.OAuthRedirectUri;
-            options.OAuthProviderNames = accessBuilder.Options.OAuthProviderNames;
             options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
             options.OAuthProviderSvgFolder = accessBuilder.Options.OAuthProviderSvgFolder;
             options.Realm = accessBuilder.Options.Realm;

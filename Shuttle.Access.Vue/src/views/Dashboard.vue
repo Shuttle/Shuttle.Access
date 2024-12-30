@@ -38,6 +38,7 @@ const refresh = () => {
       addItem(t("permissions"), response.data.permissionCount, "permissions");
       addItem(t("identities"), response.data.identityCount, "identities");
       addItem(t("roles"), response.data.roleCount, "roles");
+      addItem(t("sessions"), response.data.sessionCount, "sessions");
     })
 }
 

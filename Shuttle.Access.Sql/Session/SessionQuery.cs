@@ -26,6 +26,11 @@ public class SessionQuery : ISessionQuery
         _queryFactory = queryFactory;
     }
 
+    public async ValueTask<int> CountAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
+    }
+
     public async ValueTask<bool> ContainsAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;

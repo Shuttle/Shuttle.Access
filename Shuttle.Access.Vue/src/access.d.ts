@@ -99,6 +99,8 @@ export type Session = {
   identityName: string;
   token: string;
   permissions: string[];
+  expiryDate?: Date;
+  dateRegistered?: Date;
 };
 
 export type SessionPermission = {

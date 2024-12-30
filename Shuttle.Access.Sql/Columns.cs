@@ -12,6 +12,7 @@ public class Columns
     public static readonly Column<Guid> RoleId = new("RoleId", DbType.Guid);
     public static readonly Column<string> PermissionName = new("PermissionName", DbType.String);
     public static readonly Column<string> IdentityName = new("IdentityName", DbType.String);
+    public static readonly Column<string> IdentityNameMatch = new("IdentityNameMatch", DbType.String);
     public static readonly Column<string> Name = new("Name", DbType.String);
     public static readonly Column<string> NameMatch = new("NameMatch", DbType.String);
     public static readonly Column<DateTime> DateActivated = new("DateActivated", DbType.DateTime2);
