@@ -46,12 +46,12 @@ const router = useRouter();
 const theme = useTheme();
 
 const storedTheme = localStorage.getItem('app-theme') || theme.global.name.value;
-const isDarkTheme: Ref<boolean> = ref(storedTheme === 'accessDark');
+const isDarkTheme: Ref<boolean> = ref(storedTheme === 'shuttleDark');
 
-theme.global.name.value = isDarkTheme.value ? 'accessDark' : 'accessLight';
+theme.global.name.value = isDarkTheme.value ? 'shuttleDark' : 'shuttleLight';
 
 watch(isDarkTheme, (newValue) => {
-  const selectedTheme = newValue ? 'accessDark' : 'accessLight';
+  const selectedTheme = newValue ? 'shuttleDark' : 'shuttleLight';
   theme.global.name.value = selectedTheme;
   localStorage.setItem('app-theme', selectedTheme);
 });
