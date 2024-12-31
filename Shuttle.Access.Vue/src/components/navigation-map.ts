@@ -1,23 +1,24 @@
+import type { NavigationItem } from "@/access";
 import Permissions from "../permissions";
 
-var map = [
+const map: NavigationItem[] = [
   {
     to: "/dashboard",
-    text: "dashboard",
+    title: "dashboard",
   },
   {
     to: "/identities",
-    text: "identities",
+    title: "identities",
     permission: Permissions.Identities.View,
   },
   {
     to: "/roles",
-    text: "roles",
+    title: "roles",
     permission: Permissions.Roles.View,
   },
   {
     to: "/permissions",
-    text: "permissions",
+    title: "permissions",
     permission: Permissions.Permissions.View,
   },
 ];

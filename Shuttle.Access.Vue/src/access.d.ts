@@ -67,6 +67,12 @@ export type Identity = {
   roles: Role[] | undefined;
 };
 
+export type NavigationItem = {
+  permission?: string;
+  title: string;
+  to: string;
+};
+
 export type OAuthData = {
   code: string;
   state: string;
