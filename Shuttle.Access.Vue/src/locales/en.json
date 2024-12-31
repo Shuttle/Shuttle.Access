@@ -17,6 +17,7 @@
     "invalid-credentials": "Invalid credentials.",
     "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access."
   },
+  "expiry-date": "Expiry date",
   "generated-password": "Generated password",
   "identities": "Identities",
   "identity": "Identity",
@@ -39,6 +40,7 @@
   "new-password": "New password",
   "new-password-confirm": "New password (confirm)",
   "new-value": "New value",
+  "none": "None",
   "ok": "OK",
   "old-password": "Old password",
   "password": "Password",

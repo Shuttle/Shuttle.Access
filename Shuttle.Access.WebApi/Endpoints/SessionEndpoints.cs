@@ -88,6 +88,21 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
+        app.MapDelete("/v{version:apiVersion}/sessions/{token:Guid}", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
+            {
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    return await sessionRepository.RemoveAsync(token)
+                        ? Results.Ok()
+                        : Results.Problem();
+                }
+            })
+            .WithTags("Sessions")
+            .RequiresPermission(AccessPermissions.Sessions.Manage)
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
+
         app.MapDelete("/v{version:apiVersion}/sessions", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
                 var sessionTokenResult = httpContext.GetAccessSessionToken();
@@ -106,7 +121,6 @@ public static class SessionEndpoints
                 }
             })
             .WithTags("Sessions")
-            .RequiresPermission(AccessPermissions.Sessions.View)
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 

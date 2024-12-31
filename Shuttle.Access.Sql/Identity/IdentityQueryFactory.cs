@@ -218,55 +218,53 @@ where
 
     private IQuery Specification(DataAccess.Query.Identity.Specification specification, bool columns)
     {
-        if (specification == null)
-            throw new ArgumentNullException(nameof(specification));
         Guard.AgainstNull(specification);
 
         return new Query($@"
-select distinct
-{(columns ? SelectedColumns : "count (*)")}
-from
+SELECT DISTINCT
+{(columns ? SelectedColumns : "COUNT (DISTINCT i.Id)")}
+FROM
 	[dbo].[Identity] i
-left join
+LEFT JOIN
 	IdentityRole ir on (ir.IdentityId = i.Id)
-left join
-	Role r on (r.Id = ir.RoleId)   
-left join
-	RolePermission rp on (rp.RoleId = r.Id)    
-left join
-    Permission p on (p.Id = rp.PermissionId)
-where
+LEFT JOIN
+	Role r ON (r.Id = ir.RoleId)   
+LEFT JOIN
+	RolePermission rp ON (rp.RoleId = r.Id)    
+LEFT JOIN
+    Permission p ON (p.Id = rp.PermissionId)
+WHERE
 (
-    isnull(@Name, '') = ''
-    or
+    ISNULL(@Name, '') = ''
+    OR
     i.Name = @Name
 )
-and
+AND
 (
-    isnull(@RoleName, '') = ''
-    or
+    ISNULL(@RoleName, '') = ''
+    OR
     r.Name = @RoleName
 )
-and
+AND
 (
     @RoleId is null
-    or
+    OR
     r.Id = @RoleId
 )
-and
+AND
 (
     @PermissionId is null
-    or
+    OR
     p.Id = @PermissionId
 )
-and
+AND
 (
     @IdentityId is null
-    or
+    OR
     i.Id = @IdentityId
 )
 {(columns ? @"
-order by
+ORDER BY
     i.[Name]
 " : string.Empty)}
 ")

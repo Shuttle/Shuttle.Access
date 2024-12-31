@@ -31,8 +31,9 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
         AccessPermissions.Permissions.Manage,
         AccessPermissions.Permissions.Register,
         AccessPermissions.Permissions.View,
-        AccessPermissions.Sessions.View,
-        AccessPermissions.Sessions.Register
+        AccessPermissions.Sessions.Manage,
+        AccessPermissions.Sessions.Register,
+        AccessPermissions.Sessions.View
     ];
 
     public ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)

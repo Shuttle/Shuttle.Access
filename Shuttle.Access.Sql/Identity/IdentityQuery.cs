@@ -71,11 +71,11 @@ public class IdentityQuery : IIdentityQuery
 
     public async Task<IEnumerable<Guid>> RoleIdsAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
-        return (await _databaseContextService.Active.GetRowsAsync(_queryFactory.Roles(Guard.AgainstNull(specification, nameof(specification))), cancellationToken)).Select(row => Columns.Id.Value(row));
+        return (await _databaseContextService.Active.GetRowsAsync(_queryFactory.Roles(Guard.AgainstNull(specification)), cancellationToken)).Select(row => Columns.Id.Value(row));
     }
 
     public async ValueTask<int> CountAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
-        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(Guard.AgainstNull(specification, nameof(specification))), cancellationToken);
+        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(Guard.AgainstNull(specification)), cancellationToken);
     }
 }

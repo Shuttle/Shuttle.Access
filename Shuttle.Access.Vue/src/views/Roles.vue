@@ -4,7 +4,8 @@
       <div class="sv-title">{{ $t("roles") }}</div>
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
-        <v-btn :icon="mdiPlus" size="small" @click="add"></v-btn>
+        <v-btn v-if="sessionStore.hasPermission(Permissions.Roles.Manage)" :icon="mdiPlus" size="small"
+          @click="add"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
           variant="solo-filled" flat hide-details single-line></v-text-field>
       </div>
@@ -38,8 +39,10 @@ import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
 import Permissions from "@/permissions";
 import type { Role } from "@/access";
 import type { AxiosResponse } from "axios";
+import { useSessionStore } from "@/stores/session";
 
 var confirmationStore = useConfirmationStore();
+const sessionStore = useSessionStore();
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();

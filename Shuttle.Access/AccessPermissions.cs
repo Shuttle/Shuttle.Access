@@ -27,7 +27,8 @@ public static class AccessPermissions
 
     public static class Sessions
     {
-        public const string View = "access://sessions/view";
+        public const string Manage = "access://sessions/manage";
         public const string Register = "access://sessions/register";
+        public const string View = "access://sessions/view";
     }
 }
