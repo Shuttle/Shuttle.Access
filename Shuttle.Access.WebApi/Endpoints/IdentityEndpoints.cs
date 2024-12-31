@@ -11,7 +11,7 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 
-namespace Shuttle.Access.WebApi.Endpoints;
+namespace Shuttle.Access.WebApi;
 
 public static class IdentityEndpoints
 {

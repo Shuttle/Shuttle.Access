@@ -8,7 +8,6 @@ using Shuttle.Access.AspNetCore;
 using Shuttle.Access.AspNetCore.OAuth;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
-using Shuttle.Access.WebApi.Endpoints;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;

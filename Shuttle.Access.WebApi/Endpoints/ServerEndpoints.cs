@@ -3,7 +3,7 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Shuttle.Access.Messages.v1;
 
-namespace Shuttle.Access.WebApi.Endpoints;
+namespace Shuttle.Access.WebApi;
 
 public static class ServerEndpoints
 {

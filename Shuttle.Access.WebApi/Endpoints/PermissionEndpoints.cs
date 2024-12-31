@@ -8,7 +8,7 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
 
-namespace Shuttle.Access.WebApi.Endpoints;
+namespace Shuttle.Access.WebApi;
 
 public static class PermissionEndpoints
 {

@@ -7,7 +7,7 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 
-namespace Shuttle.Access.WebApi.Endpoints;
+namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {

@@ -5,7 +5,7 @@ using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.WebApi.Endpoints;
+namespace Shuttle.Access.WebApi;
 
 public static class StatisticEndpoints
 {
