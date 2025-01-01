@@ -131,7 +131,7 @@ WHERE
         Guard.AgainstNull(specification);
 
         return new Query($@"
-SELECT DISTINCT
+SELECT DISTINCT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
 {SelectedColumns}
 FROM
 	[dbo].[Session] 

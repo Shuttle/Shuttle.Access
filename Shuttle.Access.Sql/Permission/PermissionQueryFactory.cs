@@ -24,22 +24,22 @@ public class PermissionQueryFactory : IPermissionQueryFactory
         Guard.AgainstNull(domainEvent);
 
         return new Query(@"
-if not exists
+IF NOT EXISTS
 (
-    select
-        null
-    from
+    SELECT
+        NULL
+    FROM
         [dbo].[Permission]
-    where
+    WHERE
         [Name] = @Name
 )
-    insert into [dbo].[Permission]
+    INSERT INTO [dbo].[Permission]
     (
 	    [Id],
 	    [Name],
         [Status]
     )
-    values
+    VALUES
     (
 	    @Id,
 	    @Name,
@@ -77,17 +77,17 @@ if not exists
         Guard.AgainstNull(specification);
 
         return new Query($@"
-if exists
+IF EXISTS
 (
-select
-    null
-from
-    Permission p
+    SELECT
+        NULL
+    FROM
+        Permission p
 {Where(specification)}
 )
-    select 1
-else
-    select 0
+    SELECT 1
+ELSE
+    SELECT 0
 ")
             .AddParameter(Columns.NameMatch, specification.NameMatch);
     }
@@ -95,11 +95,11 @@ else
     public IQuery NameSet(Guid id, NameSet domainEvent)
     {
         return new Query(@"
-update
-    Permission
-set
+UPDATE
+    PERMISSION
+SET
     [Name] = @Name
-where
+WHERE
     Id = @Id
 ")
             .AddParameter(Columns.Id, id)
@@ -109,11 +109,11 @@ where
     private static IQuery SetStatus(Guid id, int status)
     {
         return new Query(@"
-update
+UPDATE
     Permission
-set
+SET
     Status = @Status
-where
+WHERE
     Id = @Id
 ")
             .AddParameter(Columns.Id, id)
@@ -133,13 +133,13 @@ where
             : "count(*)";
 
         return new Query($@"
-select distinct
+SELECT DISTINCT {(columns && specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
 {what}
-from
+FROM
     Permission p
 {(!specification.RoleIds.Any() ? string.Empty : @"
-inner join
-    RolePermission rp on (rp.PermissionId = p.Id)
+INNER JOIN
+    RolePermission rp ON (rp.PermissionId = p.Id)
 ")}
 {Where(specification)}
 ")
@@ -149,23 +149,23 @@ inner join
     private string Where(DataAccess.Query.Permission.Specification specification)
     {
         return $@"
-where
+WHERE
 (
     isnull(@NameMatch, '') = ''
-    or
-    p.[Name] like '%' + @NameMatch + '%'
+    OR
+    p.[Name] LIKE '%' + @NameMatch + '%'
 )
 {(!specification.Names.Any() ? string.Empty : $@"
-and
-    p.[Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+AND
+    p.[Name] IN ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
 ")}
 {(!specification.Ids.Any() ? string.Empty : $@"
-and
-    p.Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+AND
+    p.Id IN ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
 ")}
 {(!specification.RoleIds.Any() ? string.Empty : $@"
-and
-    rp.RoleId in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
+AND
+    rp.RoleId IN ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
 ")}
 ";
     }

@@ -120,7 +120,7 @@ WHERE
         Guard.AgainstNull(specification);
 
         return new Query($@"
-SELECT 
+SELECT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
     rp.RoleId,
     p.Id,
     p.Name,
@@ -185,7 +185,7 @@ WHERE
             : "COUNT(*)";
 
         return new Query($@"
-SELECT
+SELECT {(columns && specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
 {what}
 FROM
     Role
