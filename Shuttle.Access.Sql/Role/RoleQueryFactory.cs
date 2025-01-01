@@ -19,21 +19,21 @@ public class RoleQueryFactory : IRoleQueryFactory
         Guard.AgainstNull(domainEvent);
 
         return new Query(@"
-if not exists
+IF NOT EXISTS
 (
-    select
-        null
-    from
+    SELECT
+        NULL
+    FROM
         [dbo].[Role]
-    where
+    WHERE
         [Name] = @Name
 )
-    insert into [dbo].[Role]
+    INSERT INTO [dbo].[Role]
     (
 	    [Id],
 	    [Name]
     )
-    values
+    VALUES
     (
 	    @Id,
 	    @Name
@@ -46,11 +46,11 @@ if not exists
     public IQuery Get(Guid id)
     {
         return new Query(@"
-select
+SELECT
     Name
-from
+FROM
     Role
-where
+WHERE
     Id = @Id
 ")
             .AddParameter(Columns.Id, id);
@@ -59,13 +59,13 @@ where
     public IQuery PermissionAdded(Guid id, PermissionAdded domainEvent)
     {
         return new Query(@"
-insert into [dbo].[RolePermission]
+INSERT INTO [dbo].[RolePermission]
 (
 	[RoleId],
 	[PermissionId],
     [DateRegistered]
 )
-values
+VALUES
 (
 	@RoleId,
 	@PermissionId,
@@ -80,12 +80,12 @@ values
     public IQuery PermissionRemoved(Guid id, PermissionRemoved domainEvent)
     {
         return new Query(@"
-delete 
-from 
+DELETE 
+FROM 
     [dbo].[RolePermission]
-where	
+WHERE	
     [RoleId] = @RoleId
-and
+AND
 	[PermissionId] = @PermissionId
 ")
             .AddParameter(Columns.RoleId, id)
@@ -95,16 +95,16 @@ and
     public IQuery Removed(Guid id)
     {
         return new Query(@"
-delete 
-from 
+DELETE 
+FROM 
     [dbo].[Role]
-where	
+WHERE	
     [Id] = @Id;
 
-delete
-from
+DELETE
+FROM
     [dbo].[RolePermission]
-where	
+WHERE	
     [RoleId] = @Id;
 ")
             .AddParameter(Columns.Id, id);
@@ -120,42 +120,42 @@ where
         Guard.AgainstNull(specification);
 
         return new Query($@"
-select 
+SELECT 
     rp.RoleId,
     p.Id,
     p.Name,
     p.Status
-from
+FROM
     RolePermission rp
-inner join
-    Role r on (rp.RoleId = r.Id)
-inner join
-    Permission p on (rp.PermissionId = p.Id)
-where
+INNER JOIN
+    Role r ON (rp.RoleId = r.Id)
+INNER JOIN
+    Permission p ON (rp.PermissionId = p.Id)
+WHERE
 (
     isnull(@NameMatch, '') = ''
-    or
-    r.Name like '%' + @NameMatch + '%'
+    OR
+    r.Name LIKE '%' + @NameMatch + '%'
 )
 {(!specification.Names.Any() ? string.Empty : $@"
-and
-    r.Name in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+AND
+    r.Name IN ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
 ")}
 {(!specification.RoleIds.Any() ? string.Empty : $@"
-and
-    RoleId in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
+AND
+    RoleId IN ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
 ")}
 {(!specification.PermissionIds.Any() ? string.Empty : $@"
-and
-    PermissionId in ({string.Join(",", specification.PermissionIds.Select(item => $"'{item}'"))})
+AND
+    PermissionId IN ({string.Join(",", specification.PermissionIds.Select(item => $"'{item}'"))})
 ")}
-and
+AND
 (
-    @DateRegistered is null
-    or
+    @DateRegistered IS NULL
+    OR
     DateRegistered >= @DateRegistered
 )
-order by
+ORDER BY
     p.Name
 ")
             .AddParameter(Columns.NameMatch, specification.NameMatch)
@@ -165,11 +165,11 @@ order by
     public IQuery NameSet(Guid id, NameSet domainEvent)
     {
         return new Query(@"
-update
+UPDATE
     Role
-set
+SET
     [Name] = @Name
-where
+WHERE
     Id = @Id
 ")
             .AddParameter(Columns.Id, id)
@@ -181,33 +181,30 @@ where
         Guard.AgainstNull(specification);
 
         var what = columns
-            ? @"
-    Id,
-    [Name]
-"
-            : "count(*)";
+            ? @"Id, [Name]"
+            : "COUNT(*)";
 
         return new Query($@"
-select
+SELECT
 {what}
-from
+FROM
     Role
-where
+WHERE
 (
-    isnull(@NameMatch, '') = ''
-    or
-    [Name] like '%' + @NameMatch + '%'
+    ISNULL(@NameMatch, '') = ''
+    OR
+    [Name] LIKE '%' + @NameMatch + '%'
 )
 {(!specification.Names.Any() ? string.Empty : $@"
-and
-    [Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+AND
+    [Name] IN ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
 ")}
 {(!specification.RoleIds.Any() ? string.Empty : $@"
-and
-    Id in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
+AND
+    Id IN ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
 ")}
 {(columns ? @"
-order by
+ORDER BY
     Name
 " : string.Empty)}
 ")

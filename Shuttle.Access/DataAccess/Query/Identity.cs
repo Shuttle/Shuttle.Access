@@ -13,6 +13,7 @@ public class Identity
         public string RoleName { get; private set; } = string.Empty;
         public bool RolesIncluded { get; private set; }
         public DateTime? StartDateRegistered { get; private set; }
+        public int MaximumRows { get; private set; }
 
         public Specification IncludeRoles()
         {
@@ -24,6 +25,7 @@ public class Identity
         public Specification WithIdentityId(Guid id)
         {
             Id = id;
+            MaximumRows = 1;
 
             return this;
         }
@@ -31,6 +33,7 @@ public class Identity
         public Specification WithName(string name)
         {
             Name = name;
+            MaximumRows = 1;
 
             return this;
         }
@@ -59,6 +62,13 @@ public class Identity
         public Specification WithStartDateRegistered(DateTime date)
         {
             StartDateRegistered = date;
+
+            return this;
+        }
+
+        public Specification WithMaximumRows(int maximumRows)
+        {
+            MaximumRows = maximumRows;
 
             return this;
         }

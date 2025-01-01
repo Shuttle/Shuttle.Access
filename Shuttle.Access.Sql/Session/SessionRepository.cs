@@ -13,8 +13,7 @@ public class SessionRepository : ISessionRepository
     private readonly IDataRepository<Session> _dataRepository;
     private readonly ISessionQueryFactory _queryFactory;
 
-    public SessionRepository(IDatabaseContextService databaseContextService, IDataRepository<Session> dataRepository,
-        ISessionQueryFactory queryFactory)
+    public SessionRepository(IDatabaseContextService databaseContextService, IDataRepository<Session> dataRepository, ISessionQueryFactory queryFactory)
     {
         Guard.AgainstNull(databaseContextService);
         Guard.AgainstNull(dataRepository);
@@ -23,6 +22,11 @@ public class SessionRepository : ISessionRepository
         _databaseContextService = databaseContextService;
         _dataRepository = dataRepository;
         _queryFactory = queryFactory;
+    }
+
+    public async Task RemoveAllAsync(CancellationToken cancellationToken = default)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.RemoveAll());
     }
 
     public async Task SaveAsync(Session session, CancellationToken cancellationToken = default)

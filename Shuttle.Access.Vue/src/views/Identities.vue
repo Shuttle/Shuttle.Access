@@ -23,8 +23,8 @@
         <v-btn :icon="mdiShieldOutline" size="x-small" @click="password(item)" v-tooltip:end="$t('password')" />
       </template>
       <template v-slot:item.remove="{ item }">
-        <v-btn :icon="mdiDeleteOutline" size="x-small" @click="confirmationStore.show(item, remove)"
-          v-tooltip:end="$t('remove')" />
+        <v-btn :icon="mdiDeleteOutline" size="x-small"
+          @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
       </template>
     </v-data-table>
   </v-card>
@@ -130,7 +130,7 @@ const refresh = () => {
 }
 
 const remove = (item: Identity) => {
-  confirmationStore.setIsOpen(false);
+  confirmationStore.close();
 
   api
     .delete(`v1/identities/${item.id}`)

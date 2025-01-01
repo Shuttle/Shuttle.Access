@@ -174,6 +174,11 @@ FROM
             .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
     }
 
+    public IQuery RemoveAll()
+    {
+        return new Query(@"DELETE FROM [dbo].[Session]");
+    }
+
     public IQuery Get(string identityName)
     {
         Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));

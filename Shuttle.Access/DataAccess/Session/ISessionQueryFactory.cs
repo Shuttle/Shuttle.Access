@@ -12,4 +12,5 @@ public interface ISessionQueryFactory
     IQuery Search(Query.Session.Specification specification);
     IQuery Find(Guid token);
     IQuery Count(Query.Session.Specification specification);
+    IQuery RemoveAll();
 }

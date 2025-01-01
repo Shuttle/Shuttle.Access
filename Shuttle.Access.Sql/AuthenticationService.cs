@@ -15,13 +15,9 @@ public class AuthenticationService : IAuthenticationService
 
     public AuthenticationService(IEventStore eventStore, IIdKeyRepository idKeyRepository, IHashingService hashingService)
     {
-        Guard.AgainstNull(eventStore);
-        Guard.AgainstNull(idKeyRepository);
-        Guard.AgainstNull(hashingService);
-
-        _eventStore = eventStore;
-        _idKeyRepository = idKeyRepository;
-        _hashingService = hashingService;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
+        _hashingService = Guard.AgainstNull(hashingService);
     }
 
     public async Task<AuthenticationResult> AuthenticateAsync(string identityName, string password, CancellationToken cancellationToken = default)

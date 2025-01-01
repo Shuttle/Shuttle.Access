@@ -51,8 +51,6 @@ public class Program
             .ReadFrom.Configuration(webApplicationBuilder.Configuration)
             .CreateLogger();
 
-        var accessOptions = webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Get<AccessOptions>()!;
-
         var apiVersion1 = new ApiVersion(1, 0);
 
         webApplicationBuilder.Services

@@ -11,18 +11,15 @@ namespace Shuttle.Access.Sql;
 public class AuthorizationService : IAuthorizationService
 {
     private static readonly string AdministratorRoleName = "Administrator";
-    private static readonly List<string> AdministratorPermissions = new() { "*" };
+    private static readonly List<string> AdministratorPermissions = ["*"];
     private readonly IIdentityQuery _identityQuery;
 
     private readonly IRoleQuery _roleQuery;
 
     public AuthorizationService(IRoleQuery roleQuery, IIdentityQuery identityQuery)
     {
-        Guard.AgainstNull(roleQuery);
-        Guard.AgainstNull(identityQuery);
-
-        _roleQuery = roleQuery;
-        _identityQuery = identityQuery;
+        _roleQuery = Guard.AgainstNull(roleQuery);
+        _identityQuery = Guard.AgainstNull(identityQuery);
     }
 
     public async Task<IEnumerable<string>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default)

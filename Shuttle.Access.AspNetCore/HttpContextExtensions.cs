@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Core.Contract;
+using System.Text.RegularExpressions;
 
 namespace Shuttle.Access.AspNetCore;
 
 public static class HttpContextExtensions
 {
-    public static readonly string AuthorizationScheme = "Bearer";
-    private static readonly char[] Space = new[] { ' ' };
+    private static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
 
     public static SessionTokenResult GetAccessSessionToken(this HttpContext context)
     {
@@ -15,24 +15,32 @@ public static class HttpContextExtensions
 
         try
         {
-            var headers = context.Request.Headers["Authorization"];
+            var header = context.Request.Headers["Authorization"].FirstOrDefault();
 
-            if (headers.Count != 1)
+            if (header == null)
             {
                 return SessionTokenResult.Failure(new UnauthorizedResult());
             }
 
-            var values = headers[0]!.Split(Space);
+            if (!header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
+            {
+                return SessionTokenResult.Failure(new UnauthorizedResult());
+            }
 
-            return values.Length == 2 &&
-                   values[0].Equals(AuthorizationScheme) &&
-                   Guid.TryParse(values[1], out var sessionToken)
-                ? SessionTokenResult.Success(sessionToken)
-                : SessionTokenResult.Failure(new UnauthorizedResult());
+            var match = TokenExpression.Match(header["Shuttle.Access ".Length..].Trim());
+
+            if (!match.Success)
+            {
+                return SessionTokenResult.Failure(new UnauthorizedResult());
+            }
+
+            return !Guid.TryParse(match.Groups["token"].Value, out var sessionToken) 
+                ? SessionTokenResult.Failure(new UnauthorizedResult()) 
+                : SessionTokenResult.Success(sessionToken);
         }
         catch
         {
-            throw new Exception("Could not retrieve the session token.");
+            throw new("Could not retrieve the session token.");
         }
     }
 }

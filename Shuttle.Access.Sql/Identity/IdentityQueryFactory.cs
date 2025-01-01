@@ -20,7 +20,7 @@ public class IdentityQueryFactory : IIdentityQueryFactory
     public IQuery Register(Guid id, Registered domainEvent)
     {
         return new Query(@"
-insert into [dbo].[Identity]
+INSERT INTO [dbo].[Identity]
 (
 	[Id],
 	[Name],
@@ -28,7 +28,7 @@ insert into [dbo].[Identity]
 	[RegisteredBy],
     [GeneratedPassword]
 )
-values
+VALUES
 (
 	@Id,
 	@Name,
@@ -52,14 +52,14 @@ values
     public IQuery RoleAdded(Guid id, RoleAdded domainEvent)
     {
         return new Query(@"
-if not exists(select null from [dbo].[IdentityRole] where IdentityId = @IdentityId and RoleId = @RoleId)
-    insert into [dbo].[IdentityRole]
+IF NOT EXISTS(SELECT NULL FROM [dbo].[IdentityRole] WHERE IdentityId = @IdentityId AND RoleId = @RoleId)
+    INSERT INTO [dbo].[IdentityRole]
     (
 	    [IdentityId],
 	    [RoleId],
         [DateRegistered]
     )
-    values
+    VALUES
     (
 	    @IdentityId,
 	    @RoleId,
@@ -79,11 +79,11 @@ if not exists(select null from [dbo].[IdentityRole] where IdentityId = @Identity
     public IQuery Get(Guid id)
     {
         return new Query($@"
-select
+SELECT
     {SelectedColumns}
-from
+FROM
     [dbo].[Identity] i
-where 
+WHERE 
     i.Id = @Id
 ")
             .AddParameter(Columns.Id, id);
@@ -94,24 +94,24 @@ where
         Guard.AgainstNull(specification);
 
         return new Query(@"
-select 
+SELECT 
     ir.IdentityId, 
     ir.RoleId Id, 
     r.Name 
-from 
+FROM 
     dbo.IdentityRole ir
-inner join
+INNER JOIN
     dbo.Role r on (r.Id = ir.RoleId)
-where 
+WHERE 
 (
     @IdentityId is null
-    or
+    OR
     IdentityId = @IdentityId
 )
-and
+AND
 (
     @DateRegistered is null
-    or
+    OR
     DateRegistered >= @DateRegistered
 )
 ")
@@ -122,12 +122,12 @@ and
     public IQuery RoleRemoved(Guid id, RoleRemoved domainEvent)
     {
         return new Query(@"
-delete 
-from 
+DELETE 
+FROM 
     [dbo].[IdentityRole]
-where
+WHERE
     [IdentityId] = @IdentityId
-and
+AND
 	[RoleId] = @RoleId
 ")
             .AddParameter(Columns.IdentityId, id)
@@ -137,33 +137,33 @@ and
     public IQuery AdministratorCount()
     {
         return new Query(@"
-select 
+SELECT 
     count(*) as count 
-from 
+FROM 
     dbo.IdentityRole ir
-inner join
+INNER JOIN
     dbo.Role r on r.Id = ir.RoleId
-where 
+WHERE 
     r.Name = 'administrator'
 ");
     }
 
     public IQuery RemoveRoles(Guid id)
     {
-        return new Query("delete from IdentityRole where IdentityId = @IdentityId")
+        return new Query("DELETE FROM [dbo].[IdentityRole] WHERE IdentityId = @IdentityId")
             .AddParameter(Columns.IdentityId, id);
     }
 
     public IQuery Remove(Guid id)
     {
-        return new Query("delete from [dbo].[Identity] where Id = @Id").AddParameter(Columns.Id, id);
+        return new Query("DELETE FROM [dbo].[Identity] WHERE Id = @Id").AddParameter(Columns.Id, id);
     }
 
     public IQuery GetId(string identityName)
     {
         Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
-        return new Query("select Id from [dbo].[Identity] where Name = @Name")
+        return new Query("SELECT ID FROM [dbo].[Identity] WHERE Name = @Name")
             .AddParameter(Columns.Name, identityName);
     }
 
@@ -172,17 +172,17 @@ where
         return new Query(@"
 SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 
-select
+SELECT
 	p.[Name]
-from
+FROM
 	Permission p 
-inner join
-	RolePermission rp on rp.PermissionId = p.Id
-inner join
-	IdentityRole ir on ir.RoleId = rp.RoleId
-where
+INNER JOIN
+	RolePermission rp ON rp.PermissionId = p.Id
+INNER JOIN
+	IdentityRole ir ON ir.RoleId = rp.RoleId
+WHERE
 	ir.IdentityId = @IdentityId
-and
+AND
     p.Status <> 3
 ")
             .AddParameter(Columns.IdentityId, id);
@@ -191,11 +191,11 @@ and
     public IQuery Activated(Guid id, Activated domainEvent)
     {
         return new Query(@"
-update
+UPDATE
     [dbo].[Identity]
-set
+SET
     DateActivated = @DateActivated
-where
+WHERE
     Id = @Id
 ")
             .AddParameter(Columns.Id, id)
@@ -205,11 +205,11 @@ where
     public IQuery NameSet(Guid id, NameSet domainEvent)
     {
         return new Query(@"
-update
+UPDATE
     [dbo].[Identity]
-set
+SET
     [Name] = @Name
-where
+WHERE
     Id = @Id
 ")
             .AddParameter(Columns.Id, id)

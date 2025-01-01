@@ -114,12 +114,25 @@ export const useSessionStore = defineStore("session", {
 
             const data = response.data;
 
-            if (data.result === "Registered") {
-              self.register({
-                identityName: credentials.identityName,
-                token: data.token,
-                permissions: data.permissions,
-              });
+            switch (data.result) {
+              case "Registered": {
+                self.register({
+                  identityName: credentials.identityName,
+                  token: data.token,
+                  permissions: data.permissions,
+                });
+
+                break;
+              }
+              case "UnknownIdentity": {
+                break;
+              }
+              default: {
+                reject(
+                  new Error(i18n.global.t("exceptions.invalid-credentials"))
+                );
+                break;
+              }
             }
 
             resolve(response);

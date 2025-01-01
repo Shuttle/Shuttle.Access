@@ -12,7 +12,7 @@
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
 		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
 		<description>A client component that calls the Shuttle.Access.WebApi to interact with the Shuttle.Access Identity and Access Management domain.</description>
-		<copyright>Copyright (c) 2024, Eben Roux</copyright>
+		<copyright>Copyright (c) 2025, Eben Roux</copyright>
 		<tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
       <dependency id="Microsoft.CSharp" version="4.7.0" />

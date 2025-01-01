@@ -34,10 +34,16 @@ export type ChangePassword = {
   newPassword: string;
 };
 
+export type ConfirmationOptions = {
+  item?: any;
+  onConfirm: (item?: any) => void;
+  message?: string;
+  title?: string;
+};
+
 export type ConfirmationStoreState = {
-  item: any;
   isOpen: boolean;
-  callback?: (item: any) => void;
+  options?: ConfirmationOptions;
 };
 
 export type Credentials = {

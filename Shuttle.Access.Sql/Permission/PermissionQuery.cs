@@ -15,13 +15,9 @@ public class PermissionQuery : IPermissionQuery
 
     public PermissionQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, IPermissionQueryFactory queryFactory)
     {
-        Guard.AgainstNull(databaseContextService);
-        Guard.AgainstNull(queryMapper);
-        Guard.AgainstNull(queryFactory);
-
-        _databaseContextService = databaseContextService;
-        _queryMapper = queryMapper;
-        _queryFactory = queryFactory;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryMapper = Guard.AgainstNull(queryMapper);
+        _queryFactory = Guard.AgainstNull(queryFactory);
     }
 
     public async Task<IEnumerable<Messages.v1.Permission>> SearchAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)

@@ -15,20 +15,18 @@
         <transition name="route" mode="out-in">
           <component :is="Component" :key="route.fullPath"></component>
         </transition>
-        <!-- <component :is="Component" :key="route.fullPath"></component> -->
       </RouterView>
     </div>
     <v-dialog v-model="confirmationStore.isOpen"
       class="flex flex-row items-center justify-end mt-4 lg:w-2/4 md:w-3/4lg:w-1/4 md:w-2/4">
-      <v-card :title="$t('confirmation-remove.title')">
+      <v-card :title="$t(confirmationStore.options?.title || 'confirmation-remove.title')">
         <v-card-text>
-          {{ $t("confirmation-remove.message") }}
+          {{ $t(confirmationStore.options?.message || "confirmation-remove.message") }}
         </v-card-text>
         <v-spacer></v-spacer>
         <v-card-actions>
           <v-btn :text="$t('yes')" @click="confirmationStore.confirmed()" color="warning" variant="outlined"></v-btn>
-          <v-btn :text="$t('cancel')" @click="confirmationStore.setIsOpen(false)" color="secondary"
-            variant="flat"></v-btn>
+          <v-btn :text="$t('cancel')" @click="confirmationStore.close()" color="secondary" variant="flat"></v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -43,9 +41,8 @@ import { useAlertStore } from "@/stores/alert";
 import { RouterView } from "vue-router";
 import { useConfirmationStore } from "@/stores/confirmation";
 
-var alertStore = useAlertStore();
-
-var confirmationStore = useConfirmationStore();
+const alertStore = useAlertStore();
+const confirmationStore = useConfirmationStore();
 
 const closeClicked = (name: string) => {
   alertStore.remove(name);

@@ -17,6 +17,7 @@ public class Role
         public bool PermissionsIncluded { get; private set; }
         public IEnumerable<Guid> RoleIds => _rolesIds.AsReadOnly();
         public DateTime? StartDateRegistered { get; private set; }
+        public int MaximumRows { get; private set; }
 
         public Specification AddName(string name)
         {
@@ -75,6 +76,13 @@ public class Role
         public Specification WithStartDateRegistered(DateTime date)
         {
             StartDateRegistered = date;
+
+            return this;
+        }
+
+        public Specification WithMaximumRows(int maximumRows)
+        {
+            MaximumRows = maximumRows;
 
             return this;
         }

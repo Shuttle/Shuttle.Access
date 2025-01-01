@@ -19,6 +19,7 @@ const Permissions = {
     View: "access://roles/view",
   },
   Sessions: {
+    Manage: "access://sessions/manage",
     Remove: "access://sessions/remove",
     View: "access://sessions/view",
   },

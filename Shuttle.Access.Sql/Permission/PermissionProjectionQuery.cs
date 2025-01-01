@@ -15,11 +15,8 @@ public class PermissionProjectionQuery : IPermissionProjectionQuery
 
     public PermissionProjectionQuery(IDatabaseContextService databaseContextService, IPermissionQueryFactory queryFactory)
     {
-        Guard.AgainstNull(databaseContextService);
-        Guard.AgainstNull(queryFactory);
-
-        _databaseContextService = databaseContextService;
-        _queryFactory = queryFactory;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryFactory = Guard.AgainstNull(queryFactory);
     }
 
     public async Task RegisteredAsync(PrimitiveEvent primitiveEvent, Registered domainEvent, CancellationToken cancellationToken = default)

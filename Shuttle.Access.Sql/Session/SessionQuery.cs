@@ -17,13 +17,9 @@ public class SessionQuery : ISessionQuery
 
     public SessionQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, ISessionQueryFactory queryFactory)
     {
-        Guard.AgainstNull(databaseContextService);
-        Guard.AgainstNull(queryMapper);
-        Guard.AgainstNull(queryFactory);
-
-        _databaseContextService = databaseContextService;
-        _queryMapper = queryMapper;
-        _queryFactory = queryFactory;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryMapper = Guard.AgainstNull(queryMapper);
+        _queryFactory = Guard.AgainstNull(queryFactory);
     }
 
     public async ValueTask<int> CountAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)

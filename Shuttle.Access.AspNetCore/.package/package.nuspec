@@ -13,7 +13,7 @@
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
 		<projectUrl>https://github.com/Shuttle/Shuttle.Access</projectUrl>
 		<description>Authorization middleware for web API endpoints using Shuttle.Access.</description>
-		<copyright>Copyright (c) 2024, Eben Roux</copyright>
+		<copyright>Copyright (c) 2025, Eben Roux</copyright>
 		<tags>iam middleware authorization permissions</tags>
 		<dependencies>
       <dependency id="Shuttle.Access" version="6.0.0" />

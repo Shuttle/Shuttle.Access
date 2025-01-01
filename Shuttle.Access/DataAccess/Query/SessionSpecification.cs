@@ -9,8 +9,8 @@ public class Session
     public class Specification
     {
         private readonly List<string> _permissions = [];
-
         public IEnumerable<string> Permissions => _permissions.AsReadOnly();
+        public int MaximumRows { get; private set; }
 
         public Specification AddPermission(string permission)
         {
@@ -69,5 +69,12 @@ public class Session
         }
 
         public bool ShouldIncludePermissions { get; private set; } = false;
+
+        public Specification WithMaximumRows(int maximumRows)
+        {
+            MaximumRows = maximumRows;
+
+            return this;
+        }
     }
 }

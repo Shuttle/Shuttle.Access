@@ -15,16 +15,11 @@ public class IdentityQuery : IIdentityQuery
     private readonly IIdentityQueryFactory _queryFactory;
     private readonly IQueryMapper _queryMapper;
 
-    public IdentityQuery(IDatabaseContextService databaseContextService,
-        IQueryMapper queryMapper, IIdentityQueryFactory queryFactory)
+    public IdentityQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, IIdentityQueryFactory queryFactory)
     {
-        Guard.AgainstNull(databaseContextService);
-        Guard.AgainstNull(queryFactory);
-        Guard.AgainstNull(queryMapper);
-
-        _databaseContextService = databaseContextService;
-        _queryFactory = queryFactory;
-        _queryMapper = queryMapper;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryFactory = Guard.AgainstNull(queryFactory);
+        _queryMapper = Guard.AgainstNull(queryMapper);
     }
 
     public async ValueTask<int> AdministratorCountAsync(CancellationToken cancellationToken = default)

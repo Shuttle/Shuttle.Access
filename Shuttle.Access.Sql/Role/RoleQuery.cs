@@ -17,15 +17,10 @@ public class RoleQuery : IRoleQuery
 
     public RoleQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, IDataRowMapper dataRowMapper, IRoleQueryFactory queryFactory)
     {
-        Guard.AgainstNull(databaseContextService);
-        Guard.AgainstNull(queryFactory);
-        Guard.AgainstNull(queryMapper);
-        Guard.AgainstNull(dataRowMapper);
-
-        _databaseContextService = databaseContextService;
-        _queryFactory = queryFactory;
-        _queryMapper = queryMapper;
-        _dataRowMapper = dataRowMapper;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryFactory = Guard.AgainstNull(queryFactory);
+        _queryMapper = Guard.AgainstNull(queryMapper);
+        _dataRowMapper = Guard.AgainstNull(dataRowMapper);
     }
 
     public async Task<IEnumerable<Messages.v1.Role>> SearchAsync(DataAccess.Query.Role.Specification specification, CancellationToken cancellationToken = default)

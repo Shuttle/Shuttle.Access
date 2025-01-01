@@ -21,6 +21,8 @@
     <v-list>
       <v-list-item :title="sessionStore.identityName" class="select-none"></v-list-item>
       <v-divider></v-divider>
+      <v-list-item :prepend-icon="mdiShieldAccountOutline" to="/password/token"
+        :title="t('change-password')"></v-list-item>
       <v-list-item :prepend-icon="mdiLogout" @click.prevent="signOut" :title="t('sign-out')"></v-list-item>
     </v-list>
   </v-navigation-drawer>
@@ -28,7 +30,7 @@
 
 <script setup lang="ts">
 import map from "./navigation-map";
-import { mdiDotsVertical, mdiLogin, mdiLogout, mdiWhiteBalanceSunny, mdiWeatherNight } from '@mdi/js';
+import { mdiDotsVertical, mdiLogin, mdiLogout, mdiWhiteBalanceSunny, mdiWeatherNight, mdiShieldAccountOutline } from '@mdi/js';
 import { computed, ref, watch } from "vue";
 import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";

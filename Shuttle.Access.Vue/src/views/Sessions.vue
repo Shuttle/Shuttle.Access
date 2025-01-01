@@ -4,6 +4,8 @@
       <div class="sv-title">{{ $t("sessions") }}</div>
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
+        <v-btn v-if="sessionStore.hasPermission(Permissions.Sessions.Manage)" :icon="mdiAccountMultipleMinusOutline"
+          size="small" @click="confirmRemoveAll" v-tooltip:end="$t('remove-all')"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
           variant="solo-filled" flat hide-details single-line></v-text-field>
       </div>
@@ -12,8 +14,8 @@
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="identityName">
       <template v-slot:item.remove="{ item }">
-        <v-btn :icon="mdiDeleteOutline" size="x-small" @click="confirmationStore.show(item, remove)"
-          v-tooltip:end="$t('remove')" />
+        <v-btn :icon="mdiDeleteOutline" size="x-small"
+          @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
@@ -23,12 +25,12 @@
               <v-list-item v-if="item.permissions.length" v-for="permission in item.permissions" :key="permission"
                 :title="permission">
                 <template v-slot:prepend>
-                  <v-icon :icon="mdiShieldOutline"></v-icon>
+                  <v-icon :icon="mdiShieldOutline" size="x-small"></v-icon>
                 </template>
               </v-list-item>
               <v-list-item v-else :title="t('none')">
                 <template v-slot:prepend>
-                  <v-icon :icon="mdiShieldOffOutline"></v-icon>
+                  <v-icon :icon="mdiShieldOffOutline" size="x-small"></v-icon>
                 </template>
               </v-list-item>
             </v-list>
@@ -43,17 +45,18 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh, mdiShieldOffOutline, mdiShieldOutline } from '@mdi/js';
+import { mdiAccountMultipleMinusOutline, mdiDeleteOutline, mdiMagnify, mdiRefresh, mdiShieldOffOutline, mdiShieldOutline } from '@mdi/js';
 import { useRouter } from "vue-router";
-import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
 import Permissions from "@/permissions";
 import type { Session } from "@/access";
 import type { AxiosResponse } from "axios";
 import { useDateFormatter } from "@/composables/useDateFormatter";
+import { useSessionStore } from "@/stores/session";
 
-var confirmationStore = useConfirmationStore();
+const confirmationStore = useConfirmationStore();
+const sessionStore = useSessionStore();
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
@@ -67,7 +70,7 @@ const headers = useSecureTableHeaders([
     headerProps: {
       class: "w-1",
     },
-    permission: Permissions.Roles.Manage,
+    permission: Permissions.Sessions.Manage,
     filterable: false
   },
   {
@@ -112,12 +115,31 @@ const refresh = () => {
 }
 
 const remove = (item: Session) => {
-  confirmationStore.setIsOpen(false);
+  confirmationStore.close();
 
   busy.value = true;
 
   api
     .delete(`v1/sessions/${item.token}`)
+    .then(function () {
+      refresh();
+    })
+    .finally(() => {
+      busy.value = false;
+    });
+}
+
+const confirmRemoveAll = () => {
+  confirmationStore.show({ onConfirm: removeAll });
+}
+
+const removeAll = () => {
+  confirmationStore.close();
+
+  busy.value = true;
+
+  api
+    .delete(`v1/sessions`)
     .then(function () {
       refresh();
     })

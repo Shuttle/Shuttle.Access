@@ -1,15 +1,11 @@
-import type { RouteLocationNormalized, RouteRecordRaw } from "vue-router";
+import type { RouteRecordRaw } from "vue-router";
 import { createRouter, createWebHistory } from "vue-router";
 import { useSessionStore } from "@/stores/session";
 import { useAlertStore } from "@/stores/alert";
 import Permissions from "../permissions";
 import { useBreadcrumbStore } from "@/stores/breadcrumb";
 import type { Breadcrumb } from "@/access";
-
-export const messages = {
-  insufficientPermission:
-    "You do not have permission to access the requested view.  Please contact your system administrator if you require access.",
-};
+import { i18n } from "@/i18n";
 
 const ignoreBreadcrumbs = ["sign-in", "oauth"];
 
@@ -154,7 +150,7 @@ router.beforeEach(async (to) => {
     !sessionStore.hasPermission(to.meta.permission as string)
   ) {
     useAlertStore().add({
-      message: messages.insufficientPermission,
+      message: i18n.global.t("exceptions.insufficient-permission"),
       type: "info",
       name: "insufficient-permission",
     });

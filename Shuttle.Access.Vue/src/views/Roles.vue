@@ -20,8 +20,8 @@
         <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" v-tooltip:end="$t('rename')" />
       </template>
       <template v-slot:item.remove="{ item }">
-        <v-btn :icon="mdiDeleteOutline" size="x-small" @click="confirmationStore.show(item, remove)"
-          v-tooltip:end="$t('remove')" />
+        <v-btn :icon="mdiDeleteOutline" size="x-small"
+          @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
       </template>
     </v-data-table>
   </v-card>
@@ -41,7 +41,7 @@ import type { Role } from "@/access";
 import type { AxiosResponse } from "axios";
 import { useSessionStore } from "@/stores/session";
 
-var confirmationStore = useConfirmationStore();
+const confirmationStore = useConfirmationStore();
 const sessionStore = useSessionStore();
 
 const { t } = useI18n({ useScope: 'global' });
@@ -100,7 +100,7 @@ const refresh = () => {
 }
 
 const remove = (item: Role) => {
-  confirmationStore.setIsOpen(false);
+  confirmationStore.close();
 
   busy.value = true;
 

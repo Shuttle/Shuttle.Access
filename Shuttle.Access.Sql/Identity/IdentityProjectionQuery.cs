@@ -15,11 +15,8 @@ public class IdentityProjectionQuery : IIdentityProjectionQuery
 
     public IdentityProjectionQuery(IDatabaseContextService databaseContextService, IIdentityQueryFactory queryFactory)
     {
-        Guard.AgainstNull(databaseContextService);
-        Guard.AgainstNull(queryFactory);
-
-        _databaseContextService = databaseContextService;
-        _queryFactory = queryFactory;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryFactory = Guard.AgainstNull(queryFactory);
     }
 
     public async Task RegisterAsync(PrimitiveEvent primitiveEvent, Registered domainEvent, CancellationToken cancellationToken = default)

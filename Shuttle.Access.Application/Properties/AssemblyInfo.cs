@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 #endif
 
 [assembly: AssemblyVersion("6.0.0.0")]
-[assembly: AssemblyCopyright("Copyright (c) 2024, Eben Roux")]
+[assembly: AssemblyCopyright("Copyright (c) 2025, Eben Roux")]
 [assembly: AssemblyProduct("Shuttle.Access.Application")]
 [assembly: AssemblyCompany("Eben Roux")]
 [assembly: AssemblyConfiguration("Release")]

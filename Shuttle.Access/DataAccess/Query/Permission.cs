@@ -17,6 +17,7 @@ public class Permission
         public IEnumerable<string> Names => _names.AsReadOnly();
         public IEnumerable<Guid> RoleIds => _roleIds.AsReadOnly();
         public IEnumerable<int> Statuses => _statuses.AsReadOnly();
+        public int MaximumRows { get; private set; }
 
         public Specification AddId(Guid id)
         {
@@ -76,6 +77,13 @@ public class Permission
         public Specification WithNameMatch(string nameMatch)
         {
             NameMatch = nameMatch;
+
+            return this;
+        }
+
+        public Specification WithMaximumRows(int maximumRows)
+        {
+            MaximumRows = maximumRows;
 
             return this;
         }
