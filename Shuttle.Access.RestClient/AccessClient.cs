@@ -74,11 +74,11 @@ public class AccessClient : IAccessClient
                 return this;
             }
 
-            var response = Sessions.PostAsync(new RegisterSession
+            var response = await Sessions.PostAsync(new RegisterSession
             {
                 IdentityName = _accessClientOptions.IdentityName,
                 Password = _accessClientOptions.Password
-            }).Result;
+            });
 
             if (!response.IsSuccessStatusCode || response.Content == null)
             {

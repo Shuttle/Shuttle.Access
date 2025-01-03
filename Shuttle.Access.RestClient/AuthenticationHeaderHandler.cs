@@ -44,7 +44,7 @@ public class AuthenticationHeaderHandler : DelegatingHandler
 
         if (client.Token.HasValue)
         {
-            request.Headers.Authorization = new("Bearer", client.Token.Value.ToString("n"));
+            request.Headers.Authorization = new("Shuttle.Access", $"token={client.Token.Value:D}");
         }
 
         return await base.SendAsync(request, cancellationToken);

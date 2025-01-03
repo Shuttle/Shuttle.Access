@@ -2,12 +2,12 @@
   <form @submit.prevent="submit" class="sv-form sv-form--sm px-5 pt-20">
     <div class="sv-title">{{ $t("identity") }}</div>
     <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
-      class="mb-2" :error-messages="validation.message('identityName')" autocomplete="off">
+      class="mb-2" :error-messages="validation.message('identityName')" autocomplete="new">
     </v-text-field>
     <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')"
       :icon-end="getPasswordIcon()" icon-end-clickable :append-icon="`svg:${getPasswordIcon()}`"
       @click:append="togglePasswordIcon" :type="getPasswordType()" :error-messages="validation.message('password')"
-      autocomplete="off">
+      autocomplete="new">
     </v-text-field>
     <div class="flex justify-end mt-4">
       <v-btn type="submit" :disabled="busy">{{ $t("save") }}</v-btn>
@@ -65,16 +65,16 @@ const submit = async () => {
   busy.value = true;
 
   api
-    .post < RegisterIdentity > ("v1/identities", {
+    .post<RegisterIdentity>("v1/identities", {
       name: state.identityName,
       password: state.password,
       system: "system://access"
     })
-      .then(function () {
-        useAlertStore().requestSent();
-      })
-      .finally(() => {
-        busy.value = false;
-      });
+    .then(function () {
+      useAlertStore().requestSent();
+    })
+    .finally(() => {
+      busy.value = false;
+    });
 }
 </script>

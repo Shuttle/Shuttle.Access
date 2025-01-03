@@ -144,7 +144,7 @@ public static class SessionEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var session = (await sessionQuery.SearchAsync(new DataAccess.Query.Session.Specification().WithToken(token))).FirstOrDefault();
+                    var session = (await sessionQuery.SearchAsync(new DataAccess.Query.Session.Specification().WithToken(token).IncludePermissions())).FirstOrDefault();
 
                     return session == null
                         ? Results.BadRequest()
