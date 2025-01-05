@@ -192,8 +192,7 @@ public static class SessionEndpoints
             })
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Sessions.View);
+            .MapToApiVersion(apiVersion1);
 
         app.MapGet("/v{version:apiVersion}/sessions/{token:Guid}/permissions", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {

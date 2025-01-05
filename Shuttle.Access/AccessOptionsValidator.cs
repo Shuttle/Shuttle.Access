@@ -46,7 +46,7 @@ public class AccessOptionsValidator: IValidateOptions<AccessOptions>
                 return ValidateOptionsResult.Fail($"Option 'SessionTokenExchangeUrl' value '{knownApplication.SessionTokenExchangeUrl}' is not a valid URI.");
             }
 
-            knownApplication.SessionTokenExchangeUrl = uri.ToString();
+            knownApplication.SessionTokenExchangeUrl = uri.ToString().TrimEnd('/');
         }
 
         return ValidateOptionsResult.Success;
