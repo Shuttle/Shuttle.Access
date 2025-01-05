@@ -25,7 +25,7 @@ public class ResetPasswordParticipant : IParticipant<RequestMessage<ResetPasswor
     {
         Guard.AgainstNull(context);
 
-        var queryIdentity = (await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(context.Message.Request.Name))).SingleOrDefault();
+        var queryIdentity = (await _identityQuery.SearchAsync(new DataAccess.Identity.Specification().WithName(context.Message.Request.Name))).SingleOrDefault();
 
         if (queryIdentity == null)
         {

@@ -50,6 +50,7 @@ export type Credentials = {
   identityName: string;
   token?: string;
   password?: string;
+  applicationName?: string;
 };
 
 export type DashboardItem = {
@@ -127,6 +128,7 @@ export type SessionResponse = {
   result: string;
   token: string;
   tokenExpiryDate: string;
+  exchangeTokenUrl?: string;
 };
 
 export type SessionStoreState = {
@@ -135,4 +137,5 @@ export type SessionStoreState = {
   identityName?: string;
   token?: string;
   permissions: SessionPermission[];
+  applicationName?: string;
 };

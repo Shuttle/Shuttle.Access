@@ -27,7 +27,7 @@ public class ActivateIdentityParticipant : IParticipant<RequestResponseMessage<A
         var message = context.Message.Request;
         var now = DateTime.UtcNow;
 
-        var specification = new DataAccess.Query.Identity.Specification();
+        var specification = new DataAccess.Identity.Specification();
 
         if (message.Id.HasValue)
         {

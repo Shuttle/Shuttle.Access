@@ -23,7 +23,7 @@ public class SessionsFixture
             Token = Guid.NewGuid()
         };
 
-        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Messages.v1.Session> { session }.AsEnumerable()));
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Messages.v1.Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 

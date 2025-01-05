@@ -63,11 +63,11 @@ public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<R
 
         stream.Add(registered);
 
-        var count = await _identityQuery.CountAsync(new DataAccess.Query.Identity.Specification().WithRoleName("Administrator"));
+        var count = await _identityQuery.CountAsync(new DataAccess.Identity.Specification().WithRoleName("Administrator"));
 
         if (count == 0)
         {
-            var roles = (await _roleQuery.SearchAsync(new DataAccess.Query.Role.Specification().AddName("Administrator"))).ToList();
+            var roles = (await _roleQuery.SearchAsync(new DataAccess.Role.Specification().AddName("Administrator"))).ToList();
 
             if (roles.Count != 1)
             {

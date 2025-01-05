@@ -49,7 +49,7 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
     {
         Guard.AgainstNull(context);
 
-        var roleSpecification = new DataAccess.Query.Role.Specification().AddName("Administrator");
+        var roleSpecification = new DataAccess.Role.Specification().AddName("Administrator");
 
         var administratorExists = await _roleQuery.CountAsync(roleSpecification) > 0;
 
@@ -81,7 +81,7 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
 
         foreach (var permission in _permissions)
         {
-            if (await _permissionQuery.ContainsAsync(new DataAccess.Query.Permission.Specification().AddName(permission)))
+            if (await _permissionQuery.ContainsAsync(new DataAccess.Permission.Specification().AddName(permission)))
             {
                 continue;
             }

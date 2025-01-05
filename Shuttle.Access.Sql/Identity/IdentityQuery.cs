@@ -37,7 +37,7 @@ public class IdentityQuery : IIdentityQuery
         return await _queryMapper.MapValuesAsync<string>(_queryFactory.Permissions(userId), cancellationToken);
     }
 
-    public async Task<IEnumerable<Messages.v1.Identity>> SearchAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Messages.v1.Identity>> SearchAsync(DataAccess.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 
@@ -64,12 +64,12 @@ public class IdentityQuery : IIdentityQuery
         return result;
     }
 
-    public async Task<IEnumerable<Guid>> RoleIdsAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Guid>> RoleIdsAsync(DataAccess.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
         return (await _databaseContextService.Active.GetRowsAsync(_queryFactory.Roles(Guard.AgainstNull(specification)), cancellationToken)).Select(row => Columns.Id.Value(row));
     }
 
-    public async ValueTask<int> CountAsync(DataAccess.Query.Identity.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(DataAccess.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(Guard.AgainstNull(specification)), cancellationToken);
     }

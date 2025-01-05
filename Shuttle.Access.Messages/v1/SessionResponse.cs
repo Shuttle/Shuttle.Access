@@ -11,4 +11,5 @@ public class SessionResponse
     public string Result { get; set; } = default!;
     public Guid Token { get; set; }
     public DateTime TokenExpiryDate { get; set; }
+    public string SessionTokenExchangeUrl { get; set; } = string.Empty;
 }

@@ -23,7 +23,7 @@ public class RoleQuery : IRoleQuery
         _dataRowMapper = Guard.AgainstNull(dataRowMapper);
     }
 
-    public async Task<IEnumerable<Messages.v1.Role>> SearchAsync(DataAccess.Query.Role.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Messages.v1.Role>> SearchAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 
@@ -49,12 +49,12 @@ public class RoleQuery : IRoleQuery
         return result;
     }
 
-    public async Task<IEnumerable<Messages.v1.Permission>> PermissionsAsync(DataAccess.Query.Role.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Messages.v1.Permission>> PermissionsAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _queryMapper.MapObjectsAsync<Messages.v1.Role.Permission>(_queryFactory.Permissions(specification), cancellationToken);
     }
 
-    public async ValueTask<int> CountAsync(DataAccess.Query.Role.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
     }

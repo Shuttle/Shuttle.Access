@@ -49,12 +49,12 @@ public class AccessServiceHandler :
 
             if (message.Active)
             {
-                await RefreshAsync(new DataAccess.Query.Identity.Specification().WithRoleId(message.RoleId));
+                await RefreshAsync(new DataAccess.Identity.Specification().WithRoleId(message.RoleId));
             }
             else
             {
-                await RefreshAsync(new DataAccess.Query.Session.Specification().AddPermissions(
-                    (await _permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification().AddRoleId(message.RoleId)))
+                await RefreshAsync(new DataAccess.Session.Specification().AddPermissions(
+                    (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddRoleId(message.RoleId)))
                     .Select(item => item.Name)));
             }
         }
@@ -78,11 +78,11 @@ public class AccessServiceHandler :
 
             if (message.Status == (int)PermissionStatus.Removed)
             {
-                await RefreshAsync(new DataAccess.Query.Session.Specification().AddPermission(message.Name));
+                await RefreshAsync(new DataAccess.Session.Specification().AddPermission(message.Name));
             }
             else
             {
-                await RefreshAsync(new DataAccess.Query.Identity.Specification().WithPermissionId(message.Id));
+                await RefreshAsync(new DataAccess.Identity.Specification().WithPermissionId(message.Id));
             }
         }
     }
@@ -105,18 +105,18 @@ public class AccessServiceHandler :
 
             if (message.Active)
             {
-                await RefreshAsync(new DataAccess.Query.Identity.Specification().WithRoleId(message.RoleId));
+                await RefreshAsync(new DataAccess.Identity.Specification().WithRoleId(message.RoleId));
             }
             else
             { 
-                await RefreshAsync(new DataAccess.Query.Session.Specification().AddPermissions(
-                    (await _permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification().AddId(message.PermissionId)))
+                await RefreshAsync(new DataAccess.Session.Specification().AddPermissions(
+                    (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddId(message.PermissionId)))
                     .Select(item => item.Name)));
             }
         }
     }
 
-    private async Task RefreshAsync(DataAccess.Query.Session.Specification specification)
+    private async Task RefreshAsync(DataAccess.Session.Specification specification)
     {
         foreach (var session in await _sessionQuery.SearchAsync(specification))
         {
@@ -124,7 +124,7 @@ public class AccessServiceHandler :
         }
     }
 
-    private async Task RefreshAsync(DataAccess.Query.Identity.Specification specification)
+    private async Task RefreshAsync(DataAccess.Identity.Specification specification)
     {
         foreach (var identity in await _identityQuery.SearchAsync(specification))
         {

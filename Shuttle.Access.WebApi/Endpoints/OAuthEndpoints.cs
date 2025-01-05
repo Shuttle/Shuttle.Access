@@ -1,9 +1,6 @@
 ﻿using System.Text;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
@@ -11,8 +8,9 @@ using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.OAuth;
+using RegisterSession = Shuttle.Access.Application.RegisterSession;
 
-namespace Shuttle.Access.AspNetCore.OAuth;
+namespace Shuttle.Access.WebApi;
 
 public static class OAuthEndpoints
 {
@@ -34,9 +32,11 @@ public static class OAuthEndpoints
                         Name = oauthProviderOptions.Name
                     };
 
-                    if (File.Exists(Path.Combine(accessOptions.Value.OAuthProviderSvgFolder, $"{oauthProviderOptions.Name}.svg")))
+                    var path = Path.Combine(accessOptions.Value.SvgFolder, "OAuth", $"{oauthProviderOptions.Name}.svg");
+
+                    if (File.Exists(path))
                     {
-                        oauthProvider.Svg = File.ReadAllText(Path.Combine(accessOptions.Value.OAuthProviderSvgFolder, $"{oauthProviderOptions.Name}.svg"));
+                        oauthProvider.Svg = File.ReadAllText(path);
                     }
 
                     result.Add(oauthProvider);
@@ -117,7 +117,7 @@ public static class OAuthEndpoints
 
                 logger.LogDebug($"[oauth/e-mail] : grant id = '{requestId}' / e-mail = '{email}'");
 
-                var registerSession = new Application.RegisterSession(email).UseDirect();
+                var registerSession = new RegisterSession(email).UseDirect();
 
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
@@ -130,11 +130,11 @@ public static class OAuthEndpoints
                 if (requestRegistration)
                 {
                     var requestIdentityRegistration = new RequestIdentityRegistration(new()
-                    {
-                        Name = email,
-                        Activated = true
-                    })
-                    .Allowed(grant.ProviderName);
+                        {
+                            Name = email,
+                            Activated = true
+                        })
+                        .Allowed(grant.ProviderName);
 
                     await mediator.SendAsync(requestIdentityRegistration);
                 }

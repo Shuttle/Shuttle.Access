@@ -22,17 +22,17 @@ public class SessionQuery : ISessionQuery
         _queryFactory = Guard.AgainstNull(queryFactory);
     }
 
-    public async ValueTask<int> CountAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
     }
 
-    public async ValueTask<bool> ContainsAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> ContainsAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;
     }
 
-    public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(DataAccess.Query.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 

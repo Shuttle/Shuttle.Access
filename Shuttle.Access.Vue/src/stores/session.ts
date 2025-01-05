@@ -24,6 +24,9 @@ export const useSessionStore = defineStore("session", {
     status(): string {
       return !this.token ? "not-signed-in" : "signed-in";
     },
+    applicationName(): string | undefined {
+      return this.applicationName;
+    },
   },
   actions: {
     async initialize() {
@@ -102,6 +105,7 @@ export const useSessionStore = defineStore("session", {
             identityName: credentials.identityName,
             password: credentials.password,
             token: credentials.token,
+            applicationName: credentials.applicationName,
           })
           .then(function (response) {
             if (!response) {
@@ -116,6 +120,11 @@ export const useSessionStore = defineStore("session", {
 
             switch (data.result) {
               case "Registered": {
+                if (data.sessionTokenExchangeUrl) {
+                  window.location.replace(data.sessionTokenExchangeUrl);
+                  return;
+                }
+
                 self.register({
                   identityName: credentials.identityName,
                   token: data.token,

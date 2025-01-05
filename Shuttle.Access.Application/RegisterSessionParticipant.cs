@@ -10,6 +10,7 @@ namespace Shuttle.Access.Application;
 
 public class RegisterSessionParticipant : IParticipant<RegisterSession>
 {
+    private readonly ISessionTokenExchangeRepository _sessionTokenExchangeRepository;
     private readonly AccessOptions _accessOptions;
     private readonly IAuthenticationService _authenticationService;
     private readonly IAuthorizationService _authorizationService;
@@ -17,7 +18,7 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
     private readonly ISessionQuery _sessionQuery;
     private readonly ISessionRepository _sessionRepository;
 
-    public RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, IAuthenticationService authenticationService, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery, IIdentityQuery identityQuery)
+    public RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, IAuthenticationService authenticationService, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery, IIdentityQuery identityQuery, ISessionTokenExchangeRepository sessionTokenExchangeRepository)
     {
         _accessOptions = Guard.AgainstNull(accessOptions).Value;
         _authenticationService = Guard.AgainstNull(authenticationService);
@@ -25,6 +26,7 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
         _authorizationService = Guard.AgainstNull(authorizationService);
         _sessionRepository = Guard.AgainstNull(sessionRepository);
         _identityQuery = Guard.AgainstNull(identityQuery);
+        _sessionTokenExchangeRepository = Guard.AgainstNull(sessionTokenExchangeRepository);
     }
 
     public async Task ProcessMessageAsync(IParticipantContext<RegisterSession> context)
@@ -71,14 +73,14 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
             }
         }
 
-        if ((await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(message.IdentityName), context.CancellationToken)).SingleOrDefault() == null)
+        if ((await _identityQuery.SearchAsync(new DataAccess.Identity.Specification().WithName(message.IdentityName), context.CancellationToken)).SingleOrDefault() == null)
         {
             message.UnknownIdentity();
 
             return;
         }
 
-        var specification = new DataAccess.Query.Session.Specification();
+        var specification = new DataAccess.Session.Specification();
 
         if (message.RegistrationType == SessionRegistrationType.Token)
         {
@@ -127,6 +129,8 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
             message.Registered(session);
         }
 
+        return;
+
         async Task SaveAsync()
         {
             foreach (var permission in await _authorizationService.GetPermissionsAsync(message.IdentityName, context.CancellationToken))
@@ -135,6 +139,15 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
             }
 
             await _sessionRepository.SaveAsync(session, context.CancellationToken);
+
+            if (message.HasKnownApplicationOptions)
+            {
+                var sessionTokenExchange = new SessionTokenExchange(Guid.NewGuid(), session.Token, DateTime.UtcNow.Add(_accessOptions.SessionTokenExchangeValidityTimeSpan));
+
+                await _sessionTokenExchangeRepository.SaveAsync(sessionTokenExchange, context.CancellationToken);
+
+                message.WithSessionTokenExchangeUrl($"{message.KnownApplicationOptions!.SessionTokenExchangeUrl}/{sessionTokenExchange.ExchangeToken}");
+            }
         }
     }
 }

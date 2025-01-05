@@ -44,7 +44,7 @@ VALUES
             .AddParameter(Columns.GeneratedPassword, domainEvent.GeneratedPassword);
     }
 
-    public IQuery Count(DataAccess.Query.Identity.Specification specification)
+    public IQuery Count(DataAccess.Identity.Specification specification)
     {
         return Specification(specification, false);
     }
@@ -71,7 +71,7 @@ IF NOT EXISTS(SELECT NULL FROM [dbo].[IdentityRole] WHERE IdentityId = @Identity
             .AddParameter(Columns.DateRegistered, DateTime.UtcNow);
     }
 
-    public IQuery Search(DataAccess.Query.Identity.Specification specification)
+    public IQuery Search(DataAccess.Identity.Specification specification)
     {
         return Specification(specification, true);
     }
@@ -89,7 +89,7 @@ WHERE
             .AddParameter(Columns.Id, id);
     }
 
-    public IQuery Roles(DataAccess.Query.Identity.Specification specification)
+    public IQuery Roles(DataAccess.Identity.Specification specification)
     {
         Guard.AgainstNull(specification);
 
@@ -216,7 +216,7 @@ WHERE
             .AddParameter(Columns.Name, domainEvent.Name);
     }
 
-    private IQuery Specification(DataAccess.Query.Identity.Specification specification, bool columns)
+    private IQuery Specification(DataAccess.Identity.Specification specification, bool columns)
     {
         Guard.AgainstNull(specification);
 

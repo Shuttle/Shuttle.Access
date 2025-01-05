@@ -178,6 +178,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Required option &apos;{0}&apos; is missing..
+        /// </summary>
+        public static string RequiredOptionMissing {
+            get {
+                return ResourceManager.GetString("RequiredOptionMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Role &apos;{0}&apos; does not exist on user &apos;{1}&apos;..
         /// </summary>
         public static string RoleNotFoundException {

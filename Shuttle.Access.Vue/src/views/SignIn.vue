@@ -1,5 +1,14 @@
 <template>
   <form @submit.prevent="signIn" class="sv-form sv-form--sm px-5 pt-6">
+    <div v-if="application" class="mb-6">
+      <div class="flex flex-row">
+        <div v-if="application.svg" v-html="application.svg" class="v-icon__svg w-10 h-10 mb-2">
+        </div>
+        <div class="text-xl font-bold">{{ application.title }}</div>
+      </div>
+      <v-divider></v-divider>
+      <div>{{ application.description }}</div>
+    </div>
     <div class="sv-title">{{ $t("sign-in") }}</div>
     <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
       class="mb-2" :error-messages="validation.message('identityName')">
@@ -36,18 +45,31 @@ import { useI18n } from "vue-i18n";
 import router from "@/router";
 import api from "@/api";
 import type { SessionResponse } from '@/access';
-import type { AxiosResponse } from "axios";
+import type { AxiosResponse } from 'axios';
 
-interface OAuthProvider {
+type OAuthProvider = {
   name: string;
   svg: string;
 }
 
+type Application = {
+  name: string;
+  title: string;
+  description: string;
+  svg?: string;
+}
+
+const props = defineProps({
+  applicationName: String
+})
+
 const { t } = useI18n({ useScope: 'global' });
 const alertStore = useAlertStore();
+const sessionStore = useSessionStore();
 
 const busy = ref(false);
 const oauthProviders = ref<OAuthProvider[]>([]);
+const application = ref<Application>();
 
 const state = reactive({
   identityName: "",
@@ -82,7 +104,6 @@ const togglePasswordIcon = () => {
 }
 
 const signIn = async () => {
-  const sessionStore = useSessionStore();
   const errors = await validation.errors();
 
   if (errors.length) {
@@ -93,9 +114,23 @@ const signIn = async () => {
 
   sessionStore.signIn({
     identityName: state.identityName,
-    password: state.password
+    password: state.password,
+    applicationName: props.applicationName
   })
-    .then(() => {
+    .then((response: AxiosResponse<SessionResponse>) => {
+      if (props.applicationName) {
+        if (response.data.exchangeTokenUrl) {
+          window.location.replace(response.data.exchangeTokenUrl);
+        } else {
+          alertStore.add({
+            message: t("exceptions.invalid-credentials"),
+            type: "error",
+            name: "sign-in-exception"
+          });
+        }
+        return;
+      };
+
       router.push({ name: "dashboard" });
 
       alertStore.remove("session-initialize");
@@ -125,7 +160,7 @@ const oauthAuthenticate = (name: string) => {
     });
 }
 
-const refreshOAuthProviders = () => {
+const refreshOAuthProviders = async () => {
   busy.value = true;
 
   api
@@ -138,7 +173,33 @@ const refreshOAuthProviders = () => {
     });
 }
 
-onMounted(() => {
-  refreshOAuthProviders();
+const fetchApplication = async () => {
+  busy.value = true;
+
+  api
+    .get("v1/applications/" + props.applicationName)
+    .then(async (response) => {
+      application.value = response?.data;
+    })
+    .catch(error => {
+      alertStore.add({
+        message: error.toString(),
+        type: "error",
+        name: "fetch-application-exception"
+      });
+    })
+    .finally(function () {
+      busy.value = false;
+    });
+}
+
+onMounted(async () => {
+  await refreshOAuthProviders();
+
+  sessionStore.$state.applicationName = props.applicationName;
+
+  if (props.applicationName) {
+    await fetchApplication();
+  }
 })
 </script>

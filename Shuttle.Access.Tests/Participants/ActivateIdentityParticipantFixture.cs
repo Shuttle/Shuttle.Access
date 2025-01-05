@@ -24,7 +24,7 @@ public class ActivateIdentityParticipantFixture
 
         var identity = new Messages.v1.Identity { Id = Guid.NewGuid() };
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Identity.Specification>(), CancellationToken.None))
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None))
             .Returns(Task.FromResult(new List<Messages.v1.Identity> { identity }.AsEnumerable()));
 
         var participant =

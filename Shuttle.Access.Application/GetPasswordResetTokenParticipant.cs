@@ -23,7 +23,7 @@ public class GetPasswordResetTokenParticipant : IParticipant<RequestResponseMess
     public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<GetPasswordResetToken, Guid>> context)
     {
         var identityName = context.Message.Request.Name;
-        var query = (await _identityQuery.SearchAsync(new DataAccess.Query.Identity.Specification().WithName(identityName))).SingleOrDefault();
+        var query = (await _identityQuery.SearchAsync(new DataAccess.Identity.Specification().WithName(identityName))).SingleOrDefault();
 
         if (query == null)
         {

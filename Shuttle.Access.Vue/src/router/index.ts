@@ -127,8 +127,9 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/signin",
+    path: "/signin/:applicationName?",
     name: "sign-in",
+    props: true,
     component: () => import("../views/SignIn.vue"),
   },
 ];

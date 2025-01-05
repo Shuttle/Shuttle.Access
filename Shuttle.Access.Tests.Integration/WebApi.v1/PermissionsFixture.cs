@@ -22,7 +22,7 @@ public class PermissionsFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Query.Permission.Specification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Permission> { permission }.AsEnumerable()));
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Permission.Specification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Permission> { permission }.AsEnumerable()));
 
         var response = await factory.GetAccessClient().Permissions.GetAsync();
 

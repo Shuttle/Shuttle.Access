@@ -20,6 +20,8 @@ public class RegisterSession
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
     public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;
     public Session? Session { get; private set; }
+    public string SessionTokenExchangeUrl { get; private set; } = string.Empty;
+    public bool HasKnownApplicationOptions => KnownApplicationOptions != null;
 
     public RegisterSession DelegationSessionInvalid()
     {
@@ -111,6 +113,22 @@ public class RegisterSession
         SetRegistrationType(SessionRegistrationType.Token);
 
         _token = token;
+
+        return this;
+    }
+
+    public RegisterSession WithKnownApplicationOptions(KnownApplicationOptions knownApplicationOptions)
+    {
+        KnownApplicationOptions = Guard.AgainstNull(knownApplicationOptions);
+
+        return this;
+    }
+
+    public KnownApplicationOptions? KnownApplicationOptions { get; private set; }
+
+    public RegisterSession WithSessionTokenExchangeUrl(string sessionTokenExchangeUrl)
+    {
+        SessionTokenExchangeUrl = Guard.AgainstNullOrEmptyString(sessionTokenExchangeUrl);
 
         return this;
     }

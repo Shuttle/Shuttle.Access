@@ -29,17 +29,19 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.AspNetCore.OAuth\Shuttle.Access.AspNetCore.OAuth.csproj" />
     <ProjectReference Include="..\Shuttle.Access.AspNetCore\Shuttle.Access.AspNetCore.csproj" />
     <ProjectReference Include="..\Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj" />
     <ProjectReference Include="..\Shuttle.Access.Sql\Shuttle.Access.Sql.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".files\GitHub.svg">
+    <None Include=".svg\KnownApplication\Recall.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include=".files\Microsoft.svg">
+    <None Include=".svg\OAuth\GitHub.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include=".svg\OAuth\Microsoft.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -16,7 +16,7 @@ public class SessionQueryFactory : ISessionQueryFactory
 	ExpiryDate 
 ";
 
-    public IQuery Contains(DataAccess.Query.Session.Specification specification)
+    public IQuery Contains(DataAccess.Session.Specification specification)
     {
         Guard.AgainstNull(specification);
 
@@ -126,7 +126,7 @@ WHERE
             .AddParameter(Columns.Token, token);
     }
 
-    public IQuery Search(DataAccess.Query.Session.Specification specification)
+    public IQuery Search(DataAccess.Session.Specification specification)
     {
         Guard.AgainstNull(specification);
 
@@ -158,7 +158,7 @@ WHERE
             .AddParameter(Columns.Token, token);
     }
 
-    public IQuery Count(DataAccess.Query.Session.Specification specification)
+    public IQuery Count(DataAccess.Session.Specification specification)
     {
         Guard.AgainstNull(specification);
 
@@ -208,7 +208,7 @@ WHERE
             .AddParameter(Columns.IdentityName, identityName);
     }
 
-    private string Where(DataAccess.Query.Session.Specification specification)
+    private string Where(DataAccess.Session.Specification specification)
     {
         return $@"
 WHERE

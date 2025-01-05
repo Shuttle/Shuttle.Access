@@ -38,7 +38,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureClient(HttpClient client)
     {
-        client.DefaultRequestHeaders.Authorization = new("Bearer", Guid.NewGuid().ToString());
+        client.DefaultRequestHeaders.Authorization = new("Shuttle.Access", $"token={Guid.NewGuid():D}");
 
         base.ConfigureClient(client);
     }

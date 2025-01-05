@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.DataAccess.Query;
+namespace Shuttle.Access.DataAccess;
 
 public class Session
 {

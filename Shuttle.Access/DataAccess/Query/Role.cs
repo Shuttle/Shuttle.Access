@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Shuttle.Access.DataAccess.Query;
+namespace Shuttle.Access.DataAccess;
 
 public class Role
 {

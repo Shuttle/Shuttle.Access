@@ -52,7 +52,7 @@ import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
 import Permissions from "@/permissions";
 import type { Session } from "@/access";
 import type { AxiosResponse } from "axios";
-import { useDateFormatter } from "@/composables/useDateFormatter";
+import { useDateTimeFormatter } from "@/composables/useDateFormatter";
 import { useSessionStore } from "@/stores/session";
 
 const confirmationStore = useConfirmationStore();
@@ -81,14 +81,14 @@ const headers = useSecureTableHeaders([
     title: t("date-registered"),
     key: "item.dateRegistered",
     value: (item: any) => {
-      return useDateFormatter(item.dateActivated);
+      return useDateTimeFormatter(item.dateActivated);
     }
   },
   {
     title: t("expiry-date"),
     key: "item.expiryDate",
     value: (item: any) => {
-      return useDateFormatter(item.dateActivated);
+      return useDateTimeFormatter(item.expiryDate);
     }
   },
 ]);

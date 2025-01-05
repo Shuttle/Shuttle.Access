@@ -20,7 +20,7 @@ public class ReviewSetIdentityRoleParticipantFixture
     {
         var roleQuery = new Mock<IRoleQuery>();
 
-        roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Role.Specification>(), default)).Returns(Task.FromResult(Enumerable.Empty<Messages.v1.Role>()));
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Role.Specification>(), default)).Returns(Task.FromResult(Enumerable.Empty<Messages.v1.Role>()));
 
         var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
         var reviewRequest = new RequestMessage<SetIdentityRole>(new());
@@ -36,7 +36,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         var roleId = Guid.NewGuid();
         var roleQuery = new Mock<IRoleQuery>();
 
-        roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Query.Role.Specification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Role>
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Role.Specification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Role>
         {
             new()
             {

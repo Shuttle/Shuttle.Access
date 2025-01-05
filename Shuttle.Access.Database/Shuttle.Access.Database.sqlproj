@@ -71,6 +71,7 @@
     <Build Include="Tables\Permission.sql" />
     <Build Include="Tables\Role.sql" />
     <Build Include="Tables\RolePermission.sql" />
+    <Build Include="Tables\SessionTokenExchange.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Shuttle.Access.Database.refactorlog" />

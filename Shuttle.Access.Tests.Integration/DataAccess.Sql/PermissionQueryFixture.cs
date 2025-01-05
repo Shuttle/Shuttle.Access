@@ -14,7 +14,7 @@ public class PermissionQueryFixture : DataAccessFixture
         using (TransactionScopeFactory.Create())
         await using (DatabaseContextFactory.Create())
         {
-            await Assert.ThatAsync(() => query.SearchAsync(new Access.DataAccess.Query.Permission.Specification().AddId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED"))), Throws.Nothing);
+            await Assert.ThatAsync(() => query.SearchAsync(new Access.DataAccess.Permission.Specification().AddId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED"))), Throws.Nothing);
         }
     }
 }

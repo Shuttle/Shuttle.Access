@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shuttle.Access.DataAccess.Query;
+namespace Shuttle.Access.DataAccess;
 
 public class Identity
 {

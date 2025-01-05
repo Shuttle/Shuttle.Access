@@ -8,7 +8,7 @@ public interface IIdentityQueryFactory
 {
     IQuery Activated(Guid id, Activated domainEvent);
     IQuery AdministratorCount();
-    IQuery Count(Query.Identity.Specification specification);
+    IQuery Count(Identity.Specification specification);
     IQuery Get(Guid id);
     IQuery GetId(string identityName);
     IQuery NameSet(Guid id, NameSet domainEvent);
@@ -18,6 +18,6 @@ public interface IIdentityQueryFactory
     IQuery RemoveRoles(Guid id);
     IQuery RoleAdded(Guid id, RoleAdded domainEvent);
     IQuery RoleRemoved(Guid id, RoleRemoved domainEvent);
-    IQuery Roles(Query.Identity.Specification specification);
-    IQuery Search(Query.Identity.Specification specification);
+    IQuery Roles(Identity.Specification specification);
+    IQuery Search(Identity.Specification specification);
 }

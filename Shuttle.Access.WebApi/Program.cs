@@ -5,7 +5,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.AspNetCore.OAuth;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Data;
@@ -184,6 +183,7 @@ public class Program
         app.UseAccessAuthorization();
 
         app
+            .MapApplicationEndpoints(versionSet)
             .MapIdentityEndpoints(versionSet)
             .MapOAuthEndpoints(versionSet)
             .MapPermissionEndpoints(versionSet)

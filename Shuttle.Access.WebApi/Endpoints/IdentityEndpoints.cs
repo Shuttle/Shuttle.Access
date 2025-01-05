@@ -58,7 +58,7 @@ public static class IdentityEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var specification = new DataAccess.Query.Identity.Specification().IncludeRoles();
+                    var specification = new DataAccess.Identity.Specification().IncludeRoles();
 
                     if (Guid.TryParse(value, out var id))
                     {
@@ -222,7 +222,7 @@ public static class IdentityEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    roles = (await identityQuery.RoleIdsAsync(new DataAccess.Query.Identity.Specification().WithIdentityId(id))).ToList();
+                    roles = (await identityQuery.RoleIdsAsync(new DataAccess.Identity.Specification().WithIdentityId(id))).ToList();
 
                     return Results.Ok(from roleId in identifiers.Values
                         select new IdentifierAvailability<Guid>
@@ -248,7 +248,7 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var specification = new DataAccess.Query.Identity.Specification();
+                var specification = new DataAccess.Identity.Specification();
 
                 if (message.Id.HasValue)
                 {

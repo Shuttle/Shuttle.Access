@@ -9,7 +9,7 @@ namespace Shuttle.Access.Sql;
 
 public class RoleQueryFactory : IRoleQueryFactory
 {
-    public IQuery Search(DataAccess.Query.Role.Specification specification)
+    public IQuery Search(DataAccess.Role.Specification specification)
     {
         return Specification(specification, true);
     }
@@ -110,12 +110,12 @@ WHERE
             .AddParameter(Columns.Id, id);
     }
 
-    public IQuery Count(DataAccess.Query.Role.Specification specification)
+    public IQuery Count(DataAccess.Role.Specification specification)
     {
         return Specification(specification, false);
     }
 
-    public IQuery Permissions(DataAccess.Query.Role.Specification specification)
+    public IQuery Permissions(DataAccess.Role.Specification specification)
     {
         Guard.AgainstNull(specification);
 
@@ -176,7 +176,7 @@ WHERE
             .AddParameter(Columns.Name, domainEvent.Name);
     }
 
-    private static IQuery Specification(DataAccess.Query.Role.Specification specification, bool columns)
+    private static IQuery Specification(DataAccess.Role.Specification specification, bool columns)
     {
         Guard.AgainstNull(specification);
 

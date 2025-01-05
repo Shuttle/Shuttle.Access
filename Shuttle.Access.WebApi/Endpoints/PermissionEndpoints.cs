@@ -35,7 +35,7 @@ public static class PermissionEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var permission = (await permissionQuery.SearchAsync(new DataAccess.Query.Permission.Specification().AddId(id))).SingleOrDefault();
+                    var permission = (await permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddId(id))).SingleOrDefault();
                     return permission != null ? Results.Ok(permission) : Results.BadRequest();
                 }
             })

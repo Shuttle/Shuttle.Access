@@ -162,6 +162,9 @@
   <data name="RegisterSessionException" xml:space="preserve">
     <value>Could not register the session.</value>
   </data>
+  <data name="RequiredOptionMissing" xml:space="preserve">
+    <value>Required option '{0}' is missing.</value>
+  </data>
   <data name="RoleNotFoundException" xml:space="preserve">
     <value>Role '{0}' does not exist on user '{1}'.</value>
     <comment>0 = role name, 1 = user name</comment>

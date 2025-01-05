@@ -1,6 +1,6 @@
 <template>
   <v-app-bar :elevation="2">
-    <template v-slot:prepend>
+    <template v-slot:prepend v-if="sessionStore.authenticated">
       <v-app-bar-nav-icon variant="text" @click.stop="showMainDrawer = !showMainDrawer"></v-app-bar-nav-icon>
     </template>
     <v-app-bar-title class="cursor-pointer" @click="$router.push('/dashboard')">Shuttle.Access</v-app-bar-title>
@@ -37,6 +37,9 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useTheme } from 'vuetify';
 import type { NavigationItem } from "@/access";
+import { useAlertStore } from "@/stores/alert";
+import configuration from "@/configuration";
+import axios from "axios";
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -46,6 +49,7 @@ const showProfileDrawer = ref(false);
 const sessionStore = useSessionStore();
 const router = useRouter();
 const theme = useTheme();
+const alertStore = useAlertStore();
 
 const storedTheme = localStorage.getItem('app-theme') || theme.global.name.value;
 const isDarkTheme: Ref<boolean> = ref(storedTheme === 'shuttleDark');
@@ -79,42 +83,29 @@ const items = computed(() => {
   return result;
 });
 
-// const profileItems = computed(() => {
-//   return sessionStore.authenticated ?
-//     [{
-//       buttonIcon: UserIcon,
-//       items: [
-//         {
-//           text: t("password"),
-//           to: "/password/token"
-//         },
-//         {
-//           type: "divider"
-//         },
-//         {
-//           text: t("sign-out"),
-//           click: () => {
-//             sessionStore.signOut();
-//             router.push({ name: "sign-in" })
-//           }
-//         }
-//       ]
-//     }] : [
-//       {
-//         text: t("sign-in"),
-//         to: "/signin"
-//       }
-//     ]
-// });
-
 const signIn = () => {
   router.push({ name: 'sign-in' })
 }
 
 const signOut = () => {
-  sessionStore.signOut();
+  axios.delete("v1/sessions/me", {
+    baseURL: configuration.url,
+    headers: {
+      "Authorization": `Shuttle.Access token=${sessionStore.token}`
+    }
+  })
+    .then(() => {
+      sessionStore.signOut()
 
-  signIn();
+      signIn();
+    })
+    .catch((error) => {
+      alertStore.add({
+        message: error.toString(),
+        type: "error",
+        name: "sign-out-exception"
+      });
+    });
 }
 
 </script>

@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 
@@ -16,14 +17,17 @@ public static class ServiceCollectionExtensions
 
         builder?.Invoke(accessBuilder);
 
+        services.AddSingleton<IValidateOptions<AccessOptions>, AccessOptionsValidator>();
+
         services.AddOptions<AccessOptions>().Configure(options =>
         {
             options.ConnectionStringName = accessBuilder.Options.ConnectionStringName;
             options.SessionDuration = accessBuilder.Options.SessionDuration;
             options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
             options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
-            options.OAuthProviderSvgFolder = accessBuilder.Options.OAuthProviderSvgFolder;
+            options.SvgFolder = accessBuilder.Options.SvgFolder;
             options.Realm = accessBuilder.Options.Realm;
+            options.KnownApplications = accessBuilder.Options.KnownApplications;
         });
 
         return services;

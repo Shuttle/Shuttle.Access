@@ -25,7 +25,7 @@ public class RegisterIdentityParticipantFixture
 
         var identity = new Messages.v1.Identity { Id = Guid.NewGuid(), Name = "name" };
 
-        identityQuery.Setup(m => m.CountAsync(It.IsAny<DataAccess.Query.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
+        identityQuery.Setup(m => m.CountAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
 
         idKeyRepository.Setup(m => m.FindAsync(Identity.Key(identity.Name), CancellationToken.None)).ReturnsAsync(await ValueTask.FromResult((Guid?)null));
 

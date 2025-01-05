@@ -29,7 +29,7 @@ public class RefreshSessionParticipant : IParticipant<RefreshSession>
     {
         Guard.AgainstNull(context);
 
-        DataAccess.Query.Session.Specification specification = new();
+        DataAccess.Session.Specification specification = new();
 
         if (context.Message.Token.HasValue)
         {

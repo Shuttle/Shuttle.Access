@@ -20,17 +20,17 @@ public class PermissionQuery : IPermissionQuery
         _queryFactory = Guard.AgainstNull(queryFactory);
     }
 
-    public async Task<IEnumerable<Messages.v1.Permission>> SearchAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Messages.v1.Permission>> SearchAsync(DataAccess.Permission.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _queryMapper.MapObjectsAsync<Messages.v1.Permission>(_queryFactory.Search(specification), cancellationToken);
     }
 
-    public async ValueTask<int> CountAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(DataAccess.Permission.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
     }
 
-    public async ValueTask<bool> ContainsAsync(DataAccess.Query.Permission.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> ContainsAsync(DataAccess.Permission.Specification specification, CancellationToken cancellationToken = default)
     {
         return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;
     }

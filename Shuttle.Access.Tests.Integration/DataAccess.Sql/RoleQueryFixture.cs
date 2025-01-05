@@ -16,7 +16,7 @@ public class RoleQueryFixture : DataAccessFixture
         await using (DatabaseContextFactory.Create())
         {
             await Assert.ThatAsync(() => query.SearchAsync(new()), Throws.Nothing);
-            Assert.That((await query.SearchAsync(new Access.DataAccess.Query.Role.Specification().AddName("Administrator"))).Count(), Is.LessThan(2));
+            Assert.That((await query.SearchAsync(new Access.DataAccess.Role.Specification().AddName("Administrator"))).Count(), Is.LessThan(2));
         }
     }
 }
