@@ -183,6 +183,11 @@ public static class SessionEndpoints
 
                     await sessionTokenExchangeRepository.RemoveAsync(token);
 
+                    if (sessionTokenExchange.HasExpired)
+                    {
+                        return Results.BadRequest();
+                    }
+
                     var session = (await sessionQuery.SearchAsync(new DataAccess.Session.Specification().WithToken(sessionTokenExchange.SessionToken).IncludePermissions())).FirstOrDefault();
 
                     return session == null
@@ -213,7 +218,6 @@ public static class SessionEndpoints
 
         return app;
     }
-
     private static async Task<IResult> RegisterSession(IDatabaseContextFactory databaseContextFactory, IMediator mediator, Application.RegisterSession registerSession)
     {
         using (new DatabaseContextScope())

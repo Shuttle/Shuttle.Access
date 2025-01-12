@@ -24,9 +24,6 @@ export const useSessionStore = defineStore("session", {
     status(): string {
       return !this.token ? "not-signed-in" : "signed-in";
     },
-    applicationName(): string | undefined {
-      return this.applicationName;
-    },
   },
   actions: {
     async initialize() {

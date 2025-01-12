@@ -128,7 +128,7 @@ export type SessionResponse = {
   result: string;
   token: string;
   tokenExpiryDate: string;
-  exchangeTokenUrl?: string;
+  sessionTokenExchangeUrl?: string;
 };
 
 export type SessionStoreState = {
@@ -137,5 +137,4 @@ export type SessionStoreState = {
   identityName?: string;
   token?: string;
   permissions: SessionPermission[];
-  applicationName?: string;
 };

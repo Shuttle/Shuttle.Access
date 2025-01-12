@@ -1,7 +1,9 @@
 ﻿using System.Text;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -48,7 +50,7 @@ public static class OAuthEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}", async (ILogger<OAuthService> logger, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName) =>
+        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}/{applicationName?}", async (ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName, string? applicationName) =>
             {
                 if (string.IsNullOrWhiteSpace(providerName))
                 {
@@ -57,9 +59,21 @@ public static class OAuthEndpoints
 
                 logger.LogDebug($"[oauth/register] : provider = '{providerName}'");
 
-                var grant = await oauthService.RegisterAsync(providerName);
+                var data = new Dictionary<string, string>();
 
-                logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{providerName}'");
+                if (!string.IsNullOrWhiteSpace(applicationName))
+                {
+                    if (Guard.AgainstNull(accessOptions.Value).KnownApplications.FirstOrDefault(item => item.Name.Equals(applicationName, StringComparison.InvariantCultureIgnoreCase)) == null)
+                    {
+                        return Results.BadRequest($"Unknown application name '{applicationName}'.");
+                    }
+
+                    data.Add("ApplicationName", applicationName);
+                }
+
+                var grant = await oauthService.RegisterAsync(providerName, data);
+
+                logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{providerName}' / application name = '{(string.IsNullOrWhiteSpace(applicationName) ? string.Empty : applicationName)}'");
 
                 var oauthOptionsValue = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
                 var oauthProviderOptions = oauthOptionsValue.GetProviderOptions(providerName);
@@ -93,8 +107,7 @@ public static class OAuthEndpoints
 
         app.MapGet("/v{version:apiVersion}/oauth/session/{state}/{code}", async (ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IDatabaseContextFactory databaseContextFactory, IMediator mediator, string state, string code) =>
             {
-                if (string.IsNullOrWhiteSpace(state) ||
-                    !Guid.TryParse(state, out var requestId))
+                if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var requestId))
                 {
                     return Results.BadRequest();
                 }
@@ -118,6 +131,20 @@ public static class OAuthEndpoints
                 logger.LogDebug($"[oauth/e-mail] : grant id = '{requestId}' / e-mail = '{email}'");
 
                 var registerSession = new RegisterSession(email).UseDirect();
+
+                if (grant.HasData("ApplicationName"))
+                {
+                    var applicationName = grant.GetData("ApplicationName");
+
+                    var knownApplicationOptions = Guard.AgainstNull(accessOptions.Value).KnownApplications.FirstOrDefault(item => item.Name.Equals(applicationName, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (knownApplicationOptions == null)
+                    {
+                        return Results.BadRequest($"Unknown application name '{applicationName}'.");
+                    }
+
+                    registerSession.WithKnownApplicationOptions(knownApplicationOptions);
+                }
 
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
@@ -152,6 +179,7 @@ public static class OAuthEndpoints
                     sessionResponse.Token = registerSession.Session.Token;
                     sessionResponse.TokenExpiryDate = registerSession.Session.ExpiryDate;
                     sessionResponse.Permissions = registerSession.Session.Permissions.ToList();
+                    sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
                 }
 
                 return Results.Ok(sessionResponse);

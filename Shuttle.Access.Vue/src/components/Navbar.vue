@@ -66,8 +66,6 @@ const items = computed(() => {
   const result: any[] = [];
 
   map.forEach((item: NavigationItem) => {
-    var add = false;
-
     if (!item.permission || sessionStore.hasPermission(item.permission)) {
       result.push({
         title: t(item.title),

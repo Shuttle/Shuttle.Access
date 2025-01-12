@@ -41,7 +41,7 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/oauth/:",
+    path: "/oauth",
     name: "oauth",
     component: () => import("../views/OAuth.vue"),
   },

@@ -146,7 +146,7 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
 
                 await _sessionTokenExchangeRepository.SaveAsync(sessionTokenExchange, context.CancellationToken);
 
-                message.WithSessionTokenExchangeUrl($"{message.KnownApplicationOptions!.SessionTokenExchangeUrl}/{sessionTokenExchange.ExchangeToken}");
+                message.WithSessionTokenExchangeUrl($"{message.KnownApplicationOptions!.SessionTokenExchangeUrl.TrimEnd('/')}/{sessionTokenExchange.ExchangeToken}");
             }
         }
     }

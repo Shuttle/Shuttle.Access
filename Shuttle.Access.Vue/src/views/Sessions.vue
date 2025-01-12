@@ -17,6 +17,10 @@
         <v-btn :icon="mdiDeleteOutline" size="x-small"
           @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
       </template>
+      <template v-slot:item.token="{ item }">
+        <span class="font-mono">{{ item.token }}</span>
+        <v-btn v-if="isSupported" :icon="mdiContentCopy" size="x-small" @click="copy(item.token)" class="ml-2"></v-btn>
+      </template>
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
@@ -45,8 +49,8 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiAccountMultipleMinusOutline, mdiDeleteOutline, mdiMagnify, mdiRefresh, mdiShieldOffOutline, mdiShieldOutline } from '@mdi/js';
-import { useRouter } from "vue-router";
+import { useClipboard, usePermission } from '@vueuse/core'
+import { mdiAccountMultipleMinusOutline, mdiContentCopy, mdiDeleteOutline, mdiMagnify, mdiRefresh, mdiShieldOffOutline, mdiShieldOutline } from '@mdi/js';
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
 import Permissions from "@/permissions";
@@ -59,10 +63,10 @@ const confirmationStore = useConfirmationStore();
 const sessionStore = useSessionStore();
 
 const { t } = useI18n({ useScope: 'global' });
-const router = useRouter();
 const busy: Ref<boolean> = ref(false);
 const search: Ref<string> = ref('')
 const expanded: Ref<string[]> = ref([])
+const { isSupported, copy } = useClipboard()
 
 const headers = useSecureTableHeaders([
   {
@@ -90,6 +94,10 @@ const headers = useSecureTableHeaders([
     value: (item: any) => {
       return useDateTimeFormatter(item.expiryDate);
     }
+  },
+  {
+    title: t("token"),
+    value: "token",
   },
 ]);
 

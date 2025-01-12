@@ -118,22 +118,13 @@ const signIn = async () => {
     applicationName: props.applicationName
   })
     .then((response: AxiosResponse<SessionResponse>) => {
-      if (props.applicationName) {
-        if (response.data.exchangeTokenUrl) {
-          window.location.replace(response.data.exchangeTokenUrl);
-        } else {
-          alertStore.add({
-            message: t("exceptions.invalid-credentials"),
-            type: "error",
-            name: "sign-in-exception"
-          });
-        }
+      if (response.data.sessionTokenExchangeUrl) {
+        window.location.replace(response.data.sessionTokenExchangeUrl);
+
         return;
-      };
+      }
 
       router.push({ name: "dashboard" });
-
-      alertStore.remove("session-initialize");
     })
     .catch(error => {
       alertStore.add({
@@ -151,7 +142,7 @@ const oauthAuthenticate = (name: string) => {
   busy.value = true;
 
   api
-    .get("v1/oauth/authenticate/" + name)
+    .get(`v1/oauth/authenticate/${name}${props.applicationName ? `/${props.applicationName}` : ""}`)
     .then((response) => {
       window.location.replace(response?.data?.authorizationUrl);
     })
@@ -195,8 +186,6 @@ const fetchApplication = async () => {
 
 onMounted(async () => {
   await refreshOAuthProviders();
-
-  sessionStore.$state.applicationName = props.applicationName;
 
   if (props.applicationName) {
     await fetchApplication();

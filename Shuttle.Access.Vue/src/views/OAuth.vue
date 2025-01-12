@@ -49,6 +49,12 @@ onMounted(() => {
       var data = response.data;
       var params = { identityName: data.identityName };
 
+      if (response.data.sessionTokenExchangeUrl) {
+        window.location.replace(response.data.sessionTokenExchangeUrl);
+
+        return;
+      }
+
       if (data.result === "UnknownIdentity") {
         alertStore.add({
           message: data.registrationRequested ? t("messages.oauth-unknown-identity-registered", params) : t("messages.oauth-unknown-identity", params),
@@ -62,8 +68,6 @@ onMounted(() => {
       }
 
       router.push({ name: "dashboard" });
-
-      alertStore.remove("session-initialize");
     })
     .catch(error => {
       alertStore.add({

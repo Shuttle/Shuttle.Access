@@ -20,24 +20,20 @@ app.use(router);
 
 registerPlugins(app);
 
-const alertStore = useAlertStore();
 const sessionStore = useSessionStore();
 
 if (window.location.pathname !== "/oauth") {
   await sessionStore.initialize().catch((error) => {
-    alertStore.add({
-      message: i18n.global.t("exceptions.session-initialize", {
-        error: error.toString(),
-      }),
-      type: "error",
-      name: "session-initialize",
-    });
-
-    router.push({ path: "/signin" });
+    if (!window.location.pathname.startsWith("/signin")) {
+      router.push({ path: "/signin" });
+    }
   });
 }
 
-if (window.location.pathname === "/") {
+if (
+  window.location.pathname === "/" ||
+  window.location.pathname === "/signin"
+) {
   router.push({ path: sessionStore.authenticated ? "/dashboard" : "/signin" });
 }
 
