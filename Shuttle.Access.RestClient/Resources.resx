@@ -117,7 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ClientSectionException" xml:space="preserve">
-    <value>Could not find a configuration section with name "accessClient" or "shuttle/accessClient".</value>
+  <data name="OptionUriException" xml:space="preserve">
+    <value>Option '{0}' is not a valid URI.</value>
+    <comment>0 = option name</comment>
+  </data>
+  <data name="OptionMissingException" xml:space="preserve">
+    <value>Option `{0}` may not be empty.</value>
+    <comment>0 = option name</comment>
   </data>
 </root>

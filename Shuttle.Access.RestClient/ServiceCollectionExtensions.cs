@@ -16,19 +16,21 @@ public static class ServiceCollectionExtensions
 
         builder?.Invoke(accessRestClientBuilder);
 
-        services.AddOptions<AccessClientOptions>().Configure(options =>
+        services.Configure<AccessClientOptions>(options =>
         {
             options.BaseAddress = accessRestClientBuilder.Options.BaseAddress;
             options.IdentityName = accessRestClientBuilder.Options.IdentityName;
             options.Password = accessRestClientBuilder.Options.Password;
         });
 
+        services.AddSingleton<IValidateOptions<AccessClientOptions>, AccessClientOptionsValidator>();
+
         services.AddTransient<AuthenticationHeaderHandler>();
         services.AddHttpClient<IAccessClient, AccessClient>("AccessClient", (serviceProvider, client) =>
             {
                 var options = serviceProvider.GetRequiredService<IOptions<AccessClientOptions>>().Value;
 
-                client.BaseAddress = options.BaseAddress;
+                client.BaseAddress = new(options.BaseAddress);
             })
             .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
