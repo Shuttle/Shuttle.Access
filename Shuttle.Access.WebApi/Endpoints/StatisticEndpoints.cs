@@ -28,7 +28,7 @@ public static class StatisticEndpoints
                 }
             })
             .WithTags("Statistics")
-            .RequiresSession()
+            .RequireSession()
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 

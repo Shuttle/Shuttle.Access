@@ -11,14 +11,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace;
 using Serilog;
+using Shuttle.Access.Server.v1.EventHandlers;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
+using Shuttle.Core.Pipelines;
 using Shuttle.Esb;
 using Shuttle.Esb.AzureStorageQueues;
 using Shuttle.Esb.Sql.Subscription;
 using Shuttle.Recall;
+using Shuttle.Recall.Logging;
+using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Server;
@@ -56,6 +60,7 @@ internal class Program
 
                 services
                     .AddSingleton<IConfiguration>(configuration)
+                    .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
                     .AddLogging(builder =>
                     {
                         builder.AddSerilog();
@@ -83,7 +88,25 @@ internal class Program
 
                         builder.UseSqlServer();
                     })
-                    .AddEventStore()
+                    .AddSqlEventProcessing(builder =>
+                    {
+                        builder.Options.ConnectionStringName = "Access";
+
+                        builder.UseSqlServer();
+                    })
+                    .AddEventStore(builder =>
+                    {
+                        configuration.GetSection(EventStoreOptions.SectionName).Bind(builder.Options);
+
+                        builder.AddProjection(ProjectionNames.Identity).AddEventHandler<IdentityHandler>();
+                        builder.AddProjection(ProjectionNames.Permission).AddEventHandler<PermissionHandler>();
+                        builder.AddProjection(ProjectionNames.Role).AddEventHandler<RoleHandler>();
+                    })
+                    .AddEventStoreLogging(builder =>
+                    {
+                        builder.Options.AddPipelineEventType<OnPipelineException>();
+                        builder.Options.AddPipelineEventType<OnAfterAcknowledgeEvent>();
+                    })
                     .AddSqlSubscription(builder =>
                     {
                         builder.Options.ConnectionStringName = "Access";
@@ -97,32 +120,9 @@ internal class Program
                     })
                     .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
                     .AddSingleton<IHashingService, HashingService>()
-                    .AddSingleton<IHostedService, ApplicationHostedService>()
+                    .AddSingleton<IHostedService, ServerHostedService>()
+                    .AddSingleton<KeepAliveObserver>()
                     .AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Server"));
-
-                //services.AddOpenTelemetry()
-                //    .WithTracing(
-                //        builder => builder
-                //            .AddServiceBusInstrumentation(openTelemetryBuilder =>
-                //            {
-                //                configuration.GetSection(ServiceBusOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
-                //            })
-                //            .AddMediatorInstrumentation(openTelemetryBuilder =>
-                //            {
-                //                configuration.GetSection(MediatorOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
-                //            })
-                //            .AddRecallInstrumentation(openTelemetryBuilder =>
-                //            {
-                //                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
-                //            })
-                //            .AddSqlClientInstrumentation(options =>
-                //            {
-                //                options.SetDbStatementForText = true;
-                //            })
-                //            .AddJaegerExporter(options =>
-                //            {
-                //                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
-                //            }));
             })
             .Build();
 

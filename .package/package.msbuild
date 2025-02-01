@@ -5,7 +5,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="../Shuttle.Access.Projection/Shuttle.Access.Projection.csproj"/>
 		<ProjectReference Include="../Shuttle.Access.Server/Shuttle.Access.Server.csproj"/>
 		<ProjectReference Include="../Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj"/>
 		<DatabaseReference Include="../Shuttle.Access.Database/Shuttle.Access.Database.sqlproj" />

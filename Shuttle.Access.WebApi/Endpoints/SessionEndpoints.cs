@@ -39,7 +39,7 @@ public static class SessionEndpoints
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Sessions.View);
+            .RequirePermission(AccessPermissions.Sessions.View);
 
         app.MapPost("/v{version:apiVersion}/sessions", async (IOptions<AccessOptions> accessOptions, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterSession message) =>
             {
@@ -97,7 +97,7 @@ public static class SessionEndpoints
                 return await RegisterSession(databaseContextFactory, mediator, registerSession);
             })
             .WithTags("Sessions")
-            .RequiresSession()
+            .RequireSession()
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
@@ -112,7 +112,7 @@ public static class SessionEndpoints
                 }
             })
             .WithTags("Sessions")
-            .RequiresPermission(AccessPermissions.Sessions.Manage)
+            .RequirePermission(AccessPermissions.Sessions.Manage)
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
@@ -148,7 +148,7 @@ public static class SessionEndpoints
                 return Results.Ok();
             })
             .WithTags("Sessions")
-            .RequiresPermission(AccessPermissions.Sessions.Manage)
+            .RequirePermission(AccessPermissions.Sessions.Manage)
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
@@ -167,7 +167,7 @@ public static class SessionEndpoints
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Sessions.View);
+            .RequirePermission(AccessPermissions.Sessions.View);
 
         app.MapGet("/v{version:apiVersion}/sessions/exchange/{token:Guid}", async (Guid token, IDatabaseContextFactory databaseContextFactory, ISessionTokenExchangeRepository sessionTokenExchangeRepository, ISessionQuery sessionQuery) =>
             {
@@ -214,7 +214,7 @@ public static class SessionEndpoints
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Sessions.View);
+            .RequirePermission(AccessPermissions.Sessions.View);
 
         return app;
     }

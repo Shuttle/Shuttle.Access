@@ -5,7 +5,7 @@ using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
 
-namespace Shuttle.Access.Server.v1;
+namespace Shuttle.Access.Server.v1.MessageHandlers;
 
 public class PermissionHandler :
     IMessageHandler<RegisterPermission>,

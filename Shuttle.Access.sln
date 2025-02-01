@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Messages", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Server", "Shuttle.Access.Server\Shuttle.Access.Server.csproj", "{074BE481-D7B5-4BAE-9CCD-E2FC8F1A3258}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Projection", "Shuttle.Access.Projection\Shuttle.Access.Projection.csproj", "{62335534-8233-47B4-B184-D63ADF22BDFE}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Sql", "Shuttle.Access.Sql\Shuttle.Access.Sql.csproj", "{C53CFA47-530C-4994-9530-6CA78FEB50C7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shuttle.Access.Tests", "Shuttle.Access.Tests\Shuttle.Access.Tests.csproj", "{F73242AF-AE6C-4C73-B542-D2200BEEA110}"
@@ -36,11 +34,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".package", ".package", "{54
 		.package\docker-pull.cmd = .package\docker-pull.cmd
 		.package\docker-push.cmd = .package\docker-push.cmd
 		.package\dockerfile-linux-sqlserver-demo = .package\dockerfile-linux-sqlserver-demo
-		.package\dockerfile-projection = .package\dockerfile-projection
 		.package\dockerfile-server = .package\dockerfile-server
 		.package\dockerfile-webapi = .package\dockerfile-webapi
 		.package\package.msbuild = .package\package.msbuild
-		.package\projection-appsettings.json = .package\projection-appsettings.json
 		.package\server-appsettings.json = .package\server-appsettings.json
 		.package\webapi-appsettings.json = .package\webapi-appsettings.json
 	EndProjectSection
@@ -80,10 +76,6 @@ Global
 		{074BE481-D7B5-4BAE-9CCD-E2FC8F1A3258}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{074BE481-D7B5-4BAE-9CCD-E2FC8F1A3258}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{074BE481-D7B5-4BAE-9CCD-E2FC8F1A3258}.Release|Any CPU.Build.0 = Release|Any CPU
-		{62335534-8233-47B4-B184-D63ADF22BDFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{62335534-8233-47B4-B184-D63ADF22BDFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{62335534-8233-47B4-B184-D63ADF22BDFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{62335534-8233-47B4-B184-D63ADF22BDFE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C53CFA47-530C-4994-9530-6CA78FEB50C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C53CFA47-530C-4994-9530-6CA78FEB50C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C53CFA47-530C-4994-9530-6CA78FEB50C7}.Release|Any CPU.ActiveCfg = Release|Any CPU

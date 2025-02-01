@@ -35,7 +35,7 @@ public static class RoleEndpoints
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Roles.Register);
+            .RequirePermission(AccessPermissions.Roles.Register);
 
         app.MapPatch("/v{version:apiVersion}/roles/{id}/permissions", async (Guid id, [FromBody] SetRolePermission message, [FromServices] IServiceBus serviceBus) =>
             {
@@ -56,7 +56,7 @@ public static class RoleEndpoints
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Roles.Register);
+            .RequirePermission(AccessPermissions.Roles.Register);
 
         app.MapPost("/v{version:apiVersion}/roles/{id}/permissions/availability", async (Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
             {
@@ -87,7 +87,7 @@ public static class RoleEndpoints
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Roles.Register);
+            .RequirePermission(AccessPermissions.Roles.Register);
 
         app.MapGet("/v{version:apiVersion}/roles", async ([FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
             {
@@ -98,7 +98,7 @@ public static class RoleEndpoints
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Roles.View);
+            .RequirePermission(AccessPermissions.Roles.View);
 
         app.MapGet("/v{version:apiVersion}/roles/{value}", async (string value, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
             {
@@ -126,7 +126,7 @@ public static class RoleEndpoints
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Roles.View);
+            .RequirePermission(AccessPermissions.Roles.View);
 
         app.MapDelete("/v{version:apiVersion}/roles/{id}", async (Guid id, [FromServices] IServiceBus serviceBus) =>
             {
@@ -140,7 +140,7 @@ public static class RoleEndpoints
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Roles.Remove);
+            .RequirePermission(AccessPermissions.Roles.Remove);
 
         app.MapPost("/v{version:apiVersion}/roles", async ([FromBody] RegisterRole message, [FromServices] IServiceBus serviceBus) =>
             {
@@ -160,7 +160,7 @@ public static class RoleEndpoints
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequiresPermission(AccessPermissions.Roles.Register);
+            .RequirePermission(AccessPermissions.Roles.Register);
 
         return app;
     }

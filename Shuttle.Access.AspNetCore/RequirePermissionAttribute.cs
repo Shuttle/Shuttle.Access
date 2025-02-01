@@ -4,22 +4,25 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class RequiresSessionAttribute : TypeFilterAttribute
+public class RequirePermissionAttribute : TypeFilterAttribute
 {
-    public RequiresSessionAttribute() : base(typeof(RequiresSession))
+    public RequirePermissionAttribute(string permission) : base(typeof(RequiresPermission))
     {
-        Arguments = [];
+        Arguments = [permission];
     }
 
-    private class RequiresSession : IAuthorizationFilter
+    private class RequiresPermission : IAuthorizationFilter
     {
         private readonly IAccessService _accessService;
+        private readonly string _permission;
 
-        public RequiresSession(IAccessService accessService)
+        public RequiresPermission(IAccessService accessService, string permission)
         {
             Guard.AgainstNull(accessService);
+            Guard.AgainstNullOrEmptyString(permission);
 
             _accessService = accessService;
+            _permission = permission;
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -32,7 +35,7 @@ public class RequiresSessionAttribute : TypeFilterAttribute
                 return;
             }
 
-            if (!_accessService.ContainsAsync(sessionTokenResult.SessionToken).GetAwaiter().GetResult())
+            if (!_accessService.HasPermissionAsync(sessionTokenResult.SessionToken, _permission).GetAwaiter().GetResult())
             {
                 SetUnauthorized(context);
             }

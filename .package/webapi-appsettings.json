@@ -32,9 +32,13 @@
   },
   "Shuttle": {
     "Access": {
-      "OAuthRedirectUri": "http://localhost:3000/oauth",
-      "OAuthProviderNames": [
-        "GitHub"
+      "KnownApplications": [
+        {
+          "Name": "Recall",
+          "Title": "Shuttle.Recall.WebApi",
+          "Description": "Provides endpoints that allow retrieving primitive events from a Sql Server event store.",
+          "SessionTokenExchangeUrl": "http://localhost:3001/session/"
+        }
       ]
     },
     "OAuth": {

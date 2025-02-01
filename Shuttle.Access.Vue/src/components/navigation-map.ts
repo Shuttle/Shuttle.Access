@@ -21,6 +21,11 @@ const map: NavigationItem[] = [
     title: "permissions",
     permission: Permissions.Permissions.View,
   },
+  {
+    to: "/sessions",
+    title: "sessions",
+    permission: Permissions.Sessions.View,
+  },
 ];
 
 export default map;

@@ -68,7 +68,8 @@ const submit = async () => {
     .post<RegisterIdentity>("v1/identities", {
       name: state.identityName,
       password: state.password,
-      system: "system://access"
+      system: "system://access",
+      activated: true
     })
     .then(function () {
       useAlertStore().requestSent();

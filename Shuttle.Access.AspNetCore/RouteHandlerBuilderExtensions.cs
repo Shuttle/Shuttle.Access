@@ -5,12 +5,12 @@ namespace Shuttle.Access.AspNetCore;
 
 public static class RouteHandlerBuilderExtensions
 {
-    public static RouteHandlerBuilder RequiresPermission(this RouteHandlerBuilder builder, string permission)
+    public static RouteHandlerBuilder RequirePermission(this RouteHandlerBuilder builder, string permission)
     {
         return Guard.AgainstNull(builder, nameof(builder)).WithMetadata(new AccessPermissionRequirement(Guard.AgainstNullOrEmptyString(permission, nameof(permission))));
     }
 
-    public static RouteHandlerBuilder RequiresSession(this RouteHandlerBuilder builder)
+    public static RouteHandlerBuilder RequireSession(this RouteHandlerBuilder builder)
     {
         return Guard.AgainstNull(builder, nameof(builder)).WithMetadata(new AccessSessionRequirement());
     }
