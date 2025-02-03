@@ -20,18 +20,6 @@ services:
             - type: bind
               source: ./server-appsettings.json
               target: /opt/shuttle.access.server/appsettings.json
-    projection:
-        image:
-            shuttle/access-projection:latest
-        environment:
-            - CONFIGURATION_FOLDER=.
-        depends_on:
-            - "database"
-            - "server"
-        volumes:
-            - type: bind
-              source: ./projection-appsettings.json
-              target: /opt/shuttle.access.projection/appsettings.json
     web-api:
         image:
             shuttle/access-webapi:latest
