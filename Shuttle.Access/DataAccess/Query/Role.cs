@@ -1,92 +1,90 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Shuttle.Access.DataAccess.Query
-{
-    public class Role
-    {
-        public string Name { get; set; }
-        public Guid Id { get; set; }
-        public List<Permission> Permissions { get; set; } = new List<Permission>();
+namespace Shuttle.Access.DataAccess;
 
-        public class Permission : Query.Permission
+public class Role
+{
+    public class Specification
+    {
+        private readonly List<string> _names = new();
+        private readonly List<Guid> _permissionIds = new();
+        private readonly List<Guid> _rolesIds = new();
+
+        public string NameMatch { get; private set; } = string.Empty;
+        public IEnumerable<string> Names => _names.AsReadOnly();
+        public IEnumerable<Guid> PermissionIds => _permissionIds.AsReadOnly();
+        public bool PermissionsIncluded { get; private set; }
+        public IEnumerable<Guid> RoleIds => _rolesIds.AsReadOnly();
+        public DateTime? StartDateRegistered { get; private set; }
+        public int MaximumRows { get; private set; }
+
+        public Specification AddName(string name)
         {
-            public Guid RoleId { get; set; }
+            if (!_names.Contains(name))
+            {
+                _names.Add(name);
+            }
+
+            return this;
         }
 
-        public class Specification
+        public Specification AddPermissionId(Guid id)
         {
-            private readonly List<string> _names = new List<string>();
-            private readonly List<Guid> _rolesIds = new List<Guid>();
-            private readonly List<Guid> _permissionIds = new List<Guid>();
-
-            public string NameMatch { get; private set; }
-            public IEnumerable<string> Names => _names.AsReadOnly();
-            public IEnumerable<Guid> RoleIds => _rolesIds.AsReadOnly();
-            public IEnumerable<Guid> PermissionIds => _permissionIds.AsReadOnly();
-            public bool PermissionsIncluded { get; private set; }
-            public DateTime? StartDateRegistered { get; private set; }
-
-            public Specification AddRoleId(Guid id)
+            if (!_permissionIds.Contains(id))
             {
-                if (!_rolesIds.Contains(id))
-                {
-                    _rolesIds.Add(id);
-                }
-
-                return this;
+                _permissionIds.Add(id);
             }
 
-            public Specification AddPermissionId(Guid id)
-            {
-                if (!_permissionIds.Contains(id))
-                {
-                    _permissionIds.Add(id);
-                }
+            return this;
+        }
 
-                return this;
+        public Specification AddPermissionIds(IEnumerable<Guid> ids)
+        {
+            foreach (var id in ids)
+            {
+                AddPermissionId(id);
             }
 
-            public Specification AddName(string name)
-            {
-                if (!_names.Contains(name))
-                {
-                    _names.Add(name);
-                }
+            return this;
+        }
 
-                return this;
+        public Specification AddRoleId(Guid id)
+        {
+            if (!_rolesIds.Contains(id))
+            {
+                _rolesIds.Add(id);
             }
 
-            public Specification WithNameMatch(string nameMatch)
-            {
-                NameMatch = nameMatch;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification IncludePermissions()
+        {
+            PermissionsIncluded = true;
 
-            public Specification IncludePermissions()
-            {
-                PermissionsIncluded = true;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithNameMatch(string nameMatch)
+        {
+            NameMatch = nameMatch;
 
-            public Specification WithStartDateRegistered(DateTime date)
-            {
-                StartDateRegistered = date;
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithStartDateRegistered(DateTime date)
+        {
+            StartDateRegistered = date;
 
-            public Specification AddPermissionIds(IEnumerable<Guid> ids)
-            {
-                foreach (var id in ids)
-                {
-                    AddPermissionId(id);
-                }
+            return this;
+        }
 
-                return this;
-            }
+        public Specification WithMaximumRows(int maximumRows)
+        {
+            MaximumRows = maximumRows;
+
+            return this;
         }
     }
 }

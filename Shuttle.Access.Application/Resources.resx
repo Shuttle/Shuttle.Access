@@ -120,4 +120,17 @@
   <data name="AdministratorRoleException" xml:space="preserve">
     <value>Could not find the 'Administrator' role.  It appears as though the projection has not been built as the `RegisterRole` event should be in the event store.</value>
   </data>
+  <data name="SessionRegistrationTypeException" xml:space="preserve">
+    <value>Registration type already set to '{0}'.</value>
+    <comment>0 = registration type</comment>
+  </data>
+  <data name="RegisterSessionPasswordNotSetException" xml:space="preserve">
+    <value>The password has not been set.  Please call `UsePassword` first.</value>
+  </data>
+  <data name="RegisterSessionTokenNotSetException" xml:space="preserve">
+    <value>The token has not been set.  Please call `UseToken` or `UseDelegation` first.</value>
+  </data>
+  <data name="SessionRegistrationTypeNoneException" xml:space="preserve">
+    <value>No registration type has been set.</value>
+  </data>
 </root>

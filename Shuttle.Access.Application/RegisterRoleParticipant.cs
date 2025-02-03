@@ -1,54 +1,51 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
 
-namespace Shuttle.Access.Application
+namespace Shuttle.Access.Application;
+
+public class RegisterRoleParticipant : IParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
 {
-    public class RegisterRoleParticipant : IParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
+    private readonly IEventStore _eventStore;
+    private readonly IIdKeyRepository _idKeyRepository;
+
+    public RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        private readonly IEventStore _eventStore;
-        private readonly IKeyStore _keyStore;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
+    }
 
-        public RegisterRoleParticipant(IEventStore eventStore, IKeyStore keyStore)
+    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>> context)
+    {
+        Guard.AgainstNull(context);
+
+        var message = context.Message.Request;
+
+        var key = Role.Key(message.Name);
+
+        if (await _idKeyRepository.ContainsAsync(key))
         {
-            Guard.AgainstNull(eventStore, nameof(eventStore));
-            Guard.AgainstNull(keyStore, nameof(keyStore));
-
-            _eventStore = eventStore;
-            _keyStore = keyStore;
+            return;
         }
 
-        public void ProcessMessage(IParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>> context)
+        var id = Guid.NewGuid();
+
+        await _idKeyRepository.AddAsync(id, key);
+
+        var role = new Role();
+        var stream = await _eventStore.GetAsync(id);
+
+        stream.Add(role.Register(message.Name));
+
+        context.Message.WithResponse(new()
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            var message = context.Message.Request;
-
-            var key = Role.Key(message.Name);
-
-            if (_keyStore.Contains(key))
-            {
-                return;
-            }
-
-            var id = Guid.NewGuid();
-
-            _keyStore.Add(id, key);
-
-            var role = new Role();
-            var stream = _eventStore.CreateEventStream(id);
-
-            stream.AddEvent(role.Register(message.Name));
-
-            context.Message.WithResponse(new RoleRegistered
-            {
-                Id = id,
-                Name = message.Name,
-                SequenceNumber = _eventStore.Save(stream)
-            });
-        }
+            Id = id,
+            Name = message.Name,
+            SequenceNumber = await _eventStore.SaveAsync(stream)
+        });
     }
 }

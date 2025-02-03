@@ -1,15 +1,13 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Shuttle.Access
+namespace Shuttle.Access;
+
+public interface ISessionRepository
 {
-    public interface ISessionRepository
-    {
-        void Save(Session session);
-        void Renew(Session session);
-        Session Get(Guid token);
-        Session Find(Guid token);
-        Session Find(string identityName);
-        int Remove(Guid token);
-        int Remove(string identityName);
-    }
+    Task<Session?> FindAsync(Guid token, CancellationToken cancellationToken = default);
+    ValueTask<bool> RemoveAsync(Guid token, CancellationToken cancellationToken = default);
+    Task RemoveAllAsync(CancellationToken cancellationToken = default);
+    Task SaveAsync(Session session, CancellationToken cancellationToken = default);
 }

@@ -1,48 +1,46 @@
-﻿using Shuttle.Access.DataAccess;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Shuttle.Access.DataAccess;
 using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class PermissionProjectionQuery : IPermissionProjectionQuery
 {
-    public class PermissionProjectionQuery : IPermissionProjectionQuery
+    private readonly IDatabaseContextService _databaseContextService;
+    private readonly IPermissionQueryFactory _queryFactory;
+
+    public PermissionProjectionQuery(IDatabaseContextService databaseContextService, IPermissionQueryFactory queryFactory)
     {
-        private readonly IDatabaseGateway _databaseGateway;
-        private readonly IPermissionQueryFactory _queryFactory;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryFactory = Guard.AgainstNull(queryFactory);
+    }
 
-        public PermissionProjectionQuery(IDatabaseGateway databaseGateway, IPermissionQueryFactory queryFactory)
-        {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
+    public async Task RegisteredAsync(PrimitiveEvent primitiveEvent, Registered domainEvent, CancellationToken cancellationToken = default)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Registered(primitiveEvent.Id, domainEvent), cancellationToken);
+    }
 
-            _databaseGateway = databaseGateway;
-            _queryFactory = queryFactory;
-        }
+    public async Task ActivatedAsync(PrimitiveEvent primitiveEvent, Activated domainEvent, CancellationToken cancellationToken = default)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Activated(primitiveEvent.Id, domainEvent), cancellationToken);
+    }
 
-        public void Registered(PrimitiveEvent primitiveEvent, Registered domainEvent)
-        {
-            _databaseGateway.Execute(_queryFactory.Registered(primitiveEvent.Id, domainEvent));
-        }
+    public async Task DeactivatedAsync(PrimitiveEvent primitiveEvent, Deactivated domainEvent, CancellationToken cancellationToken = default)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Deactivated(primitiveEvent.Id, domainEvent), cancellationToken);
+    }
 
-        public void Activated(PrimitiveEvent primitiveEvent, Activated domainEvent)
-        {
-            _databaseGateway.Execute(_queryFactory.Activated(primitiveEvent.Id, domainEvent));
-        }
+    public async Task RemovedAsync(PrimitiveEvent primitiveEvent, Removed domainEvent, CancellationToken cancellationToken = default)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Removed(primitiveEvent.Id, domainEvent), cancellationToken);
+    }
 
-        public void Deactivated(PrimitiveEvent primitiveEvent, Deactivated domainEvent)
-        {
-            _databaseGateway.Execute(_queryFactory.Deactivated(primitiveEvent.Id, domainEvent));
-        }
-
-        public void Removed(PrimitiveEvent primitiveEvent, Removed domainEvent)
-        {
-            _databaseGateway.Execute(_queryFactory.Removed(primitiveEvent.Id, domainEvent));
-        }
-
-        public void NameSet(PrimitiveEvent primitiveEvent, NameSet domainEvent)
-        {
-            _databaseGateway.Execute(_queryFactory.NameSet(primitiveEvent.Id, domainEvent));
-        }
+    public async Task NameSetAsync(PrimitiveEvent primitiveEvent, NameSet domainEvent, CancellationToken cancellationToken = default)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.NameSet(primitiveEvent.Id, domainEvent), cancellationToken);
     }
 }

@@ -4,20 +4,19 @@ using System.Threading.Tasks;
 using Refit;
 using Shuttle.Access.Messages.v1;
 
-namespace Shuttle.Access.RestClient.v1
+namespace Shuttle.Access.RestClient.v1;
+
+public interface IPermissionsApi
 {
-    public interface IPermissionsApi
-    {
-        [Post("/permissions/search")]
-        Task<ApiResponse<List<DataAccess.Query.Permission>>> Search(PermissionSpecification specification);
+    [Get("/v1/permissions")]
+    Task<IApiResponse<List<Messages.v1.Permission>>> GetAsync();
 
-        [Get("/permissions")]
-        Task<ApiResponse<List<DataAccess.Query.Permission>>> Get();
+    [Post("/v1/permissions")]
+    Task<IApiResponse> PostAsync(RegisterPermission message);
 
-        [Post("/permissions")]
-        Task<ApiResponse<object>> Post(RegisterPermission message);
+    [Post("/v1/permissions/search")]
+    Task<IApiResponse<List<Messages.v1.Permission>>> SearchAsync(Messages.v1.Permission.Specification specification);
 
-        [Patch("/permissions/{id}")]
-        Task<ApiResponse<object>> SetStatus(Guid id, SetPermissionStatus message);
-    }
+    [Patch("/v1/permissions/{id}")]
+    Task<IApiResponse> SetStatusAsync(Guid id, SetPermissionStatus message);
 }

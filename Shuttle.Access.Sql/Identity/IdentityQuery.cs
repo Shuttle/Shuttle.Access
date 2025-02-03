@@ -1,83 +1,76 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class IdentityQuery : IIdentityQuery
 {
-    public class IdentityQuery : IIdentityQuery
+    private readonly IDatabaseContextService _databaseContextService;
+    private readonly IIdentityQueryFactory _queryFactory;
+    private readonly IQueryMapper _queryMapper;
+
+    public IdentityQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, IIdentityQueryFactory queryFactory)
     {
-        private readonly IDatabaseGateway _databaseGateway;
-        private readonly IIdentityQueryFactory _queryFactory;
-        private readonly IQueryMapper _queryMapper;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryFactory = Guard.AgainstNull(queryFactory);
+        _queryMapper = Guard.AgainstNull(queryMapper);
+    }
 
-        public IdentityQuery(IDatabaseGateway databaseGateway,
-            IQueryMapper queryMapper, IIdentityQueryFactory queryFactory)
+    public async ValueTask<int> AdministratorCountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.AdministratorCount(), cancellationToken);
+    }
+
+    public async ValueTask<Guid> IdAsync(string identityName, CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.GetScalarAsync<Guid>(_queryFactory.GetId(identityName), cancellationToken);
+    }
+
+    public async Task<IEnumerable<string>> PermissionsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _queryMapper.MapValuesAsync<string>(_queryFactory.Permissions(userId), cancellationToken);
+    }
+
+    public async Task<IEnumerable<Messages.v1.Identity>> SearchAsync(DataAccess.Identity.Specification specification, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(specification);
+
+        var result = await _queryMapper.MapObjectsAsync<Messages.v1.Identity>(_queryFactory.Search(specification), cancellationToken);
+
+        if (specification.RolesIncluded)
         {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
-            Guard.AgainstNull(queryMapper, nameof(queryMapper));
+            var roleRows = await _databaseContextService.Active.GetRowsAsync(_queryFactory.Roles(specification), cancellationToken);
 
-            _databaseGateway = databaseGateway;
-            _queryFactory = queryFactory;
-            _queryMapper = queryMapper;
-        }
-
-        public int AdministratorCount()
-        {
-            return _databaseGateway.GetScalar<int>(_queryFactory.AdministratorCount());
-        }
-
-        public Guid Id(string identityName)
-        {
-            return _databaseGateway.GetScalar<Guid>(_queryFactory.GetId(identityName));
-        }
-
-        public IEnumerable<string> Permissions(Guid userId)
-        {
-            return _queryMapper.MapValues<string>(_queryFactory.Permissions(userId));
-        }
-
-        public IEnumerable<DataAccess.Query.Identity> Search(DataAccess.Query.Identity.Specification specification)
-        {
-            Guard.AgainstNull(specification, nameof(specification));
-
-            var result = _queryMapper.MapObjects<DataAccess.Query.Identity>(_queryFactory.Search(specification));
-
-            if (specification.RolesIncluded)
+            foreach (var roleGroup in roleRows.GroupBy(row => Columns.IdentityId.Value(row)))
             {
-                var roleRows = _databaseGateway.GetRows(_queryFactory.Roles(specification));
+                var user = result.FirstOrDefault(item => item.Id == roleGroup.Key);
 
-                foreach (var roleGroup in roleRows.GroupBy(row => Columns.IdentityId.MapFrom(row)))
+                if (user == null)
                 {
-                    var user = result.FirstOrDefault(item => item.Id == roleGroup.Key);
-
-                    if (user == null)
-                    {
-                        continue;
-                    }
-
-                    user.Roles = roleGroup.Select(row => new DataAccess.Query.Identity.Role
-                        {Id = Columns.Id.MapFrom(row), Name = Columns.Name.MapFrom(row)}).ToList();
+                    continue;
                 }
+
+                user.Roles = roleGroup.Select(row => new Messages.v1.Identity.Role
+                    { Id = Columns.Id.Value(row), Name = Columns.Name.Value(row)! }).ToList();
             }
-
-            return result;
         }
 
-        public IEnumerable<Guid> RoleIds(DataAccess.Query.Identity.Specification specification)
-        {
-            return _databaseGateway.GetRows(_queryFactory.Roles(specification))
-                .Select(row => Columns.RoleId.MapFrom(row));
-        }
+        return result;
+    }
 
-        public int Count(DataAccess.Query.Identity.Specification specification)
-        {
-            Guard.AgainstNull(specification, nameof(specification));
+    public async Task<IEnumerable<Guid>> RoleIdsAsync(DataAccess.Identity.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return (await _databaseContextService.Active.GetRowsAsync(_queryFactory.Roles(Guard.AgainstNull(specification)), cancellationToken)).Select(row => Columns.Id.Value(row));
+    }
 
-            return _databaseGateway.GetScalar<int>(_queryFactory.Count(specification));
-        }
+    public async ValueTask<int> CountAsync(DataAccess.Identity.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(Guard.AgainstNull(specification)), cancellationToken);
     }
 }

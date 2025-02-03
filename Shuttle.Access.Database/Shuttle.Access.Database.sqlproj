@@ -64,18 +64,14 @@
     <Folder Include=".pre-deployment" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\EventStore.sql" />
-    <Build Include="Tables\KeyStore.sql" />
-    <Build Include="Tables\SnapshotStore.sql" />
     <Build Include="Tables\Session.sql" />
     <Build Include="Tables\SessionPermission.sql" />
-    <Build Include="Tables\Projection.sql" />
-    <Build Include="Tables\EventType.sql" />
     <Build Include="Tables\Identity.sql" />
     <Build Include="Tables\IdentityRole.sql" />
     <Build Include="Tables\Permission.sql" />
     <Build Include="Tables\Role.sql" />
     <Build Include="Tables\RolePermission.sql" />
+    <Build Include="Tables\SessionTokenExchange.sql" />
   </ItemGroup>
   <ItemGroup>
     <RefactorLog Include="Shuttle.Access.Database.refactorlog" />

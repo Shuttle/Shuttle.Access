@@ -5,169 +5,168 @@ using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class PermissionQueryFactory : IPermissionQueryFactory
 {
-    public class PermissionQueryFactory : IPermissionQueryFactory
+    public IQuery Search(DataAccess.Permission.Specification specification)
     {
-        public IQuery Search(DataAccess.Query.Permission.Specification specification)
-        {
-            return Specification(specification, true);
-        }
+        return Specification(specification, true);
+    }
 
-        public IQuery Count(DataAccess.Query.Permission.Specification specification)
-        {
-            return Specification(specification, false);
-        }
+    public IQuery Count(DataAccess.Permission.Specification specification)
+    {
+        return Specification(specification, false);
+    }
 
-        public IQuery Specification(DataAccess.Query.Permission.Specification specification, bool columns)
-        {
-            Guard.AgainstNull(specification, nameof(specification));
+    public IQuery Registered(Guid id, Registered domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-            var what = columns
-                ? @"
-    p.[Id],
-    p.[Name],
-    p.[Status]
-"
-                : "count(*)";
-
-            return RawQuery.Create($@"
-select distinct
-{what}
-from
-    Permission p
-{(!specification.RoleIds.Any() ? string.Empty : @"
-inner join
-    RolePermission rp on (rp.PermissionId = p.Id)
-")}
-{Where(specification)}
-")
-                .AddParameterValue(Columns.NameMatch, specification.NameMatch);
-        }
-
-        private string Where(DataAccess.Query.Permission.Specification specification)
-        {
-            return $@"
-where
+        return new Query(@"
+IF NOT EXISTS
 (
-    isnull(@NameMatch, '') = ''
-    or
-    p.[Name] like '%' + @NameMatch + '%'
-)
-{(!specification.Names.Any() ? string.Empty : $@"
-and
-    p.[Name] in ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
-")}
-{(!specification.Ids.Any() ? string.Empty : $@"
-and
-    p.Id in ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
-")}
-{(!specification.RoleIds.Any() ? string.Empty : $@"
-and
-    rp.RoleId in ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
-")}
-";
-        }
-
-        public IQuery Registered(Guid id, Registered domainEvent)
-        {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
-
-            return RawQuery.Create(@"
-if not exists
-(
-    select
-        null
-    from
+    SELECT
+        NULL
+    FROM
         [dbo].[Permission]
-    where
+    WHERE
         [Name] = @Name
 )
-    insert into [dbo].[Permission]
+    INSERT INTO [dbo].[Permission]
     (
 	    [Id],
 	    [Name],
         [Status]
     )
-    values
+    VALUES
     (
 	    @Id,
 	    @Name,
         @Status
     )
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Name, domainEvent.Name)
-                .AddParameterValue(Columns.Status, (int)domainEvent.Status);
-        }
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Name, domainEvent.Name)
+            .AddParameter(Columns.Status, (int)domainEvent.Status);
+    }
 
-        public IQuery Activated(Guid id, Activated domainEvent)
-        {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+    public IQuery Activated(Guid id, Activated domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-            return SetStatus(id, (int)PermissionStatus.Active);
-        }
+        return SetStatus(id, (int)PermissionStatus.Active);
+    }
 
-        private static IQuery SetStatus(Guid id, int status)
-        {
-            return RawQuery.Create(@"
-update
-    Permission
-set
-    Status = @Status
-where
-    Id = @Id
-")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Status, status);
-        }
+    public IQuery Deactivated(Guid id, Deactivated domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-        public IQuery Deactivated(Guid id, Deactivated domainEvent)
-        {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+        return SetStatus(id, (int)PermissionStatus.Deactivated);
+    }
 
-            return SetStatus(id, (int)PermissionStatus.Deactivated);
-        }
+    public IQuery Removed(Guid id, Removed domainEvent)
+    {
+        Guard.AgainstNull(domainEvent);
 
-        public IQuery Removed(Guid id, Removed domainEvent)
-        {
-            Guard.AgainstNull(domainEvent, nameof(domainEvent));
+        return SetStatus(id, (int)PermissionStatus.Removed);
+    }
 
-            return SetStatus(id, (int)PermissionStatus.Removed);
-        }
+    public IQuery Contains(DataAccess.Permission.Specification specification)
+    {
+        Guard.AgainstNull(specification);
 
-        public IQuery Contains(DataAccess.Query.Permission.Specification specification)
-        {
-            Guard.AgainstNull(specification, nameof(specification));
-
-            return RawQuery.Create($@"
-if exists
+        return new Query($@"
+IF EXISTS
 (
-select
-    null
-from
-    Permission p
+    SELECT
+        NULL
+    FROM
+        Permission p
 {Where(specification)}
 )
-    select 1
-else
-    select 0
+    SELECT 1
+ELSE
+    SELECT 0
 ")
-                .AddParameterValue(Columns.NameMatch, specification.NameMatch);
-        }
+            .AddParameter(Columns.NameMatch, specification.NameMatch);
+    }
 
-        public IQuery NameSet(Guid id, NameSet domainEvent)
-        {
-            return RawQuery.Create(@"
-update
-    Permission
-set
+    public IQuery NameSet(Guid id, NameSet domainEvent)
+    {
+        return new Query(@"
+UPDATE
+    PERMISSION
+SET
     [Name] = @Name
-where
+WHERE
     Id = @Id
 ")
-                .AddParameterValue(Columns.Id, id)
-                .AddParameterValue(Columns.Name, domainEvent.Name);
-        }
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Name, domainEvent.Name);
+    }
+
+    private static IQuery SetStatus(Guid id, int status)
+    {
+        return new Query(@"
+UPDATE
+    Permission
+SET
+    Status = @Status
+WHERE
+    Id = @Id
+")
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Status, status);
+    }
+
+    public IQuery Specification(DataAccess.Permission.Specification specification, bool columns)
+    {
+        Guard.AgainstNull(specification);
+
+        var what = columns
+            ? @"
+    p.[Id],
+    p.[Name],
+    p.[Status]
+"
+            : "count(*)";
+
+        return new Query($@"
+SELECT DISTINCT {(columns && specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
+{what}
+FROM
+    Permission p
+{(!specification.RoleIds.Any() ? string.Empty : @"
+INNER JOIN
+    RolePermission rp ON (rp.PermissionId = p.Id)
+")}
+{Where(specification)}
+")
+            .AddParameter(Columns.NameMatch, specification.NameMatch);
+    }
+
+    private string Where(DataAccess.Permission.Specification specification)
+    {
+        return $@"
+WHERE
+(
+    isnull(@NameMatch, '') = ''
+    OR
+    p.[Name] LIKE '%' + @NameMatch + '%'
+)
+{(!specification.Names.Any() ? string.Empty : $@"
+AND
+    p.[Name] IN ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+")}
+{(!specification.Ids.Any() ? string.Empty : $@"
+AND
+    p.Id IN ({string.Join(",", specification.Ids.Select(item => $"'{item}'"))})
+")}
+{(!specification.RoleIds.Any() ? string.Empty : $@"
+AND
+    rp.RoleId IN ({string.Join(",", specification.RoleIds.Select(item => $"'{item}'"))})
+")}
+";
     }
 }

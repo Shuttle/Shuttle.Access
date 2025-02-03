@@ -1,116 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Data;
-using Shuttle.Esb;
 
-namespace Shuttle.Access.Tests.Integration.WebApi.v1
+namespace Shuttle.Access.Tests.Integration.WebApi.v1;
+
+public class PermissionsFixture
 {
-    public class PermissionsFixture : WebApiFixture
+    [Test]
+    public async Task Should_be_able_to_get_available_permissions_async()
     {
-        [Test]
-        public void Should_be_able_to_get_available_permissions()
+        var permission = new Messages.v1.Permission
         {
-            var permission = new Access.DataAccess.Query.Permission
-            {
-                Id = Guid.NewGuid(),
-                Name = "integration://available-permission",
-                Status = (int)PermissionStatus.Active
-            };
+            Id = Guid.NewGuid(),
+            Name = "integration://available-permission",
+            Status = (int)PermissionStatus.Active
+        };
 
-            var permissionQuery = new Mock<IPermissionQuery>();
+        var factory = new FixtureWebApplicationFactory();
 
-            permissionQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Permission.Specification>())).Returns(new List<Access.DataAccess.Query.Permission> { permission });
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Permission.Specification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Permission> { permission }.AsEnumerable()));
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(new Mock<IAuthorizationService>().Object);
-                           services.AddSingleton(new Mock<IDatabaseContextFactory>().Object);
-                           services.AddSingleton(permissionQuery.Object);
-                       });
-                   }).CreateDefaultClient())
-            {
-                var client = GetClient(httpClient).RegisterSession();
+        var response = await factory.GetAccessClient().Permissions.GetAsync();
 
-                var response = client.Permissions.Get().Result;
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.Content, Is.Not.Null);
+        Assert.That(response.Content!.Find(item => item.Id == permission.Id), Is.Not.Null);
+    }
 
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.Content, Is.Not.Null);
-                Assert.That(response.Content.Find(item => item.Id == permission.Id), Is.Not.Null);
-            }
-        }
+    [Test]
+    public async Task Should_be_able_to_post_permission_async()
+    {
+        const string permission = "integration://available-permission";
 
-        [Test]
-        public void Should_be_able_to_post_permission()
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RegisterPermission>(message => message.Name.Equals(permission)), null)).Verifiable();
+
+        var response = await factory.GetAccessClient().Permissions.PostAsync(new()
         {
-            const string permission = "integration://available-permission";
+            Name = permission
+        });
 
-            var serviceBus = new Mock<IServiceBus>();
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
 
-            serviceBus.Setup(m => m.Send(It.Is<RegisterPermission>(message => message.Name.Equals(permission)), null)).Verifiable();
+        factory.ServiceBus.VerifyAll();
+    }
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(serviceBus.Object);
-                           services.AddSingleton(new Mock<IPermissionQuery>().Object);
-                       });
-                   }).CreateDefaultClient())
-            {
-                var client = GetClient(httpClient).RegisterSession();
+    [Test]
+    public async Task Should_be_able_to_set_permission_status_async()
+    {
+        var permissionId = Guid.NewGuid();
 
-                var response = client.Permissions.Post(new RegisterPermission
-                {
-                    Name = permission
-                }).Result;
+        var factory = new FixtureWebApplicationFactory();
 
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
+        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)), null)).Verifiable();
 
-                serviceBus.VerifyAll();
-            }
-        }
-
-        [Test]
-        public void Should_be_able_to_set_permission_status()
+        var response = await factory.GetAccessClient().Permissions.SetStatusAsync(permissionId, new()
         {
-            var permissionId = Guid.NewGuid();
+            Id = permissionId,
+            Status = (int)PermissionStatus.Deactivated
+        });
 
-            var serviceBus = new Mock<IServiceBus>();
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
 
-            serviceBus.Setup(m=>m.Send(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)), null)).Verifiable();
-
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(serviceBus.Object);
-                           services.AddSingleton(new Mock<IPermissionQuery>().Object);
-                       });
-                   }).CreateDefaultClient())
-            {
-                var client = GetClient(httpClient).RegisterSession();
-
-                var response = client.Permissions.SetStatus(permissionId, new SetPermissionStatus
-                {
-                    Id = permissionId,
-                    Status = (int)PermissionStatus.Deactivated
-                }).Result;
-
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-
-                serviceBus.VerifyAll();
-            }
-        }
+        factory.ServiceBus.VerifyAll();
     }
 }

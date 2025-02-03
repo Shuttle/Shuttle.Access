@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Shuttle.Access.DataAccess
+namespace Shuttle.Access.DataAccess;
+
+public interface IPermissionQuery
 {
-    public interface IPermissionQuery
-    {
-        IEnumerable<Query.Permission> Search(Query.Permission.Specification specification);
-        int Count(Query.Permission.Specification specification);
-        bool Contains(Query.Permission.Specification specification);
-    }
+    ValueTask<bool> ContainsAsync(Permission.Specification specification, CancellationToken cancellationToken = default);
+    ValueTask<int> CountAsync(Permission.Specification specification, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Messages.v1.Permission>> SearchAsync(Permission.Specification specification, CancellationToken cancellationToken = default);
 }

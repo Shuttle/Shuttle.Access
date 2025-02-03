@@ -68,5 +68,41 @@ namespace Shuttle.Access.Application {
                 return ResourceManager.GetString("AdministratorRoleException", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The password has not been set.  Please call `UsePassword` first..
+        /// </summary>
+        public static string RegisterSessionPasswordNotSetException {
+            get {
+                return ResourceManager.GetString("RegisterSessionPasswordNotSetException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The token has not been set.  Please call `UseToken` or `UseDelegation` first..
+        /// </summary>
+        public static string RegisterSessionTokenNotSetException {
+            get {
+                return ResourceManager.GetString("RegisterSessionTokenNotSetException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Registration type already set to &apos;{0}&apos;..
+        /// </summary>
+        public static string SessionRegistrationTypeException {
+            get {
+                return ResourceManager.GetString("SessionRegistrationTypeException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No registration type has been set..
+        /// </summary>
+        public static string SessionRegistrationTypeNoneException {
+            get {
+                return ResourceManager.GetString("SessionRegistrationTypeNoneException", resourceCulture);
+            }
+        }
     }
 }

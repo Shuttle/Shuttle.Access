@@ -1,119 +1,118 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
-using Shuttle.Core.Threading;
 
-namespace Shuttle.Access.Application
+namespace Shuttle.Access.Application;
+
+public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication>
 {
-    public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication>
+    private readonly IIdentityQuery _identityQuery;
+    private readonly ILogger<ConfigureApplicationParticipant> _logger;
+    private readonly IMediator _mediator;
+    private readonly IPermissionQuery _permissionQuery;
+    private readonly IRoleQuery _roleQuery;
+
+    private readonly List<string> _permissions =
+    [
+        AccessPermissions.Identities.Activate,
+        AccessPermissions.Identities.Manage,
+        AccessPermissions.Identities.Register,
+        AccessPermissions.Identities.Remove,
+        AccessPermissions.Identities.View,
+        AccessPermissions.Roles.View,
+        AccessPermissions.Roles.Register,
+        AccessPermissions.Roles.Remove,
+        AccessPermissions.Permissions.Manage,
+        AccessPermissions.Permissions.Register,
+        AccessPermissions.Permissions.View,
+        AccessPermissions.Sessions.Manage,
+        AccessPermissions.Sessions.Register,
+        AccessPermissions.Sessions.View
+    ];
+
+    public ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
     {
-        private readonly IMediator _mediator;
-        private readonly IRoleQuery _roleQuery;
-        private readonly IPermissionQuery _permissionQuery;
-        private readonly IIdentityQuery _identityQuery;
+        _logger = Guard.AgainstNull(logger);
+        _mediator = Guard.AgainstNull(mediator);
+        _roleQuery = Guard.AgainstNull(roleQuery);
+        _permissionQuery = Guard.AgainstNull(permissionQuery);
+        _identityQuery = Guard.AgainstNull(identityQuery);
+    }
 
-        private readonly List<string> _permissions = new List<string>
-        {
-            "access://identity/view",
-            "access://identity/register",
-            "access://identity/register-session",
-            "access://identity/remove",
-            "access://identity/view",
-            "access://permission/view",
-            "access://permission/register",
-            "access://permission/status",
-            "access://dashboard/view",
-            "access://role/view",
-            "access://role/register",
-            "access://role/remove",
-            "access://sessions/view"
-        };
+    public async Task ProcessMessageAsync(IParticipantContext<ConfigureApplication> context)
+    {
+        Guard.AgainstNull(context);
 
-        public ConfigureApplicationParticipant(IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
+        var roleSpecification = new DataAccess.Role.Specification().AddName("Administrator");
+
+        var administratorExists = await _roleQuery.CountAsync(roleSpecification) > 0;
+
+        _logger.LogDebug($"[role] : name = 'Administrator' / exists = {administratorExists}");
+
+        if (!administratorExists)
         {
-            Guard.AgainstNull(mediator, nameof(mediator));
-            Guard.AgainstNull(roleQuery, nameof(roleQuery));
-            Guard.AgainstNull(permissionQuery, nameof(permissionQuery));
-            Guard.AgainstNull(identityQuery, nameof(identityQuery));
-        
-            _mediator = mediator;
-            _roleQuery = roleQuery;
-            _permissionQuery = permissionQuery;
-            _identityQuery = identityQuery;
+            _logger.LogDebug("[role/registration] : name = 'Administrator'");
+
+            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(new()
+            {
+                Name = "Administrator"
+            });
+
+            await _mediator.SendAsync(registerRoleMessage);
+
+            var timeout = DateTime.Now.AddSeconds(15);
+
+            while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTime.Now < timeout)
+            {
+                Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+            }
+
+            if (await _roleQuery.CountAsync(roleSpecification) == 0)
+            {
+                throw new ApplicationException(Resources.AdministratorRoleException);
+            }
         }
 
-        public void ProcessMessage(IParticipantContext<ConfigureApplication> context)
+        foreach (var permission in _permissions)
         {
-            Guard.AgainstNull(context, nameof(context));
-
-            var roleSpecification = new DataAccess.Query.Role.Specification().AddName("Administrator");
-
-            var administratorExists = _roleQuery.Count(roleSpecification) > 0;
-
-            if (!administratorExists)
+            if (await _permissionQuery.ContainsAsync(new DataAccess.Permission.Specification().AddName(permission)))
             {
-                var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(new RegisterRole
+                continue;
+            }
+
+            var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
+                new()
                 {
-                    Name = "Administrator"
+                    Name = permission,
+                    Status = (int)PermissionStatus.Active
                 });
 
-                _mediator.Send(registerRoleMessage);
-            }
+            await _mediator.SendAsync(registerPermissionMessage);
+        }
 
-            foreach (var permission in _permissions)
+        if (await _identityQuery.CountAsync(new()) == 0)
+        {
+            var generateHash = new GenerateHash { Value = "admin" };
+
+            await _mediator.SendAsync(generateHash);
+
+            var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new()
             {
-                if (_permissionQuery.Contains(new DataAccess.Query.Permission.Specification().AddName(permission)))
-                {
-                    continue;
-                }
+                Name = "admin",
+                System = "system://access",
+                GeneratedPassword = "admin",
+                PasswordHash = generateHash.Hash,
+                RegisteredBy = "system",
+                Activated = true
+            });
 
-                var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
-                    new RegisterPermission
-                    {
-                        Name = permission,
-                        Status = (int)PermissionStatus.Active
-                    });
-
-                _mediator.Send(registerPermissionMessage);
-            }
-
-            if (_identityQuery.Count(new DataAccess.Query.Identity.Specification()) == 0)
-            {
-                if (!administratorExists)
-                {
-                    // wait for role projection
-                    var timeout = DateTime.Now.AddSeconds(15);
-
-                    while (_roleQuery.Count(roleSpecification) == 0 && DateTime.Now < timeout)
-                    {
-                        Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
-                    }
-
-                    if (_roleQuery.Count(roleSpecification) == 0)
-                    {
-                        throw new ApplicationException(Resources.AdministratorRoleException);
-                    }
-                }
-
-                var generateHash = new GenerateHash { Value = "admin" };
-
-                _mediator.Send(generateHash);
-;
-                var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new RegisterIdentity
-                {
-                    Name = "admin",
-                    System = "system://access",
-                    PasswordHash = generateHash.Hash,
-                    RegisteredBy = "system",
-                    Activated = true
-                });
-
-                _mediator.Send(registerIdentityMessage);
-            }
+            await _mediator.SendAsync(registerIdentityMessage);
         }
     }
 }

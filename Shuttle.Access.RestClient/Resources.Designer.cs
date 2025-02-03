@@ -19,7 +19,7 @@ namespace Shuttle.Access.RestClient {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -61,11 +61,20 @@ namespace Shuttle.Access.RestClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find a configuration section with name &quot;accessClient&quot; or &quot;shuttle/accessClient&quot;..
+        ///   Looks up a localized string similar to Option `{0}` may not be empty..
         /// </summary>
-        public static string ClientSectionException {
+        public static string OptionMissingException {
             get {
-                return ResourceManager.GetString("ClientSectionException", resourceCulture);
+                return ResourceManager.GetString("OptionMissingException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Option &apos;{0}&apos; is not a valid URI..
+        /// </summary>
+        public static string OptionUriException {
+            get {
+                return ResourceManager.GetString("OptionUriException", resourceCulture);
             }
         }
     }

@@ -3,7 +3,7 @@
     [IdentityId]         UNIQUEIDENTIFIER NOT NULL,
     [Token]          UNIQUEIDENTIFIER NOT NULL,
     [DateRegistered] DATETIME2         CONSTRAINT [DF_Session_DateRegistered] DEFAULT (getdate()) NOT NULL,
-    [ExpiryDate]     DATETIME2,
+    [ExpiryDate]     DATETIME2 NOT NULL,
     CONSTRAINT [PK_Session] PRIMARY KEY NONCLUSTERED ([IdentityName] ASC)
 );
 

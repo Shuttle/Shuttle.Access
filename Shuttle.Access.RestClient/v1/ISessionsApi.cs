@@ -4,23 +4,22 @@ using System.Threading.Tasks;
 using Refit;
 using Shuttle.Access.Messages.v1;
 
-namespace Shuttle.Access.RestClient.v1
+namespace Shuttle.Access.RestClient.v1;
+
+public interface ISessionsApi
 {
-    public interface ISessionsApi
-    {
-        [Post("/sessions")]
-        Task<ApiResponse<SessionRegistered>> Post(RegisterSession message);
+    [Delete("/v1/sessions")]
+    Task<IApiResponse> DeleteAsync();
 
-        [Post("/sessions/delegated")]
-        Task<ApiResponse<SessionRegistered>> Post(RegisterDelegatedSession message);
+    [Get("/v1/sessions/{token}")]
+    Task<IApiResponse<Messages.v1.Session>> GetAsync(Guid token);
 
-        [Delete("/sessions")]
-        Task<ApiResponse<object>> Delete();
+    [Get("/v1/sessions/{token}/permissions")]
+    Task<IApiResponse<List<string>>> GetPermissionsAsync(Guid token);
 
-        [Get("/sessions/{token}")]
-        Task<ApiResponse<DataAccess.Query.Session>> Get(Guid token);
+    [Post("/v1/sessions")]
+    Task<IApiResponse<SessionResponse>> PostAsync(RegisterSession message);
 
-        [Get("/sessions/{token}/permissions")]
-        Task<ApiResponse<List<string>>> GetPermissions(Guid token);
-    }
+    [Post("/v1/sessions/delegated")]
+    Task<IApiResponse<SessionResponse>> PostAsync(RegisterDelegatedSession message);
 }

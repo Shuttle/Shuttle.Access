@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Shuttle.Access.DataAccess
+namespace Shuttle.Access.DataAccess;
+
+public interface ISessionQuery
 {
-    public interface ISessionQuery
-    {
-        bool Contains(Guid token);
-        bool Contains(Guid token, string permission);
-        Query.Session Get(Guid token);
-        IEnumerable<Query.Session> Search(Query.Session.Specification specification);
-    }
+    ValueTask<int> CountAsync(Session.Specification specification, CancellationToken cancellationToken = default); 
+    ValueTask<bool> ContainsAsync(Session.Specification specification, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Messages.v1.Session>> SearchAsync(Session.Specification specification, CancellationToken cancellationToken = default);
 }

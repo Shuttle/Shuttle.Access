@@ -4,7 +4,8 @@
       "commandName": "Project",
       "environmentVariables": {
         "JAEGER_AGENT_HOST": "localhost",
-        "DOTNET_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Development",
+        "CONFIGURATION_FOLDER": "."
       }
     }
   }

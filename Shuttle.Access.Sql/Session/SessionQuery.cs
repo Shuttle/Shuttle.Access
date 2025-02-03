@@ -1,55 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class SessionQuery : ISessionQuery
 {
-    public class SessionQuery : ISessionQuery
+    private readonly IDatabaseContextService _databaseContextService;
+    private readonly ISessionQueryFactory _queryFactory;
+    private readonly IQueryMapper _queryMapper;
+
+    public SessionQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, ISessionQueryFactory queryFactory)
     {
-        private readonly IDatabaseGateway _databaseGateway;
-        private readonly IQueryMapper _queryMapper;
-        private readonly ISessionQueryFactory _queryFactory;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryMapper = Guard.AgainstNull(queryMapper);
+        _queryFactory = Guard.AgainstNull(queryFactory);
+    }
 
-        public SessionQuery(IDatabaseGateway databaseGateway, IQueryMapper queryMapper, ISessionQueryFactory queryFactory)
+    public async ValueTask<int> CountAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
+    }
+
+    public async ValueTask<bool> ContainsAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;
+    }
+
+    public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(specification);
+
+        var sessions = await _queryMapper.MapObjectsAsync<Messages.v1.Session>(_queryFactory.Search(specification), cancellationToken);
+
+        if (specification.ShouldIncludePermissions)
         {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(queryMapper, nameof(queryMapper));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
-
-            _databaseGateway = databaseGateway;
-            _queryMapper = queryMapper;
-            _queryFactory = queryFactory;
+            foreach (var session in sessions)
+            {
+                session.Permissions = (await _queryMapper.MapValuesAsync<string>(_queryFactory.GetPermissions(session.Token), cancellationToken)).ToList();
+            }
         }
 
-        public bool Contains(Guid token)
-        {
-            return _databaseGateway.GetScalar<int>(_queryFactory.Contains(token)) == 1;
-        }
-
-        public bool Contains(Guid token, string permission)
-        {
-            return _databaseGateway.GetScalar<int>(_queryFactory.Contains(token, permission)) == 1;
-        }
-
-        public DataAccess.Query.Session Get(Guid token)
-        {
-            var result = _queryMapper.MapObject<DataAccess.Query.Session>(_queryFactory.Get(token));
-
-            result.GuardAgainstRecordNotFound(token);
-
-            result.Permissions = _queryMapper.MapValues<string>(_queryFactory.GetPermissions(token)).ToList();
-
-            return result;
-        }
-
-        public IEnumerable<DataAccess.Query.Session> Search(DataAccess.Query.Session.Specification specification)
-        {
-            Guard.AgainstNull(specification, nameof(specification));
-
-            return _queryMapper.MapObjects<DataAccess.Query.Session>(_queryFactory.Search(specification));
-        }
+        return sessions;
     }
 }

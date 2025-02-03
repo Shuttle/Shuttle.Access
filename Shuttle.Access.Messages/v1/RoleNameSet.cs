@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace Shuttle.Access.Messages.v1
+namespace Shuttle.Access.Messages.v1;
+
+public class RoleNameSet
 {
-    public class RoleNameSet
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public long SequenceNumber { get; set; }
-    }
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public long SequenceNumber { get; set; }
 }

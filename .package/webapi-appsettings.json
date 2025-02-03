@@ -1,9 +1,56 @@
 ﻿{
+  "Serilog": {
+    "Using": [
+      "Serilog.Sinks.Console",
+      "Serilog.Sinks.File"
+    ],
+    "MinimumLevel": {
+      "Default": "Debug",
+      "Override": {
+        "System.Net.Http": "Error"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console"
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "./logs/.log",
+          "rollOnFileSizeLimit": true,
+          "retainedFileCountLimit": 30,
+          "fileSizeLimitBytes": 1048576,
+          "rollingInterval": "Day"
+        }
+      }
+    ]
+  },
   "ConnectionStrings": {
     "azure": "UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite",
     "Access": "Data Source=database;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true"
   },
   "Shuttle": {
+    "Access": {
+      "KnownApplications": [
+        {
+          "Name": "Recall",
+          "Title": "Shuttle.Recall.WebApi",
+          "Description": "Provides endpoints that allow retrieving primitive events from a Sql Server event store.",
+          "SessionTokenExchangeUrl": "http://localhost:3001/session/"
+        }
+      ]
+    },
+    "OAuth": {
+      "GitHub": {
+        "clientId": "your-client-id",
+        "clientSecret": "your-client-secret",
+        "authorizationUrl": "https://github.com/login/oauth/authorize?client_id=__ClientId__&redirect_uri=__RedirectUri__&scope=__Scope__",
+        "scope": "user:email",
+        "tokenUrl": "https://github.com/login/oauth/access_token",
+        "dataUrl": "https://api.github.com/user"
+      }
+    },
     "ServiceBus": {
       "Inbox": {
         "WorkQueueUri": "azuresq://azure/access-webapi-inbox-work",
@@ -27,6 +74,6 @@
           ]
         }
       ]
-    } 
+    }
   }
 }

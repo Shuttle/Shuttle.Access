@@ -1,7 +1,6 @@
-﻿namespace Shuttle.Access
+﻿namespace Shuttle.Access;
+
+public interface IHashingService
 {
-    public interface IHashingService
-    {
-        byte[] Sha256(string value);
-    }
+    byte[] Sha256(string value);
 }

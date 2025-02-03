@@ -1,67 +1,80 @@
-﻿using Shuttle.Access.Events.Identity.v1;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Projection.v1
+namespace Shuttle.Access.Projection.v1;
+
+public class IdentityHandler :
+    IEventHandler<Registered>,
+    IEventHandler<RoleAdded>,
+    IEventHandler<RoleRemoved>,
+    IEventHandler<Removed>,
+    IEventHandler<Activated>,
+    IEventHandler<NameSet>
 {
-    public class IdentityHandler :
-        IEventHandler<Registered>,
-        IEventHandler<RoleAdded>,
-        IEventHandler<RoleRemoved>,
-        IEventHandler<Removed>,
-        IEventHandler<Activated>,
-        IEventHandler<NameSet>
+    private readonly ILogger<IdentityHandler> _logger;
+    private readonly IIdentityProjectionQuery _query;
+
+    public IdentityHandler(ILogger<IdentityHandler> logger, IIdentityProjectionQuery query)
     {
-        private readonly IIdentityProjectionQuery _query;
+        _logger = Guard.AgainstNull(logger);
+        _query = Guard.AgainstNull(query);
+    }
 
-        public IdentityHandler(IIdentityProjectionQuery query)
-        {
-            Guard.AgainstNull(query, nameof(query));
+    public async Task ProcessEventAsync(IEventHandlerContext<Activated> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query = query;
-        }
+        await _query.ActivatedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
-        public void ProcessEvent(IEventHandlerContext<Registered> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
-            
-            _query.Register(context.PrimitiveEvent, context.Event);
-        }
+        _logger.LogDebug($"[Activated] : id = '{context.PrimitiveEvent.Id}' / date activated = '{context.Event.DateActivated:O}'");
+    }
 
-        public void ProcessEvent(IEventHandlerContext<RoleAdded> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.RoleAdded(context.PrimitiveEvent, context.Event);
-        }
+        await _query.NameSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
-        public void ProcessEvent(IEventHandlerContext<RoleRemoved> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+        _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}'");
+    }
 
-            _query.RoleRemoved(context.PrimitiveEvent, context.Event);
-        }
+    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context)
+    {
+        Guard.AgainstNull(context);
 
-        public void ProcessEvent(IEventHandlerContext<Removed> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+        await _query.RegisterAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
-            _query.Removed(context.PrimitiveEvent);
-        }
+        _logger.LogDebug($"[Registered] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}' / activated = '{context.Event.Activated}' / date registered = '{context.Event.DateRegistered}' / registered by = '{context.Event.RegisteredBy}'");
+    }
 
-        public void ProcessEvent(IEventHandlerContext<Activated> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<Removed> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.Activated(context.PrimitiveEvent, context.Event);
-        }
+        await _query.RemovedAsync(context.PrimitiveEvent, context.CancellationToken);
 
-        public void ProcessEvent(IEventHandlerContext<NameSet> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+        _logger.LogDebug($"[Removed] : id = '{context.PrimitiveEvent.Id}'");
+    }
 
-            _query.NameSet(context.PrimitiveEvent, context.Event);
-        }
+    public async Task ProcessEventAsync(IEventHandlerContext<RoleAdded> context)
+    {
+        Guard.AgainstNull(context);
+
+        await _query.RoleAddedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+
+        _logger.LogDebug($"[RoleAdded] : id = '{context.PrimitiveEvent.Id}' / role id = '{context.Event.RoleId}'");
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<RoleRemoved> context)
+    {
+        Guard.AgainstNull(context);
+
+        await _query.RoleRemovedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+
+        _logger.LogDebug($"[RoleRemoved] : id = '{context.PrimitiveEvent.Id}' / role id = '{context.Event.RoleId}'");
     }
 }

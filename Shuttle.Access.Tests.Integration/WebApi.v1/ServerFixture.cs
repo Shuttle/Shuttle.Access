@@ -1,21 +1,19 @@
-﻿using NUnit.Framework;
+﻿using System.Threading.Tasks;
+using NUnit.Framework;
 
-namespace Shuttle.Access.Tests.Integration.WebApi.v1
+namespace Shuttle.Access.Tests.Integration.WebApi.v1;
+
+public class ServerFixture
 {
-    public class ServerFixture : WebApiFixture
+    [Test]
+    public async Task Should_be_able_to_get_configuration_async()
     {
-        [Test]
-        public void Should_be_able_to_get_configuration()
-        {
-            using (var httpClient = Factory.CreateClient())
-            {
-                var response = GetClient(httpClient).Server.Configuration().Result;
+        var client = new FixtureWebApplicationFactory().GetAccessClient();
 
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.Content, Is.Not.Null);
-                Assert.That(response.Content.Version, Is.EqualTo("1.0.0"));
-            }
-        }
+        var response = await client.Server.ConfigurationAsync();
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.Content, Is.Not.Null);
+        Assert.That(response.Content!.Version, Is.EqualTo("1.0.0"));
     }
-
 }

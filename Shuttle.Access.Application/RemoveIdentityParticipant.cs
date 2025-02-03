@@ -1,41 +1,38 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using System.Threading.Tasks;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 using Shuttle.Recall.Sql.Storage;
 
-namespace Shuttle.Access.Application
+namespace Shuttle.Access.Application;
+
+public class RemoveIdentityParticipant : IParticipant<RemoveIdentity>
 {
-    public class RemoveIdentityParticipant : IParticipant<RemoveIdentity>
+    private readonly IEventStore _eventStore;
+    private readonly IIdKeyRepository _idKeyRepository;
+
+    public RemoveIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
     {
-        private readonly IEventStore _eventStore;
-        private readonly IKeyStore _keyStore;
+        _eventStore = Guard.AgainstNull(eventStore);
+        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
+    }
 
-        public RemoveIdentityParticipant(IEventStore eventStore, IKeyStore keyStore)
-        {
-            Guard.AgainstNull(eventStore, nameof(eventStore));
-            Guard.AgainstNull(keyStore, nameof(keyStore));
+    public async Task ProcessMessageAsync(IParticipantContext<RemoveIdentity> context)
+    {
+        Guard.AgainstNull(context);
 
-            _eventStore = eventStore;
-            _keyStore = keyStore;
-        }
+        var message = context.Message;
+        var id = message.Id;
+        var identity = new Identity();
+        var stream = await _eventStore.GetAsync(id);
 
-        public void ProcessMessage(IParticipantContext<RemoveIdentity> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+        stream.Apply(identity);
 
-            var message = context.Message;
-            var id = message.Id;
-            var identity = new Identity();
-            var stream = _eventStore.Get(id);
+        stream.Add(identity.Remove());
 
-            stream.Apply(identity);
+        await _idKeyRepository.RemoveAsync(id);
 
-            stream.AddEvent(identity.Remove());
-
-            _keyStore.Remove(id);
-
-            _eventStore.Save(stream);
-        }
+        await _eventStore.SaveAsync(stream);
     }
 }

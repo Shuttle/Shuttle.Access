@@ -1,51 +1,52 @@
 ﻿using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.RestClient
+namespace Shuttle.Access.RestClient;
+
+public class AuthenticationHeaderHandler : DelegatingHandler
 {
-    public class AuthenticationHeaderHandler : DelegatingHandler
+    private readonly AccessClientOptions _accessClientOptions;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly string _userAgent;
+
+    public AuthenticationHeaderHandler(IOptions<AccessClientOptions> accessClientOptions, IServiceProvider serviceProvider)
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly string _userAgent;
+        // Cannot inject IAccessClient directly as it relies on this handler, which seems to result in a circular dependency:
+        // InvalidOperationException: ValueFactory attempted to access the Value property of this instance.
 
-        public AuthenticationHeaderHandler(IServiceProvider serviceProvider)
+        _accessClientOptions = Guard.AgainstNull(accessClientOptions).Value;
+        _serviceProvider = Guard.AgainstNull(serviceProvider);
+
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+
+        _userAgent = $"Shuttle.Access{(version != null ? $"/{version.Major}.{version.Minor}.{version.Build}" : string.Empty)}";
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        Guard.AgainstNull(request);
+
+        request.Headers.Add("User-Agent", _userAgent);
+
+        var client = _serviceProvider.GetRequiredService<IAccessClient>();
+
+        if ((!client.Token.HasValue || (client.TokenExpiryDate ?? DateTime.UtcNow).Subtract(_accessClientOptions.RenewToleranceTimeSpan) < DateTime.UtcNow) &&
+            !(request.RequestUri?.PathAndQuery ?? string.Empty).Equals("/sessions") && request.Method != HttpMethod.Post)
         {
-            Guard.AgainstNull(serviceProvider, nameof(serviceProvider));
-
-            _serviceProvider = serviceProvider;
-
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-
-            _userAgent = $"Shuttle.Access/{version.Major}.{version.Minor}.{version.Build}";
+            await client.RegisterSessionAsync(cancellationToken);
         }
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        if (client.Token.HasValue)
         {
-            Guard.AgainstNull(request, nameof(request));
-
-            request.Headers.Add("User-Agent", _userAgent);
-
-            var client = _serviceProvider.GetRequiredService<IAccessClient>();
-
-            if ((!client.Token.HasValue || (client.TokenExpiryDate ?? DateTime.UtcNow) < DateTime.UtcNow) &&
-                !request.RequestUri.PathAndQuery.Equals("/sessions") &&
-                request.Method != HttpMethod.Post)
-            {
-                client.RegisterSession();
-            }
-
-            if (client.Token.HasValue)
-            {
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", client.Token.Value.ToString("n"));
-            }
-
-            return base.SendAsync(request, cancellationToken);
+            request.Headers.Authorization = new("Shuttle.Access", $"token={client.Token.Value:D}");
         }
+
+        return await base.SendAsync(request, cancellationToken);
     }
 }

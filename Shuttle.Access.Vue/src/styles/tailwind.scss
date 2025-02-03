@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  /* Card */
+  .sv-card {
+    @apply text-center;
+  }
+
+  /* Form */
+  .sv-form {
+    @apply w-full mx-auto transition-width ease-in duration-300 mt-10;
+  }
+
+  .sv-form--sm {
+    @apply lg:w-1/4 md:w-2/4;
+  }
+
+  .sv-form--md {
+    @apply lg:w-2/4 md:w-3/4;
+  }
+
+  .sv-form--lg {
+    @apply lg:w-3/4;
+  }
+
+  /* Strip */
+  .sv-strip {
+    @apply flex flex-row items-center gap-2 mb-2;
+  }
+
+  .sv-strip--reverse {
+    @apply flex-row-reverse;
+  }
+
+  /* Title */
+  .sv-title {
+    @apply flex flex-row items-center font-semibold text-xl border-0 border-b-2 border-solid pb-1 mb-4 w-full cursor-default;
+  }
+}

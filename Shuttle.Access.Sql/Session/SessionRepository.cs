@@ -1,102 +1,56 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class SessionRepository : ISessionRepository
 {
-    public class SessionRepository : ISessionRepository
+    private readonly IDatabaseContextService _databaseContextService;
+    private readonly IDataRepository<Session> _dataRepository;
+    private readonly ISessionQueryFactory _queryFactory;
+
+    public SessionRepository(IDatabaseContextService databaseContextService, IDataRepository<Session> dataRepository, ISessionQueryFactory queryFactory)
     {
-        private readonly IDatabaseGateway _databaseGateway;
-        private readonly IDataRepository<Session> _dataRepository;
-        private readonly ISessionQueryFactory _queryFactory;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _dataRepository = Guard.AgainstNull(dataRepository);
+        _queryFactory = Guard.AgainstNull(queryFactory);
+    }
 
-        public SessionRepository(IDatabaseGateway databaseGateway, IDataRepository<Session> dataRepository,
-            ISessionQueryFactory queryFactory)
+    public async Task RemoveAllAsync(CancellationToken cancellationToken = default)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.RemoveAll(), cancellationToken: cancellationToken);
+    }
+
+    public async Task SaveAsync(Session session, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(session);
+
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.Save(session), cancellationToken);
+    }
+
+    public async Task<Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
+    {
+        var result = await _dataRepository.FetchItemAsync(_queryFactory.Find(token), cancellationToken);
+
+        if (result == null)
         {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(dataRepository, nameof(dataRepository));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
-
-            _databaseGateway = databaseGateway;
-            _dataRepository = dataRepository;
-            _queryFactory = queryFactory;
+            return null;
         }
 
-        public void Save(Session session)
+        foreach (var row in await _databaseContextService.Active.GetRowsAsync(_queryFactory.GetPermissions(token), cancellationToken))
         {
-            Guard.AgainstNull(session, nameof(session));
-
-            _databaseGateway.Execute(_queryFactory.Remove(session.IdentityName));
-            _databaseGateway.Execute(_queryFactory.Add(session));
-
-            foreach (var permission in session.Permissions)
-            {
-                _databaseGateway.Execute(_queryFactory.AddPermission(session.Token, permission));
-            }
+            result.AddPermission(Columns.PermissionName.Value(row)!);
         }
 
-        public void Renew(Session session)
-        {
-            Guard.AgainstNull(session, nameof(session));
+        return result;
+    }
 
-            _databaseGateway.Execute(_queryFactory.Renew(session));
-        }
-
-        public Session Get(Guid token)
-        {
-            var result = Find(token);
-
-            if (result == null)
-            {
-                throw RecordNotFoundException.For("Session", token);
-            }
-
-            return result;
-        }
-
-        public Session Find(Guid token)
-        {
-            var session = _dataRepository.FetchItem(_queryFactory.Get(token));
-
-            if (session == null)
-            {
-                return null;
-            }
-
-            foreach (var row in _databaseGateway.GetRows(_queryFactory.GetPermissions(token)))
-            {
-                session.AddPermission(Columns.PermissionName.MapFrom(row));
-            }
-
-            return session;
-        }
-
-        public Session Find(string identityName)
-        {
-            var session = _dataRepository.FetchItem(_queryFactory.Get(identityName));
-
-            if (session == null)
-            {
-                return null;
-            }
-
-            foreach (var row in _databaseGateway.GetRows(_queryFactory.GetPermissions(session.Token)))
-            {
-                session.AddPermission(Columns.PermissionName.MapFrom(row));
-            }
-
-            return session;
-        }
-
-        public int Remove(Guid token)
-        {
-            return _databaseGateway.Execute(_queryFactory.Remove(token));
-        }
-
-        public int Remove(string identityName)
-        {
-            return _databaseGateway.Execute(_queryFactory.Remove(identityName));
-        }
+    public async ValueTask<bool> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.ExecuteAsync(_queryFactory.Remove(token), cancellationToken) != 0;
     }
 }

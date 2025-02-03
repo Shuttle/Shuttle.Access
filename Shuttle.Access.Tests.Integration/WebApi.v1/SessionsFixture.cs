@@ -1,74 +1,91 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.DataAccess;
-using Shuttle.Core.Data;
+using Shuttle.Access.Application;
 
-namespace Shuttle.Access.Tests.Integration.WebApi.v1
+namespace Shuttle.Access.Tests.Integration.WebApi.v1;
+
+public class SessionsFixture
 {
-    public class SessionsFixture : WebApiFixture
+    private const string Permission = "integration://system-permission";
+
+    [Test]
+    public async Task Should_be_able_to_get_a_session_using_the_token_async()
     {
-        const string permission = "integration://system-permission";
+        var factory = new FixtureWebApplicationFactory();
 
-        [Test]
-        public void Should_be_able_to_get_a_session_using_the_token()
+        var session = new Messages.v1.Session
         {
-            var sessionQuery = new Mock<ISessionQuery>();
-            var session = new Access.DataAccess.Query.Session
+            Token = Guid.NewGuid()
+        };
+
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Messages.v1.Session> { session }.AsEnumerable()));
+
+        var client = factory.GetAccessClient();
+
+        var response = await client.Sessions.GetAsync(session.Token);
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.Content, Is.Not.Null);
+        Assert.That(response.Content!.Token, Is.EqualTo(session.Token));
+    }
+
+    [Test]
+    public async Task Should_be_able_to_get_session_permissions_async()
+    {
+        var factory = new FixtureWebApplicationFactory();
+
+        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
+            .AddPermission(Permission);
+
+        factory.SessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
+
+        var client = factory.GetAccessClient();
+
+        var response = await client.Sessions.GetPermissionsAsync(session.Token);
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.Content, Is.Not.Null);
+        Assert.That(response.Content!.FirstOrDefault(item => item.Equals(Permission, StringComparison.InvariantCultureIgnoreCase)), Is.Not.Null);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_register_a_session_async()
+    {
+        var factory = new FixtureWebApplicationFactory();
+
+        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", DateTime.Now, DateTime.Now);
+
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), default))
+            .Callback<object, CancellationToken>((message, _) =>
             {
-                Token = Guid.NewGuid()
-            };
+                ((RegisterSession)message).Registered(session);
+            });
 
-            sessionQuery.Setup(m => m.Get(It.IsAny<Guid>())).Returns(session);
+        var client = factory.GetAccessClient();
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(sessionQuery.Object);
-                       });
-                   }).CreateDefaultClient())
+        var response = await client.Sessions.PostAsync(
+            new Messages.v1.RegisterSession
             {
-                var client = GetClient(httpClient).RegisterSession();
+                IdentityName = "identity",
+                Password = "password"
+            });
 
-                var response = client.Sessions.Get(session.Token).Result;
+        var sessionRegistered = response;
 
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.Content, Is.Not.Null);
-                Assert.That(response.Content.Token, Is.EqualTo(session.Token));
-            }
-        }
+        Assert.That(sessionRegistered, Is.Not.Null);
+        Assert.That(sessionRegistered.IsSuccessStatusCode, Is.True);
+        Assert.That(sessionRegistered.Content, Is.Not.Null);
+        Assert.That(sessionRegistered.Content!.Token, Is.EqualTo(session.Token));
+        Assert.That(sessionRegistered.Content.IdentityName, Is.EqualTo(session.IdentityName));
 
-        [Test]
-        public void Should_be_able_to_get_session_permissions()
-        {
-            var sessionRepository = new Mock<ISessionRepository>();
-            var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
-                .AddPermission(permission);
-
-            sessionRepository.Setup(m => m.Find(It.IsAny<Guid>())).Returns(session);
-
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(sessionRepository.Object);
-                       });
-                   }).CreateDefaultClient())
-            {
-                var client = GetClient(httpClient).RegisterSession();
-
-                var response = client.Sessions.GetPermissions(session.Token).Result;
-
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.Content, Is.Not.Null);
-                Assert.That(response.Content.Find(item=> item.Equals(permission, StringComparison.InvariantCultureIgnoreCase)), Is.Not.Null);
-            }
-        }
+        factory.DatabaseContextFactory.Verify(m => m.Create(), Times.AtLeast(1));
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RegisterSession>(), default), Times.Once);
     }
 }

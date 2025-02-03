@@ -1,6 +1,5 @@
-﻿namespace Shuttle.Access.Events.Identity.v1
+﻿namespace Shuttle.Access.Events.Identity.v1;
+
+public class Removed
 {
-    public class Removed
-    {
-    }
 }

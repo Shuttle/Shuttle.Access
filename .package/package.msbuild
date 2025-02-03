@@ -1,10 +1,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Package" ToolsVersion="15">
 	<PropertyGroup>
 		<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+		<Version Condition="$(Version) == ''">6.0.0</Version>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="../Shuttle.Access.Projection/Shuttle.Access.Projection.csproj"/>
 		<ProjectReference Include="../Shuttle.Access.Server/Shuttle.Access.Server.csproj"/>
 		<ProjectReference Include="../Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj"/>
 		<DatabaseReference Include="../Shuttle.Access.Database/Shuttle.Access.Database.sqlproj" />
@@ -28,12 +28,12 @@
 		      DestinationFiles="./deployment/Shuttle.Access.Database/Shuttle.Access.Database.dacpac"
 		      SkipUnchangedFiles="false" />
 		<Exec
-			Command="dotnet publish %(ProjectReference.Identity) -c Release -f net6.0 -r $(RuntimeIdentifier) --self-contained false --output $(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)" />
+			Command="dotnet publish %(ProjectReference.Identity) -c Release -f net8.0 -r $(RuntimeIdentifier) --self-contained false --output $(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)" />
 		<Copy SourceFiles="%(ProjectReference.ConfigFile)"
 		      DestinationFiles="$(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)/%(ProjectReference.ConfigFile)"
 		      SkipUnchangedFiles="false" />
 		<Exec
-			Command="docker build -t %(DockerFile.Name):latest -f %(DockerFile.Identity) ." />
+			Command="docker build -t %(DockerFile.Name):latest -t %(DockerFile.Name):$(Version) -f %(DockerFile.Identity) ." />
 	</Target>
 
 </Project>

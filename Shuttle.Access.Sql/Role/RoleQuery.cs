@@ -1,65 +1,61 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class RoleQuery : IRoleQuery
 {
-    public class RoleQuery : IRoleQuery
+    private readonly IDatabaseContextService _databaseContextService;
+    private readonly IDataRowMapper _dataRowMapper;
+    private readonly IRoleQueryFactory _queryFactory;
+    private readonly IQueryMapper _queryMapper;
+
+    public RoleQuery(IDatabaseContextService databaseContextService, IQueryMapper queryMapper, IDataRowMapper dataRowMapper, IRoleQueryFactory queryFactory)
     {
-        private readonly IDatabaseGateway _databaseGateway;
-        private readonly IRoleQueryFactory _queryFactory;
-        private readonly IQueryMapper _queryMapper;
-        private readonly IDataRowMapper _dataRowMapper;
+        _databaseContextService = Guard.AgainstNull(databaseContextService);
+        _queryFactory = Guard.AgainstNull(queryFactory);
+        _queryMapper = Guard.AgainstNull(queryMapper);
+        _dataRowMapper = Guard.AgainstNull(dataRowMapper);
+    }
 
-        public RoleQuery(IDatabaseGateway databaseGateway, IQueryMapper queryMapper, IDataRowMapper dataRowMapper, IRoleQueryFactory queryFactory)
+    public async Task<IEnumerable<Messages.v1.Role>> SearchAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(specification);
+
+        var result = (await _queryMapper.MapObjectsAsync<Messages.v1.Role>(_queryFactory.Search(specification), cancellationToken)).ToList();
+
+        if (specification.PermissionsIncluded)
         {
-            Guard.AgainstNull(databaseGateway, nameof(databaseGateway));
-            Guard.AgainstNull(queryFactory, nameof(queryFactory));
-            Guard.AgainstNull(queryMapper, nameof(queryMapper));
-            Guard.AgainstNull(dataRowMapper, nameof(dataRowMapper));
+            var permissionRows = await _databaseContextService.Active.GetRowsAsync(_queryFactory.Permissions(specification), cancellationToken);
 
-            _databaseGateway = databaseGateway;
-            _queryFactory = queryFactory;
-            _queryMapper = queryMapper;
-            _dataRowMapper = dataRowMapper;
-        }
-
-        public IEnumerable<DataAccess.Query.Role> Search(DataAccess.Query.Role.Specification specification)
-        {
-            Guard.AgainstNull(specification, nameof(specification));
-
-            var result = _queryMapper.MapObjects<DataAccess.Query.Role>(_queryFactory.Search(specification)).ToList();
-
-            if (specification.PermissionsIncluded)
+            foreach (var permissionGroup in permissionRows.GroupBy(row => Columns.RoleId.Value(row)))
             {
-                var permissionRows = _databaseGateway.GetRows(_queryFactory.Permissions(specification));
+                var role = result.FirstOrDefault(item => item.Id == permissionGroup.Key);
 
-                foreach (var permissionGroup in permissionRows.GroupBy(row=>Columns.RoleId.MapFrom(row)))
+                if (role == null)
                 {
-                    var role = result.FirstOrDefault(item => item.Id == permissionGroup.Key);
-
-                    if (role == null)
-                    {
-                        continue;
-                    }
-
-                    role.Permissions = _dataRowMapper.MapObjects<DataAccess.Query.Role.Permission>(permissionGroup).ToList();
+                    continue;
                 }
+
+                role.Permissions = _dataRowMapper.MapObjects<Messages.v1.Role.Permission>(permissionGroup).ToList();
             }
-
-            return result;
         }
 
-        public IEnumerable<DataAccess.Query.Role.Permission> Permissions(DataAccess.Query.Role.Specification specification)
-        {
-            return _queryMapper.MapObjects<DataAccess.Query.Role.Permission>(_queryFactory.Permissions(specification));
-        }
+        return result;
+    }
 
-        public int Count(DataAccess.Query.Role.Specification specification)
-        {
-            return _databaseGateway.GetScalar<int>(_queryFactory.Count(specification));
-        }
+    public async Task<IEnumerable<Messages.v1.Permission>> PermissionsAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return await _queryMapper.MapObjectsAsync<Messages.v1.Role.Permission>(_queryFactory.Permissions(specification), cancellationToken);
+    }
+
+    public async ValueTask<int> CountAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Count(specification), cancellationToken);
     }
 }

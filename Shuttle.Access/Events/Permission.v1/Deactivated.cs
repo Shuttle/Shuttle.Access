@@ -1,7 +1,3 @@
-﻿namespace Shuttle.Access.Events.Permission.v1
-{
-    public class Deactivated
-    {
-        
-    }
-}
+﻿namespace Shuttle.Access.Events.Permission.v1;
+
+public class Deactivated;

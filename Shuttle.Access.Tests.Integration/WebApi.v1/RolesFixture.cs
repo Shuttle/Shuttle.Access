@@ -1,264 +1,194 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using System.Threading;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
-using Shuttle.Esb;
 
-namespace Shuttle.Access.Tests.Integration.WebApi.v1
+namespace Shuttle.Access.Tests.Integration.WebApi.v1;
+
+[TestFixture]
+public class RolesFixture
 {
-    public class RolesFixture : WebApiFixture
+    private static Messages.v1.Role CreateRole()
     {
-        [Test]
-        public void Should_be_able_to_get_all_roles()
+        return new()
         {
-            var roleQuery = new Mock<IRoleQuery>();
-
-            var role = CreateRole();
-
-            roleQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Role.Specification>())).Returns(
-                new List<Access.DataAccess.Query.Role>
+            Id = Guid.NewGuid(),
+            Name = "name",
+            Permissions =
+            [
+                new()
                 {
-                    role
-                });
-
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(roleQuery.Object);
-                       });
-                   }).CreateClient())
-            {
-                var client = GetClient(httpClient);
-
-                var response = client.Roles.Get().Result;
-
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.Content, Is.Not.Null);
-
-                Assert.That(response.Content.Count, Is.EqualTo(1));
-
-                var responseRole = response.Content[0];
-
-                Assert.That(responseRole.Id, Is.EqualTo(role.Id));
-                Assert.That(responseRole.Name, Is.EqualTo(role.Name));
-                Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions[0].Id), Is.Not.Null);
-                Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions[1].Id), Is.Not.Null);
-            }
-        }
-
-        private static Access.DataAccess.Query.Role CreateRole()
-        {
-            return new Access.DataAccess.Query.Role
-            {
-                Id = Guid.NewGuid(),
-                Name = "name",
-                Permissions = new List<Access.DataAccess.Query.Role.Permission>
+                    Id = Guid.NewGuid(),
+                    Name = "system://permission-a"
+                },
+                new()
                 {
-                    new()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "system://permission-a"
-                    },
-                    new()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "system://permission-b"
-                    }
+                    Id = Guid.NewGuid(),
+                    Name = "system://permission-b"
                 }
-            };
-        }
+            ]
+        };
+    }
 
-        [Test]
-        public void Should_be_able_to_get_role_by_value()
-        {
-            var roleQuery = new Mock<IRoleQuery>();
+    [Test]
+    public async Task Should_be_able_to_get_all_roles_async()
+    {
+        var factory = new FixtureWebApplicationFactory();
 
-            var role = CreateRole();
+        var role = CreateRole();
 
-            roleQuery.Setup(m => m.Search(It.IsAny<Access.DataAccess.Query.Role.Specification>())).Returns(
-                new List<Access.DataAccess.Query.Role>
-                {
-                    role
-                });
-
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(roleQuery.Object);
-                       });
-                   }).CreateClient())
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
+            Task.FromResult(new List<Messages.v1.Role>
             {
-                var client = GetClient(httpClient);
+                role
+            }.AsEnumerable()));
 
-                var response = client.Roles.Get("some-value").Result;
+        var client = factory.GetAccessClient();
 
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.Content, Is.Not.Null);
-                Assert.That(response.Content.Id, Is.EqualTo(role.Id));
-                Assert.That(response.Content.Name, Is.EqualTo(role.Name));
-                Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions[0].Id), Is.Not.Null);
-                Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions[1].Id), Is.Not.Null);
-            }
-        }
+        var response = await client.Roles.GetAsync();
 
-        [Test]
-        public void Should_be_able_to_delete_role()
-        {
-            var id = Guid.NewGuid();
-            var serviceBus = new Mock<IServiceBus>();
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.Content, Is.Not.Null);
+        Assert.That(response.Content!.Count, Is.EqualTo(1));
 
-            serviceBus.Setup(m => m.Send(It.Is<RemoveRole>(message => message.Id.Equals(id)), null)).Verifiable();
+        var responseRole = response.Content[0];
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(new Mock<IRoleQuery>().Object);
-                           services.AddSingleton(serviceBus.Object);
-                       });
-                   }).CreateDefaultClient())
+        Assert.That(responseRole.Id, Is.EqualTo(role.Id));
+        Assert.That(responseRole.Name, Is.EqualTo(role.Name));
+        Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions[0].Id), Is.Not.Null);
+        Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions[1].Id), Is.Not.Null);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_get_role_by_value_async()
+    {
+        var factory = new FixtureWebApplicationFactory();
+
+        var role = CreateRole();
+
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
+            Task.FromResult(new List<Messages.v1.Role>
             {
-                var client = GetClient(httpClient).RegisterSession();
+                role
+            }.AsEnumerable()));
 
-                var response = client.Roles.Delete(id).Result;
+        var client = factory.GetAccessClient();
 
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
+        var response = await client.Roles.GetAsync("some-value");
 
-                serviceBus.VerifyAll();
-            }
-        }
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.Content, Is.Not.Null);
+        Assert.That(response.Content!.Id, Is.EqualTo(role.Id));
+        Assert.That(response.Content.Name, Is.EqualTo(role.Name));
+        Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions[0].Id), Is.Not.Null);
+        Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions[1].Id), Is.Not.Null);
+    }
 
-        [Test]
-        public void Should_be_able_to_set_role()
+    [Test]
+    public async Task Should_be_able_to_delete_role_async()
+    {
+        var id = Guid.NewGuid();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RemoveRole>(message => message.Id.Equals(id)), null)).Verifiable();
+
+        var response = await factory.GetAccessClient().Roles.DeleteAsync(id);
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+
+        factory.ServiceBus.VerifyAll();
+    }
+
+    [Test]
+    public async Task Should_be_able_to_set_role_async()
+    {
+        var permissionId = Guid.NewGuid();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.ServiceBus.Setup(m =>
+                m.SendAsync(It.Is<SetRolePermission>(message => message.PermissionId.Equals(permissionId)), null))
+            .Verifiable();
+
+        var response = await factory.GetAccessClient().Roles.SetPermissionAsync(Guid.NewGuid(), new()
         {
-            var permissionId = Guid.NewGuid();
+            PermissionId = permissionId,
+            Active = true
+        });
 
-            var serviceBus = new Mock<IServiceBus>();
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-            serviceBus.Setup(m =>
-                    m.Send(It.Is<SetRolePermission>(message => message.PermissionId.Equals(permissionId)), null))
-                .Verifiable();
+        factory.ServiceBus.VerifyAll();
+    }
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(new Mock<IRoleQuery>().Object);
-                           services.AddSingleton(serviceBus.Object);
-                       });
-                   }).CreateDefaultClient())
+    [Test]
+    public async Task Should_be_able_to_get_role_async()
+    {
+        var activePermissionId = Guid.NewGuid();
+        var inactivePermissionId = Guid.NewGuid();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
+            Task.FromResult(new List<Messages.v1.Permission>
             {
-                var client = GetClient(httpClient).RegisterSession();
-
-                var response = client.Roles.SetPermission(Guid.NewGuid(), new SetRolePermission
+                new()
                 {
-                    PermissionId = permissionId,
-                    Active = true
-                }).Result;
+                    Id = activePermissionId,
+                    Name = "system://permission-a"
+                }
+            }.AsEnumerable()));
 
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
-
-                serviceBus.VerifyAll();
-            }
-        }
-
-        [Test]
-        public void Should_be_able_to_get_role()
+        var response = await factory.GetAccessClient().Roles.PermissionAvailabilityAsync(Guid.NewGuid(), new()
         {
-            var activePermissionId = Guid.NewGuid();
-            var inactivePermissionId = Guid.NewGuid();
-            var roleQuery = new Mock<IRoleQuery>();
+            Values =
+            [
+                activePermissionId,
+                inactivePermissionId
+            ]
+        });
 
-            roleQuery.Setup(m => m.Permissions(It.IsAny<Access.DataAccess.Query.Role.Specification>())).Returns(
-                new List<Access.DataAccess.Query.Role.Permission>
-                {
-                    new()
-                    {
-                        Id = activePermissionId,
-                        Name = "system://permission-a"
-                    }
-                });
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.Content, Is.Not.Null);
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                       {
-                           builder.ConfigureTestServices(services =>
-                           {
-                               services.AddSingleton(roleQuery.Object);
-                           });
-                       })
-                       .CreateClient())
-            {
-                var client = GetClient(httpClient);
+        Assert.That(response.Content!.Count, Is.EqualTo(2));
 
-                var response = client.Roles.PermissionAvailability(Guid.NewGuid(), new Identifiers<Guid>
-                {
-                    Values = new List<Guid>
-                    {
-                        activePermissionId,
-                        inactivePermissionId
-                    }
-                }).Result;
+        var permission = response.Content.Find(item => item.Id == activePermissionId);
 
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.Content, Is.Not.Null);
+        Assert.That(permission, Is.Not.Null);
+        Assert.That(permission!.Active, Is.True);
 
-                Assert.That(response.Content.Count, Is.EqualTo(2));
+        permission = response.Content.Find(item => item.Id == inactivePermissionId);
 
-                var permission = response.Content.Find(item => item.Id == activePermissionId);
+        Assert.That(permission, Is.Not.Null);
+        Assert.That(permission!.Active, Is.False);
+    }
 
-                Assert.That(permission, Is.Not.Null);
-                Assert.That(permission.Active, Is.True);
+    [Test]
+    public async Task Should_be_able_to_register_role_async()
+    {
+        var factory = new FixtureWebApplicationFactory();
 
-                permission = response.Content.Find(item => item.Id == inactivePermissionId);
-
-                Assert.That(permission, Is.Not.Null);
-                Assert.That(permission.Active, Is.False);
-            }
-        }
-
-        [Test]
-        public void Should_be_able_to_register_role()
+        var response = await factory.GetAccessClient().Roles.RegisterAsync(new()
         {
-            var serviceBus = new Mock<IServiceBus>();
+            Name = "role"
+        });
 
-            using (var httpClient = Factory.WithWebHostBuilder(builder =>
-                   {
-                       builder.ConfigureTestServices(services =>
-                       {
-                           services.AddSingleton(new Mock<IRoleQuery>().Object);
-                           services.AddSingleton(serviceBus.Object);
-                       });
-                   }).CreateDefaultClient())
-            {
-                var client = GetClient(httpClient).RegisterSession();
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-                var response = client.Roles.Register(new RegisterRole
-                {
-                    Name = "role"
-                }).Result;
-
-                Assert.That(response, Is.Not.Null);
-                Assert.That(response.IsSuccessStatusCode, Is.True);
-                Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
-
-                serviceBus.Verify(m => m.Send(It.IsAny<RegisterRole>(), null), Times.Once);
-            }
-        }
+        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<RegisterRole>(), null), Times.Once);
     }
 }

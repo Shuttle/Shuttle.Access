@@ -12,13 +12,13 @@
 		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.Sql.git" />
 		<projectUrl>https://github.com/shuttle/Shuttle.Access</projectUrl>
 		<description>Provides Sql-based implementation of data access components for use with Shuttle.Access implementations.</description>
-		<copyright>Copyright (c) 2022, Eben Roux</copyright>
+		<copyright>Copyright (c) 2025, Eben Roux</copyright>
     <tags>iam identity authorization authentication security permissions</tags>
 		<dependencies>
-      <dependency id="Shuttle.Core.Data" version="13.0.2" />
-      <dependency id="Shuttle.Core.DependencyInjection" version="1.0.1" />
-      <dependency id="Shuttle.Recall" version="16.1.1" />
-      <dependency id="Shuttle.Recall.Sql.Storage" version="16.1.1" />
+      <dependency id="Shuttle.Core.Data" version="20.0.0" />
+      <dependency id="Shuttle.Core.DependencyInjection" version="20.0.0" />
+      <dependency id="Shuttle.Recall" version="20.0.0" />
+      <dependency id="Shuttle.Recall.Sql.Storage" version="20.0.0" />
 		</dependencies>
 	</metadata>
 	<files>

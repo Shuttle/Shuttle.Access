@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Shuttle.Access
+namespace Shuttle.Access;
+
+public interface IAuthorizationService
 {
-    public interface IAuthorizationService
-    {
-        IEnumerable<string> Permissions(string identityName);
-    }
+    Task<IEnumerable<string>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default);
 }

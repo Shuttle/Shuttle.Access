@@ -1,59 +1,70 @@
-﻿using Shuttle.Access.Events.Permission.v1;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Projection.v1
+namespace Shuttle.Access.Projection.v1;
+
+public class PermissionHandler :
+    IEventHandler<Registered>,
+    IEventHandler<Activated>,
+    IEventHandler<Deactivated>,
+    IEventHandler<Removed>,
+    IEventHandler<NameSet>
 {
-    public class PermissionHandler :
-        IEventHandler<Registered>,
-        IEventHandler<Activated>,
-        IEventHandler<Deactivated>,
-        IEventHandler<Removed>,
-        IEventHandler<NameSet>
+    private readonly ILogger<PermissionHandler> _logger;
+    private readonly IPermissionProjectionQuery _query;
+
+    public PermissionHandler(ILogger<PermissionHandler> logger, IPermissionProjectionQuery query)
     {
-        private readonly IPermissionProjectionQuery _query;
+        _logger = Guard.AgainstNull(logger);
+        _query = Guard.AgainstNull(query);
+    }
 
-        public PermissionHandler(IPermissionProjectionQuery query)
-        {
-            Guard.AgainstNull(query, nameof(query));
+    public async Task ProcessEventAsync(IEventHandlerContext<Activated> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query = query;
-        }
+        await _query.ActivatedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
-        public void ProcessEvent(IEventHandlerContext<Registered> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+        _logger.LogDebug($"[Activated] : id = '{context.PrimitiveEvent.Id}'");
+    }
 
-            _query.Registered(context.PrimitiveEvent, context.Event);
-        }
+    public async Task ProcessEventAsync(IEventHandlerContext<Deactivated> context)
+    {
+        Guard.AgainstNull(context);
 
-        public void ProcessEvent(IEventHandlerContext<Activated> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+        await _query.DeactivatedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
-            _query.Activated(context.PrimitiveEvent, context.Event);
-        }
+        _logger.LogDebug($"[Deactivated] : id = '{context.PrimitiveEvent.Id}'");
+    }
 
-        public void ProcessEvent(IEventHandlerContext<Deactivated> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context)
+    {
+        Guard.AgainstNull(context);
 
-            _query.Deactivated(context.PrimitiveEvent, context.Event);
-        }
+        await _query.NameSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
-        public void ProcessEvent(IEventHandlerContext<Removed> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+        _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}'");
+    }
 
-            _query.Removed(context.PrimitiveEvent, context.Event);
-        }
+    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context)
+    {
+        Guard.AgainstNull(context);
 
-        public void ProcessEvent(IEventHandlerContext<NameSet> context)
-        {
-            Guard.AgainstNull(context, nameof(context));
+        await _query.RegisteredAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
-            _query.NameSet(context.PrimitiveEvent, context.Event);
-        }
+        _logger.LogDebug($"[Registered] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}' / status = '{context.Event.Status}'");
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<Removed> context)
+    {
+        Guard.AgainstNull(context);
+
+        await _query.RemovedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+
+        _logger.LogDebug($"[Removed] : id = '{context.PrimitiveEvent.Id}'");
     }
 }

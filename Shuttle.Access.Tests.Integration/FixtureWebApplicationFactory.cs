@@ -1,59 +1,86 @@
 ﻿using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Moq;
 using Shuttle.Access.DataAccess;
+using Shuttle.Access.WebApi;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
-using Shuttle.Recall;
+using Shuttle.OAuth;
+using Shuttle.Recall.Sql.EventProcessing;
+using Shuttle.Recall.Sql.Storage;
 
-namespace Shuttle.Access.Tests.Integration
+namespace Shuttle.Access.Tests.Integration;
+
+public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
 {
-    public class FixtureWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup> where TStartup : class
+    private readonly Action<IWebHostBuilder>? _webHostBuilder;
+
+    public FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilder = null)
     {
-        protected override IHostBuilder CreateHostBuilder()
+        _webHostBuilder = webHostBuilder;
+    }
+
+    public Mock<IAccessService> AccessService { get; } = new();
+    public Mock<IDatabaseContextFactory> DatabaseContextFactory { get; } = new();
+    public Mock<IIdentityQuery> IdentityQuery { get; } = new();
+    public Mock<IMediator> Mediator { get; } = new();
+    public Mock<IOAuthGrantRepository> OAuthGrantRepository { get; } = new();
+    public Mock<IPermissionQuery> PermissionQuery { get; } = new();
+    public Mock<IRoleQuery> RoleQuery { get; } = new();
+    public Mock<IServiceBus> ServiceBus { get; } = new();
+    public Mock<ISessionQuery> SessionQuery { get; } = new();
+    public Mock<ISessionRepository> SessionRepository { get; } = new();
+
+    protected override void ConfigureClient(HttpClient client)
+    {
+        client.DefaultRequestHeaders.Authorization = new("Shuttle.Access", $"token={Guid.NewGuid():D}");
+
+        base.ConfigureClient(client);
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        base.ConfigureWebHost(builder);
+
+        _webHostBuilder?.Invoke(builder);
+
+        AccessService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<string>())).Returns(ValueTask.FromResult(true));
+        AccessService.Setup(m => m.ContainsAsync(It.IsAny<Guid>())).Returns(ValueTask.FromResult(true));
+
+        //var databaseContext = new MockDatabaseContext();
+        var databaseContext = new Mock<IDatabaseContext>();
+
+        DatabaseContextFactory.Setup(m => m.Create()).Returns(databaseContext.Object);
+        DatabaseContextFactory.Setup(m => m.Create(It.IsAny<string>())).Returns(databaseContext.Object);
+
+        builder.ConfigureServices(services =>
         {
-            var accessService = new Mock<IAccessService>();
+            services.AddOptions<SqlStorageOptions>().Configure(options =>
+            {
+                options.ConfigureDatabase = false;
+            });
 
-            accessService.Setup(m => m.HasPermission(It.IsAny<Guid>(), It.IsAny<string>())).Returns(true);
-            accessService.Setup(m => m.Contains(It.IsAny<Guid>())).Returns(true);
+            services.AddOptions<SqlEventProcessingOptions>().Configure(options =>
+            {
+                options.ConfigureDatabase = false;
+            });
 
-            var builder = Host.CreateDefaultBuilder()
-                .ConfigureWebHostDefaults(hostBuilder =>
-                {
-                    hostBuilder.ConfigureTestServices(services =>
-                    {
-                        services.AddSingleton<ISessionService>(new SessionService());
-                        services.AddSingleton(new Mock<IDatabaseContextFactory>().Object);
-                        services.AddSingleton(new Mock<IAuthenticationService>().Object);
-                        services.AddSingleton(new Mock<IAuthorizationService>().Object);
-                        services.AddSingleton(new Mock<ISessionRepository>().Object);
-                        services.AddSingleton(new Mock<ISessionQuery>().Object);
-                        services.AddSingleton(new Mock<IServiceBus>().Object);
-                        services.AddSingleton(new Mock<IMediator>().Object);
-                        services.AddSingleton(accessService.Object);
-                        // check if still required after refactor:
-                        services.AddSingleton(new Mock<IHashingService>().Object);
-                        services.AddSingleton(new Mock<IEventStore>().Object);
-                        services.AddSingleton(new Mock<IPasswordGenerator>().Object);
-                    });
-                    hostBuilder.UseStartup<TStartup>().UseTestServer();
-                });
-            return builder;
-        }
-
-        protected override void ConfigureClient(HttpClient client)
-        {
-            client.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", Guid.NewGuid().ToString());
-
-            base.ConfigureClient(client);
-        }
+            services.AddSingleton(new Mock<ISubscriptionService>().Object);
+            services.AddSingleton(AccessService.Object);
+            services.AddSingleton(OAuthGrantRepository.Object);
+            services.AddSingleton(DatabaseContextFactory.Object);
+            services.AddSingleton(IdentityQuery.Object);
+            services.AddSingleton(Mediator.Object);
+            services.AddSingleton(PermissionQuery.Object);
+            services.AddSingleton(RoleQuery.Object);
+            services.AddSingleton(SessionQuery.Object);
+            services.AddSingleton(ServiceBus.Object);
+            services.AddSingleton(SessionRepository.Object);
+        });
     }
 }

@@ -1,32 +1,41 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.RestClient
+namespace Shuttle.Access.RestClient;
+
+public static class ServiceCollectionExtensions
 {
-    public static class ServiceCollectionExtensions
+    public static IServiceCollection AddAccessClient(this IServiceCollection services, Action<AccessClientBuilder>? builder = null)
     {
-        public static IServiceCollection AddAccessClient(this IServiceCollection services,
-            Action<AccessClientBuilder> builder = null)
+        Guard.AgainstNull(services);
+
+        var accessRestClientBuilder = new AccessClientBuilder(services);
+
+        builder?.Invoke(accessRestClientBuilder);
+
+        services.Configure<AccessClientOptions>(options =>
         {
-            Guard.AgainstNull(services, nameof(services));
+            options.BaseAddress = accessRestClientBuilder.Options.BaseAddress;
+            options.IdentityName = accessRestClientBuilder.Options.IdentityName;
+            options.Password = accessRestClientBuilder.Options.Password;
+        });
 
-            var accessRestClientBuilder = new AccessClientBuilder(services);
+        services.AddSingleton<IValidateOptions<AccessClientOptions>, AccessClientOptionsValidator>();
 
-            builder?.Invoke(accessRestClientBuilder);
-
-            services.AddOptions<AccessClientOptions>().Configure(options =>
+        services.AddTransient<AuthenticationHeaderHandler>();
+        services.AddHttpClient<IAccessClient, AccessClient>("AccessClient", (serviceProvider, client) =>
             {
-                options.BaseAddress = accessRestClientBuilder.Options.BaseAddress;
-                options.IdentityName = accessRestClientBuilder.Options.IdentityName;
-                options.Password = accessRestClientBuilder.Options.Password;
-            });
+                var options = serviceProvider.GetRequiredService<IOptions<AccessClientOptions>>().Value;
 
-            services.TryAddSingleton<IAccessClient, AccessClient>();
-            services.TryAddSingleton<AuthenticationHeaderHandler>();
+                client.BaseAddress = new(options.BaseAddress);
+            })
+            .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
-            return services;
-        }
+        services.TryAddSingleton<IAccessService, RestAccessService>();
+
+        return services;
     }
 }

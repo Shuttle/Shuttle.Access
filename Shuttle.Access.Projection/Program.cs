@@ -1,102 +1,137 @@
 ﻿using System;
 using System.Data.Common;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Resources;
+using Microsoft.Extensions.Logging;
 using OpenTelemetry.Trace;
+using Serilog;
 using Shuttle.Access.Projection.v1;
 using Shuttle.Core.Data;
 using Shuttle.Core.DependencyInjection;
+using Shuttle.Core.Pipelines;
 using Shuttle.Recall;
-using Shuttle.Recall.OpenTelemetry;
+using Shuttle.Recall.Logging;
 using Shuttle.Recall.Sql.EventProcessing;
 using Shuttle.Recall.Sql.Storage;
 
-namespace Shuttle.Access.Projection
+namespace Shuttle.Access.Projection;
+
+internal class Program
 {
-    internal class Program
+    private static async Task Main(string[] args)
     {
-        private static void Main(string[] args)
+        DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
+
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        var configurationFolder = Environment.GetEnvironmentVariable("CONFIGURATION_FOLDER");
+
+        if (string.IsNullOrEmpty(configurationFolder))
         {
-            DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
+            throw new ApplicationException("Environment variable `CONFIGURATION_FOLDER` has not been set.");
+        }
 
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        var appsettingsPath = Path.Combine(configurationFolder, "appsettings.json");
 
-            var host = Host.CreateDefaultBuilder()
-                .ConfigureServices(services =>
-                {
-                    var configuration = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        if (!File.Exists(appsettingsPath))
+        {
+            throw new ApplicationException($"File '{appsettingsPath}' cannot be accessed/found.");
+        }
 
-                    services.AddSingleton<IConfiguration>(configuration);
+        var host = Host.CreateDefaultBuilder()
+            .ConfigureServices(services =>
+            {
+                var configuration = new ConfigurationBuilder().AddJsonFile(appsettingsPath).Build();
 
-                    services.FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add();
+                Log.Logger = new LoggerConfiguration()
+                    .ReadFrom.Configuration(configuration)
+                    .CreateLogger();
 
-                    services.AddDataAccess(builder =>
+                services
+                    .AddSingleton<IConfiguration>(configuration)
+                    .AddLogging(builder =>
+                    {
+                        builder.AddSerilog();
+                    })
+                    .FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add()
+                    .AddDataAccess(builder =>
                     {
                         builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
                         builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
-                    });
-
-                    services.AddEventStore(builder =>
+                    })
+                    .AddSqlEventStorage(builder =>
                     {
-                        builder.AddEventHandler<IdentityHandler>(ProjectionNames.Identity);
-                        builder.AddEventHandler<PermissionHandler>(ProjectionNames.Permission);
-                        builder.AddEventHandler<RoleHandler>(ProjectionNames.Role);
-                    });
+                        builder.Options.ConnectionStringName = "Access";
 
-                    services.AddSqlEventStorage();
-                    services.AddSqlEventProcessing(builder =>
+                        builder.UseSqlServer();
+                    })
+                    .AddSqlEventProcessing(builder =>
                     {
-                        builder.Options.EventProjectionConnectionStringName = "Access";
-                        builder.Options.EventStoreConnectionStringName = "Access";
-                    });
+                        builder.Options.ConnectionStringName = "Access";
 
-                    services.AddSingleton<IHashingService, HashingService>();
+                        builder.UseSqlServer();
+                    })
+                    .AddEventStore(builder =>
+                    {
+                        configuration.GetSection(EventStoreOptions.SectionName).Bind(builder.Options);
 
-                    services.AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Projection"));
+                        builder.AddProjection(ProjectionNames.Identity).AddEventHandler<IdentityHandler>();
+                        builder.AddProjection(ProjectionNames.Permission).AddEventHandler<PermissionHandler>();
+                        builder.AddProjection(ProjectionNames.Role).AddEventHandler<RoleHandler>();
+                    })
+                    .AddEventStoreLogging(builder =>
+                    {
+                        builder.Options.AddPipelineEventType<OnPipelineException>();
+                        builder.Options.AddPipelineEventType<OnAfterAcknowledgeEvent>();
+                    })
+                    .AddSingleton<IHashingService, HashingService>()
+                    .AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Projection"));
 
-                    services.AddOpenTelemetryTracing(
-                        builder => builder
-                            //.AddSource("Shuttle.Access.Projection")
-                            .AddRecallInstrumentation(openTelemetryBuilder =>
-                            {
-                                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
-                            })
-                            .AddSqlClientInstrumentation(options =>
-                            {
-                                options.SetDbStatementForText = true;
-                            })
-                            .AddJaegerExporter(options =>
-                            {
-                                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
-                            }));
-                })
-                .Build();
+                //services.AddOpenTelemetry()
+                //    .WithTracing(builder =>
+                //    {
+                //        builder.AddRecallInstrumentation(openTelemetryBuilder =>
+                //            {
+                //                configuration.GetSection(RecallOpenTelemetryOptions.SectionName).Bind(openTelemetryBuilder.Options);
+                //            })
+                //            .AddSqlClientInstrumentation(options =>
+                //            {
+                //                options.SetDbStatementForText = true;
+                //            })
+                //            .AddJaegerExporter(options =>
+                //            {
+                //                options.AgentHost = Environment.GetEnvironmentVariable("JAEGER_AGENT_HOST");
+                //            });
+                //    });
+            })
+            .Build();
 
-            var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
+        var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
 
-            var cancellationTokenSource = new CancellationTokenSource();
+        var cancellationTokenSource = new CancellationTokenSource();
 
-            Console.CancelKeyPress += delegate {
-                cancellationTokenSource.Cancel();
-            };
+        Console.CancelKeyPress += delegate
+        {
+            cancellationTokenSource.Cancel();
+        };
 
-            if (!databaseContextFactory.IsAvailable("Access", cancellationTokenSource.Token))
-            {
-                throw new ApplicationException("[connection failure]");
-            }
-
-            if (cancellationTokenSource.Token.IsCancellationRequested)
-            {
-                return;
-            }
-
-            host.Run();
+        if (!databaseContextFactory.IsAvailable("Access", cancellationTokenSource.Token))
+        {
+            throw new ApplicationException("[connection failure]");
         }
+
+        if (cancellationTokenSource.Token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        await host.RunAsync(cancellationTokenSource.Token);
     }
 }

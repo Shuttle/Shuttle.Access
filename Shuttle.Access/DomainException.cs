@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace Shuttle.Access
+namespace Shuttle.Access;
+
+public class DomainException : Exception
 {
-    public class DomainException : Exception
+    public DomainException(string message) : base(message)
     {
-        public DomainException(string message) : base(message)
-        {
-        }
     }
 }

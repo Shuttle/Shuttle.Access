@@ -4,11 +4,11 @@ using Shuttle.Access.DataAccess;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 
-namespace Shuttle.Access.Sql
+namespace Shuttle.Access.Sql;
+
+public class SessionQueryFactory : ISessionQueryFactory
 {
-	public class SessionQueryFactory : ISessionQueryFactory
-	{
-		private const string SelectedColumns = @"
+    private const string SelectedColumns = @"
 	Token, 
 	IdentityId, 
 	IdentityName, 
@@ -16,208 +16,223 @@ namespace Shuttle.Access.Sql
 	ExpiryDate 
 ";
 
-		public IQuery Get(Guid token)
-		{
-			return RawQuery.Create(@"
-select 
-	Token, 
-	IdentityId, 
-	IdentityName, 
-	DateRegistered, 
-	ExpiryDate 
-from 
-	[dbo].[Session] 
-where 
-	Token = @Token
-")
-				.AddParameterValue(Columns.Token, token);
-		}
+    public IQuery Contains(DataAccess.Session.Specification specification)
+    {
+        Guard.AgainstNull(specification);
 
-        public IQuery Get(string identityName)
-        {
-            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
-            
-            return RawQuery.Create(@"
-select 
-	Token, 
-	IdentityId, 
-	IdentityName, 
-	DateRegistered, 
-	ExpiryDate 
-from 
-	[dbo].[Session] 
-where 
-	IdentityName = @IdentityName
+        return new Query($@"
+IF EXISTS 
+(
+    SELECT 
+        NULL 
+    FROM 
+        [dbo].[Session] 
+{Where(specification)}
+) 
+	SELECT 1 
+ELSE 
+    SELECT 0
 ")
-                .AddParameterValue(Columns.IdentityName, identityName);
-        }
+            .AddParameter(Columns.Token, specification.Token)
+            .AddParameter(Columns.IdentityName, specification.IdentityName)
+            .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
+    }
 
-		public IQuery GetPermissions(Guid token)
-		{
-			return RawQuery.Create(@"
-select 
+    public IQuery GetPermissions(Guid token)
+    {
+        return new Query(@"
+SELECT 
 	PermissionName 
-from 
+FROM 
 	[dbo].[SessionPermission] 
-where 
+WHERE 
 	Token = @Token
 ")
-				.AddParameterValue(Columns.Token, token);
-		}
+            .AddParameter(Columns.Token, token);
+    }
 
-		public IQuery Remove(string identityName)
-		{
-            Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+    public IQuery Save(Session session)
+    {
+        Guard.AgainstNull(session);
 
-			return RawQuery.Create(@"
-delete 
-from 
+        return new Query($@"
+IF NOT EXISTS (SELECT NULL FROM [dbo].[Session] WHERE IdentityName = @IdentityName)
+BEGIN
+    INSERT INTO [dbo].[Session] 
+    (
+    {SelectedColumns}
+    )
+    VALUES
+    (
+	    @Token, 
+	    @IdentityId, 
+	    @IdentityName, 
+	    @DateRegistered,
+        @ExpiryDate
+    )
+END
+ELSE
+BEGIN
+    UPDATE
+        [dbo].[Session]
+    SET
+        Token = @Token,
+        ExpiryDate = @ExpiryDate
+    WHERE
+        IdentityName = @IdentityName
+END
+
+DELETE FROM [dbo].[SessionPermission]
+FROM
+    [dbo].[SessionPermission] sp
+INNER JOIN
+    [dbo].[Session] s ON s.Token = sp.Token
+WHERE
+    s.IdentityName = @IdentityName;
+
+{(!session.HasPermissions
+    ? string.Empty
+    : @$"
+INSERT INTO [dbo].[SessionPermission]
+(
+    Token,
+    PermissionName
+)
+VALUES
+{string.Join(",", session.Permissions.Select(permission => $@"
+(
+    @Token,
+    '{permission}'
+)
+"))}
+")}
+")
+            .AddParameter(Columns.Token, session.Token)
+            .AddParameter(Columns.IdentityName, session.IdentityName)
+            .AddParameter(Columns.IdentityId, session.IdentityId)
+            .AddParameter(Columns.DateRegistered, session.DateRegistered)
+            .AddParameter(Columns.ExpiryDate, session.ExpiryDate);
+    }
+
+    public IQuery Remove(Guid token)
+    {
+        return new Query(@"
+DELETE 
+FROM 
 	[dbo].[Session] 
-where 
+WHERE 
+	Token = @Token
+")
+            .AddParameter(Columns.Token, token);
+    }
+
+    public IQuery Search(DataAccess.Session.Specification specification)
+    {
+        Guard.AgainstNull(specification);
+
+        return new Query($@"
+SELECT DISTINCT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
+{SelectedColumns}
+FROM
+	[dbo].[Session] 
+{Where(specification)}
+ORDER BY
+    IdentityName,
+    DateRegistered DESC
+")
+            .AddParameter(Columns.Token, specification.Token)
+            .AddParameter(Columns.IdentityName, specification.IdentityName)
+            .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
+    }
+
+    public IQuery Find(Guid token)
+    {
+        return new Query($@"
+SELECT 
+{SelectedColumns}
+FROM 
+	[dbo].[Session] 
+WHERE 
+	Token = @Token
+")
+            .AddParameter(Columns.Token, token);
+    }
+
+    public IQuery Count(DataAccess.Session.Specification specification)
+    {
+        Guard.AgainstNull(specification);
+
+        return new Query($@"
+SELECT 
+    COUNT(*)
+FROM
+	[dbo].[Session] 
+{Where(specification)}
+")
+            .AddParameter(Columns.Token, specification.Token)
+            .AddParameter(Columns.IdentityName, specification.IdentityName)
+            .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
+    }
+
+    public IQuery RemoveAll()
+    {
+        return new Query(@"DELETE FROM [dbo].[Session]");
+    }
+
+    public IQuery Get(string identityName)
+    {
+        Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+
+        return new Query($@"
+SELECT 
+{SelectedColumns}
+FROM 
+	[dbo].[Session] 
+WHERE 
 	IdentityName = @IdentityName
 ")
-				.AddParameterValue(Columns.IdentityName, identityName);
-		}
+            .AddParameter(Columns.IdentityName, identityName);
+    }
 
-		public IQuery Add(Session session)
-		{
-            Guard.AgainstNull(session, nameof(session));
-            
-			return RawQuery.Create(@"
-insert into [dbo].[Session] 
-(
-	Token, 
-	IdentityId, 
-	IdentityName, 
-	DateRegistered,
-    ExpiryDate
-)
-values
-(
-	@Token, 
-	@IdentityId, 
-	@IdentityName, 
-	@DateRegistered,
-    @ExpiryDate
-)
-")
-				.AddParameterValue(Columns.Token, session.Token)
-				.AddParameterValue(Columns.IdentityName, session.IdentityName)
-				.AddParameterValue(Columns.IdentityId, session.IdentityId)
-				.AddParameterValue(Columns.DateRegistered, session.DateRegistered)
-				.AddParameterValue(Columns.ExpiryDate, session.ExpiryDate);
-		}
+    public IQuery Remove(string identityName)
+    {
+        Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
-		public IQuery AddPermission(Guid token, string permission)
-		{
-            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
-            
-			return RawQuery.Create(@"
-insert into [dbo].[SessionPermission]
-(
-	Token,
-	PermissionName
-)
-values
-(
-	@Token,
-	@PermissionName
-)
-")
-				.AddParameterValue(Columns.Token, token)
-				.AddParameterValue(Columns.PermissionName, permission);
-		}
-
-		public IQuery Remove(Guid token)
-		{
-			return RawQuery.Create(@"
-delete 
-from 
+        return new Query(@"
+DELETE 
+FROM 
 	[dbo].[Session] 
-here 
-	Token = @Token
+WHERE 
+	IdentityName = @IdentityName
 ")
-				.AddParameterValue(Columns.Token, token);
-		}
+            .AddParameter(Columns.IdentityName, identityName);
+    }
 
-	    public IQuery Contains(Guid token)
-	    {
-            return RawQuery.Create(@"
-if exists 
+    private string Where(DataAccess.Session.Specification specification)
+    {
+        return $@"
+WHERE
 (
-	select 
-		null 
-	from 
-		[dbo].[Session] 
-where 
+    @Token IS NULL
+    OR  
 	Token = @Token
-) 
-	select 1 else select 0
-")
-                .AddParameterValue(Columns.Token, token);
-        }
-
-	    public IQuery Contains(Guid token, string permission)
-	    {
-            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
-
-            return RawQuery.Create(@"
-if exists 
+)
+AND
 (
-	select 
-		null 
-	from 
-		[dbo].[SessionPermission] 
-	where 
-		Token = @Token 
-	and 
-		PermissionName = @PermissionName
-) 
-	select 1 else select 0
-")
-                .AddParameterValue(Columns.Token, token)
-                .AddParameterValue(Columns.PermissionName, permission);
-        }
-
-        public IQuery Renew(Session session)
-        {
-            return RawQuery.Create(@"
-update
-    [dbo].[Session]
-set
-    Token = @Token,
-    ExpiryDate = @ExpiryDate
-where
+    @IdentityName IS NULL
+    OR
     IdentityName = @IdentityName
-")
-                .AddParameterValue(Columns.Token, session.Token)
-                .AddParameterValue(Columns.ExpiryDate, session.ExpiryDate)
-                .AddParameterValue(Columns.IdentityName, session.IdentityName);
-        }
-
-        public IQuery Search(DataAccess.Query.Session.Specification specification)
-        {
-			return Specification(specification, true);
-		}
-
-        private IQuery Specification(DataAccess.Query.Session.Specification specification, bool columns)
-        {
-			Guard.AgainstNull(specification, nameof(specification));
-
-			return RawQuery.Create($@"
-select distinct
-{(columns ? SelectedColumns : "count (*)")}
-from
-	[dbo].[Session] 
-where
+)
+AND
 (
-	1 = 1
+    @IdentityNameMatch IS NULL
+    OR
+    IdentityName LIKE '%' + @IdentityNameMatch + '%'
 )
 {(!specification.Permissions.Any() ? string.Empty : $@"
-and
-    Token in (select distinct Token from [dbo].[SessionPermission] where PermissionName in ({string.Join(",", specification.Permissions.Select(item => $"'{item}'"))}))
+AND
+    Token IN (SELECT DISTINCT Token FROM [dbo].[SessionPermission] WHERE PermissionName in ({string.Join(",", specification.Permissions.Select(item => $"'{item}'"))}))
 ")}
-");
-        }
-	}
+";
+    }
 }

@@ -1,14 +1,13 @@
 ﻿using System;
 
-namespace Shuttle.Access.Events.Identity.v1
+namespace Shuttle.Access.Events.Identity.v1;
+
+public class Registered
 {
-    public class Registered
-    {
-        public string Name { get; set; }
-        public byte[] PasswordHash { get; set; }
-        public string RegisteredBy { get; set; }
-        public DateTime DateRegistered { get; set; }
-        public string GeneratedPassword { get; set; }
-        public bool Activated { get; set; }
-    }
+    public bool Activated { get; set; }
+    public DateTime DateRegistered { get; set; }
+    public string GeneratedPassword { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public byte[] PasswordHash { get; set; } = [];
+    public string RegisteredBy { get; set; } = string.Empty;
 }
