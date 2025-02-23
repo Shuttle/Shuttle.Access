@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 
@@ -17,7 +16,7 @@ public class IdentitiesFixture
 {
     private static Messages.v1.Identity CreateIdentity()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
 
         return new()
         {

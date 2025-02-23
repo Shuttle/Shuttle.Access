@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using Shuttle.Core.Contract;
 
@@ -7,12 +9,19 @@ namespace Shuttle.Access;
 
 public abstract class CachedAccessService
 {
-    private readonly object _lock = new();
+    private readonly SemaphoreSlim _lock = new(1,1);
     private readonly MemoryCache _sessions = new(new MemoryCacheOptions());
 
-    protected void Cache(Guid token, IEnumerable<string> permissions, TimeSpan slidingExpiration)
+    protected async Task CacheAsync(Guid token, IEnumerable<string> permissions, TimeSpan slidingExpiration)
     {
-        lock (_lock)
+        await _lock.WaitAsync();
+
+        if (_sessions.TryGetValue(token, out _))
+        {
+            return;
+        }
+
+        try
         {
             using (var entry = _sessions.CreateEntry(token))
             {
@@ -20,27 +29,45 @@ public abstract class CachedAccessService
                 entry.SlidingExpiration = slidingExpiration;
             }
         }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
-    protected bool Contains(Guid token)
+    protected async ValueTask<bool> ContainsAsync(Guid token)
     {
-        lock (_lock)
+        await _lock.WaitAsync();
+
+        try
         {
             return _sessions.TryGetValue(token, out _);
         }
-    }
-
-    public void Flush(Guid token)
-    {
-        lock (_lock)
+        finally
         {
-            _sessions.Remove(token);
+            _lock.Release();
         }
     }
 
-    protected bool HasPermission(Guid token, string permission)
+    public async Task FlushAsync()
     {
-        lock (_lock)
+        await _lock.WaitAsync();
+
+        try
+        {
+            _sessions.Clear();
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    protected async ValueTask<bool> HasPermissionAsync(Guid token, string permission)
+    {
+        await _lock.WaitAsync();
+
+        try
         {
             if (_sessions.TryGetValue(token, out List<string>? permissions))
             {
@@ -49,13 +76,23 @@ public abstract class CachedAccessService
 
             return false;
         }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
-    protected void Remove(Guid token)
+    protected async Task RemoveAsync(Guid token)
     {
-        lock (_lock)
+        await _lock.WaitAsync();
+        
+        try
         {
             _sessions.Remove(token);
+        }
+        finally
+        {
+            _lock.Release();
         }
     }
 }

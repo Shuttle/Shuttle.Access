@@ -68,7 +68,7 @@ IF NOT EXISTS(SELECT NULL FROM [dbo].[IdentityRole] WHERE IdentityId = @Identity
 ")
             .AddParameter(Columns.IdentityId, id)
             .AddParameter(Columns.RoleId, domainEvent.RoleId)
-            .AddParameter(Columns.DateRegistered, DateTime.UtcNow);
+            .AddParameter(Columns.DateRegistered, DateTimeOffset.UtcNow);
     }
 
     public IQuery Search(DataAccess.Identity.Specification specification)

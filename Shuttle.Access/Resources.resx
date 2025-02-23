@@ -142,6 +142,9 @@
     <value>Identity with name '{0}' is inactive.</value>
     <comment>0 = identity name</comment>
   </data>
+  <data name="InvalidAuthenticationHeader" xml:space="preserve">
+    <value>The `Authorization` header is contains scheme `Shuttle.Access` but has an invalid session token.</value>
+  </data>
   <data name="InvalidCredentialsException" xml:space="preserve">
     <value>Invalid credentials.</value>
   </data>

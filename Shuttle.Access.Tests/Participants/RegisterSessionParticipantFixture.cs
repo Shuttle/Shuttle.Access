@@ -75,7 +75,7 @@ public class RegisterSessionParticipantFixture
         var sessionRepository = new Mock<ISessionRepository>();
         var sessionQuery = new Mock<ISessionQuery>();
 
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
         var session = new Session(sessionToken, Guid.NewGuid(), IdentityName, now, now.AddMinutes(1))
             .AddPermission(AccessPermissions.Sessions.Register);
 
@@ -108,7 +108,7 @@ public class RegisterSessionParticipantFixture
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Messages.v1.Session { Token = sessionToken } }.AsEnumerable()));
 
-        sessionRepository.Setup(m => m.FindAsync(sessionToken, CancellationToken.None)).Returns(Task.FromResult(new Session(sessionToken, Guid.NewGuid(), IdentityName, DateTime.UtcNow, DateTime.UtcNow.AddMinutes(1)))!);
+        sessionRepository.Setup(m => m.FindAsync(sessionToken, CancellationToken.None)).Returns(Task.FromResult(new Session(sessionToken, Guid.NewGuid(), IdentityName, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(1)))!);
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, sessionRepository.Object, sessionQuery.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
@@ -158,7 +158,7 @@ public class RegisterSessionParticipantFixture
         var sessionRepository = new Mock<ISessionRepository>();
         var sessionQuery = new Mock<ISessionQuery>();
 
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
         var sessionToken = Guid.NewGuid();
         var session = new Session(sessionToken, Guid.NewGuid(), IdentityName, now, now.AddMinutes(-5));
 

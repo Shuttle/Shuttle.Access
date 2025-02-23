@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Castle.Core.Logging;
 using Microsoft.Extensions.Logging;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
@@ -66,9 +65,9 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
 
             await _mediator.SendAsync(registerRoleMessage);
 
-            var timeout = DateTime.Now.AddSeconds(15);
+            var timeout = DateTimeOffset.Now.AddSeconds(15);
 
-            while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTime.Now < timeout)
+            while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTimeOffset.Now < timeout)
             {
                 Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
             }

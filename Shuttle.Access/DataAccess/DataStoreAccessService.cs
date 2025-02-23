@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
@@ -21,49 +22,62 @@ public class DataStoreAccessService : CachedAccessService, IAccessService
         _sessionRepository = Guard.AgainstNull(sessionRepository);
     }
 
-    public async ValueTask<bool> ContainsAsync(Guid token)
+    public async ValueTask<bool> ContainsAsync(Guid token, CancellationToken cancellationToken = default)
     {
-        var result = Contains(token);
+        var result = await base.ContainsAsync(token);
 
         if (!result)
         {
-            await CacheAsync(token);
+            await CacheAsync(token, cancellationToken);
 
-            return Contains(token);
+            return await base.ContainsAsync(token);
         }
 
         return true;
     }
 
-    public async ValueTask<bool> HasPermissionAsync(Guid token, string permission)
+    public async Task FlushAsync(CancellationToken cancellationToken = default)
     {
-        if (!Contains(token))
+        await base.FlushAsync();
+    }
+
+    public async ValueTask<bool> HasPermissionAsync(Guid token, string permission, CancellationToken cancellationToken = default)
+    {
+        if (!await base.ContainsAsync(token))
         {
-            await CacheAsync(token);
+            await CacheAsync(token, cancellationToken);
         }
 
-        return HasPermission(token, permission);
+        return await base.HasPermissionAsync(token, permission);
     }
 
-    public new void Remove(Guid token)
+    public async Task RemoveAsync(Guid token, CancellationToken cancellationToken = default)
     {
-        base.Remove(token);
+        await base.RemoveAsync(token);
     }
 
-    private async Task CacheAsync(Guid token)
+    public async Task<Access.Session?> FindSessionAsync(Guid token, CancellationToken cancellationToken = default)
     {
-        if (Contains(token))
+        await using (_databaseContextFactory.Create(_connectionStringName))
+        {
+            return await _sessionRepository.FindAsync(token, cancellationToken);
+        }
+    }
+
+    private async Task CacheAsync(Guid token, CancellationToken cancellationToken)
+    {
+        if (await ContainsAsync(token, cancellationToken))
         {
             return;
         }
 
         await using (_databaseContextFactory.Create(_connectionStringName))
         {
-            var session = await _sessionRepository.FindAsync(token);
+            var session = await _sessionRepository.FindAsync(token, cancellationToken);
 
             if (session != null)
             {
-                Cache(token, session.Permissions, _accessOptions.SessionDuration);
+                await CacheAsync(token, session.Permissions, _accessOptions.SessionDuration);
             }
         }
     }

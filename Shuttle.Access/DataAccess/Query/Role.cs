@@ -16,7 +16,7 @@ public class Role
         public IEnumerable<Guid> PermissionIds => _permissionIds.AsReadOnly();
         public bool PermissionsIncluded { get; private set; }
         public IEnumerable<Guid> RoleIds => _rolesIds.AsReadOnly();
-        public DateTime? StartDateRegistered { get; private set; }
+        public DateTimeOffset? StartDateRegistered { get; private set; }
         public int MaximumRows { get; private set; }
 
         public Specification AddName(string name)
@@ -73,7 +73,7 @@ public class Role
             return this;
         }
 
-        public Specification WithStartDateRegistered(DateTime date)
+        public Specification WithStartDateRegistered(DateTimeOffset date)
         {
             StartDateRegistered = date;
 

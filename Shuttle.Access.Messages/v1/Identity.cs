@@ -5,8 +5,8 @@ namespace Shuttle.Access.Messages.v1;
 
 public class Identity
 {
-    public DateTime? DateActivated { get; set; }
-    public DateTime DateRegistered { get; set; }
+    public DateTimeOffset? DateActivated { get; set; }
+    public DateTimeOffset DateRegistered { get; set; }
     public string GeneratedPassword { get; set; } = string.Empty;
 
     public Guid Id { get; set; }

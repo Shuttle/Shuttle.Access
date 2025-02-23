@@ -11,14 +11,14 @@ public class Identity
     private readonly List<Guid> _roles = new();
     private byte[]? _passwordHash;
     public bool Activated => DateActivated.HasValue;
-    public DateTime? DateActivated { get; private set; }
+    public DateTimeOffset? DateActivated { get; private set; }
     public bool HasPasswordResetToken => PasswordResetToken.HasValue;
 
     public string Name { get; private set; } = string.Empty;
     public Guid? PasswordResetToken { get; private set; }
     public bool Removed { get; private set; }
 
-    public Activated Activate(DateTime dateActivated)
+    public Activated Activate(DateTimeOffset dateActivated)
     {
         return On(new Activated
         {
@@ -137,7 +137,7 @@ public class Identity
             PasswordHash = passwordHash,
             RegisteredBy = registeredBy,
             GeneratedPassword = generatedPassword,
-            DateRegistered = DateTime.UtcNow,
+            DateRegistered = DateTimeOffset.UtcNow,
             Activated = activated
         });
     }

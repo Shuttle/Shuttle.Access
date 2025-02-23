@@ -6,10 +6,10 @@ namespace Shuttle.Access.Sql;
 
 public class Columns
 {
-    public static readonly Column<DateTime> DateActivated = new("DateActivated", DbType.DateTime2);
-    public static readonly Column<DateTime> DateRegistered = new("DateRegistered", DbType.DateTime2);
+    public static readonly Column<DateTimeOffset> DateActivated = new("DateActivated", DbType.DateTime2);
+    public static readonly Column<DateTimeOffset> DateRegistered = new("DateRegistered", DbType.DateTime2);
     public static readonly Column<Guid> ExchangeToken = new("ExchangeToken", DbType.Guid);
-    public static readonly Column<DateTime> ExpiryDate = new("ExpiryDate", DbType.DateTime2);
+    public static readonly Column<DateTimeOffset> ExpiryDate = new("ExpiryDate", DbType.DateTime2);
     public static readonly Column<string> GeneratedPassword = new("GeneratedPassword", DbType.String);
     public static readonly Column<Guid> Id = new("Id", DbType.Guid);
     public static readonly Column<Guid> IdentityId = new("IdentityId", DbType.Guid);

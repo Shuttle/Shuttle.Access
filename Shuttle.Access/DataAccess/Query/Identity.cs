@@ -12,7 +12,7 @@ public class Identity
         public Guid? RoleId { get; private set; }
         public string RoleName { get; private set; } = string.Empty;
         public bool RolesIncluded { get; private set; }
-        public DateTime? StartDateRegistered { get; private set; }
+        public DateTimeOffset? StartDateRegistered { get; private set; }
         public int MaximumRows { get; private set; }
 
         public Specification IncludeRoles()
@@ -59,7 +59,7 @@ public class Identity
             return this;
         }
 
-        public Specification WithStartDateRegistered(DateTime date)
+        public Specification WithStartDateRegistered(DateTimeOffset date)
         {
             StartDateRegistered = date;
 

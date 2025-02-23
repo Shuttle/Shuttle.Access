@@ -6,11 +6,11 @@ public class SessionTokenExchange
 {
     public Guid SessionToken { get; }
     public Guid ExchangeToken { get; }
-    public DateTime ExpiryDate { get; }
+    public DateTimeOffset ExpiryDate { get; }
 
-    public bool HasExpired => DateTime.UtcNow > ExpiryDate;
+    public bool HasExpired => DateTimeOffset.UtcNow > ExpiryDate;
 
-    public SessionTokenExchange(Guid exchangeToken, Guid sessionToken, DateTime expiryDate)
+    public SessionTokenExchange(Guid exchangeToken, Guid sessionToken, DateTimeOffset expiryDate)
     {
         SessionToken = sessionToken;
         ExchangeToken = exchangeToken;

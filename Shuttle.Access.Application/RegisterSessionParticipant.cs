@@ -106,9 +106,9 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
                 return;
             }
 
-            if (session.ExpiryDate.Add(_accessOptions.SessionRenewalTolerance) > DateTime.UtcNow)
+            if (session.ExpiryDate.Add(_accessOptions.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
             {
-                session.Renew(DateTime.UtcNow.Add(_accessOptions.SessionDuration));
+                session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration));
 
                 await SaveAsync();
 
@@ -120,7 +120,7 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
 
         if (message.RegistrationType != SessionRegistrationType.Token)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTimeOffset.UtcNow;
 
             session = new(Guid.NewGuid(), await _identityQuery.IdAsync(message.IdentityName, context.CancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
 
@@ -142,7 +142,7 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
 
             if (message.HasKnownApplicationOptions)
             {
-                var sessionTokenExchange = new SessionTokenExchange(Guid.NewGuid(), session.Token, DateTime.UtcNow.Add(_accessOptions.SessionTokenExchangeValidityTimeSpan));
+                var sessionTokenExchange = new SessionTokenExchange(Guid.NewGuid(), session.Token, DateTimeOffset.UtcNow.Add(_accessOptions.SessionTokenExchangeValidityTimeSpan));
 
                 await _sessionTokenExchangeRepository.SaveAsync(sessionTokenExchange, context.CancellationToken);
 

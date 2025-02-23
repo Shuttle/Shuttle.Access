@@ -124,6 +124,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The `Authorization` header is contains scheme `Shuttle.Access` but has an invalid session token..
+        /// </summary>
+        public static string InvalidAuthenticationHeader {
+            get {
+                return ResourceManager.GetString("InvalidAuthenticationHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid credentials..
         /// </summary>
         public static string InvalidCredentialsException {

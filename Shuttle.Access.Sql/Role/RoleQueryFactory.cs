@@ -74,7 +74,7 @@ VALUES
 ")
             .AddParameter(Columns.RoleId, id)
             .AddParameter(Columns.PermissionId, domainEvent.PermissionId)
-            .AddParameter(Columns.DateRegistered, DateTime.UtcNow);
+            .AddParameter(Columns.DateRegistered, DateTimeOffset.UtcNow);
     }
 
     public IQuery PermissionRemoved(Guid id, PermissionRemoved domainEvent)
