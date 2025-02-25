@@ -1,27 +1,29 @@
 <?xml version="1.0"?>
 
 <package>
-	<metadata>
-		<id>Shuttle.Access.RestClient</id>
-		<version>6.0.1</version>
-		<authors>Eben Roux</authors>
-		<owners>Eben Roux</owners>
-		<license type="expression">BSD-3-Clause</license>
-		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<icon>images\logo.png</icon>
-		<repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
-		<projectUrl>https://github.com/Shuttle/Shuttle.Access</projectUrl>
-		<description>A client used to interact with the restful Shuttle.Access web API.</description>
-		<copyright>Copyright (c) 2025, Eben Roux</copyright>
-		<tags>rest iam identity access</tags>
-		<dependencies>
-      <dependency id="Refit" version="8.0.0" />
+  <metadata>
+    <id>Shuttle.Access.RestClient</id>
+    <version>6.0.2</version>
+    <authors>Eben Roux</authors>
+    <owners>Eben Roux</owners>
+    <license type="expression">BSD-3-Clause</license>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <icon>images\logo.png</icon>
+    <readme>docs\README.md</readme>
+    <repository type="git" url="https://github.com/Shuttle/Shuttle.Access.git" />
+    <projectUrl>https://github.com/Shuttle/Shuttle.Access</projectUrl>
+    <description>A client used to interact with the restful Shuttle.Access web API.</description>
+    <copyright>Copyright (c) 2025, Eben Roux</copyright>
+    <tags>rest iam identity access</tags>
+    <dependencies>
+            <dependency id="Refit" version="8.0.0" />
       <dependency id="Refit.HttpClientFactory" version="8.0.0" />
       <dependency id="Shuttle.Core.Contract" version="20.0.0" />
-		</dependencies>
-	</metadata>
-	<files>
-		<file src="..\..\..\.media\logo.png" target="images" />
-		<file src="lib\**\*.*" target="lib" />
-	</files>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\..\..\.media\logo.png" target="images" />
+    <file src="..\..\..\README.md" target="docs\" />
+    <file src="lib\**\*.*" target="lib" />
+  </files>
 </package>

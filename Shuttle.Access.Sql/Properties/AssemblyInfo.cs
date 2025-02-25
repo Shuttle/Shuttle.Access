@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle(".NET Unified Platform")]
 #endif
 
-[assembly: AssemblyVersion("6.0.1.0")]
+[assembly: AssemblyVersion("6.0.2.0")]
 [assembly: AssemblyCopyright("Copyright (c) 2025, Eben Roux")]
 [assembly: AssemblyProduct("Shuttle.Access.Sql")]
 [assembly: AssemblyCompany("Eben Roux")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyInformationalVersion("6.0.1")]
+[assembly: AssemblyInformationalVersion("6.0.2")]
 [assembly: ComVisible(false)]
