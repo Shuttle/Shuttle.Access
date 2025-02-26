@@ -1,10 +1,10 @@
 ﻿CREATE TABLE [dbo].[Identity] (
     [Id]             UNIQUEIDENTIFIER DEFAULT (newid()) NOT NULL,
     [Name]       VARCHAR (65)     NOT NULL,
-    [DateRegistered] DATETIME2         NOT NULL,
+    [DateRegistered] DATETIMEOFFSET         NOT NULL,
     [RegisteredBy]   VARCHAR (65)     NOT NULL,
     [GeneratedPassword] VARCHAR(65) NOT NULL DEFAULT '', 
-    [DateActivated] DATETIME2 NULL, 
+    [DateActivated] DATETIMEOFFSET NULL, 
     CONSTRAINT [PK_Identity] PRIMARY KEY NONCLUSTERED ([Id] ASC)
 );
 
