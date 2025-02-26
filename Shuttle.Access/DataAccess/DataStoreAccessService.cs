@@ -66,7 +66,7 @@ public class DataStoreAccessService : CachedAccessService, IAccessService
 
     private async Task CacheAsync(Guid token, CancellationToken cancellationToken)
     {
-        if (await ContainsAsync(token, cancellationToken))
+        if (await base.ContainsAsync(token))
         {
             return;
         }
