@@ -10,7 +10,7 @@ public class Session
 {
     private readonly List<string> _permissions = [];
 
-    public Session(Guid token, Guid identityId, string identityName, DateTime dateRegistered, DateTime expiryDate)
+    public Session(Guid token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
     {
         Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
 
@@ -21,11 +21,11 @@ public class Session
         ExpiryDate = expiryDate;
     }
 
-    public DateTime DateRegistered { get; set; }
+    public DateTimeOffset DateRegistered { get; set; }
 
-    public DateTime ExpiryDate { get; private set; }
+    public DateTimeOffset ExpiryDate { get; private set; }
 
-    public bool HasExpired => DateTime.UtcNow >= ExpiryDate;
+    public bool HasExpired => DateTimeOffset.UtcNow >= ExpiryDate;
     public Guid IdentityId { get; }
     public string IdentityName { get; }
 
@@ -56,7 +56,7 @@ public class Session
             candidate => candidate.Equals(permission, StringComparison.InvariantCultureIgnoreCase)) != null || _permissions.Contains("*");
     }
 
-    public void Renew(DateTime expiryDate)
+    public void Renew(DateTimeOffset expiryDate)
     {
         Token = Guid.NewGuid();
         ExpiryDate = expiryDate;

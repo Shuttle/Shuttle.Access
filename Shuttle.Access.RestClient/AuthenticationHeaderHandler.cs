@@ -36,7 +36,7 @@ public class AuthenticationHeaderHandler : DelegatingHandler
 
         var client = _serviceProvider.GetRequiredService<IAccessClient>();
 
-        if ((!client.Token.HasValue || (client.TokenExpiryDate ?? DateTime.UtcNow).Subtract(_accessClientOptions.RenewToleranceTimeSpan) < DateTime.UtcNow) &&
+        if ((!client.Token.HasValue || (client.TokenExpiryDate ?? DateTimeOffset.UtcNow).Subtract(_accessClientOptions.RenewToleranceTimeSpan) < DateTimeOffset.UtcNow) &&
             !(request.RequestUri?.PathAndQuery ?? string.Empty).Equals("/sessions") && request.Method != HttpMethod.Post)
         {
             await client.RegisterSessionAsync(cancellationToken);

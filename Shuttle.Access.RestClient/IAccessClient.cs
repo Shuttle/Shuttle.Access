@@ -14,7 +14,7 @@ public interface IAccessClient
     IServerApi Server { get; }
     ISessionsApi Sessions { get; }
     Guid? Token { get; }
-    DateTime? TokenExpiryDate { get; }
+    DateTimeOffset? TokenExpiryDate { get; }
     Task<IAccessClient> DeleteSessionAsync(CancellationToken cancellationToken = default);
     Task<IAccessClient> RegisterSessionAsync(CancellationToken cancellationToken = default);
 }

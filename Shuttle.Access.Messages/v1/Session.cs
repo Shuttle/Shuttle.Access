@@ -5,8 +5,8 @@ namespace Shuttle.Access.Messages.v1;
 
 public class Session
 {
-    public DateTime DateRegistered { get; set; }
-    public DateTime? ExpiryDate { get; set; }
+    public DateTimeOffset DateRegistered { get; set; }
+    public DateTimeOffset ExpiryDate { get; set; }
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
     public List<string> Permissions { get; set; } = [];

@@ -40,7 +40,7 @@ public class SessionsFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTime.UtcNow, DateTime.UtcNow.AddSeconds(15))
+        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddSeconds(15))
             .AddPermission(Permission);
 
         factory.SessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
@@ -60,7 +60,7 @@ public class SessionsFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", DateTime.Now, DateTime.Now);
+        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", DateTimeOffset.Now, DateTimeOffset.Now);
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), default))
             .Callback<object, CancellationToken>((message, _) =>

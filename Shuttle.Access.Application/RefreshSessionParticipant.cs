@@ -63,7 +63,7 @@ public class RefreshSessionParticipant : IParticipant<RefreshSession>
 
         await _sessionRepository.SaveAsync(session);
 
-        _accessService.Flush(session.Token);
+        await _accessService.RemoveAsync(session.Token);
 
         await _serviceBus.PublishAsync(new SessionRefreshed
         {

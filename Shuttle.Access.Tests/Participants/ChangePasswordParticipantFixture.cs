@@ -17,7 +17,7 @@ public class ChangePasswordParticipantFixture
     [Test]
     public async Task Should_be_able_to_change_password_async()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
         var hash = new byte[] { 0, 1, 2, 3, 4 };
         var changePassword = new ChangePassword { Token = Guid.NewGuid(), NewPassword = "new-password" };
         var session = new Session(changePassword.Token.Value, Guid.NewGuid(), "identity-name", now, now.AddSeconds(5));
@@ -33,7 +33,7 @@ public class ChangePasswordParticipantFixture
         (await eventStore.GetAsync(session.IdentityId)).Add(new Registered
         {
             Activated = true,
-            DateRegistered = DateTime.Now,
+            DateRegistered = DateTimeOffset.Now,
             Name = "user"
         });
 

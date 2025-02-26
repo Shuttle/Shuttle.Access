@@ -16,7 +16,7 @@ public class RequestIdentityRegistrationParticipantFixture
     [Test]
     public async Task Should_be_able_to_request_identity_registration_using_a_session_async()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
         var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", now, now.AddSeconds(5))
             .AddPermission(AccessPermissions.Identities.Register)
             .AddPermission(AccessPermissions.Identities.Activate);

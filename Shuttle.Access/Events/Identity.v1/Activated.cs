@@ -4,5 +4,5 @@ namespace Shuttle.Access.Events.Identity.v1;
 
 public class Activated
 {
-    public DateTime DateActivated { get; set; }
+    public DateTimeOffset DateActivated { get; set; }
 }

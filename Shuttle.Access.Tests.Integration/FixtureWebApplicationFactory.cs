@@ -49,10 +49,9 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
 
         _webHostBuilder?.Invoke(builder);
 
-        AccessService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<string>())).Returns(ValueTask.FromResult(true));
-        AccessService.Setup(m => m.ContainsAsync(It.IsAny<Guid>())).Returns(ValueTask.FromResult(true));
+        AccessService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<string>(), default)).Returns(ValueTask.FromResult(true));
+        AccessService.Setup(m => m.ContainsAsync(It.IsAny<Guid>(), default)).Returns(ValueTask.FromResult(true));
 
-        //var databaseContext = new MockDatabaseContext();
         var databaseContext = new Mock<IDatabaseContext>();
 
         DatabaseContextFactory.Setup(m => m.Create()).Returns(databaseContext.Object);

@@ -99,7 +99,7 @@ public class AccessClient : IAccessClient
         return this;
     }
 
-    public DateTime? TokenExpiryDate { get; private set; }
+    public DateTimeOffset? TokenExpiryDate { get; private set; }
     public Guid? Token { get; private set; }
 
     public IServerApi Server { get; }

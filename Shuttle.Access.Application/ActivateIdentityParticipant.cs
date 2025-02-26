@@ -25,7 +25,7 @@ public class ActivateIdentityParticipant : IParticipant<RequestResponseMessage<A
         Guard.AgainstNull(context);
 
         var message = context.Message.Request;
-        var now = DateTime.UtcNow;
+        var now = DateTimeOffset.UtcNow;
 
         var specification = new DataAccess.Identity.Specification();
 

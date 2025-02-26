@@ -12,7 +12,7 @@ namespace Shuttle.Access.Tests;
 [TestFixture]
 public class DataStoreAccessServiceFixture
 {
-    private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTime.UtcNow, DateTime.UtcNow.AddHours(1));
+    private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
 
     [Test]
     public async Task Should_be_able_check_for_non_existent_session_async()
