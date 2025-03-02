@@ -1,39 +1,41 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Package" ToolsVersion="15">
-	<PropertyGroup>
-		<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
-		<Version Condition="$(Version) == ''">6.0.0</Version>
-	</PropertyGroup>
+  <PropertyGroup>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <Version>$(Version)</Version>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="../Shuttle.Access.Server/Shuttle.Access.Server.csproj"/>
-		<ProjectReference Include="../Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj"/>
-		<DatabaseReference Include="../Shuttle.Access.Database/Shuttle.Access.Database.sqlproj" />
-		<DockerFile Include="dockerfile-projection">
-			<Name>shuttle/access-projection</Name>
-		</DockerFile>
-		<DockerFile Include="dockerfile-server">
-			<Name>shuttle/access-server</Name>
-		</DockerFile>
-		<DockerFile Include="dockerfile-webapi">
-			<Name>shuttle/access-webapi</Name>
-		</DockerFile>
-		<DockerFile Include="dockerfile-linux-sqlserver-demo">
-			<Name>shuttle/access-sqlserver-linux</Name>
-		</DockerFile>
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Shuttle.Access.Server/Shuttle.Access.Server.csproj"/>
+    <ProjectReference Include="../Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj"/>
+    <DatabaseReference Include="../Shuttle.Access.Database/Shuttle.Access.Database.sqlproj" />
+    <DockerFile Include="dockerfile-projection">
+      <Name>shuttle/access-projection</Name>
+    </DockerFile>
+    <DockerFile Include="dockerfile-server">
+      <Name>shuttle/access-server</Name>
+    </DockerFile>
+    <DockerFile Include="dockerfile-webapi">
+      <Name>shuttle/access-webapi</Name>
+    </DockerFile>
+    <DockerFile Include="dockerfile-linux-sqlserver-demo">
+      <Name>shuttle/access-sqlserver-linux</Name>
+    </DockerFile>
+  </ItemGroup>
 
-	<Target Name="Package">
-		<MSBuild Projects="@(DatabaseReference)" Targets="Rebuild" Properties="Configuration=Release;Platform=AnyCPU" />
-		<Copy SourceFiles="../Shuttle.Access.Database/bin/Release/Shuttle.Access.Database.dacpac"
+  <Target Name="Package">
+    <Error Condition="'$(Version)' == ''" Text="Version property is required. Use /p:Version={version}" />
+
+    <MSBuild Projects="@(DatabaseReference)" Targets="Rebuild" Properties="Configuration=Release;Platform=AnyCPU" />
+    <Copy SourceFiles="../Shuttle.Access.Database/bin/Release/Shuttle.Access.Database.dacpac"
 		      DestinationFiles="./deployment/Shuttle.Access.Database/Shuttle.Access.Database.dacpac"
 		      SkipUnchangedFiles="false" />
-		<Exec
+    <Exec
 			Command="dotnet publish %(ProjectReference.Identity) -c Release -f net8.0 -r $(RuntimeIdentifier) --self-contained false --output $(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)" />
-		<Copy SourceFiles="%(ProjectReference.ConfigFile)"
+    <Copy SourceFiles="%(ProjectReference.ConfigFile)"
 		      DestinationFiles="$(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)/%(ProjectReference.ConfigFile)"
 		      SkipUnchangedFiles="false" />
-		<Exec
+    <Exec
 			Command="docker build -t %(DockerFile.Name):latest -t %(DockerFile.Name):$(Version) -f %(DockerFile.Identity) ." />
-	</Target>
+  </Target>
 
 </Project>

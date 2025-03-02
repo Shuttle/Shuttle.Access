@@ -77,6 +77,15 @@ internal class Program
                     })
                     .AddAzureStorageQueues(builder =>
                     {
+                        var queueOptions = configuration.GetSection($"{AzureStorageQueueOptions.SectionName}:Access").Get<AzureStorageQueueOptions>() ?? new();
+
+                        if (string.IsNullOrWhiteSpace(queueOptions.StorageAccount))
+                        {
+                            queueOptions.ConnectionString = configuration.GetConnectionString("azure") ?? string.Empty;
+                        }
+
+                        builder.AddOptions("azure", queueOptions);
+
                         builder.AddOptions("azure", new()
                         {
                             ConnectionString = Guard.AgainstNullOrEmptyString(configuration.GetConnectionString("azure"))
