@@ -85,11 +85,6 @@ internal class Program
                         }
 
                         builder.AddOptions("azure", queueOptions);
-
-                        builder.AddOptions("azure", new()
-                        {
-                            ConnectionString = Guard.AgainstNullOrEmptyString(configuration.GetConnectionString("azure"))
-                        });
                     })
                     .AddSqlEventStorage(builder =>
                     {
