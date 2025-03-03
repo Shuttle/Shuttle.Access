@@ -21,7 +21,7 @@ namespace Shuttle.Access.WebApi;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
@@ -41,7 +41,12 @@ public class Program
             throw new ApplicationException($"File '{appsettingsPath}' cannot be accessed/found.");
         }
 
+        Console.WriteLine($"[starting] : appsettingsPath = '{appsettingsPath}' / CONTENT:");
+        Console.WriteLine(await File.ReadAllTextAsync(appsettingsPath));
+
         var webApplicationBuilder = WebApplication.CreateBuilder(args);
+
+        webApplicationBuilder.Host.UseSerilog();
 
         webApplicationBuilder.Configuration
             .AddJsonFile(appsettingsPath);
@@ -66,10 +71,6 @@ public class Program
             });
 
         webApplicationBuilder.Services
-            .AddLogging(builder =>
-            {
-                builder.AddSerilog();
-            })
             .AddEndpointsApiExplorer()
             .AddSwaggerGen(options =>
             {
@@ -169,6 +170,16 @@ public class Program
             .AddOAuth(builder =>
             {
                 webApplicationBuilder.Configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);
+
+                Log.Debug($"[oauth] : DefaultRedirectUri = '{builder.Options.DefaultRedirectUri}'");
+
+                foreach (var optionsProvider in builder.Options.Providers)
+                {
+                    Log.Debug($"[oauth:{optionsProvider.Name}] : Scope = '{optionsProvider.Scope}'");
+                    Log.Debug($"[oauth:{optionsProvider.Name}.Authorize] : ClientId = '{optionsProvider.Authorize.ClientId}' / CodeChallengeMethod = '{optionsProvider.Authorize.CodeChallengeMethod}' / Url = '{optionsProvider.Authorize.Url}'");
+                    Log.Debug($"[oauth:{optionsProvider.Name}.Token] : ClientId = '{optionsProvider.Token.ClientId}' / ContentTypeHeader = '{optionsProvider.Token.ContentTypeHeader}' / OriginHeader = '{optionsProvider.Token.OriginHeader}' / Url = '{optionsProvider.Token.Url}'");
+                    Log.Debug($"[oauth:{optionsProvider.Name}.Data] : AuthorizationHeaderScheme = '{optionsProvider.Data.AuthorizationHeaderScheme}' / AcceptHeader = '{optionsProvider.Data.AcceptHeader}' / EMailPropertyName = '{optionsProvider.Data.EMailPropertyName}' / Url = '{optionsProvider.Data.Url}'");
+                }
             })
             .AddInMemoryOAuthGrantRepository();
 
@@ -196,6 +207,6 @@ public class Program
             .UseSwagger()
             .UseSwaggerUI();
 
-        app.Run();
+        await app.RunAsync();
     }
 }

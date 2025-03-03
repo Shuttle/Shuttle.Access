@@ -50,6 +50,7 @@ internal class Program
         }
 
         var host = Host.CreateDefaultBuilder()
+            .UseSerilog()
             .ConfigureServices(services =>
             {
                 var configuration = new ConfigurationBuilder().AddJsonFile(appsettingsPath).Build();
@@ -61,10 +62,6 @@ internal class Program
                 services
                     .AddSingleton<IConfiguration>(configuration)
                     .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
-                    .AddLogging(builder =>
-                    {
-                        builder.AddSerilog();
-                    })
                     .FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add()
                     .AddDataAccess(builder =>
                     {

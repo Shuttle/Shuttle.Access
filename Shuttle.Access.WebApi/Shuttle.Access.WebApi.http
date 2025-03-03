@@ -1,6 +1,0 @@
-@Shuttle.Access.WebApi_HostAddress = http://localhost:5198
-
-GET {{Shuttle.Access.WebApi_HostAddress}}/server/version
-Accept: application/json
-
-###
