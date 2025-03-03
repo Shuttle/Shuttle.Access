@@ -1,9 +1,21 @@
-import type { Configuration } from "./access";
+import type { Configuration, Env } from "./access";
+import axios from "axios";
+
+const env = async (): Promise<Env> => {
+  if (import.meta.env.MODE === "production") {
+    const response = await axios.get<Env>("/env");
+    return response.data;
+  } else {
+    return {
+      VITE_API_URL: import.meta.env.VITE_API_URL,
+    };
+  }
+};
+
+const values = await env();
 
 const configuration: Configuration = {
-  url: `${import.meta.env.VITE_API_URL}${
-    import.meta.env.VITE_API_URL.endsWith("/") ? "" : "/"
-  }`,
+  url: `${values.VITE_API_URL}${values.VITE_API_URL.endsWith("/") ? "" : "/"}`,
 
   debugging() {
     return import.meta.env.DEV;

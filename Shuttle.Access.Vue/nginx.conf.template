@@ -8,6 +8,11 @@ http {
         root  /usr/share/nginx/html;
         include /etc/nginx/mime.types;
 
+        location /env {
+            default_type application/json;
+            return 200 '{"VITE_API_URL":"$VITE_API_URL"}';
+        }
+
         location / {
             try_files $uri $uri/ /index.html;
         }
