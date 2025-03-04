@@ -41,9 +41,6 @@ public class Program
             throw new ApplicationException($"File '{appsettingsPath}' cannot be accessed/found.");
         }
 
-        Console.WriteLine($"[starting] : appsettingsPath = '{appsettingsPath}' / CONTENT:");
-        Console.WriteLine(await File.ReadAllTextAsync(appsettingsPath));
-
         var webApplicationBuilder = WebApplication.CreateBuilder(args);
 
         webApplicationBuilder.Host.UseSerilog();
