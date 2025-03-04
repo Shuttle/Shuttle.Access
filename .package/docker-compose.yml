@@ -38,5 +38,7 @@ services:
     front-end:
         image:
             shuttle/access-vue:latest
+        environment:
+           - VITE_API_URL=http://localhost:5599
         ports:
             - "3000:80"
