@@ -8,9 +8,6 @@
     <ProjectReference Include="../Shuttle.Access.Server/Shuttle.Access.Server.csproj"/>
     <ProjectReference Include="../Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj"/>
     <DatabaseReference Include="../Shuttle.Access.Database/Shuttle.Access.Database.sqlproj" />
-    <DockerFile Include="dockerfile-projection">
-      <Name>shuttle/access-projection</Name>
-    </DockerFile>
     <DockerFile Include="dockerfile-server">
       <Name>shuttle/access-server</Name>
     </DockerFile>
