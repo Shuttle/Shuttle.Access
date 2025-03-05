@@ -35,4 +35,12 @@
 			Command="docker build -t %(DockerFile.Name):latest -t %(DockerFile.Name):$(Version) -f %(DockerFile.Identity) ." />
   </Target>
 
+  <Target Name="RemoveAppSettings" AfterTargets="Package">
+      <ItemGroup>
+          <AppSettingsFiles Include="$(MSBuildProjectDirectory)/deployment/**/appsettings*.json" />
+      </ItemGroup>
+
+      <Delete Files="@(AppSettingsFiles)" />
+  </Target>
+
 </Project>
