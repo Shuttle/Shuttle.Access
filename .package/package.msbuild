@@ -23,6 +23,7 @@
     <Error Condition="'$(Version)' == ''" Text="Version property is required. Use /p:Version={version}" />
 
     <MSBuild Projects="@(DatabaseReference)" Targets="Rebuild" Properties="Configuration=Release;Platform=AnyCPU" />
+
     <Copy SourceFiles="../Shuttle.Access.Database/bin/Release/Shuttle.Access.Database.dacpac"
 		      DestinationFiles="./deployment/Shuttle.Access.Database/Shuttle.Access.Database.dacpac"
 		      SkipUnchangedFiles="false" />
@@ -31,16 +32,14 @@
     <Copy SourceFiles="%(ProjectReference.ConfigFile)"
 		      DestinationFiles="$(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)/%(ProjectReference.ConfigFile)"
 		      SkipUnchangedFiles="false" />
+
+    <ItemGroup>
+        <AppSettingsFiles Include="$(MSBuildProjectDirectory)/deployment/**/appsettings*.json" />
+    </ItemGroup>
+
+    <Delete Files="@(AppSettingsFiles)" />
+    
     <Exec
 			Command="docker build -t %(DockerFile.Name):latest -t %(DockerFile.Name):$(Version) -f %(DockerFile.Identity) ." />
   </Target>
-
-  <Target Name="RemoveAppSettings" AfterTargets="Package">
-      <ItemGroup>
-          <AppSettingsFiles Include="$(MSBuildProjectDirectory)/deployment/**/appsettings*.json" />
-      </ItemGroup>
-
-      <Delete Files="@(AppSettingsFiles)" />
-  </Target>
-
 </Project>
