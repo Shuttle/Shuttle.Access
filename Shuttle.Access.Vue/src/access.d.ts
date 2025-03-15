@@ -63,6 +63,11 @@ export type Env = {
   VITE_API_URL: string;
 };
 
+export type FormTitle = {
+  title: string;
+  closePath?: string;
+};
+
 export type IdentifierAvailability = {
   id: string;
   active: boolean;

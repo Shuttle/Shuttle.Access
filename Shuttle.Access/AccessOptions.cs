@@ -8,7 +8,7 @@ public class AccessOptions
     public const string SectionName = "Shuttle:Access";
 
     public string ConnectionStringName { get; set; } = "Access";
-    public string SvgFolder { get; set; } = "./.svg";
+    public string ExtensionFolder { get; set; } = "./.extension";
     public bool OAuthRegisterUnknownIdentities { get; set; } = true;
     public string Realm { get; set; } = "API";
     public TimeSpan SessionDuration { get; set; } = TimeSpan.FromHours(8);

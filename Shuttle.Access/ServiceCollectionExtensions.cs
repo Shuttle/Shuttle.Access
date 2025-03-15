@@ -25,7 +25,7 @@ public static class ServiceCollectionExtensions
             options.SessionDuration = accessBuilder.Options.SessionDuration;
             options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
             options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
-            options.SvgFolder = accessBuilder.Options.SvgFolder;
+            options.ExtensionFolder = accessBuilder.Options.ExtensionFolder;
             options.Realm = accessBuilder.Options.Realm;
             options.KnownApplications = accessBuilder.Options.KnownApplications;
         });

@@ -31,7 +31,7 @@ public static class KnownApplicationEndpoints
                     Description = knownApplicationOptions.Description
                 };
 
-                var path = Path.Combine(accessOptions.Value.SvgFolder, "KnownApplication", $"{knownApplicationOptions.Name}.svg");
+                var path = Path.Combine(accessOptions.Value.ExtensionFolder, "KnownApplication", $"{knownApplicationOptions.Name}.svg");
 
                 if (File.Exists(path))
                 {

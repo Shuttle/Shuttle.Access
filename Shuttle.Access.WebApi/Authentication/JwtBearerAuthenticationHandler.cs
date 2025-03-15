@@ -1,28 +1,24 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
+using Shuttle.OAuth;
 
-namespace Shuttle.Access.AspNetCore;
+namespace Shuttle.Access.WebApi.Authentication;
 
-public class AccessAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class JwtBearerAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    private readonly IAccessService _accessService;
-    public static readonly string AuthenticationScheme = "Shuttle.Access";
-    public const string SessionTokenClaimType = "http://shuttle.org/claims/session/token";
-    public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
+    private readonly IJwtService _jwtService;
+    public static readonly string AuthenticationScheme = "Bearer";
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
 
-    public AccessAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IAccessService accessService) : base(options, logger, encoder)
+    public JwtBearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
     {
-        _accessService = Guard.AgainstNull(accessService);
+        _jwtService = Guard.AgainstNull(jwtService);
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -34,34 +30,31 @@ public class AccessAuthenticationHandler : AuthenticationHandler<AuthenticationS
             return AuthenticateResult.NoResult();
         }
 
-        if (!header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
+        if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
+            header.Length < 8)
         {
             return AuthenticateResult.NoResult();
         }
 
-        var match = TokenExpression.Match(header["Shuttle.Access ".Length..].Trim());
+        var token = header[7..];
 
-        if (!match.Success ||
-            !Guid.TryParse(match.Groups["token"].Value, out var sessionToken))
+        if (!await _jwtService.IsValidAsync(token))
         {
             return AuthenticateResult.Fail(Resources.InvalidAuthenticationHeader);
         }
 
-        var session = await _accessService.FindSessionAsync(sessionToken);
+        var identityName = await _jwtService.GetIdentityNameAsync(token);
 
-        if (session == null)
+        if (string.IsNullOrWhiteSpace(identityName))
         {
-            return AuthenticateResult.Fail(Resources.InvalidAuthenticationHeader);
+            return AuthenticateResult.Fail(Resources.IdentityNameClaimNotFound);
         }
-
-        Context.SetPrincipalAccessSessionToken(sessionToken);
 
         List<Claim> claims =
         [
-            new(ClaimTypes.NameIdentifier, session.IdentityName),
-            new(ClaimTypes.Name, session.IdentityName),
-            new(nameof(Session.IdentityName), session.IdentityName),
-            new(SessionTokenClaimType, $"{session.Token:D}")
+            new(ClaimTypes.NameIdentifier, identityName),
+            new(ClaimTypes.Name, identityName),
+            new(nameof(Session.IdentityName), identityName),
         ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));

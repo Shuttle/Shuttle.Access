@@ -142,8 +142,11 @@
     <value>Identity with name '{0}' is inactive.</value>
     <comment>0 = identity name</comment>
   </data>
+  <data name="IdentityNameClaimNotFound" xml:space="preserve">
+    <value>The JWT token provided does not contain a claim type representing the identity name.</value>
+  </data>
   <data name="InvalidAuthenticationHeader" xml:space="preserve">
-    <value>The `Authorization` header is contains scheme `Shuttle.Access` but has an invalid session token.</value>
+    <value>The 'Authorization' header contains a valid scheme but either has an invalid token, or there is no issuer configuration matching that of the token.</value>
   </data>
   <data name="InvalidCredentialsException" xml:space="preserve">
     <value>Invalid credentials.</value>

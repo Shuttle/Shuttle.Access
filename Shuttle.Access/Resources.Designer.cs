@@ -124,7 +124,16 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `Authorization` header is contains scheme `Shuttle.Access` but has an invalid session token..
+        ///   Looks up a localized string similar to The JWT token provided does not contain a claim type representing the identity name..
+        /// </summary>
+        public static string IdentityNameClaimNotFound {
+            get {
+                return ResourceManager.GetString("IdentityNameClaimNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;Authorization&apos; header contains a valid scheme but has an invalid token..
         /// </summary>
         public static string InvalidAuthenticationHeader {
             get {

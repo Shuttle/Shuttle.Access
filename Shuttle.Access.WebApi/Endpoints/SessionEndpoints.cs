@@ -116,7 +116,7 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapDelete("/v{version:apiVersion}/sessions/me", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
+        app.MapDelete("/v{version:apiVersion}/sessions/self", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
                 var sessionTokenResult = httpContext.GetAccessSessionToken();
 
