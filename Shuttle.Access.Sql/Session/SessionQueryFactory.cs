@@ -136,26 +136,11 @@ SELECT DISTINCT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRo
 FROM
 	[dbo].[Session] 
 {Where(specification)}
-ORDER BY
-    IdentityName,
-    DateRegistered DESC
+{(specification.MaximumRows != 1 ? "ORDER BY IdentityName, DateRegistered DESC" : string.Empty)}
 ")
             .AddParameter(Columns.Token, specification.Token)
             .AddParameter(Columns.IdentityName, specification.IdentityName)
             .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
-    }
-
-    public IQuery Find(Guid token)
-    {
-        return new Query($@"
-SELECT 
-{SelectedColumns}
-FROM 
-	[dbo].[Session] 
-WHERE 
-	Token = @Token
-")
-            .AddParameter(Columns.Token, token);
     }
 
     public IQuery Count(DataAccess.Session.Specification specification)

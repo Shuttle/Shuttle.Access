@@ -50,15 +50,4 @@ public static class HttpContextExtensions
             throw new("Could not retrieve the session token.");
         }
     }
-
-    public static void SetPrincipalAccessSessionToken(this HttpContext context, Guid sessionToken)
-    {
-        Guard.AgainstNull(context);
-
-        var identity = new ClaimsIdentity(context.User.Identity);
-
-        identity.AddClaim(new(AccessAuthenticationHandler.SessionTokenClaimType, sessionToken.ToString()));
-
-        context.User = new(identity);
-    }
 }

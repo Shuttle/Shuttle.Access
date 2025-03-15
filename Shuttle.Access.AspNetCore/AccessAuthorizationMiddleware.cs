@@ -50,8 +50,6 @@ public class AccessAuthorizationMiddleware : IMiddleware
             return;
         }
 
-        context.User = new(new ClaimsIdentity([new(ClaimTypes.Name, "AuthenticatedUser"), new("scheme", AuthorizationScheme)], AuthorizationScheme));
-
         if (permissionRequirement != null &&
             !await _accessService.HasPermissionAsync(sessionTokenResult.SessionToken, permissionRequirement.Permission))
         {

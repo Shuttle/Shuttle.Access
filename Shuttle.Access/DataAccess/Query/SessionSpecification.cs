@@ -39,6 +39,7 @@ public class Session
         public Specification WithToken(Guid token)
         {
             Token = token;
+            MaximumRows = 1;
 
             return this;
         }
@@ -48,6 +49,7 @@ public class Session
         public Specification WithIdentityName(string identityName)
         {
             IdentityName = Guard.AgainstNullOrEmptyString(identityName);
+            MaximumRows = 1;
 
             return this;
         }

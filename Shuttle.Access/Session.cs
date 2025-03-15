@@ -29,7 +29,7 @@ public class Session
     public Guid IdentityId { get; }
     public string IdentityName { get; }
 
-    public IEnumerable<string> Permissions => new ReadOnlyCollection<string>(_permissions);
+    public IEnumerable<string> Permissions => _permissions.AsReadOnly();
     public Guid Token { get; private set; }
     public bool HasPermissions => _permissions.Any();
 

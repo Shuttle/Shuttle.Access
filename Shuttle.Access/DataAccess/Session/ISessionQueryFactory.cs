@@ -10,7 +10,6 @@ public interface ISessionQueryFactory
     IQuery GetPermissions(Guid token);
     IQuery Remove(Guid token);
     IQuery Search(Session.Specification specification);
-    IQuery Find(Guid token);
     IQuery Count(Session.Specification specification);
     IQuery RemoveAll();
 }

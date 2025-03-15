@@ -54,8 +54,6 @@ public class AccessAuthenticationHandler : AuthenticationHandler<AuthenticationS
             return AuthenticateResult.Fail(Resources.InvalidAuthenticationHeader);
         }
 
-        Context.SetPrincipalAccessSessionToken(sessionToken);
-
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),

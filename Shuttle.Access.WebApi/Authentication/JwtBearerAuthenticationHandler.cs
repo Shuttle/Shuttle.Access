@@ -5,20 +5,30 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.Application;
+using Shuttle.Access.AspNetCore;
 using Shuttle.Core.Contract;
+using Shuttle.Core.Data;
+using Shuttle.Core.Mediator;
 using Shuttle.OAuth;
 
 namespace Shuttle.Access.WebApi.Authentication;
 
 public class JwtBearerAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
+    private readonly IMediator _mediator;
+    private readonly IDatabaseContextFactory _databaseContextFactory;
+    private readonly ISessionRepository _sessionRepository;
     private readonly IJwtService _jwtService;
     public static readonly string AuthenticationScheme = "Bearer";
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
 
-    public JwtBearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
+    public JwtBearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository, IMediator mediator, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
     {
         _jwtService = Guard.AgainstNull(jwtService);
+        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
+        _sessionRepository = Guard.AgainstNull(sessionRepository);
+        _mediator = Guard.AgainstNull(mediator);
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -56,6 +66,31 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
             new(ClaimTypes.Name, identityName),
             new(nameof(Session.IdentityName), identityName),
         ];
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
+        {
+            var session = await _sessionRepository.FindAsync(identityName);
+
+            if (session == null || session.HasExpired)
+            {
+                var registerSession = new RegisterSession(identityName).UseDirect();
+
+                await _mediator.SendAsync(registerSession);
+
+                if (registerSession.Result != SessionRegistrationResult.Registered)
+                {
+                    return AuthenticateResult.Fail(registerSession.Result.ToString());
+                }
+
+                session = registerSession.Session;
+            }
+
+            if (session != null)
+            {
+                claims.Add(new(AccessAuthenticationHandler.SessionTokenClaimType, $"{session.Token:D}"));
+            }
+        }
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
     }

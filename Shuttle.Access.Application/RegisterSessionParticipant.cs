@@ -15,14 +15,12 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
     private readonly IAuthenticationService _authenticationService;
     private readonly IAuthorizationService _authorizationService;
     private readonly IIdentityQuery _identityQuery;
-    private readonly ISessionQuery _sessionQuery;
     private readonly ISessionRepository _sessionRepository;
 
-    public RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, IAuthenticationService authenticationService, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery, IIdentityQuery identityQuery, ISessionTokenExchangeRepository sessionTokenExchangeRepository)
+    public RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, IAuthenticationService authenticationService, IAuthorizationService authorizationService, ISessionRepository sessionRepository, IIdentityQuery identityQuery, ISessionTokenExchangeRepository sessionTokenExchangeRepository)
     {
         _accessOptions = Guard.AgainstNull(accessOptions).Value;
         _authenticationService = Guard.AgainstNull(authenticationService);
-        _sessionQuery = Guard.AgainstNull(sessionQuery);
         _authorizationService = Guard.AgainstNull(authorizationService);
         _sessionRepository = Guard.AgainstNull(sessionRepository);
         _identityQuery = Guard.AgainstNull(identityQuery);
@@ -80,20 +78,16 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
             return;
         }
 
-        var specification = new DataAccess.Session.Specification();
+        Session? session;
 
         if (message.RegistrationType == SessionRegistrationType.Token)
         {
-            specification.WithToken(message.GetToken());
+            session = await _sessionRepository.FindAsync(message.GetToken());
         }
         else
         {
-            specification.WithIdentityName(message.IdentityName);
+            session = await _sessionRepository.FindAsync(message.IdentityName);
         }
-
-        var existingSession = (await _sessionQuery.SearchAsync(specification)).FirstOrDefault();
-
-        var session = existingSession != null ? await _sessionRepository.FindAsync(existingSession.Token) : null;
 
         if (session != null)
         {

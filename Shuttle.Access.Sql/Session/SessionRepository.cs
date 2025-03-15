@@ -34,14 +34,24 @@ public class SessionRepository : ISessionRepository
 
     public async Task<Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
     {
-        var result = await _dataRepository.FetchItemAsync(_queryFactory.Find(token), cancellationToken);
+        return await FindAsync(new DataAccess.Session.Specification().WithToken(token), cancellationToken);
+    }
+
+    public async Task<Session?> FindAsync(string identityName, CancellationToken cancellationToken = default)
+    {
+        return await FindAsync(new DataAccess.Session.Specification().WithIdentityName(identityName), cancellationToken);
+    }
+
+    private async Task<Session?> FindAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken)
+    {
+        var result = await _dataRepository.FetchItemAsync(_queryFactory.Search(specification), cancellationToken);
 
         if (result == null)
         {
             return null;
         }
 
-        foreach (var row in await _databaseContextService.Active.GetRowsAsync(_queryFactory.GetPermissions(token), cancellationToken))
+        foreach (var row in await _databaseContextService.Active.GetRowsAsync(_queryFactory.GetPermissions(result.Token), cancellationToken))
         {
             result.AddPermission(Columns.PermissionName.Value(row)!);
         }
