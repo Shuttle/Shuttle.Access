@@ -43,8 +43,17 @@ public static class SessionEndpoints
 
         app.MapPost("/v{version:apiVersion}/sessions", async (IOptions<AccessOptions> accessOptions, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterSession message) =>
             {
+                var options = Core.Contract.Guard.AgainstNull(accessOptions.Value);
+
+                if (!options.AllowPasswordAuthentication &&
+                    Guid.Empty.Equals(message.Token))
+                {
+                    return Results.BadRequest(Resources.PasswordAuthenticationNotAllowed);
+                }
+
                 if (string.IsNullOrWhiteSpace(message.IdentityName) ||
-                    string.IsNullOrWhiteSpace(message.Password) && Guid.Empty.Equals(message.Token))
+                    string.IsNullOrWhiteSpace(message.Password) && 
+                    Guid.Empty.Equals(message.Token))
                 {
                     return Results.BadRequest();
                 }
@@ -53,7 +62,7 @@ public static class SessionEndpoints
 
                 if (!string.IsNullOrWhiteSpace(message.ApplicationName))
                 {
-                    var knownApplicationOptions = Core.Contract.Guard.AgainstNull(accessOptions.Value).KnownApplications.FirstOrDefault(item => item.Name.Equals(message.ApplicationName, StringComparison.InvariantCultureIgnoreCase));
+                    var knownApplicationOptions = options.KnownApplications.FirstOrDefault(item => item.Name.Equals(message.ApplicationName, StringComparison.InvariantCultureIgnoreCase));
 
                     if (knownApplicationOptions == null)
                     {
@@ -135,7 +144,28 @@ public static class SessionEndpoints
             })
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1);
+            .MapToApiVersion(apiVersion1)
+            .RequireSession();
+
+        app.MapGet("/v{version:apiVersion}/sessions/self", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery) =>
+            {
+                var sessionTokenResult = httpContext.GetAccessSessionToken();
+
+                if (!sessionTokenResult.Ok)
+                {
+                    return Results.BadRequest();
+                }
+
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    return Results.Ok(await sessionQuery.SearchAsync(new DataAccess.Session.Specification().WithToken(sessionTokenResult.SessionToken).IncludePermissions()));
+                }
+            })
+            .WithTags("Sessions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequireSession();
 
         app.MapDelete("/v{version:apiVersion}/sessions", async (IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {

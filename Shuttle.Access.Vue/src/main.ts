@@ -13,11 +13,13 @@ registerPlugins(app);
 const sessionStore = useSessionStore();
 
 if (window.location.pathname !== "/oauth") {
-  await sessionStore.initialize().catch((error) => {
+  try {
+    await sessionStore.initialize();
+  } catch {
     if (!window.location.pathname.startsWith("/signin")) {
       router.push({ path: "/signin" });
     }
-  });
+  }
 }
 
 if (

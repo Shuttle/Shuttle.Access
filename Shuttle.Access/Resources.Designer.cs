@@ -133,7 +133,7 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;Authorization&apos; header contains a valid scheme but has an invalid token..
+        ///   Looks up a localized string similar to The &apos;Authorization&apos; header contains a valid scheme but either has an invalid token, or there is no issuer configuration matching that of the token..
         /// </summary>
         public static string InvalidAuthenticationHeader {
             get {
@@ -147,6 +147,15 @@ namespace Shuttle.Access {
         public static string InvalidCredentialsException {
             get {
                 return ResourceManager.GetString("InvalidCredentialsException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password authentication is not allowed.  Please use a token..
+        /// </summary>
+        public static string PasswordAuthenticationNotAllowed {
+            get {
+                return ResourceManager.GetString("PasswordAuthenticationNotAllowed", resourceCulture);
             }
         }
         

@@ -24,6 +24,7 @@ export type BreadcrumbStoreState = {
 
 export type Configuration = {
   url: string;
+  allowPasswordAuthentication: boolean;
   debugging: () => boolean;
   getApiUrl: (path: string) => string;
 };
@@ -61,6 +62,7 @@ export type DashboardItem = {
 
 export type Env = {
   VITE_API_URL: string;
+  VITE_API_ALLOW_PASSWORD_AUTHENTICATION: string;
 };
 
 export type FormTitle = {

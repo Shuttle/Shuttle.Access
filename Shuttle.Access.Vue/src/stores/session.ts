@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import axios, { type AxiosResponse } from "axios";
+import axios from "axios";
 import configuration from "@/configuration";
 import { i18n } from "@/i18n";
 import type {
@@ -27,8 +27,6 @@ export const useSessionStore = defineStore("session", {
   },
   actions: {
     async initialize() {
-      const self = this;
-
       if (this.initialized) {
         return;
       }
@@ -37,14 +35,14 @@ export const useSessionStore = defineStore("session", {
       const token = localStorage.getItem("shuttle-access.token");
 
       if (!!identityName && !!token) {
-        return self
-          .signIn({ identityName: identityName, token: token })
-          .then(function (response: any) {
-            return response;
-          })
-          .finally(() => {
-            self.initialized = true;
+        try {
+          return await this.signIn({
+            identityName: identityName,
+            token: token,
           });
+        } finally {
+          this.initialized = true;
+        }
       }
 
       return Promise.resolve();
@@ -57,8 +55,6 @@ export const useSessionStore = defineStore("session", {
       this.permissions.push({ type: type, permission: permission });
     },
     register(session: Session) {
-      const self = this;
-
       if (
         !session ||
         !session.identityName ||
@@ -71,126 +67,103 @@ export const useSessionStore = defineStore("session", {
       localStorage.setItem("shuttle-access.identityName", session.identityName);
       localStorage.setItem("shuttle-access.token", session.token);
 
-      self.identityName = session.identityName;
-      self.token = session.token;
+      this.identityName = session.identityName;
+      this.token = session.token;
 
-      self.removePermissions("identity");
+      this.removePermissions("identity");
 
       session.permissions.forEach((item: string) => {
-        self.addPermission("identity", item);
+        this.addPermission("identity", item);
       });
 
       this.authenticated = true;
     },
-    async signIn(
-      credentials: Credentials
-    ): Promise<AxiosResponse<SessionResponse>> {
-      const self = this;
+    async signIn(credentials: Credentials): Promise<SessionResponse> {
+      if (
+        !credentials ||
+        !credentials.identityName ||
+        !(!!credentials.password || !!credentials.token)
+      ) {
+        throw new Error(i18n.global.t("messages.missing-credentials"));
+      }
 
-      return new Promise((resolve, reject) => {
-        if (
-          !credentials ||
-          !credentials.identityName ||
-          !(!!credentials.password || !!credentials.token)
-        ) {
-          reject(new Error(i18n.global.t("messages.missing-credentials")));
-          return;
-        }
+      const response = await axios.post<SessionResponse>(
+        configuration.getApiUrl("v1/sessions"),
+        {
+          identityName: credentials.identityName,
+          password: credentials.password,
+          token: credentials.token,
+          applicationName: credentials.applicationName,
+        },
+      );
 
-        return axios
-          .post(configuration.getApiUrl("v1/sessions"), {
+      if (!response) {
+        throw new Error("Argument 'response' may not be undefined.");
+      }
+
+      if (!response.data) {
+        throw new Error("Argument 'response.data' may not be undefined.");
+      }
+
+      const data = response.data;
+
+      switch (data.result) {
+        case "Registered": {
+          if (data.sessionTokenExchangeUrl) {
+            window.location.replace(data.sessionTokenExchangeUrl);
+            break;
+          }
+
+          this.register({
             identityName: credentials.identityName,
-            password: credentials.password,
-            token: credentials.token,
-            applicationName: credentials.applicationName,
-          })
-          .then(function (response) {
-            if (!response) {
-              throw new Error("Argument 'response' may not be undefined.");
-            }
-
-            if (!response.data) {
-              throw new Error("Argument 'response.data' may not be undefined.");
-            }
-
-            const data = response.data;
-
-            switch (data.result) {
-              case "Registered": {
-                if (data.sessionTokenExchangeUrl) {
-                  window.location.replace(data.sessionTokenExchangeUrl);
-                  return;
-                }
-
-                self.register({
-                  identityName: credentials.identityName,
-                  token: data.token,
-                  permissions: data.permissions,
-                });
-
-                break;
-              }
-              case "UnknownIdentity": {
-                break;
-              }
-              default: {
-                reject(
-                  new Error(i18n.global.t("exceptions.invalid-credentials"))
-                );
-                break;
-              }
-            }
-
-            resolve(response);
-          })
-          .catch(function (error) {
-            reject(error);
+            token: data.token,
+            permissions: data.permissions,
           });
-      });
-    },
-    async oauth(oauthData: OAuthData): Promise<AxiosResponse<SessionResponse>> {
-      const self = this;
 
-      return new Promise((resolve, reject) => {
-        if (!oauthData || !oauthData.state || !oauthData.code) {
-          reject(new Error(i18n.global.t("messages.oauth-missing-data")));
-          return;
+          break;
         }
+        case "UnknownIdentity": {
+          break;
+        }
+        default: {
+          throw new Error(i18n.global.t("exceptions.invalid-credentials"));
+        }
+      }
 
-        return axios
-          .get<SessionResponse>(
-            configuration.getApiUrl(
-              `v1/oauth/session/${oauthData.state}/${oauthData.code}`
-            )
-          )
-          .then(function (response: AxiosResponse<SessionResponse>) {
-            if (!response) {
-              throw new Error("Argument 'response' may not be undefined.");
-            }
+      return response.data;
+    },
+    async oauth(oauthData: OAuthData): Promise<SessionResponse> {
+      if (!oauthData || !oauthData.state || !oauthData.code) {
+        throw new Error(i18n.global.t("messages.oauth-missing-data"));
+      }
 
-            if (!response.data) {
-              throw new Error("Argument 'response.data' may not be undefined.");
-            }
+      const response = await axios.get<SessionResponse>(
+        configuration.getApiUrl(
+          `v1/oauth/session/${oauthData.state}/${oauthData.code}`,
+        ),
+      );
 
-            const data = response.data;
+      if (!response) {
+        throw new Error("Argument 'response' may not be undefined.");
+      }
 
-            if (data.result == "Registered") {
-              self.register({
-                identityName: data.identityName,
-                token: data.token,
-                permissions: data.permissions,
-              });
-            }
+      if (!response.data) {
+        throw new Error("Argument 'response.data' may not be undefined.");
+      }
 
-            resolve(response);
-          })
-          .catch(function (error) {
-            reject(error);
-          })
-          .finally(() => {
-            this.initialized = true;
-          });
-      });
+      const data = response.data;
+
+      if (data.result == "Registered") {
+        this.register({
+          identityName: data.identityName,
+          token: data.token,
+          permissions: data.permissions,
+        });
+      }
+
+      this.initialized = true;
+
+      return response.data;
     },
     signOut() {
       this.identityName = undefined;

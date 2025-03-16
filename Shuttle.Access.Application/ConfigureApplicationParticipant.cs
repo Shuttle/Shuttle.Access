@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -35,8 +36,11 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
         AccessPermissions.Sessions.View
     ];
 
-    public ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
+    private readonly AccessOptions _accessOptions;
+
+    public ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptions, ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
     {
+        _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
         _logger = Guard.AgainstNull(logger);
         _mediator = Guard.AgainstNull(mediator);
         _roleQuery = Guard.AgainstNull(roleQuery);
@@ -47,6 +51,28 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
     public async Task ProcessMessageAsync(IParticipantContext<ConfigureApplication> context)
     {
         Guard.AgainstNull(context);
+
+        foreach (var permission in _permissions)
+        {
+            if (await _permissionQuery.ContainsAsync(new DataAccess.Permission.Specification().AddName(permission)))
+            {
+                continue;
+            }
+
+            var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
+                new()
+                {
+                    Name = permission,
+                    Status = (int)PermissionStatus.Active
+                });
+
+            await _mediator.SendAsync(registerPermissionMessage);
+        }
+
+        if (!_accessOptions.Configuration.ShouldConfigure)
+        {
+            return;
+        }
 
         var roleSpecification = new DataAccess.Role.Specification().AddName("Administrator");
 
@@ -78,34 +104,16 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
             }
         }
 
-        foreach (var permission in _permissions)
-        {
-            if (await _permissionQuery.ContainsAsync(new DataAccess.Permission.Specification().AddName(permission)))
-            {
-                continue;
-            }
-
-            var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
-                new()
-                {
-                    Name = permission,
-                    Status = (int)PermissionStatus.Active
-                });
-
-            await _mediator.SendAsync(registerPermissionMessage);
-        }
-
         if (await _identityQuery.CountAsync(new()) == 0)
         {
-            var generateHash = new GenerateHash { Value = "admin" };
+            var generateHash = new GenerateHash { Value = _accessOptions.Configuration.AdministratorPassword };
 
             await _mediator.SendAsync(generateHash);
 
             var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new()
             {
-                Name = "admin",
+                Name = _accessOptions.Configuration.AdministratorIdentityName,
                 System = "system://access",
-                GeneratedPassword = "admin",
                 PasswordHash = generateHash.Hash,
                 RegisteredBy = "system",
                 Activated = true

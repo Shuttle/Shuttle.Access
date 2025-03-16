@@ -11,10 +11,19 @@ public class AccessOptions
     public string ExtensionFolder { get; set; } = "./.extension";
     public bool OAuthRegisterUnknownIdentities { get; set; } = true;
     public string Realm { get; set; } = "API";
+    public bool AllowPasswordAuthentication { get; set; } = true;
     public TimeSpan SessionDuration { get; set; } = TimeSpan.FromHours(8);
     public TimeSpan SessionRenewalTolerance { get; set; } = TimeSpan.FromHours(1);
     public List<KnownApplicationOptions> KnownApplications { get; set; } = new();
     public TimeSpan SessionTokenExchangeValidityTimeSpan { get; set; } = TimeSpan.FromMinutes(1);
+    public ConfigurationOptions Configuration { get; set; } = new();
+}
+
+public class ConfigurationOptions
+{
+    public bool ShouldConfigure { get; set; } = true;
+    public string AdministratorIdentityName { get; set; } = "admin";
+    public string AdministratorPassword { get; set; } = "admin";
 }
 
 public class KnownApplicationOptions

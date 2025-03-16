@@ -151,6 +151,9 @@
   <data name="InvalidCredentialsException" xml:space="preserve">
     <value>Invalid credentials.</value>
   </data>
+  <data name="PasswordAuthenticationNotAllowed" xml:space="preserve">
+    <value>Password authentication is not allowed.  Please use a token.</value>
+  </data>
   <data name="PasswordHashException" xml:space="preserve">
     <value>The 'PasswordHash' may not be empty.</value>
   </data>

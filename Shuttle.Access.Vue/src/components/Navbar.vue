@@ -89,7 +89,7 @@ const signIn = () => {
 }
 
 const signOut = () => {
-  axios.delete("v1/sessions/me", {
+  axios.delete("v1/sessions/self", {
     baseURL: configuration.url,
     headers: {
       "Authorization": `Shuttle.Access token=${sessionStore.token}`

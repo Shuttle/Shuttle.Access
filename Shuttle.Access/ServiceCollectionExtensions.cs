@@ -28,6 +28,8 @@ public static class ServiceCollectionExtensions
             options.ExtensionFolder = accessBuilder.Options.ExtensionFolder;
             options.Realm = accessBuilder.Options.Realm;
             options.KnownApplications = accessBuilder.Options.KnownApplications;
+            options.Configuration = accessBuilder.Options.Configuration;
+            options.AllowPasswordAuthentication = accessBuilder.Options.AllowPasswordAuthentication;
         });
 
         return services;
