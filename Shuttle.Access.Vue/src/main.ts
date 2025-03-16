@@ -16,7 +16,6 @@ document.querySelector("html")?.setAttribute("lang", i18n.global.locale.value);
 await loadLocaleMessages(i18n, "en");
 
 app.use(i18n);
-app.use(router);
 
 registerPlugins(app);
 

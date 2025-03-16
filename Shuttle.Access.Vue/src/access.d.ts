@@ -147,3 +147,9 @@ export type SessionStoreState = {
   token?: string;
   permissions: SessionPermission[];
 };
+
+export type SnackbarStoreState = {
+  visible: boolean;
+  text: string;
+  timeout: number;
+};

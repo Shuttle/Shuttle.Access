@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <div class="sv-title">{{ $t("identities") }}</div>
+      <sv-title :title="$t('identities')" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-btn v-if="sessionStore.hasPermission(Permissions.Identities.Manage)" :icon="mdiPlus" size="small"

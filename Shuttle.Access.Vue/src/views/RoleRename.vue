@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="submit" class="sv-form sv-form--sm">
-    <div class="sv-title">{{ $t("role") }}</div>
+    <sv-title :title="$t('role')" close-path="/roles" />
     <v-text-field v-model="state.current" :label="$t('name')" class="mb-2" readonly>
     </v-text-field>
     <v-text-field v-model="state.name" :label="$t('new-value')" class="mb-2"

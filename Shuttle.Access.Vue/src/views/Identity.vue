@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="submit" class="sv-form sv-form--sm px-5 pt-20">
-    <div class="sv-title">{{ $t("identity") }}</div>
+    <sv-title :title="$t('identity')" close-path="/identities" />
     <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
       class="mb-2" :error-messages="validation.message('identityName')" autocomplete="new">
     </v-text-field>

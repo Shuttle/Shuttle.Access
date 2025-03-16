@@ -1,7 +1,8 @@
 <template>
-  <div class="flex flex-row align-middle bsc-title items-start">
-    <div class="flex-grow">{{ $t(props.title) }}</div>
-    <v-btn v-if="props.closePath" :icon="mdiClose" @click.stop="router.push(props.closePath)" size="small" flat></v-btn>
+  <div class="flex flex-row align-middle sv-title items-start">
+    <div class="flex-grow">{{ props.title }}</div>
+    <v-btn v-if="props.closePath" :icon="mdiClose" @click.stop="router.push(props.closePath)" size="x-small"
+      flat></v-btn>
   </div>
 </template>
 

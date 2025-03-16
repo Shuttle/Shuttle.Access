@@ -3,13 +3,18 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useSessionStore } from "@/stores/session";
 import { useAlertStore } from "@/stores/alert";
 import Permissions from "../permissions";
-import { useBreadcrumbStore } from "@/stores/breadcrumb";
-import type { Breadcrumb } from "@/access";
 import { i18n } from "@/i18n";
-
-const ignoreBreadcrumbs = ["sign-in", "oauth"];
+import Home from "../views/Home.vue";
 
 const routes: Array<RouteRecordRaw> = [
+  {
+    path: "",
+    component: Home,
+  },
+  {
+    path: "/",
+    component: Home,
+  },
   {
     path: "/dashboard",
     name: "dashboard",
@@ -165,34 +170,6 @@ router.beforeEach(async (to) => {
     to.name !== "signin"
   ) {
     return { name: "signin" };
-  }
-});
-
-router.afterEach(async (to) => {
-  const breadcrumbStore = useBreadcrumbStore();
-
-  var name = typeof to.name === "string" ? to.name : undefined;
-
-  if (!name || ignoreBreadcrumbs.includes(name)) {
-    breadcrumbStore.clear();
-    return;
-  }
-
-  if (name === "dashboard") {
-    breadcrumbStore.clear();
-  }
-
-  const existingIndex = breadcrumbStore.breadcrumbs.findIndex(
-    (route: Breadcrumb) => route.path === to.path
-  );
-
-  if (existingIndex === -1) {
-    breadcrumbStore.addBreadcrumb({
-      name: to.name,
-      path: to.path,
-    });
-  } else {
-    breadcrumbStore.removeBreadcrumbsAfter(existingIndex);
   }
 });
 

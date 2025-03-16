@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <div class="sv-title">{{ $t("sessions") }}</div>
+      <sv-title :title="$t('sessions')" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-btn v-if="sessionStore.hasPermission(Permissions.Sessions.Manage)" :icon="mdiAccountMultipleMinusOutline"
@@ -12,7 +12,7 @@
     </v-card-title>
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
-      :loading="busy" show-expand v-model:expanded="expanded" item-value="identityName">
+      :loading="busy" show-expand v-model:expanded="expanded" item-value="identityName" expand-on-click>
       <template v-slot:item.remove="{ item }">
         <v-btn :icon="mdiDeleteOutline" size="x-small"
           @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
@@ -24,20 +24,22 @@
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
-            <v-list lines="one" density="compact" class="ml-4 md:ml-16">
-              <v-list-subheader>{{ $t("permissions") }}</v-list-subheader>
-              <v-list-item v-if="item.permissions.length" v-for="permission in item.permissions" :key="permission"
-                :title="permission">
-                <template v-slot:prepend>
-                  <v-icon :icon="mdiShieldOutline" size="x-small"></v-icon>
-                </template>
-              </v-list-item>
-              <v-list-item v-else :title="t('none')">
-                <template v-slot:prepend>
-                  <v-icon :icon="mdiShieldOffOutline" size="x-small"></v-icon>
-                </template>
-              </v-list-item>
-            </v-list>
+            <div class="sv-table-container">
+              <v-list lines="one" density="compact" class="ml-4 md:ml-16">
+                <v-list-subheader>{{ $t("permissions") }}</v-list-subheader>
+                <v-list-item v-if="item.permissions.length" v-for="permission in item.permissions" :key="permission"
+                  :title="permission">
+                  <template v-slot:prepend>
+                    <v-icon :icon="mdiShieldOutline" size="x-small"></v-icon>
+                  </template>
+                </v-list-item>
+                <v-list-item v-else :title="t('none')">
+                  <template v-slot:prepend>
+                    <v-icon :icon="mdiShieldOffOutline" size="x-small"></v-icon>
+                  </template>
+                </v-list-item>
+              </v-list>
+            </div>
           </td>
         </tr>
       </template>
