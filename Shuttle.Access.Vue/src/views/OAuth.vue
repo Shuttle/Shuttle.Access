@@ -13,8 +13,6 @@ import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";
 import router from "@/router";
 import { useRoute } from 'vue-router';
-import type { SessionResponse } from "@/access";
-import type { AxiosResponse } from "axios";
 
 const { t } = useI18n({ useScope: 'global' });
 
@@ -22,7 +20,7 @@ const alertStore = useAlertStore();
 
 const busy = ref(false);
 
-onMounted(() => {
+onMounted(async () => {
   const sessionStore = useSessionStore();
   const route = useRoute();
 
@@ -41,46 +39,44 @@ onMounted(() => {
   const state = (route.query.state?.toString() || "");
   const code = (route.query.code?.toString() || "");
 
-  sessionStore.oauth({
-    state: state,
-    code: code
-  })
-    .then((response: AxiosResponse<SessionResponse>) => {
-      var data = response.data;
-      var params = { identityName: data.identityName };
+  try {
+    const response = await sessionStore.oauth({
+      state: state,
+      code: code
+    });
 
-      if (response.data.sessionTokenExchangeUrl) {
-        window.location.replace(response.data.sessionTokenExchangeUrl);
+    const params = { identityName: response.identityName };
 
-        return;
-      }
+    if (response.sessionTokenExchangeUrl) {
+      window.location.replace(response.sessionTokenExchangeUrl);
 
-      if (data.result === "UnknownIdentity") {
-        alertStore.add({
-          message: data.registrationRequested ? t("messages.oauth-unknown-identity-registered", params) : t("messages.oauth-unknown-identity", params),
-          type: "error",
-          name: "oauth-unknown-identity"
-        });
+      return;
+    }
 
-        router.push({ name: "sign-in" });
-
-        return;
-      }
-
-      router.push({ name: "dashboard" });
-    })
-    .catch(error => {
+    if (response.result === "UnknownIdentity") {
       alertStore.add({
-        message: error.response?.status == 400 ? t("exceptions.invalid-credentials") : error.toString(),
+        message: response.registrationRequested ? t("messages.oauth-unknown-identity-registered", params) : t("messages.oauth-unknown-identity", params),
         type: "error",
-        name: "sign-in-exception"
+        name: "oauth-unknown-identity"
       });
 
       router.push({ name: "sign-in" });
-    })
-    .finally(() => {
-      busy.value = false;
+
+      return;
+    }
+
+    router.push({ name: "dashboard" });
+  } catch (error: any) {
+    alertStore.add({
+      message: error.response?.status == 400 ? t("exceptions.invalid-credentials") : error.toString(),
+      type: "error",
+      name: "sign-in-exception"
     });
+
+    router.push({ name: "sign-in" });
+  } finally {
+    busy.value = false;
+  };
 })
 
 </script>
