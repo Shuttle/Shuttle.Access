@@ -4,21 +4,21 @@ import { useSessionStore } from "@/stores/session";
 import { useAlertStore } from "@/stores/alert";
 import Permissions from "../permissions";
 import { i18n } from "@/i18n";
-import Home from "../views/Home.vue";
+import Dashboard from "../views/Dashboard.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: "",
-    component: Home,
+    component: Dashboard,
   },
   {
     path: "/",
-    component: Home,
+    component: Dashboard,
   },
   {
     path: "/dashboard",
     name: "dashboard",
-    component: () => import("../views/Dashboard.vue"),
+    component: Dashboard,
   },
   {
     path: "/identities",

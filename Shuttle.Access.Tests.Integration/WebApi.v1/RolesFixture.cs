@@ -35,7 +35,7 @@ public class RolesFixture
     }
 
     [Test]
-    public async Task Should_be_able_to_get_all_roles_async()
+    public async Task Should_be_able_to_search_roles_async()
     {
         var factory = new FixtureWebApplicationFactory();
 
@@ -49,7 +49,7 @@ public class RolesFixture
 
         var client = factory.GetAccessClient();
 
-        var response = await client.Roles.GetAsync();
+        var response = await client.Roles.SearchAsync(new());
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);

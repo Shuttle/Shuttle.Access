@@ -63,7 +63,7 @@ export type RoleItem = {
 };
 
 const items = computed(() => {
-  var result: RoleItem[] = [];
+  const result: RoleItem[] = [];
 
   identityRoles.value.forEach((item: any) => {
     result.push(reactive({
@@ -88,15 +88,21 @@ const items = computed(() => {
   return result;
 });
 
-const refresh = () => {
-  api.get(`v1/identities/${id.value}`).then((response) => {
-    name.value = response.data.name;
-    identityRoles.value = response.data.roles;
+const refresh = async () => {
+  busy.value = true;
 
-    api.get("v1/roles").then((response) => {
-      roles.value = response.data;
-    });
-  });
+  try {
+    const roleResponse = await api.post("v1/roles/search", {});
+
+    roles.value = roleResponse.data;
+
+    const identityResponse = await api.get(`v1/identities/${id.value}`);
+
+    name.value = identityResponse.data.name;
+    identityRoles.value = identityResponse.data.roles;
+  } finally {
+    busy.value = false;
+  }
 };
 
 const workingItems = computed(() => {

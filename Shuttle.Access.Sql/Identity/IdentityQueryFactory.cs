@@ -235,6 +235,12 @@ LEFT JOIN
     Permission p ON (p.Id = rp.PermissionId)
 WHERE
 (
+    ISNULL(@NameMatch, '') = ''
+    OR
+    i.Name LIKE '%' + @NameMatch + '%'
+)
+AND
+(
     ISNULL(@Name, '') = ''
     OR
     i.Name = @Name
@@ -270,6 +276,7 @@ ORDER BY
 ")
             .AddParameter(Columns.RoleName, specification.RoleName)
             .AddParameter(Columns.Name, specification.Name)
+            .AddParameter(Columns.NameMatch, specification.NameMatch)
             .AddParameter(Columns.IdentityId, specification.Id)
             .AddParameter(Columns.RoleId, specification.RoleId)
             .AddParameter(Columns.PermissionId, specification.PermissionId);

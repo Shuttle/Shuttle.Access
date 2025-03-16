@@ -12,7 +12,7 @@
     </v-card-title>
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
-      :loading="busy">
+      :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
       <template v-slot:item.roles="{ item }">
         <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click="roles(item)" v-tooltip:end="$t('roles')" />
       </template>
@@ -26,6 +26,16 @@
         <v-btn :icon="mdiDeleteOutline" size="x-small"
           @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
       </template>
+      <template #expanded-row="{ columns, item }">
+        <tr>
+          <td :colspan="columns.length">
+            <div class="sv-table-container">
+              <v-data-table :items="item.roles" :headers="roleHeaders" :mobile="null" mobile-breakpoint="md">
+              </v-data-table>
+            </div>
+          </td>
+        </tr>
+      </template>
     </v-data-table>
   </v-card>
 </template>
@@ -35,14 +45,13 @@ import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { mdiMagnify, mdiDeleteOutline, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline, mdiAccountGroupOutline } from '@mdi/js';
-import { useDateFormatter } from "@/composables/useDateFormatter";
-import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
+import { useDateFormatter } from "@/composables/DateFormatter";
+import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import { useRouter } from "vue-router";
 import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";
 import Permissions from "@/permissions";
 import type { Identity } from "@/access";
-import type { AxiosResponse } from "axios";
 import { useSessionStore } from "@/stores/session";
 
 const confirmationStore = useConfirmationStore();
@@ -52,6 +61,7 @@ const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
 const busy = ref(false);
 const search = ref('')
+const expanded: Ref<string[]> = ref([])
 
 const headers = useSecureTableHeaders([
   {
@@ -94,7 +104,7 @@ const headers = useSecureTableHeaders([
     title: t("date-registered"),
     key: "item.dateRegistered",
     value: (item: any) => {
-      return useDateFormatter(item.dateRegistered);
+      return useDateFormatter(item.dateRegistered).dateTimeMilliseconds();
     }
   },
   {
@@ -105,40 +115,53 @@ const headers = useSecureTableHeaders([
     title: t("date-activated"),
     key: "item.dateActivated",
     value: (item: any) => {
-      return useDateFormatter(item.dateActivated);
+      return useDateFormatter(item.dateActivated).dateTimeMilliseconds();
     }
   },
 ]);
 
+const roleHeaders = useSecureTableHeaders([
+  {
+    title: t("role"),
+    value: "name"
+  },
+]);
+
+
 const items: Ref<Identity[]> = ref([]);
 
-const refresh = () => {
+const refresh = async () => {
   busy.value = true;
 
-  api
-    .get("v1/identities")
-    .then(function (response: AxiosResponse<Identity[]>) {
-      if (!response || !response.data) {
-        return;
-      }
-
-      items.value = response.data;
-    })
-    .finally(function () {
-      busy.value = false;
+  try {
+    const response = await api.post("v1/identities/search", {
+      shouldIncludeRoles: true
     });
+
+    if (!response || !response.data) {
+      return;
+    }
+
+    items.value = response.data;
+  } finally {
+    busy.value = false;
+  }
 }
 
-const remove = (item: Identity) => {
+const remove = async (item: Identity) => {
   confirmationStore.close();
 
-  api
-    .delete(`v1/identities/${item.id}`)
-    .then(function () {
-      useAlertStore().requestSent();
+  busy.value = true;
 
-      refresh();
-    });
+  try {
+    await api.delete(`v1/identities/${item.id}`);
+
+    useAlertStore().requestSent();
+
+    refresh();
+  } finally {
+    busy.value = false;
+  }
 }
 
 const add = () => {

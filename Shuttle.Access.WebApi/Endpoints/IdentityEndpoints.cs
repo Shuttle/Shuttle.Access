@@ -40,12 +40,24 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapGet("/v{version:apiVersion}/identities/", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery) =>
+        app.MapPost("/v{version:apiVersion}/identities/search", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, [FromBody] Messages.v1.Identity.Specification specification) =>
             {
+                var search = new DataAccess.Identity.Specification();
+
+                if (!string.IsNullOrWhiteSpace(specification.NameMatch))
+                {
+                    search.WithNameMatch(specification.NameMatch);
+                }
+
+                if (specification.ShouldIncludeRoles)
+                {
+                    search.IncludeRoles();
+                }
+
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    return Results.Ok(await identityQuery.SearchAsync(new()));
+                    return Results.Ok(await identityQuery.SearchAsync(search));
                 }
             })
             .WithTags("Identities")

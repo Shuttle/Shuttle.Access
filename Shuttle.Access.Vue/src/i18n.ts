@@ -1,19 +1,21 @@
-import { nextTick } from "vue";
-import type { I18n, Locale } from "vue-i18n";
 import { createI18n } from "vue-i18n";
+import { en } from "vuetify/locale";
+import enMessages from "./locales/en.json";
 
 export const i18n = createI18n({
   legacy: false,
-  locale: "en",
+  locale: "en-GB",
   fallbackLocale: "en",
 });
 
-i18n.global.locale.value = "en";
+i18n.global.locale.value = "en-GB";
 
-export async function loadLocaleMessages(i18n: I18n, locale: Locale) {
-  const messages = await import(`./locales/${locale}.json`);
-
-  i18n.global.setLocaleMessage(locale, messages.default);
-
-  return nextTick();
-}
+i18n.global.setLocaleMessage("en", enMessages);
+i18n.global.setLocaleMessage("en-GB", {
+  $vuetify: {
+    ...en,
+    Intl: {
+      DateTimeFormat: "dd/mm/yyyy",
+    },
+  },
+});

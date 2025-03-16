@@ -12,7 +12,7 @@
     </v-card-title>
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
-      :loading="busy">
+      :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
       <template v-slot:item.permissions="{ item }">
         <v-btn :icon="mdiShieldOutline" size="x-small" @click="permissions(item)" v-tooltip:end="$t('permissions')" />
       </template>
@@ -22,6 +22,17 @@
       <template v-slot:item.remove="{ item }">
         <v-btn :icon="mdiDeleteOutline" size="x-small"
           @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
+      </template>
+      <template #expanded-row="{ columns, item }">
+        <tr>
+          <td :colspan="columns.length">
+            <div class="sv-table-container">
+              <v-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
+                mobile-breakpoint="md">
+              </v-data-table>
+            </div>
+          </td>
+        </tr>
       </template>
     </v-data-table>
   </v-card>
@@ -35,11 +46,11 @@ import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShield
 import { useRouter } from "vue-router";
 import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";
-import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
+import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
-import type { Role } from "@/access";
-import type { AxiosResponse } from "axios";
+import type { Permission, Role } from "@/access";
 import { useSessionStore } from "@/stores/session";
+import { usePermissionStatuses } from "@/composables/Data";
 
 const confirmationStore = useConfirmationStore();
 const sessionStore = useSessionStore();
@@ -48,6 +59,8 @@ const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
 const busy: Ref<boolean> = ref(false);
 const search: Ref<string> = ref('')
+const expanded: Ref<string[]> = ref([])
+const permissionStatuses = usePermissionStatuses();
 
 const headers = useSecureTableHeaders([
   {
@@ -80,40 +93,48 @@ const headers = useSecureTableHeaders([
   },
 ]);
 
+const permissionHeaders = useSecureTableHeaders([
+  {
+    title: t("permission"),
+    value: "name"
+  },
+  {
+    title: t("status"),
+    key: "status",
+    value: (item: Permission) => {
+      return permissionStatuses.find((status) => status.value === item.status)?.text || item.status;
+    }
+  },
+]);
+
 const items: Ref<Role[]> = ref([]);
 
-const refresh = () => {
+const refresh = async () => {
   busy.value = true;
 
-  api
-    .get("v1/roles")
-    .then(function (response: AxiosResponse<Role[]>) {
-      if (!response || !response.data) {
-        return;
-      }
-
-      items.value = response.data;
-    })
-    .finally(function () {
-      busy.value = false;
+  try {
+    const response = await api.post("v1/roles/search", {
+      shouldIncludePermissions: true,
     });
+    items.value = response.data;
+  } finally {
+    busy.value = false;
+  }
 }
 
-const remove = (item: Role) => {
+const remove = async (item: Role) => {
   confirmationStore.close();
 
   busy.value = true;
 
-  api
-    .delete(`v1/roles/${item.id}`)
-    .then(function () {
-      useAlertStore().requestSent();
+  try {
+    await api.delete(`v1/roles/${item.id}`)
+    useAlertStore().requestSent();
 
-      refresh();
-    })
-    .finally(() => {
-      busy.value = false;
-    });
+    refresh();
+  } finally {
+    busy.value = false;
+  }
 }
 
 const add = () => {

@@ -1,9 +1,9 @@
 ﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.WebApi.Specifications;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
@@ -16,12 +16,21 @@ public static class PermissionEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapGet("/v{version:apiVersion}/permissions", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
+        app.MapPost("/v{version:apiVersion}/permissions/search", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery, [FromBody] Messages.v1.Permission.Specification specification) =>
             {
+                var search = new DataAccess.Permission.Specification();
+
+                if (!string.IsNullOrWhiteSpace(specification.NameMatch))
+                {
+                    search.WithNameMatch(specification.NameMatch);
+                }
+
+                search.AddIds(specification.Ids);
+
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var permissions = (await permissionQuery.SearchAsync(new())).ToList();
+                    var permissions = (await permissionQuery.SearchAsync(search)).ToList();
                     return Results.Ok(permissions);
                 }
             })
@@ -37,25 +46,6 @@ public static class PermissionEndpoints
                 {
                     var permission = (await permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddId(id))).SingleOrDefault();
                     return permission != null ? Results.Ok(permission) : Results.BadRequest();
-                }
-            })
-            .WithTags("Permissions")
-            .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequireSession();
-
-        app.MapPost("/v{version:apiVersion}/permissions/search", async (Messages.v1.Permission.Specification specification, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
-            {
-                if (specification == null)
-                {
-                    return Results.BadRequest();
-                }
-
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    var permissions = (await permissionQuery.SearchAsync(specification.Create())).ToList();
-                    return Results.Ok(permissions);
                 }
             })
             .WithTags("Permissions")

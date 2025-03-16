@@ -13,4 +13,10 @@ public class Role
     {
         public Guid RoleId { get; set; }
     }
+
+    public class Specification
+    {
+        public string NameMatch { get; set; } = string.Empty;
+        public bool ShouldIncludePermissions { get; set; }
+    }
 }

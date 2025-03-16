@@ -25,20 +25,9 @@
         <tr>
           <td :colspan="columns.length">
             <div class="sv-table-container">
-              <v-list lines="one" density="compact" class="ml-4 md:ml-16">
-                <v-list-subheader>{{ $t("permissions") }}</v-list-subheader>
-                <v-list-item v-if="item.permissions.length" v-for="permission in item.permissions" :key="permission"
-                  :title="permission">
-                  <template v-slot:prepend>
-                    <v-icon :icon="mdiShieldOutline" size="x-small"></v-icon>
-                  </template>
-                </v-list-item>
-                <v-list-item v-else :title="t('none')">
-                  <template v-slot:prepend>
-                    <v-icon :icon="mdiShieldOffOutline" size="x-small"></v-icon>
-                  </template>
-                </v-list-item>
-              </v-list>
+              <v-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
+                mobile-breakpoint="md">
+              </v-data-table>
             </div>
           </td>
         </tr>
@@ -51,14 +40,14 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useClipboard, usePermission } from '@vueuse/core'
-import { mdiAccountMultipleMinusOutline, mdiContentCopy, mdiDeleteOutline, mdiMagnify, mdiRefresh, mdiShieldOffOutline, mdiShieldOutline } from '@mdi/js';
+import { useClipboard } from '@vueuse/core'
+import { mdiAccountMultipleMinusOutline, mdiContentCopy, mdiDeleteOutline, mdiMagnify, mdiRefresh } from '@mdi/js';
 import { useConfirmationStore } from "@/stores/confirmation";
-import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
+import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
 import type { Session } from "@/access";
 import type { AxiosResponse } from "axios";
-import { useDateTimeFormatter } from "@/composables/useDateFormatter";
+import { useDateFormatter } from "@/composables/DateFormatter";
 import { useSessionStore } from "@/stores/session";
 
 const confirmationStore = useConfirmationStore();
@@ -87,19 +76,29 @@ const headers = useSecureTableHeaders([
     title: t("date-registered"),
     key: "item.dateRegistered",
     value: (item: any) => {
-      return useDateTimeFormatter(item.dateActivated);
+      return useDateFormatter(item.dateActivated).dateTimeMilliseconds();
     }
   },
   {
     title: t("expiry-date"),
     key: "item.expiryDate",
     value: (item: any) => {
-      return useDateTimeFormatter(item.expiryDate);
+      return useDateFormatter(item.expiryDate).dateTimeMilliseconds();
     }
   },
   {
     title: t("token"),
     value: "token",
+  },
+]);
+
+const permissionHeaders = useSecureTableHeaders([
+  {
+    title: t("permission"),
+    key: "permission",
+    value: (item: string) => {
+      return item;
+    },
   },
 ]);
 

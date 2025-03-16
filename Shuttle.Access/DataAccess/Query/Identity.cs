@@ -1,4 +1,5 @@
 ﻿using System;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.DataAccess;
 
@@ -8,6 +9,7 @@ public class Identity
     {
         public Guid? Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
+        public string NameMatch { get; private set; } = string.Empty;
         public Guid? PermissionId { get; private set; }
         public Guid? RoleId { get; private set; }
         public string RoleName { get; private set; } = string.Empty;
@@ -70,6 +72,12 @@ public class Identity
         {
             MaximumRows = maximumRows;
 
+            return this;
+        }
+
+        public Specification WithNameMatch(string nameMatch)
+        {
+            NameMatch = Guard.AgainstNullOrEmptyString(nameMatch);
             return this;
         }
     }

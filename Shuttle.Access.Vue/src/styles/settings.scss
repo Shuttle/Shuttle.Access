@@ -1,6 +1,3 @@
 @forward "vuetify/settings" with (
   $utilities: false
 );
-
-@use "./base.css";
-@use "./tailwind.scss";

@@ -9,6 +9,8 @@ namespace Shuttle.Access.RestClient.v1;
 
 public interface IIdentitiesApi
 {
+    [Post("/v1/identities/search")]
+    Task<IApiResponse<List<Messages.v1.Identity>>> SearchAsync(Messages.v1.Identity.Specification specification);
     [Put("/v1/identities/activate")]
     Task<IApiResponse> ActivateAsync(ActivateIdentity message);
 
@@ -17,9 +19,6 @@ public interface IIdentitiesApi
 
     [Delete("/v1/identities/{id}")]
     Task<IApiResponse> DeleteAsync(Guid id);
-
-    [Get("/v1/identities")]
-    Task<IApiResponse<List<Messages.v1.Identity>>> GetAsync();
 
     [Get("/v1/identities/{value}")]
     Task<IApiResponse<Messages.v1.Identity>> GetAsync(string value);

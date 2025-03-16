@@ -19,4 +19,10 @@ public class Identity
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
+
+    public class Specification
+    {
+        public string NameMatch { get; set; } = string.Empty;
+        public bool ShouldIncludeRoles { get; set; }
+    }
 }

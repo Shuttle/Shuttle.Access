@@ -5,10 +5,10 @@ import configuration from "./configuration";
 import router from "./router";
 
 const api = axios.create({ baseURL: configuration.url });
-const alertStore = useAlertStore();
-const sessionStore = useSessionStore();
 
 api.interceptors.request.use(function (config) {
+  const sessionStore = useSessionStore();
+
   config.headers[
     "Authorization"
   ] = `Shuttle.Access token=${sessionStore.token}`;
@@ -24,6 +24,8 @@ api.interceptors.response.use(
 
       return error;
     }
+
+    const alertStore = useAlertStore();
 
     alertStore.add({
       message:

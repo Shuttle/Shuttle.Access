@@ -8,9 +8,6 @@ namespace Shuttle.Access.RestClient.v1;
 
 public interface IPermissionsApi
 {
-    [Get("/v1/permissions")]
-    Task<IApiResponse<List<Messages.v1.Permission>>> GetAsync();
-
     [Post("/v1/permissions")]
     Task<IApiResponse> PostAsync(RegisterPermission message);
 

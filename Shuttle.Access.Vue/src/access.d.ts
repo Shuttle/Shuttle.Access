@@ -100,6 +100,11 @@ export type Permission = {
   status: number;
 };
 
+export type Status = {
+  text: string;
+  value: number;
+};
+
 export type Role = {
   id: string;
   name: string;

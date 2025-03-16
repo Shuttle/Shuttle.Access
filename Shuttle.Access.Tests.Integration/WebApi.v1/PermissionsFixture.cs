@@ -11,7 +11,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 public class PermissionsFixture
 {
     [Test]
-    public async Task Should_be_able_to_get_available_permissions_async()
+    public async Task Should_be_able_to_search_permissions_async()
     {
         var permission = new Messages.v1.Permission
         {
@@ -24,7 +24,7 @@ public class PermissionsFixture
 
         factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Permission.Specification>(), default)).Returns(Task.FromResult(new List<Messages.v1.Permission> { permission }.AsEnumerable()));
 
-        var response = await factory.GetAccessClient().Permissions.GetAsync();
+        var response = await factory.GetAccessClient().Permissions.SearchAsync(new());
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
