@@ -32,7 +32,7 @@ public class SessionRepository : ISessionRepository
         await _databaseContextService.Active.ExecuteAsync(_queryFactory.Save(session), cancellationToken);
     }
 
-    public async Task<Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
+    public async Task<Session?> FindAsync(byte[] token, CancellationToken cancellationToken = default)
     {
         return await FindAsync(new DataAccess.Session.Specification().WithToken(token), cancellationToken);
     }
@@ -40,6 +40,16 @@ public class SessionRepository : ISessionRepository
     public async Task<Session?> FindAsync(string identityName, CancellationToken cancellationToken = default)
     {
         return await FindAsync(new DataAccess.Session.Specification().WithIdentityName(identityName), cancellationToken);
+    }
+
+    public async Task<Session?> FindAsync(Guid identityId, CancellationToken cancellationToken = default)
+    {
+        return await FindAsync(new DataAccess.Session.Specification().WithIdentityId(identityId), cancellationToken);
+    }
+
+    public async ValueTask<bool> RemoveAsync(byte[] token, CancellationToken cancellationToken = default)
+    {
+        return await _databaseContextService.Active.ExecuteAsync(_queryFactory.Remove(token), cancellationToken) != 0;
     }
 
     private async Task<Session?> FindAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken)
@@ -51,7 +61,7 @@ public class SessionRepository : ISessionRepository
             return null;
         }
 
-        foreach (var row in await _databaseContextService.Active.GetRowsAsync(_queryFactory.GetPermissions(result.Token), cancellationToken))
+        foreach (var row in await _databaseContextService.Active.GetRowsAsync(_queryFactory.GetPermissions(result.IdentityId), cancellationToken))
         {
             result.AddPermission(Columns.PermissionName.Value(row)!);
         }
@@ -59,8 +69,8 @@ public class SessionRepository : ISessionRepository
         return result;
     }
 
-    public async ValueTask<bool> RemoveAsync(Guid token, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> RemoveAsync(Guid identityId, CancellationToken cancellationToken = default)
     {
-        return await _databaseContextService.Active.ExecuteAsync(_queryFactory.Remove(token), cancellationToken) != 0;
+        return await _databaseContextService.Active.ExecuteAsync(_queryFactory.Remove(identityId), cancellationToken) != 0;
     }
 }

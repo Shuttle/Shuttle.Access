@@ -8,7 +8,6 @@ using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
-using Shuttle.Access.WebApi.Authentication;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.Esb;
@@ -72,7 +71,7 @@ public class Program
         webApplicationBuilder.Services
             .AddAuthentication(options =>
             {
-                options.DefaultScheme = RoutingAuthenticationHandler.AuthenticationScheme;
+                options.DefaultScheme = "Routing";
             })
             .AddScheme<AuthenticationSchemeOptions, RoutingAuthenticationHandler>(RoutingAuthenticationHandler.AuthenticationScheme, _ =>
             {

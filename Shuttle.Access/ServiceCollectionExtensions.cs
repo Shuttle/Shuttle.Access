@@ -39,7 +39,7 @@ public static class ServiceCollectionExtensions
     {
         Guard.AgainstNull(services);
 
-        services.TryAddSingleton<IAccessService, DataStoreAccessService>();
+        services.TryAddSingleton<ISessionCache, DataStoreSessionCache>();
 
         return services;
     }

@@ -142,7 +142,7 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPut("/v{version:apiVersion}/identities/password/change", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository, [FromBody] ChangePassword message) =>
+        app.MapPut("/v{version:apiVersion}/identities/password", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository, [FromBody] ChangePassword message) =>
             {
                 try
                 {
@@ -153,17 +153,17 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var sessionTokenResult = httpContext.GetAccessSessionToken();
+                var identityId = httpContext.GetIdentityId();
 
-                if (!sessionTokenResult.Ok)
+                if (identityId == null)
                 {
-                    return Results.BadRequest(Resources.SessionTokenException);
+                    return Results.Unauthorized();
                 }
 
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var session = await sessionRepository.FindAsync(sessionTokenResult.SessionToken);
+                    var session = await sessionRepository.FindAsync(identityId.Value);
 
                     if (message.Id.HasValue && !(session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
                     {
@@ -194,9 +194,9 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var sessionTokenResult = httpContext.GetAccessSessionToken();
+                var identityId = httpContext.GetIdentityId();
 
-                if (!sessionTokenResult.Ok)
+                if (identityId == null)
                 {
                     return Results.BadRequest(Resources.SessionTokenException);
                 }
@@ -334,12 +334,12 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var sessionTokenResult = httpContext.GetAccessSessionToken();
+                var identityId = httpContext.GetIdentityId();
                 var requestIdentityRegistration = new RequestIdentityRegistration(message);
 
-                if (sessionTokenResult.Ok)
+                if (identityId != null)
                 {
-                    requestIdentityRegistration.WithSessionToken(sessionTokenResult.SessionToken);
+                    requestIdentityRegistration.WithIdentityId(identityId.Value);
                 }
 
                 using (new DatabaseContextScope())

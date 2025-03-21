@@ -12,14 +12,12 @@ namespace Shuttle.Access.Tests;
 [TestFixture]
 public class DataStoreAccessServiceFixture
 {
-    private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
-
     [Test]
     public async Task Should_be_able_check_for_non_existent_session_async()
     {
         var repository = new Mock<ISessionRepository>();
 
-        repository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult<Session?>(null));
+        repository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult<Session?>(null));
 
         var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -29,10 +27,10 @@ public class DataStoreAccessServiceFixture
             ConnectionString = "connection-string"
         });
 
-        var service = new DataStoreAccessService(Options.Create(new AccessOptions
+        var service = new DataStoreSessionCache(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new Mock<IDatabaseContextFactory>().Object, repository.Object);
+        }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, repository.Object);
 
         Assert.That(await service.ContainsAsync(Guid.NewGuid()), Is.False);
     }
@@ -42,7 +40,10 @@ public class DataStoreAccessServiceFixture
     {
         var sessionRepository = new Mock<ISessionRepository>();
 
-        sessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(_session)!);
+        var sessionToken = Guid.NewGuid();
+        Session session = new(sessionToken.ToByteArray(), sessionToken, "test-user", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
+
+        sessionRepository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
 
         var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
 
@@ -52,13 +53,13 @@ public class DataStoreAccessServiceFixture
             ConnectionString = "connection-string"
         });
 
-        var service = new DataStoreAccessService(Options.Create(new AccessOptions
+        var service = new DataStoreSessionCache(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new Mock<IDatabaseContextFactory>().Object, sessionRepository.Object);
+        }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, sessionRepository.Object);
 
-        Assert.That(await service.ContainsAsync(_session.Token), Is.True);
+        Assert.That(await service.ContainsAsync(sessionToken), Is.True);
 
-        sessionRepository.Verify(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None), Times.Exactly(1));
+        sessionRepository.Verify(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None), Times.Exactly(1));
     }
 }

@@ -173,11 +173,13 @@ public static class OAuthEndpoints
 
                 if (registerSession.HasSession)
                 {
+                    sessionResponse.IdentityId = registerSession.Session!.IdentityId;
                     sessionResponse.IdentityName = registerSession.Session!.IdentityName;
-                    sessionResponse.Token = registerSession.Session.Token;
+                    sessionResponse.Token = registerSession.SessionToken!.Value;
                     sessionResponse.TokenExpiryDate = registerSession.Session.ExpiryDate;
                     sessionResponse.Permissions = registerSession.Session.Permissions.ToList();
                     sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
+                    sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
                 }
 
                 return Results.Ok(sessionResponse);

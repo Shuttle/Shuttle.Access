@@ -101,7 +101,7 @@ public static class PermissionEndpoints
                     message.Id = id;
                     message.ApplyInvariants();
 
-                    Guard.AgainstUndefinedEnum<PermissionStatus>(message.Status, nameof(message.Status));
+                    Guard.AgainstUndefinedEnum<PermissionStatus>(message.Status);
                 }
                 catch (Exception ex)
                 {

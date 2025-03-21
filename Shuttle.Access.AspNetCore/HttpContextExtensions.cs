@@ -1,53 +1,16 @@
-﻿using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
 public static class HttpContextExtensions
 {
-    public static SessionTokenResult GetAccessSessionToken(this HttpContext context)
+    public const string SessionIdentityIdClaimType = "http://shuttle.org/claims/session/identity-id";
+
+    public static Guid? GetIdentityId(this HttpContext context)
     {
-        Guard.AgainstNull(context);
+        var identityIdValue = Guard.AgainstNull(context).User.Claims.FirstOrDefault(claim => claim.Type == SessionIdentityIdClaimType)?.Value ?? string.Empty;
 
-        try
-        {
-            var sessionTokenClaim = context.User.Claims.FirstOrDefault(claim => claim.Type == AccessAuthenticationHandler.SessionTokenClaimType)?.Value;
-
-            if (sessionTokenClaim != null)
-            {
-                return Guid.TryParse(sessionTokenClaim, out var token) 
-                    ? SessionTokenResult.Success(token)
-                    : SessionTokenResult.Failure(new UnauthorizedResult());
-            }
-
-            var header = context.Request.Headers["Authorization"].FirstOrDefault();
-
-            if (header == null)
-            {
-                return SessionTokenResult.Failure(new UnauthorizedResult());
-            }
-
-            if (!header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
-            {
-                return SessionTokenResult.Failure(new UnauthorizedResult());
-            }
-
-            var match = AccessAuthenticationHandler.TokenExpression.Match(header["Shuttle.Access ".Length..].Trim());
-
-            if (!match.Success)
-            {
-                return SessionTokenResult.Failure(new UnauthorizedResult());
-            }
-
-            return !Guid.TryParse(match.Groups["token"].Value, out var sessionToken) 
-                ? SessionTokenResult.Failure(new UnauthorizedResult()) 
-                : SessionTokenResult.Success(sessionToken);
-        }
-        catch
-        {
-            throw new("Could not retrieve the session token.");
-        }
+        return string.IsNullOrWhiteSpace(identityIdValue) || !Guid.TryParse(identityIdValue, out var identityId) ? null : identityId;
     }
 }

@@ -40,7 +40,7 @@ public class ChangePasswordParticipant : IParticipant<RequestMessage<ChangePassw
 
         if (request.Token.HasValue)
         {
-            var session = await _sessionRepository.FindAsync(request.Token.Value);
+            var session = await _sessionRepository.FindAsync(_hashingService.Sha256(request.Token.Value.ToString("D")));
 
             if (session == null)
             {

@@ -10,7 +10,7 @@ http {
 
         location /env {
             default_type application/json;
-            return 200 '{"VITE_API_URL":"$VITE_API_URL"}';
+            return 200 '{"VITE_API_URL":"$VITE_API_URL", "VITE_API_ALLOW_PASSWORD_AUTHENTICATION"="$VITE_API_ALLOW_PASSWORD_AUTHENTICATION"}';
         }
 
         location / {

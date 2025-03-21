@@ -20,39 +20,19 @@ public class SessionsFixture
 
         var session = new Messages.v1.Session
         {
-            Token = Guid.NewGuid()
+            IdentityId = Guid.NewGuid()
         };
 
         factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Messages.v1.Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 
-        var response = await client.Sessions.GetAsync(session.Token);
+        var response = await client.Sessions.PostSearchAsync(new());
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content!.Token, Is.EqualTo(session.Token));
-    }
-
-    [Test]
-    public async Task Should_be_able_to_get_session_permissions_async()
-    {
-        var factory = new FixtureWebApplicationFactory();
-
-        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddSeconds(15))
-            .AddPermission(Permission);
-
-        factory.SessionRepository.Setup(m => m.FindAsync(It.IsAny<Guid>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
-
-        var client = factory.GetAccessClient();
-
-        var response = await client.Sessions.GetPermissionsAsync(session.Token);
-
-        Assert.That(response, Is.Not.Null);
-        Assert.That(response.IsSuccessStatusCode, Is.True);
-        Assert.That(response.Content, Is.Not.Null);
-        Assert.That(response.Content!.FirstOrDefault(item => item.Equals(Permission, StringComparison.InvariantCultureIgnoreCase)), Is.Not.Null);
+        Assert.That(response.Content!.First().IdentityId, Is.EqualTo(session.IdentityId));
     }
 
     [Test]
@@ -60,12 +40,13 @@ public class SessionsFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", DateTimeOffset.Now, DateTimeOffset.Now);
+        var sessionToken = Guid.NewGuid();
+        var session = new Session(sessionToken.ToByteArray(), Guid.NewGuid(), "identity-name", DateTimeOffset.Now, DateTimeOffset.Now);
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), default))
             .Callback<object, CancellationToken>((message, _) =>
             {
-                ((RegisterSession)message).Registered(session);
+                ((RegisterSession)message).Registered(sessionToken, session);
             });
 
         var client = factory.GetAccessClient();
@@ -82,7 +63,7 @@ public class SessionsFixture
         Assert.That(sessionRegistered, Is.Not.Null);
         Assert.That(sessionRegistered.IsSuccessStatusCode, Is.True);
         Assert.That(sessionRegistered.Content, Is.Not.Null);
-        Assert.That(sessionRegistered.Content!.Token, Is.EqualTo(session.Token));
+        Assert.That(sessionRegistered.Content!.Token, Is.EqualTo(sessionToken));
         Assert.That(sessionRegistered.Content.IdentityName, Is.EqualTo(session.IdentityName));
 
         factory.DatabaseContextFactory.Verify(m => m.Create(), Times.AtLeast(1));

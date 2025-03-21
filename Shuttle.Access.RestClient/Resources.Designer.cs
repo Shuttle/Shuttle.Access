@@ -77,5 +77,14 @@ namespace Shuttle.Access.RestClient {
                 return ResourceManager.GetString("OptionUriException", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to More than one session found for {0} &apos;{1}&apos;..
+        /// </summary>
+        public static string UnexpectedMultipleSessionsException {
+            get {
+                return ResourceManager.GetString("UnexpectedMultipleSessionsException", resourceCulture);
+            }
+        }
     }
 }

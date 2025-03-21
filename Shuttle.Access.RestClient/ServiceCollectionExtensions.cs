@@ -34,7 +34,7 @@ public static class ServiceCollectionExtensions
             })
             .AddHttpMessageHandler<AuthenticationHeaderHandler>();
 
-        services.TryAddSingleton<IAccessService, RestAccessService>();
+        services.TryAddSingleton<ISessionCache, RestSessionCache>();
 
         return services;
     }

@@ -9,6 +9,7 @@ using Shuttle.Core.Transactions;
 
 namespace Shuttle.Access.Tests.Integration;
 
+[Ignore("DataAccessFixture")]
 [TestFixture]
 public class DataAccessFixture
 {

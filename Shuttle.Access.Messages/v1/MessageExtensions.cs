@@ -8,13 +8,13 @@ public static class MessageExtensions
     public static void ApplyInvariants(this RegisterRole message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
+        Guard.AgainstNullOrEmptyString(message.Name);
     }
 
     public static void ApplyInvariants(this GetPasswordResetToken message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
+        Guard.AgainstNullOrEmptyString(message.Name);
     }
 
     public static void ApplyInvariants(this GetRolePermissions message)
@@ -40,10 +40,10 @@ public static class MessageExtensions
     public static void ApplyInvariants(this ChangePassword message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNull(message.NewPassword, nameof(message.NewPassword));
+        Guard.AgainstNull(message.NewPassword);
 
         if ((!message.Id.HasValue && !message.Token.HasValue) ||
-            (message.Id.HasValue && message.Token.HasValue))
+            message is { Id: not null, Token: not null })
         {
             throw new InvalidOperationException(Resources.ChangePasswordException);
         }
@@ -52,8 +52,8 @@ public static class MessageExtensions
     public static void ApplyInvariants(this ResetPassword message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
-        Guard.AgainstNullOrEmptyString(message.Password, nameof(message.Password));
+        Guard.AgainstNullOrEmptyString(message.Name);
+        Guard.AgainstNullOrEmptyString(message.Password);
     }
 
     public static void ApplyInvariants(this ActivateIdentity message)
@@ -70,52 +70,52 @@ public static class MessageExtensions
     public static void ApplyInvariants(this RegisterIdentity message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNull(message.Name, nameof(message.Name));
+        Guard.AgainstNull(message.Name);
     }
 
     public static void ApplyInvariants(this SetRolePermission message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.RoleId, nameof(message.RoleId));
-        Guard.AgainstEmptyGuid(message.PermissionId, nameof(message.PermissionId));
+        Guard.AgainstEmptyGuid(message.RoleId);
+        Guard.AgainstEmptyGuid(message.PermissionId);
     }
 
     public static void ApplyInvariants(this RegisterPermission message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
+        Guard.AgainstNullOrEmptyString(message.Name);
     }
 
     public static void ApplyInvariants(this SetIdentityName message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.Id, nameof(message.Id));
-        Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
+        Guard.AgainstEmptyGuid(message.Id);
+        Guard.AgainstNullOrEmptyString(message.Name);
     }
 
     public static void ApplyInvariants(this SetRoleName message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.Id, nameof(message.Id));
-        Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
+        Guard.AgainstEmptyGuid(message.Id);
+        Guard.AgainstNullOrEmptyString(message.Name);
     }
 
     public static void ApplyInvariants(this SetPermissionName message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.Id, nameof(message.Id));
-        Guard.AgainstNullOrEmptyString(message.Name, nameof(message.Name));
+        Guard.AgainstEmptyGuid(message.Id);
+        Guard.AgainstNullOrEmptyString(message.Name);
     }
 
     public static void ApplyInvariants(this SetPermissionStatus message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.Id, nameof(message.Id));
+        Guard.AgainstEmptyGuid(message.Id);
     }
 
     public static void ApplyInvariants<T>(this Identifiers<T> message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNull(message.Values, nameof(message.Values));
+        Guard.AgainstNull(message.Values);
     }
 }

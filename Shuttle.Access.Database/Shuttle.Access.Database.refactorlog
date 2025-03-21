@@ -42,4 +42,18 @@
     <Property Name="ParentElementType" Value="SqlTable" />
     <Property Name="NewName" Value="ExchangeToken" />
   </Operation>
+  <Operation Name="Rename Refactor" Key="88f02eb2-6073-4777-892f-d9d18538dede" ChangeDateTime="03/17/2025 15:08:48">
+    <Property Name="ElementName" Value="[dbo].[SessionPermission].[Token]" />
+    <Property Name="ElementType" Value="SqlSimpleColumn" />
+    <Property Name="ParentElementName" Value="[dbo].[SessionPermission]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="IdentityId" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="b3064632-1b62-420c-b7a7-c1b05825d91e" ChangeDateTime="03/17/2025 17:49:03">
+    <Property Name="ElementName" Value="[dbo].[Session].[IX_Session]" />
+    <Property Name="ElementType" Value="SqlIndex" />
+    <Property Name="ParentElementName" Value="[dbo].[Session]" />
+    <Property Name="ParentElementType" Value="SqlTable" />
+    <Property Name="NewName" Value="[UX_Session_Token]" />
+  </Operation>
 </Operations>

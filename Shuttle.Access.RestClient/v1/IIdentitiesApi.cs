@@ -9,12 +9,10 @@ namespace Shuttle.Access.RestClient.v1;
 
 public interface IIdentitiesApi
 {
-    [Post("/v1/identities/search")]
-    Task<IApiResponse<List<Messages.v1.Identity>>> SearchAsync(Messages.v1.Identity.Specification specification);
     [Put("/v1/identities/activate")]
     Task<IApiResponse> ActivateAsync(ActivateIdentity message);
 
-    [Put("/v1/identities/password/change")]
+    [Put("/v1/identities/password")]
     Task<IApiResponse> ChangePasswordAsync(ChangePassword message);
 
     [Delete("/v1/identities/{id}")]
@@ -34,6 +32,9 @@ public interface IIdentitiesApi
 
     [Post("/v1/identities/{id}/roles/availability")]
     Task<IApiResponse<List<IdentifierAvailability<Guid>>>> RoleAvailabilityAsync(Guid id, Identifiers<Guid> identifiers);
+
+    [Post("/v1/identities/search")]
+    Task<IApiResponse<List<Messages.v1.Identity>>> SearchAsync(Messages.v1.Identity.Specification specification);
 
     [Patch("/v1/identities/{id}/roles/{roleId}")]
     Task<IApiResponse> SetRoleAsync(Guid id, Guid roleId, SetIdentityRole message);

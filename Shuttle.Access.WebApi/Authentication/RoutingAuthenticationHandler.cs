@@ -1,9 +1,8 @@
 ﻿using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore;
 
-namespace Shuttle.Access.WebApi.Authentication;
+namespace Shuttle.Access.WebApi;
 
 public class RoutingAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {

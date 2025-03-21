@@ -17,17 +17,18 @@ public class RequestIdentityRegistrationParticipantFixture
     public async Task Should_be_able_to_request_identity_registration_using_a_session_async()
     {
         var now = DateTimeOffset.UtcNow;
-        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), "identity-name", now, now.AddSeconds(5))
+        var identityId = Guid.NewGuid();
+        var session = new Session(Guid.NewGuid().ToByteArray(), identityId, "identity-name", now, now.AddSeconds(5))
             .AddPermission(AccessPermissions.Identities.Register)
             .AddPermission(AccessPermissions.Identities.Activate);
         var sessionRepository = new Mock<ISessionRepository>();
 
-        sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session)!);
+        sessionRepository.Setup(m => m.FindAsync(session.IdentityId, CancellationToken.None)).Returns(Task.FromResult(session)!);
 
         var serviceBus = new Mock<IServiceBus>();
-        var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, sessionRepository.Object, new Mock<IMediator>().Object);
+        var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, new HashingService(), sessionRepository.Object, new Mock<IMediator>().Object);
 
-        var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).WithSessionToken(session.Token);
+        var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).WithIdentityId(identityId);
 
         await participant.ProcessMessageAsync(new ParticipantContext<RequestIdentityRegistration>(identityRegistrationRequested, CancellationToken.None));
 

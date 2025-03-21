@@ -161,7 +161,7 @@ WHERE
 
     public IQuery GetId(string identityName)
     {
-        Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+        Guard.AgainstNullOrEmptyString(identityName);
 
         return new Query("SELECT ID FROM [dbo].[Identity] WHERE Name = @Name")
             .AddParameter(Columns.Name, identityName);

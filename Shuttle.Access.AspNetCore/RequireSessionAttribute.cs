@@ -13,26 +13,24 @@ public class RequireSessionAttribute : TypeFilterAttribute
 
     private class RequiresSession : IAuthorizationFilter
     {
-        private readonly IAccessService _accessService;
+        private readonly ISessionCache _sessionCache;
 
-        public RequiresSession(IAccessService accessService)
+        public RequiresSession(ISessionCache sessionCache)
         {
-            Guard.AgainstNull(accessService);
-
-            _accessService = accessService;
+            _sessionCache = Guard.AgainstNull(sessionCache);
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var sessionTokenResult = context.HttpContext.GetAccessSessionToken();
+            var sessionIdentityId = context.HttpContext.GetIdentityId();
 
-            if (!sessionTokenResult.Ok)
+            if (sessionIdentityId == null)
             {
                 SetUnauthorized(context);
                 return;
             }
 
-            if (!_accessService.ContainsAsync(sessionTokenResult.SessionToken).GetAwaiter().GetResult())
+            if (_sessionCache.FindAsync(sessionIdentityId.Value).GetAwaiter().GetResult() == null)
             {
                 SetUnauthorized(context);
             }

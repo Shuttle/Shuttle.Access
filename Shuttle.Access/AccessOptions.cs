@@ -16,6 +16,7 @@ public class AccessOptions
     public TimeSpan SessionRenewalTolerance { get; set; } = TimeSpan.FromHours(1);
     public List<KnownApplicationOptions> KnownApplications { get; set; } = new();
     public TimeSpan SessionTokenExchangeValidityTimeSpan { get; set; } = TimeSpan.FromMinutes(1);
+    public string AdministratorPermissionName { get; set; } = "*";
     public ConfigurationOptions Configuration { get; set; } = new();
 }
 

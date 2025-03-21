@@ -1,6 +1,6 @@
 ﻿CREATE TABLE [dbo].[Role] (
     [Id]       UNIQUEIDENTIFIER NOT NULL  CONSTRAINT [DF_Role_Id] DEFAULT newid(),
-    [Name] VARCHAR (130)    NOT NULL,
+    [Name] VARCHAR (200)    NOT NULL,
     CONSTRAINT [PK_Role] PRIMARY KEY NONCLUSTERED ([Id] ASC)
 );
 

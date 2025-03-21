@@ -1,3 +1,4 @@
+using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -6,28 +7,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
-using Shuttle.Access.AspNetCore;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.OAuth;
 
-namespace Shuttle.Access.WebApi.Authentication;
+namespace Shuttle.Access.WebApi;
 
 public class JwtBearerAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
+    private readonly ISessionCache _sessionCache;
     private readonly IMediator _mediator;
     private readonly IDatabaseContextFactory _databaseContextFactory;
-    private readonly ISessionRepository _sessionRepository;
     private readonly IJwtService _jwtService;
     public static readonly string AuthenticationScheme = "Bearer";
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
 
-    public JwtBearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository, IMediator mediator, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
+    public JwtBearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, ISessionCache sessionCache, IDatabaseContextFactory databaseContextFactory, IMediator mediator, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
     {
         _jwtService = Guard.AgainstNull(jwtService);
+        _sessionCache = Guard.AgainstNull(sessionCache);
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
-        _sessionRepository = Guard.AgainstNull(sessionRepository);
         _mediator = Guard.AgainstNull(mediator);
     }
 
@@ -47,10 +47,23 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
         }
 
         var token = header[7..];
+        var tokenValidationResult = await _jwtService.ValidateTokenAsync(token);
 
-        if (!await _jwtService.IsValidAsync(token))
+        if (!tokenValidationResult.IsValid)
         {
-            return AuthenticateResult.Fail(Resources.InvalidAuthenticationHeader);
+            var failureMessage = (tokenValidationResult.Exception ?? new AuthenticationException(Resources.InvalidAuthenticationHeader)).Message;
+
+            Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+            await Response.WriteAsJsonAsync(new ProblemDetails
+            {
+                Type = Type,
+                Title = "Unauthorized",
+                Status = StatusCodes.Status401Unauthorized,
+                Detail = failureMessage
+            });
+
+            return AuthenticateResult.Fail(failureMessage);
         }
 
         var identityName = await _jwtService.GetIdentityNameAsync(token);
@@ -60,19 +73,13 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
             return AuthenticateResult.Fail(Resources.IdentityNameClaimNotFound);
         }
 
-        List<Claim> claims =
-        [
-            new(ClaimTypes.NameIdentifier, identityName),
-            new(ClaimTypes.Name, identityName),
-            new(nameof(Session.IdentityName), identityName),
-        ];
+        var session = await _sessionCache.FindAsync(identityName);
+        var identityId = session?.IdentityId;
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
+        if (session == null || DateTimeOffset.UtcNow >= session.ExpiryDate)
         {
-            var session = await _sessionRepository.FindAsync(identityName);
-
-            if (session == null || session.HasExpired)
+            using (new DatabaseContextScope())
+            await using (_databaseContextFactory.Create())
             {
                 var registerSession = new RegisterSession(identityName).UseDirect();
 
@@ -83,14 +90,28 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
                     return AuthenticateResult.Fail(registerSession.Result.ToString());
                 }
 
-                session = registerSession.Session;
-            }
+                identityId = registerSession.Session!.IdentityId;
 
-            if (session != null)
-            {
-                claims.Add(new(AccessAuthenticationHandler.SessionTokenClaimType, $"{session.Token:D}"));
+                session = new()
+                {
+                    IdentityId = registerSession.Session.IdentityId,
+                    IdentityName = registerSession.Session.IdentityName,
+                    DateRegistered = registerSession.Session.DateRegistered,
+                    ExpiryDate = registerSession.Session.ExpiryDate,
+                    Permissions = registerSession.Session.Permissions.ToList()
+                };
+                
+                await _sessionCache.AddAsync(registerSession.SessionToken, session);
             }
         }
+
+        List<Claim> claims =
+        [
+            new(ClaimTypes.NameIdentifier, identityName),
+            new(ClaimTypes.Name, identityName),
+            new(nameof(Session.IdentityName), identityName),
+            new(AspNetCore.HttpContextExtensions.SessionIdentityIdClaimType, $"{identityId:D}")
+        ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
     }

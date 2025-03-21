@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Shuttle.Core.Contract;
 
@@ -10,11 +9,11 @@ public class Session
 {
     private readonly List<string> _permissions = [];
 
-    public Session(Guid token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
+    public Session(byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
     {
-        Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
+        Guard.AgainstNullOrEmptyString(identityName);
 
-        Token = token;
+        Token = Guard.AgainstNull(token);
         IdentityId = identityId;
         IdentityName = identityName;
         DateRegistered = dateRegistered;
@@ -30,7 +29,7 @@ public class Session
     public string IdentityName { get; }
 
     public IEnumerable<string> Permissions => _permissions.AsReadOnly();
-    public Guid Token { get; private set; }
+    public byte[] Token { get; private set; }
     public bool HasPermissions => _permissions.Any();
 
     public Session AddPermission(string permission)
@@ -56,9 +55,9 @@ public class Session
             candidate => candidate.Equals(permission, StringComparison.InvariantCultureIgnoreCase)) != null || _permissions.Contains("*");
     }
 
-    public void Renew(DateTimeOffset expiryDate)
+    public void Renew(DateTimeOffset expiryDate, byte[] token)
     {
-        Token = Guid.NewGuid();
+        Token = Guard.AgainstNull(token);
         ExpiryDate = expiryDate;
     }
 }
