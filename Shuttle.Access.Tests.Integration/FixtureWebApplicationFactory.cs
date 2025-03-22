@@ -50,7 +50,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
         _webHostBuilder?.Invoke(builder);
 
         SessionCache.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<string>(), default)).Returns(ValueTask.FromResult(true));
-        SessionCache.Setup(m => m.FindAsync(It.IsAny<Guid>(), default)).Returns(Task.FromResult(new Messages.v1.Session
+        SessionCache.Setup(m => m.FindByTokenAsync(It.IsAny<Guid>(), default)).Returns(Task.FromResult(new Messages.v1.Session
         {
             IdentityId = Guid.NewGuid(),
             IdentityName = "identity-name",

@@ -152,11 +152,6 @@ public class DataStoreSessionCache : SessionCache, ISessionCache
         }
     }
 
-    public async ValueTask<bool> ContainsAsync(Guid identityId, CancellationToken cancellationToken = default)
-    {
-        return await FindAsync(identityId, cancellationToken) != null;
-    }
-
     private Messages.v1.Session? Add(Guid? token, Access.Session? session)
     {
         if (session == null)

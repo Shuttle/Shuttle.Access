@@ -32,7 +32,7 @@ public class DataStoreAccessServiceFixture
             SessionDuration = TimeSpan.FromHours(1)
         }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, repository.Object);
 
-        Assert.That(await service.ContainsAsync(Guid.NewGuid()), Is.False);
+        Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
     }
 
     [Test]
@@ -58,7 +58,7 @@ public class DataStoreAccessServiceFixture
             SessionDuration = TimeSpan.FromHours(1)
         }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, sessionRepository.Object);
 
-        Assert.That(await service.ContainsAsync(sessionToken), Is.True);
+        Assert.That(await service.FindByTokenAsync(sessionToken), Is.Not.Null);
 
         sessionRepository.Verify(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None), Times.Exactly(1));
     }

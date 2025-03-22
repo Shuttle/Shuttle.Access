@@ -108,8 +108,6 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
             {
                 var token = Guid.NewGuid();
 
-                session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));
-
                 await SaveAsync(token);
 
                 message.Registered(token, session);
@@ -138,6 +136,8 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
             {
                 session.AddPermission(permission);
             }
+
+            session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));
 
             await _sessionRepository.SaveAsync(session, context.CancellationToken);
 

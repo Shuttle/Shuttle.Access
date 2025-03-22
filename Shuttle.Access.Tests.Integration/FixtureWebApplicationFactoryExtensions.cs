@@ -13,11 +13,6 @@ public static class FixtureWebApplicationFactoryExtensions
 
         configureHttpClient?.Invoke(httpClient);
 
-        return new AccessClient(Options.Create(new AccessClientOptions
-        {
-            BaseAddress = new("http://localhost/"),
-            IdentityName = "identity",
-            Password = "password"
-        }), httpClient);
+        return new AccessClient(httpClient);
     }
 }

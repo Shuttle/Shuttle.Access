@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
@@ -189,7 +188,7 @@ public class RestSessionCache : SessionCache, ISessionCache
             IdentityId = sessionResponse.IdentityId,
             IdentityName = sessionResponse.IdentityName,
             DateRegistered = sessionResponse.DateRegistered,
-            ExpiryDate = sessionResponse.TokenExpiryDate,
+            ExpiryDate = sessionResponse.ExpiryDate,
             Permissions = sessionResponse.Permissions.ToList()
         });
     }

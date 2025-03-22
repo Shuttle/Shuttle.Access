@@ -17,16 +17,6 @@ public class AccessClientOptionsValidator : IValidateOptions<AccessClientOptions
             return ValidateOptionsResult.Fail(string.Format(Resources.OptionUriException, "BaseAddress"));
         }
 
-        if (string.IsNullOrWhiteSpace(options.IdentityName))
-        {
-            return ValidateOptionsResult.Fail(string.Format(Resources.OptionMissingException, "IdentityName"));
-        }
-
-        if (string.IsNullOrWhiteSpace(options.Password))
-        {
-            return ValidateOptionsResult.Fail(string.Format(Resources.OptionMissingException, "Password"));
-        }
-
         return ValidateOptionsResult.Success;
     }
 }
