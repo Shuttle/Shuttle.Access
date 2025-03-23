@@ -12,11 +12,12 @@
           </v-alert>
         </div>
         <div class="p-2">
-          <RouterView v-slot="{ Component, route }">
+          <RouterView />
+          <!-- <RouterView v-slot="{ Component, route }">
             <transition name="route" mode="out-in">
               <component :is="Component" :key="route.fullPath"></component>
             </transition>
-          </RouterView>
+          </RouterView> -->
         </div>
         <v-snackbar v-model="snackbarStore.visible" :timeout="snackbarStore.timeout">
           {{ snackbarStore.text }}

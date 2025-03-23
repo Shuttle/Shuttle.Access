@@ -95,7 +95,9 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
         {
             if (!session.HasExpired)
             {
-                var token = Guid.NewGuid();
+                var token = message.RegistrationType == SessionRegistrationType.Token
+                    ? message.GetAuthenticationToken()
+                    : Guid.NewGuid();
 
                 await SaveAsync(token);
 

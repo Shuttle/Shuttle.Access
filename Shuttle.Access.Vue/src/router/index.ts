@@ -27,23 +27,39 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       permission: Permissions.Identities.View,
     },
-  },
-  {
-    path: "/identity",
-    name: "identity",
-    component: () => import("../views/Identity.vue"),
-    meta: {
-      permission: Permissions.Identities.Manage,
-    },
-  },
-  {
-    path: "/identity/:id/rename",
-    name: "identity-rename",
-    component: () => import("../views/IdentityRename.vue"),
-    props: true,
-    meta: {
-      permission: Permissions.Identities.Manage,
-    },
+    children: [
+      {
+        path: "identity",
+        name: "identity",
+        component: () => import("../views/Identity.vue"),
+        meta: {
+          permission: Permissions.Identities.Manage,
+        },
+      },
+      {
+        path: "password/:id",
+        name: "identity-password",
+        props: true,
+        component: () => import("../views/Password.vue"),
+      },
+      {
+        path: "identity/:id/rename",
+        name: "identity-rename",
+        component: () => import("../views/IdentityRename.vue"),
+        props: true,
+        meta: {
+          permission: Permissions.Identities.Manage,
+        },
+      },
+      {
+        path: "/identities/:id/roles",
+        name: "identity-roles",
+        component: () => import("../views/IdentityRoles.vue"),
+        meta: {
+          permission: Permissions.Identities.View,
+        },
+      },
+    ],
   },
   {
     path: "/oauth",
@@ -55,14 +71,6 @@ const routes: Array<RouteRecordRaw> = [
     name: "password",
     props: true,
     component: () => import("../views/Password.vue"),
-  },
-  {
-    path: "/identities/:id/roles",
-    name: "identity-roles",
-    component: () => import("../views/IdentityRoles.vue"),
-    meta: {
-      permission: Permissions.Identities.View,
-    },
   },
   {
     path: "/permissions",

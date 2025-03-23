@@ -14,17 +14,17 @@
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
       <template v-slot:item.roles="{ item }">
-        <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click="roles(item)" v-tooltip:end="$t('roles')" />
+        <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click.stop="roles(item)" v-tooltip:end="$t('roles')" />
       </template>
       <template v-slot:item.rename="{ item }">
-        <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" v-tooltip:end="$t('rename')" />
+        <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" v-tooltip:end="$t('rename')" />
       </template>
       <template v-slot:item.password="{ item }">
-        <v-btn :icon="mdiShieldOutline" size="x-small" @click="password(item)" v-tooltip:end="$t('password')" />
+        <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="password(item)" v-tooltip:end="$t('password')" />
       </template>
       <template v-slot:item.remove="{ item }">
         <v-btn :icon="mdiDeleteOutline" size="x-small"
-          @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
+          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
@@ -38,6 +38,8 @@
       </template>
     </v-data-table>
   </v-card>
+  <sv-form-drawer v-if="drawer" close-path="/identities">
+  </sv-form-drawer>
 </template>
 
 <script setup lang="ts">
@@ -59,9 +61,13 @@ const sessionStore = useSessionStore();
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
+const route = useRoute()
+
 const busy = ref(false);
 const search = ref('')
 const expanded: Ref<string[]> = ref([])
+
+const drawer = ref(false)
 
 const headers = useSecureTableHeaders([
   {
@@ -173,12 +179,23 @@ const roles = (item: Identity) => {
 }
 
 const password = (item: Identity) => {
-  router.push({ name: "password", params: { id: item.id } });
+  router.push({ name: "identity-password", params: { id: item.id } });
 }
 
 const rename = (item: Identity) => {
   router.push({ name: "identity-rename", params: { id: item.id } });
 }
+
+watch(
+  () => route.fullPath,
+  async (fullPath) => {
+    drawer.value = !fullPath.endsWith('/identities')
+
+    if (!drawer.value) {
+      await refresh()
+    }
+  },
+)
 
 onMounted(() => {
   refresh();

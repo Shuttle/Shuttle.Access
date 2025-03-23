@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <sv-title :title="`${t('roles')} - ${name}`" close-path="/roles"></sv-title>
+      <sv-title :title="`${t('roles')} - ${name}`" close-path="/identities" type="borderless"></sv-title>
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"

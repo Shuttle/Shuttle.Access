@@ -17,10 +17,6 @@
         <v-btn :icon="mdiDeleteOutline" size="x-small"
           @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
       </template>
-      <template v-slot:item.token="{ item }">
-        <span class="font-mono">{{ item.token }}</span>
-        <v-btn v-if="isSupported" :icon="mdiContentCopy" size="x-small" @click="copy(item.token)" class="ml-2"></v-btn>
-      </template>
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
@@ -85,11 +81,7 @@ const headers = useSecureTableHeaders([
     value: (item: any) => {
       return useDateFormatter(item.expiryDate).dateTimeMilliseconds();
     }
-  },
-  {
-    title: t("token"),
-    value: "token",
-  },
+  }
 ]);
 
 const permissionHeaders = useSecureTableHeaders([

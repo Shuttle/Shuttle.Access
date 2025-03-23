@@ -8,7 +8,7 @@
 
   /* Form */
   .sv-form {
-    @apply w-full mx-auto ease-in duration-300 mt-10;
+    @apply w-full mx-auto ease-in duration-300 p-2;
   }
 
   .sv-form--sm {
@@ -21,6 +21,11 @@
 
   .sv-form--lg {
     @apply lg:w-3/4;
+  }
+
+  /* Form Drawer */
+  .sv-form-drawer {
+    @apply fixed top-0 right-0 bottom-0 w-full z-[1000] ease-in duration-300;
   }
 
   /* Strip */
@@ -39,6 +44,14 @@
 
   /* Title */
   .sv-title {
-    @apply flex flex-row items-center font-semibold text-xl border-0 border-b-2 border-solid pb-1 mb-4 w-full cursor-default;
+    @apply flex flex-row items-center font-semibold text-xl pb-2 mb-4 w-full cursor-default border-0;
+  }
+
+  .sv-title--normal {
+    @apply border-b-1 border-solid;
+  }
+
+  .sv-title--borderless {
+    @apply border-0;
   }
 }

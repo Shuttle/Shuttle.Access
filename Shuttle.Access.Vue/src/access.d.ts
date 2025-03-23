@@ -65,9 +65,14 @@ export type Env = {
   VITE_API_ALLOW_PASSWORD_AUTHENTICATION: string;
 };
 
+export type FormDrawer = {
+  closePath: string;
+};
+
 export type FormTitle = {
   title: string;
   closePath?: string;
+  type?: "borderless" | "normal";
 };
 
 export type IdentifierAvailability = {
