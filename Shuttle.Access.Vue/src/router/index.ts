@@ -79,23 +79,25 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       permission: Permissions.Permissions.View,
     },
-  },
-  {
-    path: "/permission",
-    name: "permission",
-    component: () => import("../views/Permission.vue"),
-    meta: {
-      permission: Permissions.Permissions.Manage,
-    },
-  },
-  {
-    path: "/permission/:id/rename",
-    name: "permission-rename",
-    component: () => import("../views/PermissionRename.vue"),
-    props: true,
-    meta: {
-      permission: Permissions.Permissions.Manage,
-    },
+    children: [
+      {
+        path: "permission",
+        name: "permission",
+        component: () => import("../views/Permission.vue"),
+        meta: {
+          permission: Permissions.Permissions.Manage,
+        },
+      },
+      {
+        path: ":id/rename",
+        name: "permission-rename",
+        component: () => import("../views/PermissionRename.vue"),
+        props: true,
+        meta: {
+          permission: Permissions.Permissions.Manage,
+        },
+      },
+    ],
   },
   {
     path: "/roles",

@@ -30,6 +30,8 @@
       </template>
     </v-data-table>
   </v-card>
+  <sv-form-drawer v-if="drawer" close-path="/permissions">
+  </sv-form-drawer>
 </template>
 
 <script setup lang="ts">
@@ -45,11 +47,13 @@ import { useSessionStore } from "@/stores/session";
 import { usePermissionStatuses } from "@/composables/Data";
 
 const sessionStore = useSessionStore();
-
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
+const route = useRoute();
+
 const busy: Ref<boolean> = ref(false);
 const search: Ref<string> = ref('')
+const drawer = ref(false)
 
 type PermissionItem = Permission & {
   working: boolean;
@@ -158,6 +162,17 @@ const add = () => {
 const rename = (item: PermissionItem) => {
   router.push({ name: "permission-rename", params: { id: item.id } });
 }
+
+watch(
+  () => route.fullPath,
+  async (fullPath) => {
+    drawer.value = !fullPath.endsWith('/permissions')
+
+    if (!drawer.value) {
+      await refresh()
+    }
+  },
+)
 
 onMounted(() => {
   refresh();
