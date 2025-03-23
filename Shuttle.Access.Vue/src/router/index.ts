@@ -104,32 +104,34 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       permission: Permissions.Roles.View,
     },
-  },
-  {
-    path: "/role",
-    name: "role",
-    component: () => import("../views/Role.vue"),
-    meta: {
-      permission: Permissions.Roles.Manage,
-    },
-  },
-  {
-    path: "/role/:id/rename",
-    name: "role-rename",
-    component: () => import("../views/RoleRename.vue"),
-    props: true,
-    meta: {
-      permission: Permissions.Roles.Manage,
-    },
-  },
-  {
-    path: "/roles/:id/permissions",
-    name: "role-permissions",
-    props: true,
-    component: () => import("../views/RolePermissions.vue"),
-    meta: {
-      permission: Permissions.Roles.View,
-    },
+    children: [
+      {
+        path: "role",
+        name: "role",
+        component: () => import("../views/Role.vue"),
+        meta: {
+          permission: Permissions.Roles.Manage,
+        },
+      },
+      {
+        path: "role/:id/rename",
+        name: "role-rename",
+        component: () => import("../views/RoleRename.vue"),
+        props: true,
+        meta: {
+          permission: Permissions.Roles.Manage,
+        },
+      },
+      {
+        path: "roles/:id/permissions",
+        name: "role-permissions",
+        props: true,
+        component: () => import("../views/RolePermissions.vue"),
+        meta: {
+          permission: Permissions.Roles.View,
+        },
+      },
+    ],
   },
   {
     path: "/sessions",
