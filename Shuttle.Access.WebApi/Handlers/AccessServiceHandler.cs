@@ -120,7 +120,7 @@ public class AccessServiceHandler :
     {
         foreach (var session in await _sessionQuery.SearchAsync(specification))
         {
-            await _mediator.SendAsync(new RefreshSession(session.Token));
+            await _mediator.SendAsync(new RefreshSession(session.IdentityId));
         }
     }
 
@@ -128,7 +128,7 @@ public class AccessServiceHandler :
     {
         foreach (var identity in await _identityQuery.SearchAsync(specification))
         {
-            await _mediator.SendAsync(new RefreshSession(identity.Name));
+            await _mediator.SendAsync(new RefreshSession(identity.Id));
         }
     }
 }

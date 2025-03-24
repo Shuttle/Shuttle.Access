@@ -25,7 +25,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
         _webHostBuilder = webHostBuilder;
     }
 
-    public Mock<IAccessService> AccessService { get; } = new();
+    public Mock<ISessionCache> SessionCache { get; } = new();
     public Mock<IDatabaseContextFactory> DatabaseContextFactory { get; } = new();
     public Mock<IIdentityQuery> IdentityQuery { get; } = new();
     public Mock<IMediator> Mediator { get; } = new();
@@ -49,8 +49,15 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
 
         _webHostBuilder?.Invoke(builder);
 
-        AccessService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<string>(), default)).Returns(ValueTask.FromResult(true));
-        AccessService.Setup(m => m.ContainsAsync(It.IsAny<Guid>(), default)).Returns(ValueTask.FromResult(true));
+        SessionCache.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<string>(), default)).Returns(ValueTask.FromResult(true));
+        SessionCache.Setup(m => m.FindByTokenAsync(It.IsAny<Guid>(), default)).Returns(Task.FromResult(new Messages.v1.Session
+        {
+            IdentityId = Guid.NewGuid(),
+            IdentityName = "identity-name",
+            Permissions = ["*"],
+            DateRegistered = DateTimeOffset.UtcNow,
+            ExpiryDate = DateTimeOffset.UtcNow.Add(TimeSpan.FromHours(1))
+        })!);
 
         var databaseContext = new Mock<IDatabaseContext>();
 
@@ -70,7 +77,7 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
             });
 
             services.AddSingleton(new Mock<ISubscriptionService>().Object);
-            services.AddSingleton(AccessService.Object);
+            services.AddSingleton(SessionCache.Object);
             services.AddSingleton(OAuthGrantRepository.Object);
             services.AddSingleton(DatabaseContextFactory.Object);
             services.AddSingleton(IdentityQuery.Object);

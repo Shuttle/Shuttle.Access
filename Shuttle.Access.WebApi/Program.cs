@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Reflection;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Data.SqlClient;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -68,6 +69,21 @@ public class Program
             });
 
         webApplicationBuilder.Services
+            .AddAuthentication(options =>
+            {
+                options.DefaultScheme = "Routing";
+            })
+            .AddScheme<AuthenticationSchemeOptions, RoutingAuthenticationHandler>(RoutingAuthenticationHandler.AuthenticationScheme, _ =>
+            {
+            })
+            .AddScheme<AuthenticationSchemeOptions, JwtBearerAuthenticationHandler>(JwtBearerAuthenticationHandler.AuthenticationScheme, _ =>
+            {
+            })
+            .AddScheme<AuthenticationSchemeOptions, AccessAuthenticationHandler>(AccessAuthenticationHandler.AuthenticationScheme, _ =>
+            {
+            });
+
+        webApplicationBuilder.Services
             .AddEndpointsApiExplorer()
             .AddSwaggerGen(options =>
             {
@@ -76,11 +92,11 @@ public class Program
                 options.AddSecurityDefinition("Bearer", new()
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.ApiKey,
+                    Type = SecuritySchemeType.Http,
                     Scheme = "Bearer",
                     BearerFormat = "Token",
                     In = ParameterLocation.Header,
-                    Description = "Enter 'Bearer' [space] and then your Shuttle session token in the text input below.\r\n\r\nExample: \"Bearer {token}\""
+                    Description = "Enter 'Bearer TOKEN', where 'TOKEN' is a JWT; else 'Shuttle.Access token=TOKEN', where 'TOKEN' is the Shuttle.Access GUID session token."
                 });
 
                 options.AddSecurityRequirement(new()
@@ -173,6 +189,7 @@ public class Program
                 foreach (var optionsProvider in builder.Options.Providers)
                 {
                     Log.Debug($"[oauth:{optionsProvider.Name}] : Scope = '{optionsProvider.Scope}'");
+                    Log.Debug($"[oauth:{optionsProvider.Name}.Issuer] : Uri = '{optionsProvider.Issuer.Uri}'");
                     Log.Debug($"[oauth:{optionsProvider.Name}.Authorize] : ClientId = '{optionsProvider.Authorize.ClientId}' / CodeChallengeMethod = '{optionsProvider.Authorize.CodeChallengeMethod}' / Url = '{optionsProvider.Authorize.Url}'");
                     Log.Debug($"[oauth:{optionsProvider.Name}.Token] : ClientId = '{optionsProvider.Token.ClientId}' / ContentTypeHeader = '{optionsProvider.Token.ContentTypeHeader}' / OriginHeader = '{optionsProvider.Token.OriginHeader}' / Url = '{optionsProvider.Token.Url}'");
                     Log.Debug($"[oauth:{optionsProvider.Name}.Data] : AuthorizationHeaderScheme = '{optionsProvider.Data.AuthorizationHeaderScheme}' / AcceptHeader = '{optionsProvider.Data.AcceptHeader}' / EMailPropertyName = '{optionsProvider.Data.EMailPropertyName}' / Url = '{optionsProvider.Data.Url}'");

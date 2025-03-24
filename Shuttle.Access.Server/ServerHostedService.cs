@@ -22,7 +22,7 @@ public class ServerHostedService : IHostedService
 
     public ServerHostedService(IOptions<ServerOptions> serverOptions, IHostApplicationLifetime hostApplicationLifetime, IDatabaseContextFactory databaseContextFactory, IMediator mediator, IPipelineFactory pipelineFactory)
     {
-        Guard.AgainstNull(hostApplicationLifetime, nameof(hostApplicationLifetime)).ApplicationStarted.Register(OnStarted);
+        Guard.AgainstNull(hostApplicationLifetime).ApplicationStarted.Register(OnStarted);
 
         _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);

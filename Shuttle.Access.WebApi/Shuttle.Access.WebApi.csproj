@@ -13,11 +13,14 @@
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.6.1" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.6.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
+    <PackageReference Include="Shuttle.Access.Messages" Version="7.0.0" />
     <PackageReference Include="Shuttle.Core.Mediator" Version="20.0.0" />
     <PackageReference Include="Shuttle.Esb.AzureStorageQueues" Version="20.0.0" />
     <PackageReference Include="Shuttle.Esb.Sql.Subscription" Version="20.0.0" />
-    <PackageReference Include="Shuttle.OAuth" Version="20.0.0" />
+    <PackageReference Include="Shuttle.OAuth" Version="20.1.0" />
     <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="20.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
@@ -35,15 +38,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".svg\KnownApplication\Recall.svg">
+    <None Include=".extension\KnownApplication\Recall.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include=".svg\OAuth\GitHub.svg">
+    <None Include=".extension\OAuth\GitHub.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include=".svg\OAuth\Microsoft.svg">
+    <None Include=".extension\OAuth\Microsoft.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

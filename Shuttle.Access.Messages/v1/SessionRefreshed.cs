@@ -4,5 +4,5 @@ namespace Shuttle.Access.Messages.v1;
 
 public class SessionRefreshed
 {
-    public Guid Token { get; set; }
+    public string IdentityName { get; set; } = string.Empty;
 }

@@ -1,6 +1,6 @@
 <template>
-  <form @submit.prevent="change" class="sv-form sv-form--sm px-5 pt-20">
-    <div class="sv-title">{{ $t("change-password") }}</div>
+  <form @submit.prevent="change" class="sv-form px-5 pt-20" :class="getClasses()">
+    <sv-title :title="$t('change-password')" :close-path="getClosePath()" :type="getTitleType()" />
     <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
       class="mb-2" :error-messages="validation.message('identityName')" readonly>
     </v-text-field>
@@ -19,7 +19,7 @@
 import { mdiAccountOutline, mdiEyeOutline, mdiEyeOffOutline, mdiShieldOutline } from '@mdi/js';
 import { computed, onMounted, reactive, ref, type Reactive } from "vue";
 import { required } from '@vuelidate/validators';
-import { useValidation } from "@/composables/useValidation"
+import { useValidation } from "@/composables/Validation"
 import { useAlertStore } from "@/stores/alert";
 import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";
@@ -35,6 +35,18 @@ const { t } = useI18n({ useScope: 'global' });
 const alertStore = useAlertStore();
 
 const busy: Ref<boolean> = ref(false);
+
+const getClosePath = (): string => {
+  return props.id === "token" ? "/dashboard" : "/identities";
+}
+
+const getTitleType = (): string => {
+  return props.id === "token" ? "borderless" : "normal";
+}
+
+const getClasses = (): string => {
+  return props.id === "token" ? "sv-form--sm" : "";
+}
 
 type State = {
   identityName: string | undefined;
@@ -83,23 +95,23 @@ const change = async () => {
 
   busy.value = true;
 
-  api.put<ChangePassword>("v1/identities/password/change", {
-    id: props.id === "token" ? undefined : props.id,
-    token: props.id === "token" ? sessionStore.token : undefined,
-    newPassword: state.password
-  })
-    .then(() => {
-      router.push({ name: props.id === "token" ? "dashboard" : "identities" });
-
-      alertStore.add({
-        message: t("messages.password-changed"),
-        variant: "success",
-        name: "password-changed"
-      });
-    })
-    .finally(() => {
-      busy.value = false;
+  try {
+    await api.put<ChangePassword>("v1/identities/password", {
+      id: props.id === "token" ? undefined : props.id,
+      token: props.id === "token" ? sessionStore.token : undefined,
+      newPassword: state.password
     });
+
+    alertStore.add({
+      message: t("messages.password-changed"),
+      variant: "success",
+      name: "password-changed"
+    })
+
+    router.push(props.id === "token" ? "/dashboard" : "/identities");
+  } finally {
+    busy.value = false;
+  }
 }
 
 onMounted(() => {

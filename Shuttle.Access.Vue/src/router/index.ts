@@ -3,17 +3,22 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useSessionStore } from "@/stores/session";
 import { useAlertStore } from "@/stores/alert";
 import Permissions from "../permissions";
-import { useBreadcrumbStore } from "@/stores/breadcrumb";
-import type { Breadcrumb } from "@/access";
 import { i18n } from "@/i18n";
-
-const ignoreBreadcrumbs = ["sign-in", "oauth"];
+import Dashboard from "../views/Dashboard.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
+    path: "",
+    component: Dashboard,
+  },
+  {
+    path: "/",
+    component: Dashboard,
+  },
+  {
     path: "/dashboard",
     name: "dashboard",
-    component: () => import("../views/Dashboard.vue"),
+    component: Dashboard,
   },
   {
     path: "/identities",
@@ -22,23 +27,39 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       permission: Permissions.Identities.View,
     },
-  },
-  {
-    path: "/identity",
-    name: "identity",
-    component: () => import("../views/Identity.vue"),
-    meta: {
-      permission: Permissions.Identities.Manage,
-    },
-  },
-  {
-    path: "/identity/:id/rename",
-    name: "identity-rename",
-    component: () => import("../views/IdentityRename.vue"),
-    props: true,
-    meta: {
-      permission: Permissions.Identities.Manage,
-    },
+    children: [
+      {
+        path: "identity",
+        name: "identity",
+        component: () => import("../views/Identity.vue"),
+        meta: {
+          permission: Permissions.Identities.Manage,
+        },
+      },
+      {
+        path: "password/:id",
+        name: "identity-password",
+        props: true,
+        component: () => import("../views/Password.vue"),
+      },
+      {
+        path: "identity/:id/rename",
+        name: "identity-rename",
+        component: () => import("../views/IdentityRename.vue"),
+        props: true,
+        meta: {
+          permission: Permissions.Identities.Manage,
+        },
+      },
+      {
+        path: "/identities/:id/roles",
+        name: "identity-roles",
+        component: () => import("../views/IdentityRoles.vue"),
+        meta: {
+          permission: Permissions.Identities.View,
+        },
+      },
+    ],
   },
   {
     path: "/oauth",
@@ -52,37 +73,31 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../views/Password.vue"),
   },
   {
-    path: "/identities/:id/roles",
-    name: "identity-roles",
-    component: () => import("../views/IdentityRoles.vue"),
-    meta: {
-      permission: Permissions.Identities.View,
-    },
-  },
-  {
     path: "/permissions",
     name: "permissions",
     component: () => import("../views/Permissions.vue"),
     meta: {
       permission: Permissions.Permissions.View,
     },
-  },
-  {
-    path: "/permission",
-    name: "permission",
-    component: () => import("../views/Permission.vue"),
-    meta: {
-      permission: Permissions.Permissions.Manage,
-    },
-  },
-  {
-    path: "/permission/:id/rename",
-    name: "permission-rename",
-    component: () => import("../views/PermissionRename.vue"),
-    props: true,
-    meta: {
-      permission: Permissions.Permissions.Manage,
-    },
+    children: [
+      {
+        path: "permission",
+        name: "permission",
+        component: () => import("../views/Permission.vue"),
+        meta: {
+          permission: Permissions.Permissions.Manage,
+        },
+      },
+      {
+        path: ":id/rename",
+        name: "permission-rename",
+        component: () => import("../views/PermissionRename.vue"),
+        props: true,
+        meta: {
+          permission: Permissions.Permissions.Manage,
+        },
+      },
+    ],
   },
   {
     path: "/roles",
@@ -91,32 +106,34 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       permission: Permissions.Roles.View,
     },
-  },
-  {
-    path: "/role",
-    name: "role",
-    component: () => import("../views/Role.vue"),
-    meta: {
-      permission: Permissions.Roles.Manage,
-    },
-  },
-  {
-    path: "/role/:id/rename",
-    name: "role-rename",
-    component: () => import("../views/RoleRename.vue"),
-    props: true,
-    meta: {
-      permission: Permissions.Roles.Manage,
-    },
-  },
-  {
-    path: "/roles/:id/permissions",
-    name: "role-permissions",
-    props: true,
-    component: () => import("../views/RolePermissions.vue"),
-    meta: {
-      permission: Permissions.Roles.View,
-    },
+    children: [
+      {
+        path: "role",
+        name: "role",
+        component: () => import("../views/Role.vue"),
+        meta: {
+          permission: Permissions.Roles.Manage,
+        },
+      },
+      {
+        path: "role/:id/rename",
+        name: "role-rename",
+        component: () => import("../views/RoleRename.vue"),
+        props: true,
+        meta: {
+          permission: Permissions.Roles.Manage,
+        },
+      },
+      {
+        path: "roles/:id/permissions",
+        name: "role-permissions",
+        props: true,
+        component: () => import("../views/RolePermissions.vue"),
+        meta: {
+          permission: Permissions.Roles.View,
+        },
+      },
+    ],
   },
   {
     path: "/sessions",
@@ -165,34 +182,6 @@ router.beforeEach(async (to) => {
     to.name !== "signin"
   ) {
     return { name: "signin" };
-  }
-});
-
-router.afterEach(async (to) => {
-  const breadcrumbStore = useBreadcrumbStore();
-
-  var name = typeof to.name === "string" ? to.name : undefined;
-
-  if (!name || ignoreBreadcrumbs.includes(name)) {
-    breadcrumbStore.clear();
-    return;
-  }
-
-  if (name === "dashboard") {
-    breadcrumbStore.clear();
-  }
-
-  const existingIndex = breadcrumbStore.breadcrumbs.findIndex(
-    (route: Breadcrumb) => route.path === to.path
-  );
-
-  if (existingIndex === -1) {
-    breadcrumbStore.addBreadcrumb({
-      name: to.name,
-      path: to.path,
-    });
-  } else {
-    breadcrumbStore.removeBreadcrumbsAfter(existingIndex);
   }
 });
 

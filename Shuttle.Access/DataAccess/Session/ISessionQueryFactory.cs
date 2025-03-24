@@ -7,10 +7,10 @@ public interface ISessionQueryFactory
 {
     IQuery Save(Access.Session session);
     IQuery Contains(Session.Specification specification);
-    IQuery GetPermissions(Guid token);
-    IQuery Remove(Guid token);
+    IQuery GetPermissions(Guid identityId);
+    IQuery Remove(Guid identityId);
+    IQuery Remove(byte[] token); // TODO: Remove this
     IQuery Search(Session.Specification specification);
-    IQuery Find(Guid token);
     IQuery Count(Session.Specification specification);
     IQuery RemoveAll();
 }

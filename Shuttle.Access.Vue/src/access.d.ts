@@ -24,6 +24,7 @@ export type BreadcrumbStoreState = {
 
 export type Configuration = {
   url: string;
+  allowPasswordAuthentication: boolean;
   debugging: () => boolean;
   getApiUrl: (path: string) => string;
 };
@@ -61,6 +62,17 @@ export type DashboardItem = {
 
 export type Env = {
   VITE_API_URL: string;
+  VITE_API_ALLOW_PASSWORD_AUTHENTICATION: string;
+};
+
+export type FormDrawer = {
+  closePath: string;
+};
+
+export type FormTitle = {
+  title: string;
+  closePath?: string;
+  type?: "borderless" | "normal";
 };
 
 export type IdentifierAvailability = {
@@ -93,6 +105,11 @@ export type Permission = {
   id: string;
   name: string;
   status: number;
+};
+
+export type Status = {
+  text: string;
+  value: number;
 };
 
 export type Role = {
@@ -141,4 +158,10 @@ export type SessionStoreState = {
   identityName?: string;
   token?: string;
   permissions: SessionPermission[];
+};
+
+export type SnackbarStoreState = {
+  visible: boolean;
+  text: string;
+  timeout: number;
 };

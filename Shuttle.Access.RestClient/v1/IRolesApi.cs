@@ -12,8 +12,8 @@ public interface IRolesApi
     [Delete("/v1/roles/{id}")]
     Task<IApiResponse> DeleteAsync(Guid id);
 
-    [Get("/v1/roles")]
-    Task<IApiResponse<List<Messages.v1.Role>>> GetAsync();
+    [Post("/v1/roles/search")]
+    Task<IApiResponse<List<Messages.v1.Role>>> SearchAsync(Messages.v1.Role.Specification specification);
 
     [Get("/v1/roles/{value}")]
     Task<IApiResponse<Messages.v1.Role>> GetAsync(string value);

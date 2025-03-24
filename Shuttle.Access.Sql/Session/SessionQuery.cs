@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +41,7 @@ public class SessionQuery : ISessionQuery
         {
             foreach (var session in sessions)
             {
-                session.Permissions = (await _queryMapper.MapValuesAsync<string>(_queryFactory.GetPermissions(session.Token), cancellationToken)).ToList();
+                session.Permissions = (await _queryMapper.MapValuesAsync<string>(_queryFactory.GetPermissions(session.IdentityId), cancellationToken)).ToList();
             }
         }
 

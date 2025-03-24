@@ -18,11 +18,11 @@ public class RequestIdentityRegistration
 
     public string RegisteredBy { get; private set; } = string.Empty;
 
-    public Guid? SessionToken { get; private set; }
+    public Guid? IdentityId { get; private set; }
 
     public RequestIdentityRegistration Allowed(string registeredBy, bool activationAllowed)
     {
-        Guard.AgainstNullOrEmptyString(registeredBy, nameof(registeredBy));
+        Guard.AgainstNullOrEmptyString(registeredBy);
 
         IsAllowed = true;
         RegisteredBy = registeredBy;
@@ -40,9 +40,9 @@ public class RequestIdentityRegistration
         return this;
     }
 
-    public RequestIdentityRegistration WithSessionToken(Guid sessionToken)
+    public RequestIdentityRegistration WithIdentityId(Guid identityId)
     {
-        SessionToken = sessionToken;
+        IdentityId = identityId;
 
         return this;
     }

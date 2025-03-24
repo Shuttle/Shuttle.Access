@@ -24,5 +24,5 @@ public class Columns
     public static readonly Column<string> RegisteredBy = new("RegisteredBy", DbType.String);
     public static readonly Column<Guid> SessionToken = new("SessionToken", DbType.Guid);
     public static readonly Column<int> Status = new("Status", DbType.Int32);
-    public static readonly Column<Guid> Token = new("Token", DbType.Guid);
+    public static readonly Column<byte[]> Token = new("Token", DbType.Binary);
 }

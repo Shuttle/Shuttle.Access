@@ -18,17 +18,18 @@ public class ChangePasswordParticipantFixture
     public async Task Should_be_able_to_change_password_async()
     {
         var now = DateTimeOffset.UtcNow;
-        var hash = new byte[] { 0, 1, 2, 3, 4 };
         var changePassword = new ChangePassword { Token = Guid.NewGuid(), NewPassword = "new-password" };
-        var session = new Session(changePassword.Token.Value, Guid.NewGuid(), "identity-name", now, now.AddSeconds(5));
         var eventStore = new FixtureEventStore();
         var sessionRepository = new Mock<ISessionRepository>();
-        var hashingService = new Mock<IHashingService>();
+        var hashingService = new HashingService();
+        var sessionTokenHash = hashingService.Sha256(changePassword.Token.Value.ToString("D"));
+        var passwordHash = hashingService.Sha256(changePassword.NewPassword);
 
-        sessionRepository.Setup(m => m.FindAsync(session.Token, CancellationToken.None)).Returns(Task.FromResult(session)!);
-        hashingService.Setup(m => m.Sha256(changePassword.NewPassword)).Returns(hash);
+        var session = new Session(sessionTokenHash, Guid.NewGuid(), "identity-name", now, now.AddSeconds(5));
+        
+        sessionRepository.Setup(m => m.FindAsync(sessionTokenHash, CancellationToken.None)).Returns(Task.FromResult(session)!);
 
-        var participant = new ChangePasswordParticipant(hashingService.Object, sessionRepository.Object, eventStore);
+        var participant = new ChangePasswordParticipant(hashingService, sessionRepository.Object, eventStore);
 
         (await eventStore.GetAsync(session.IdentityId)).Add(new Registered
         {
@@ -44,6 +45,6 @@ public class ChangePasswordParticipantFixture
         var @event = eventStore.FindEvent<PasswordSet>(session.IdentityId);
 
         Assert.That(@event, Is.Not.Null);
-        Assert.That(@event!.PasswordHash, Is.EqualTo(hash));
+        Assert.That(@event!.PasswordHash, Is.EqualTo(passwordHash));
     }
 }

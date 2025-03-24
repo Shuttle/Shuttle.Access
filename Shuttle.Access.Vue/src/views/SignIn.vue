@@ -9,18 +9,20 @@
       <v-divider></v-divider>
       <div>{{ application.description }}</div>
     </div>
-    <div class="sv-title">{{ $t("sign-in") }}</div>
-    <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
-      class="mb-2" :error-messages="validation.message('identityName')">
-    </v-text-field>
-    <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')"
-      :icon-end="getPasswordIcon()" icon-end-clickable :append-icon="`svg:${getPasswordIcon()}`"
-      @click:append="togglePasswordIcon" :type="getPasswordType()" :error-messages="validation.message('password')">
-    </v-text-field>
-    <div class="flex justify-end mt-4">
-      <v-btn type="submit" :disabled="busy">{{ $t("sign-in") }}</v-btn>
+    <sv-title :title="$t('sign-in')"></sv-title>
+    <div v-if="configuration.allowPasswordAuthentication">
+      <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
+        class="mb-2" :error-messages="validation.message('identityName')">
+      </v-text-field>
+      <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')"
+        :icon-end="getPasswordIcon()" icon-end-clickable :append-icon="`svg:${getPasswordIcon()}`"
+        @click:append="togglePasswordIcon" :type="getPasswordType()" :error-messages="validation.message('password')">
+      </v-text-field>
+      <div class="flex justify-end mt-4">
+        <v-btn type="submit" :disabled="busy">{{ $t("sign-in") }}</v-btn>
+      </div>
+      <v-divider v-if="oauthProviders.length > 0" class="mt-4 mb-2"></v-divider>
     </div>
-    <v-divider v-if="oauthProviders.length > 0" class="mt-4 mb-2"></v-divider>
     <div class="flex flex-row justify-start space-x-2" v-if="oauthProviders.length > 0">
       <div v-for="oauthProvider in oauthProviders" v-bind:key="oauthProvider.name" :alt="`${oauthProvider.name} logo`"
         class="cursor-pointer" @click="oauthAuthenticate(oauthProvider.name)">
@@ -38,14 +40,13 @@
 import { mdiAccountOutline, mdiEyeOutline, mdiEyeOffOutline, mdiShieldOutline } from '@mdi/js';
 import { computed, reactive, ref } from "vue";
 import { required } from '@vuelidate/validators';
-import { useValidation } from "@/composables/useValidation"
+import { useValidation } from "@/composables/Validation"
 import { useAlertStore } from "@/stores/alert";
 import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";
 import router from "@/router";
 import api from "@/api";
-import type { SessionResponse } from '@/access';
-import type { AxiosResponse } from 'axios';
+import configuration from "@/configuration";
 
 type OAuthProvider = {
   name: string;
@@ -112,30 +113,29 @@ const signIn = async () => {
 
   busy.value = true;
 
-  sessionStore.signIn({
-    identityName: state.identityName,
-    password: state.password,
-    applicationName: props.applicationName
-  })
-    .then((response: AxiosResponse<SessionResponse>) => {
-      if (response.data.sessionTokenExchangeUrl) {
-        window.location.replace(response.data.sessionTokenExchangeUrl);
-
-        return;
-      }
-
-      router.push({ name: "dashboard" });
-    })
-    .catch(error => {
-      alertStore.add({
-        message: error.response?.status == 400 ? t("exceptions.invalid-credentials") : error.toString(),
-        type: "error",
-        name: "sign-in-exception"
-      });
-    })
-    .finally(() => {
-      busy.value = false;
+  try {
+    const response = await sessionStore.signIn({
+      identityName: state.identityName,
+      password: state.password,
+      applicationName: props.applicationName
     });
+
+    if (response.sessionTokenExchangeUrl) {
+      window.location.replace(response.sessionTokenExchangeUrl);
+
+      return;
+    }
+
+    router.push({ name: "dashboard" });
+  } catch (error: any) {
+    alertStore.add({
+      message: error.response?.status == 400 ? t("exceptions.invalid-credentials", { reason: error.response?.data ?? t("exceptions.bad-request") }) : error.toString(),
+      type: "error",
+      name: "sign-in-exception"
+    });
+  } finally {
+    busy.value = false;
+  }
 }
 
 const oauthAuthenticate = (name: string) => {

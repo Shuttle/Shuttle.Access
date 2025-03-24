@@ -12,5 +12,6 @@ public class Permission
     public class Specification
     {
         public List<Guid> Ids { get; set; } = [];
+        public string NameMatch { get; set; } = string.Empty;
     }
 }

@@ -8,13 +8,15 @@ namespace Shuttle.Access.Application;
 
 public class RequestIdentityRegistrationParticipant : IParticipant<RequestIdentityRegistration>
 {
+    private readonly IHashingService _hashingService;
     private readonly IServiceBus _serviceBus;
     private readonly ISessionRepository _sessionRepository;
     private readonly IMediator _mediator;
 
-    public RequestIdentityRegistrationParticipant(IServiceBus serviceBus, ISessionRepository sessionRepository, IMediator mediator)
+    public RequestIdentityRegistrationParticipant(IServiceBus serviceBus, IHashingService hashingService, ISessionRepository sessionRepository, IMediator mediator)
     {
         _serviceBus = Guard.AgainstNull(serviceBus);
+        _hashingService = Guard.AgainstNull(hashingService);
         _sessionRepository = Guard.AgainstNull(sessionRepository);
         _mediator = Guard.AgainstNull(mediator);
     }
@@ -23,9 +25,9 @@ public class RequestIdentityRegistrationParticipant : IParticipant<RequestIdenti
     {
         Guard.AgainstNull(context);
 
-        if (context.Message.SessionToken.HasValue)
+        if (context.Message.IdentityId.HasValue)
         {
-            var session = await _sessionRepository.FindAsync(context.Message.SessionToken.Value, context.CancellationToken);
+            var session = await _sessionRepository.FindAsync(context.Message.IdentityId.Value, context.CancellationToken);
 
             if (session != null && session.HasPermission(AccessPermissions.Identities.Register))
             {

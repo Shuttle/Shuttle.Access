@@ -38,7 +38,7 @@ ELSE
             .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
     }
 
-    public IQuery GetPermissions(Guid token)
+    public IQuery GetPermissions(Guid identityId)
     {
         return new Query(@"
 SELECT 
@@ -46,9 +46,9 @@ SELECT
 FROM 
 	[dbo].[SessionPermission] 
 WHERE 
-	Token = @Token
+	IdentityId = @IdentityId
 ")
-            .AddParameter(Columns.Token, token);
+            .AddParameter(Columns.IdentityId, identityId);
     }
 
     public IQuery Save(Session session)
@@ -82,26 +82,23 @@ BEGIN
         IdentityName = @IdentityName
 END
 
-DELETE FROM [dbo].[SessionPermission]
-FROM
-    [dbo].[SessionPermission] sp
-INNER JOIN
-    [dbo].[Session] s ON s.Token = sp.Token
+DELETE FROM 
+    [dbo].[SessionPermission]
 WHERE
-    s.IdentityName = @IdentityName;
+    IdentityId = @IdentityId;
 
 {(!session.HasPermissions
     ? string.Empty
     : @$"
 INSERT INTO [dbo].[SessionPermission]
 (
-    Token,
+    IdentityId,
     PermissionName
 )
 VALUES
 {string.Join(",", session.Permissions.Select(permission => $@"
 (
-    @Token,
+    @IdentityId,
     '{permission}'
 )
 "))}
@@ -114,7 +111,7 @@ VALUES
             .AddParameter(Columns.ExpiryDate, session.ExpiryDate);
     }
 
-    public IQuery Remove(Guid token)
+    public IQuery Remove(byte[] token)
     {
         return new Query(@"
 DELETE 
@@ -136,26 +133,12 @@ SELECT DISTINCT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRo
 FROM
 	[dbo].[Session] 
 {Where(specification)}
-ORDER BY
-    IdentityName,
-    DateRegistered DESC
+{(specification.MaximumRows != 1 ? "ORDER BY IdentityName, DateRegistered DESC" : string.Empty)}
 ")
             .AddParameter(Columns.Token, specification.Token)
             .AddParameter(Columns.IdentityName, specification.IdentityName)
+            .AddParameter(Columns.IdentityId, specification.IdentityId)
             .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
-    }
-
-    public IQuery Find(Guid token)
-    {
-        return new Query($@"
-SELECT 
-{SelectedColumns}
-FROM 
-	[dbo].[Session] 
-WHERE 
-	Token = @Token
-")
-            .AddParameter(Columns.Token, token);
     }
 
     public IQuery Count(DataAccess.Session.Specification specification)
@@ -170,6 +153,7 @@ FROM
 {Where(specification)}
 ")
             .AddParameter(Columns.Token, specification.Token)
+            .AddParameter(Columns.IdentityId, specification.IdentityId)
             .AddParameter(Columns.IdentityName, specification.IdentityName)
             .AddParameter(Columns.IdentityNameMatch, specification.IdentityNameMatch);
     }
@@ -179,33 +163,16 @@ FROM
         return new Query(@"DELETE FROM [dbo].[Session]");
     }
 
-    public IQuery Get(string identityName)
+    public IQuery Remove(Guid identityId)
     {
-        Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
-
-        return new Query($@"
-SELECT 
-{SelectedColumns}
-FROM 
-	[dbo].[Session] 
-WHERE 
-	IdentityName = @IdentityName
-")
-            .AddParameter(Columns.IdentityName, identityName);
-    }
-
-    public IQuery Remove(string identityName)
-    {
-        Guard.AgainstNullOrEmptyString(identityName, nameof(identityName));
-
         return new Query(@"
 DELETE 
 FROM 
 	[dbo].[Session] 
 WHERE 
-	IdentityName = @IdentityName
+	IdentityId = @IdentityId
 ")
-            .AddParameter(Columns.IdentityName, identityName);
+            .AddParameter(Columns.IdentityId, identityId);
     }
 
     private string Where(DataAccess.Session.Specification specification)
@@ -216,6 +183,12 @@ WHERE
     @Token IS NULL
     OR  
 	Token = @Token
+)
+AND
+(
+    @IdentityId IS NULL
+    OR
+    IdentityId = @IdentityId
 )
 AND
 (

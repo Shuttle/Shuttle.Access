@@ -3,32 +3,27 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.AspNetCore;
+namespace Shuttle.Access.WebApi;
 
 public class AccessAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    private readonly IAccessService _accessService;
+    private readonly ISessionCache _sessionCache;
     public static readonly string AuthenticationScheme = "Shuttle.Access";
-    public const string SessionTokenClaimType = "http://shuttle.org/claims/session/token";
-    public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
+    public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
 
-    public AccessAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IAccessService accessService) : base(options, logger, encoder)
+    public AccessAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionCache sessionCache) : base(options, logger, encoder)
     {
-        _accessService = Guard.AgainstNull(accessService);
+        _sessionCache = Guard.AgainstNull(sessionCache);
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        await Task.CompletedTask;
-
         var header = Request.Headers["Authorization"].FirstOrDefault();
 
         if (header == null)
@@ -49,21 +44,19 @@ public class AccessAuthenticationHandler : AuthenticationHandler<AuthenticationS
             return AuthenticateResult.Fail(Resources.InvalidAuthenticationHeader);
         }
 
-        var session = await _accessService.FindSessionAsync(sessionToken);
+        var session = await _sessionCache.FindByTokenAsync(sessionToken);
 
         if (session == null)
         {
             return AuthenticateResult.Fail(Resources.InvalidAuthenticationHeader);
         }
 
-        Context.SetPrincipalAccessSessionToken(sessionToken);
-
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
-            new(nameof(session.IdentityName), session.IdentityName),
-            new(SessionTokenClaimType, $"{session.Token:D}")
+            new(nameof(Session.IdentityName), session.IdentityName),
+            new(AspNetCore.HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
         ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));

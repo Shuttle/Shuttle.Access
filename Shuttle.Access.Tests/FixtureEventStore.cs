@@ -81,7 +81,7 @@ public class FixtureEventStore : IEventStore
 
     public long Save(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
     {
-        Guard.AgainstNull(eventStream, nameof(eventStream)).Commit();
+        Guard.AgainstNull(eventStream).Commit();
 
         return _sequenceNumber++;
     }

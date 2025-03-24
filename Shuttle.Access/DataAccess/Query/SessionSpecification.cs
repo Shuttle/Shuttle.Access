@@ -36,18 +36,20 @@ public class Session
             return this;
         }
 
-        public Specification WithToken(Guid token)
+        public Specification WithToken(byte[] token)
         {
-            Token = token;
+            Token = Guard.AgainstNull(token);
+            MaximumRows = 1;
 
             return this;
         }
 
-        public Guid? Token { get; private set; }
+        public byte[]? Token { get; private set; }
 
         public Specification WithIdentityName(string identityName)
         {
             IdentityName = Guard.AgainstNullOrEmptyString(identityName);
+            MaximumRows = 1;
 
             return this;
         }
@@ -59,6 +61,7 @@ public class Session
             return this;
         }
 
+        public Guid? IdentityId { get; private set; }
         public string? IdentityName { get; private set; }
         public string? IdentityNameMatch { get; private set; }
 
@@ -68,12 +71,19 @@ public class Session
             return this;
         }
 
-        public bool ShouldIncludePermissions { get; private set; } = false;
+        public bool ShouldIncludePermissions { get; private set; }
 
         public Specification WithMaximumRows(int maximumRows)
         {
             MaximumRows = maximumRows;
 
+            return this;
+        }
+
+        public Specification WithIdentityId(Guid identityId)
+        {
+            IdentityId = identityId;
+            MaximumRows = 1;
             return this;
         }
     }

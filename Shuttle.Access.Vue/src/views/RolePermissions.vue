@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <div class="sv-title">{{ `${t("permissions")} - ${name}` }}</div>
+      <sv-title :title="`${t('permissions')} - ${name}`" close-path="/roles" type="borderless" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -32,7 +32,6 @@ import { useI18n } from "vue-i18n";
 import { useAlertStore } from "@/stores/alert";
 import { mdiMagnify, mdiTimerSand, mdiPlayCircleOutline, mdiStopCircleOutline, mdiCloseCircleOutline, mdiRefresh } from '@mdi/js';
 import type { IdentifierAvailability, Permission } from "@/access";
-import type { AxiosResponse } from "axios";
 
 const { t } = useI18n({ useScope: 'global' });
 const alertStore = useAlertStore();
@@ -82,7 +81,7 @@ const headers: any = [
 ];
 
 const items: ComputedRef<PermissionItem[]> = computed(() => {
-  var result: PermissionItem[] = [];
+  const result: PermissionItem[] = [];
 
   rolePermissions.value
     .forEach(item => {
@@ -133,16 +132,15 @@ const items: ComputedRef<PermissionItem[]> = computed(() => {
   return result;
 });
 
-const refresh = () => {
-  api.get(`v1/roles/${props.id}`).then((response) => {
-    name.value = response.data.name;
-    rolePermissions.value = response.data.permissions;
+const refresh = async () => {
+  const roleResponse = await api.get(`v1/roles/${props.id}`)
 
-    api.get("v1/permissions")
-      .then((response) => {
-        permissions.value = response.data;
-      });
-  });
+  name.value = roleResponse.data.name;
+  rolePermissions.value = roleResponse.data.permissions;
+
+  const permissionsResponse = await api.post("v1/permissions/search", {})
+
+  permissions.value = permissionsResponse.data;
 };
 
 const workingItems: ComputedRef<PermissionItem[]> = computed(() => {
@@ -159,34 +157,31 @@ const getPermissionItem = (id: string) => {
   return items.value.find(item => item.id === id);
 };
 
-const getPermissionAvailability = () => {
+const getPermissionAvailability = async () => {
   if (workingCount.value === 0) {
     return;
   }
 
-  api
-    .post(`v1/roles/${props.id}/permissions/availability`, {
-      values: workingItems.value.map(item => item.id)
-    })
-    .then(function (response: AxiosResponse<IdentifierAvailability[]>) {
-      response.data.forEach(availability => {
-        const permissionItem = getPermissionItem(availability.id);
+  const response = await api.post<IdentifierAvailability[]>(`v1/roles/${props.id}/permissions/availability`, {
+    values: workingItems.value.map(item => item.id)
+  })
 
-        if (!permissionItem) {
-          return;
-        }
+  response.data.forEach(availability => {
+    const permissionItem = getPermissionItem(availability.id);
 
-        permissionItem.working = permissionItem.activeOnToggle ? availability.active : !availability.active;
-      });
-    })
-    .then(() => {
-      setTimeout(() => {
-        getPermissionAvailability();
-      }, 1000);
-    });
+    if (!permissionItem) {
+      return;
+    }
+
+    permissionItem.working = permissionItem.activeOnToggle ? availability.active : !availability.active;
+  });
+
+  setTimeout(() => {
+    getPermissionAvailability();
+  }, 1000);
 };
 
-const toggle = (item: PermissionItem) => {
+const toggle = async (item: PermissionItem) => {
   if (item.working) {
     alertStore.working();
     return;
@@ -195,11 +190,10 @@ const toggle = (item: PermissionItem) => {
   item.working = true;
   item.activeOnToggle = !item.active;
 
-  api
-    .patch(`v1/roles/${props.id}/permissions`, {
-      permissionId: item.id,
-      active: item.active,
-    });
+  await api.patch(`v1/roles/${props.id}/permissions`, {
+    permissionId: item.id,
+    active: item.active,
+  });
 
   getPermissionAvailability();
 }

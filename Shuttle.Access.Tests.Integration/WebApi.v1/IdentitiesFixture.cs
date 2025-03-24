@@ -106,7 +106,7 @@ public class IdentitiesFixture
     }
 
     [Test]
-    public async Task Should_be_able_to_get_all_identities_async()
+    public async Task Should_be_able_to_search_identities_async()
     {
         var identity = CreateIdentity();
 
@@ -118,7 +118,7 @@ public class IdentitiesFixture
                 identity
             }.AsEnumerable()));
 
-        var response = await factory.GetAccessClient().Identities.GetAsync();
+        var response = await factory.GetAccessClient().Identities.SearchAsync(new());
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -361,7 +361,7 @@ public class IdentitiesFixture
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.False);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
         factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);

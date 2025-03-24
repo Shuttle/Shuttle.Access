@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <div class="sv-title">{{ $t("roles") }}</div>
+      <sv-title :title="$t('roles')" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-btn v-if="sessionStore.hasPermission(Permissions.Roles.Manage)" :icon="mdiPlus" size="small"
@@ -12,19 +12,33 @@
     </v-card-title>
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
-      :loading="busy">
+      :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
       <template v-slot:item.permissions="{ item }">
-        <v-btn :icon="mdiShieldOutline" size="x-small" @click="permissions(item)" v-tooltip:end="$t('permissions')" />
+        <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="permissions(item)"
+          v-tooltip:end="$t('permissions')" />
       </template>
       <template v-slot:item.rename="{ item }">
-        <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" v-tooltip:end="$t('rename')" />
+        <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" v-tooltip:end="$t('rename')" />
       </template>
       <template v-slot:item.remove="{ item }">
         <v-btn :icon="mdiDeleteOutline" size="x-small"
-          @click="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
+          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
+      </template>
+      <template #expanded-row="{ columns, item }">
+        <tr>
+          <td :colspan="columns.length">
+            <div class="sv-table-container">
+              <v-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
+                mobile-breakpoint="md">
+              </v-data-table>
+            </div>
+          </td>
+        </tr>
       </template>
     </v-data-table>
   </v-card>
+  <sv-form-drawer v-if="drawer" close-path="/roles">
+  </sv-form-drawer>
 </template>
 
 <script setup lang="ts">
@@ -35,19 +49,24 @@ import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShield
 import { useRouter } from "vue-router";
 import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";
-import { useSecureTableHeaders } from "@/composables/useSecureTableHeaders";
+import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
-import type { Role } from "@/access";
-import type { AxiosResponse } from "axios";
+import type { Permission, Role } from "@/access";
 import { useSessionStore } from "@/stores/session";
+import { usePermissionStatuses } from "@/composables/Data";
 
 const confirmationStore = useConfirmationStore();
 const sessionStore = useSessionStore();
 
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
+const route = useRoute()
+
 const busy: Ref<boolean> = ref(false);
 const search: Ref<string> = ref('')
+const expanded: Ref<string[]> = ref([])
+const permissionStatuses = usePermissionStatuses();
+const drawer = ref(false)
 
 const headers = useSecureTableHeaders([
   {
@@ -80,40 +99,48 @@ const headers = useSecureTableHeaders([
   },
 ]);
 
+const permissionHeaders = useSecureTableHeaders([
+  {
+    title: t("permission"),
+    value: "name"
+  },
+  {
+    title: t("status"),
+    key: "status",
+    value: (item: Permission) => {
+      return permissionStatuses.find((status) => status.value === item.status)?.text || item.status;
+    }
+  },
+]);
+
 const items: Ref<Role[]> = ref([]);
 
-const refresh = () => {
+const refresh = async () => {
   busy.value = true;
 
-  api
-    .get("v1/roles")
-    .then(function (response: AxiosResponse<Role[]>) {
-      if (!response || !response.data) {
-        return;
-      }
-
-      items.value = response.data;
-    })
-    .finally(function () {
-      busy.value = false;
+  try {
+    const response = await api.post("v1/roles/search", {
+      shouldIncludePermissions: true,
     });
+    items.value = response.data;
+  } finally {
+    busy.value = false;
+  }
 }
 
-const remove = (item: Role) => {
+const remove = async (item: Role) => {
   confirmationStore.close();
 
   busy.value = true;
 
-  api
-    .delete(`v1/roles/${item.id}`)
-    .then(function () {
-      useAlertStore().requestSent();
+  try {
+    await api.delete(`v1/roles/${item.id}`)
+    useAlertStore().requestSent();
 
-      refresh();
-    })
-    .finally(() => {
-      busy.value = false;
-    });
+    refresh();
+  } finally {
+    busy.value = false;
+  }
 }
 
 const add = () => {
@@ -127,6 +154,17 @@ const permissions = (item: Role) => {
 const rename = (item: Role) => {
   router.push({ name: "role-rename", params: { id: item.id } });
 }
+
+watch(
+  () => route.fullPath,
+  async (fullPath) => {
+    drawer.value = !fullPath.endsWith('/roles')
+
+    if (!drawer.value) {
+      await refresh()
+    }
+  },
+)
 
 onMounted(() => {
   refresh();

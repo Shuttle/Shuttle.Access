@@ -1,6 +1,6 @@
 <template>
-  <form @submit.prevent="submit" class="sv-form sv-form--sm">
-    <div class="sv-title">{{ $t("role") }}</div>
+  <form @submit.prevent="submit" class="sv-form">
+    <sv-title :title="$t('role')" close-path="/roles" type="borderless" />
     <v-text-field v-model="state.name" :label="$t('name')" class="mb-2" :error-messages="validation.message('name')">
     </v-text-field>
     <div class="sv-strip sv-strip--reverse">
@@ -12,9 +12,11 @@
 <script setup lang="ts">
 import { computed, reactive, type Reactive } from "vue";
 import { required } from '@vuelidate/validators';
-import { useValidation } from "@/composables/useValidation"
+import { useValidation } from "@/composables/Validation"
 import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
+
+const router = useRouter();
 
 const busy: Ref<boolean> = ref(false);
 
@@ -45,15 +47,16 @@ const submit = async () => {
 
   busy.value = true;
 
-  api
-    .post("v1/roles", {
+  try {
+    await api.post("v1/roles", {
       name: state.name,
     })
-    .then(function () {
-      useAlertStore().requestSent();
-    })
-    .finally(() => {
-      busy.value = false;
-    });
+
+    useAlertStore().requestSent();
+
+    router.push("/roles");
+  } finally {
+    busy.value = false;
+  }
 }
 </script>

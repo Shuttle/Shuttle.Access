@@ -7,19 +7,20 @@ public class RegisterSession
 {
     private string _password = string.Empty;
 
-    private Guid? _token;
+    private Guid? _authenticationToken;
 
     public RegisterSession(string identityName)
     {
         IdentityName = Guard.AgainstNullOrEmptyString(identityName);
     }
 
-    public bool HasSession => Session != null;
+    public bool HasSession => Session != null && SessionToken.HasValue;
 
     public string IdentityName { get; }
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
     public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;
     public Session? Session { get; private set; }
+    public Guid? SessionToken { get; private set; }
     public string SessionTokenExchangeUrl { get; private set; } = string.Empty;
     public bool HasKnownApplicationOptions => KnownApplicationOptions != null;
 
@@ -47,18 +48,19 @@ public class RegisterSession
         return _password;
     }
 
-    public Guid GetToken()
+    public Guid GetAuthenticationToken()
     {
-        if (!_token.HasValue)
+        if (!_authenticationToken.HasValue)
         {
             throw new InvalidOperationException(Resources.RegisterSessionTokenNotSetException);
         }
 
-        return _token.Value;
+        return _authenticationToken.Value;
     }
 
-    public RegisterSession Registered(Session session)
+    public RegisterSession Registered(Guid sessionToken, Session session)
     {
+        SessionToken = sessionToken;
         Session = Guard.AgainstNull(session);
 
         Result = SessionRegistrationResult.Registered;
@@ -83,11 +85,11 @@ public class RegisterSession
         return this;
     }
 
-    public RegisterSession UseDelegation(Guid token)
+    public RegisterSession UseDelegation(Guid registrationToken)
     {
         SetRegistrationType(SessionRegistrationType.Delegation);
 
-        _token = token;
+        _authenticationToken = registrationToken;
 
         return this;
     }
@@ -108,11 +110,11 @@ public class RegisterSession
         return this;
     }
 
-    public RegisterSession UseToken(Guid token)
+    public RegisterSession UseAuthenticationToken(Guid authenticationToken)
     {
         SetRegistrationType(SessionRegistrationType.Token);
 
-        _token = token;
+        _authenticationToken = authenticationToken;
 
         return this;
     }

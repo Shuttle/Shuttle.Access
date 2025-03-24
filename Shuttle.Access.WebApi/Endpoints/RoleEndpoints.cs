@@ -89,11 +89,23 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapGet("/v{version:apiVersion}/roles", async ([FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        app.MapPost("/v{version:apiVersion}/roles/search", async ([FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification) =>
             {
+                var search = new DataAccess.Role.Specification();
+
+                if (!string.IsNullOrWhiteSpace(specification.NameMatch))
+                {
+                    search.WithNameMatch(specification.NameMatch);
+                }
+
+                if (specification.ShouldIncludePermissions)
+                {
+                    search.IncludePermissions();
+                }
+
                 await using var context = databaseContextFactory.Create();
 
-                return Results.Ok(await roleQuery.SearchAsync(new()));
+                return Results.Ok(await roleQuery.SearchAsync(search));
             })
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)

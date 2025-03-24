@@ -76,4 +76,7 @@
   <ItemGroup>
     <RefactorLog Include="Shuttle.Access.Database.refactorlog" />
   </ItemGroup>
+  <ItemGroup>
+    <PreDeploy Include=".pre-deployment\ClearSessions.sql" />
+  </ItemGroup>
 </Project>

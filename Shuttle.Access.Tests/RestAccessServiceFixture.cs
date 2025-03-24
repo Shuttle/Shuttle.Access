@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -13,20 +14,18 @@ namespace Shuttle.Access.Tests;
 [TestFixture]
 public class RestAccessServiceFixture
 {
-    private readonly Session _session = new(Guid.NewGuid(), Guid.NewGuid(), "test-user", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
-
     [Test]
     public async Task Should_be_able_check_for_non_existent_session_async()
     {
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
 
-        sessionsApi.Setup(m => m.GetAsync(It.IsAny<Guid>()).Result).Returns(new ApiResponse<Messages.v1.Session>(new(HttpStatusCode.BadRequest), null, new()));
+        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.SessionResponse>>(new(HttpStatusCode.BadRequest), null, new()));
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-        var service = new RestAccessService(Options.Create(new AccessOptions()), accessClient.Object);
+        var service = new RestSessionCache(Options.Create(new AccessOptions()), accessClient.Object);
 
-        Assert.That(await service.ContainsAsync(Guid.NewGuid()), Is.False);
+        Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
     }
 
     [Test]
@@ -35,17 +34,17 @@ public class RestAccessServiceFixture
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
 
-        sessionsApi.Setup(m => m.GetAsync(It.IsAny<Guid>()).Result).Returns(new ApiResponse<Messages.v1.Session>(new(HttpStatusCode.OK), new() { Permissions = new() }, new()));
+        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.SessionResponse>>(new(HttpStatusCode.OK), [new() { Permissions = new() }], new()));
 
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-        var service = new RestAccessService(Options.Create(new AccessOptions
+        var service = new RestSessionCache(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
         }), accessClient.Object);
 
-        Assert.That(await service.ContainsAsync(_session.Token), Is.True);
+        Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Not.Null);
 
-        accessClient.Verify(m => m.Sessions.GetAsync(It.IsAny<Guid>()).Result, Times.Exactly(1));
+        accessClient.Verify(m => m.Sessions.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result, Times.Exactly(1));
     }
 }

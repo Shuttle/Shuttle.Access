@@ -125,4 +125,8 @@
     <value>Option `{0}` may not be empty.</value>
     <comment>0 = option name</comment>
   </data>
+  <data name="UnexpectedMultipleSessionsException" xml:space="preserve">
+    <value>More than one session found for {0} '{1}'.</value>
+    <comment>0 = type, 1 = value</comment>
+  </data>
 </root>

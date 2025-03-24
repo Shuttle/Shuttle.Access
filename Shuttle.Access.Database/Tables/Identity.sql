@@ -1,8 +1,8 @@
 ﻿CREATE TABLE [dbo].[Identity] (
     [Id]             UNIQUEIDENTIFIER CONSTRAINT [DF_Identity_Id] DEFAULT (newid()) NOT NULL,
-    [Name]       VARCHAR (65)     NOT NULL,
+    [Name]       VARCHAR (320)     NOT NULL,
     [DateRegistered] DATETIMEOFFSET         NOT NULL,
-    [RegisteredBy]   VARCHAR (65)     NOT NULL,
+    [RegisteredBy]   VARCHAR (320)     NOT NULL,
     [GeneratedPassword] VARCHAR(65) NOT NULL CONSTRAINT [DF_Identity_GeneratedPassword] DEFAULT '',
     [DateActivated] DATETIMEOFFSET NULL, 
     CONSTRAINT [PK_Identity] PRIMARY KEY NONCLUSTERED ([Id] ASC)

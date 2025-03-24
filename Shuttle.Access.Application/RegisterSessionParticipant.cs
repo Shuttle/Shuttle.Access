@@ -10,20 +10,20 @@ namespace Shuttle.Access.Application;
 
 public class RegisterSessionParticipant : IParticipant<RegisterSession>
 {
+    private readonly IHashingService _hashingService;
     private readonly ISessionTokenExchangeRepository _sessionTokenExchangeRepository;
     private readonly AccessOptions _accessOptions;
     private readonly IAuthenticationService _authenticationService;
     private readonly IAuthorizationService _authorizationService;
     private readonly IIdentityQuery _identityQuery;
-    private readonly ISessionQuery _sessionQuery;
     private readonly ISessionRepository _sessionRepository;
 
-    public RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, IAuthenticationService authenticationService, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery, IIdentityQuery identityQuery, ISessionTokenExchangeRepository sessionTokenExchangeRepository)
+    public RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, IAuthenticationService authenticationService, IAuthorizationService authorizationService, IHashingService hashingService, ISessionRepository sessionRepository, IIdentityQuery identityQuery, ISessionTokenExchangeRepository sessionTokenExchangeRepository)
     {
         _accessOptions = Guard.AgainstNull(accessOptions).Value;
         _authenticationService = Guard.AgainstNull(authenticationService);
-        _sessionQuery = Guard.AgainstNull(sessionQuery);
         _authorizationService = Guard.AgainstNull(authorizationService);
+        _hashingService = Guard.AgainstNull(hashingService);
         _sessionRepository = Guard.AgainstNull(sessionRepository);
         _identityQuery = Guard.AgainstNull(identityQuery);
         _sessionTokenExchangeRepository = Guard.AgainstNull(sessionTokenExchangeRepository);
@@ -51,7 +51,7 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
             }
             case SessionRegistrationType.Delegation:
             {
-                var requesterSession = await _sessionRepository.FindAsync(message.GetToken(), context.CancellationToken);
+                var requesterSession = await _sessionRepository.FindAsync(_hashingService.Sha256(message.GetAuthenticationToken().ToString("D")), context.CancellationToken);
 
                 if (requesterSession == null || requesterSession.HasExpired || !requesterSession.HasPermission(AccessPermissions.Sessions.Register))
                 {
@@ -80,39 +80,39 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
             return;
         }
 
-        var specification = new DataAccess.Session.Specification();
+        Session? session;
 
         if (message.RegistrationType == SessionRegistrationType.Token)
         {
-            specification.WithToken(message.GetToken());
+            session = await _sessionRepository.FindAsync(_hashingService.Sha256(message.GetAuthenticationToken().ToString("D")));
         }
         else
         {
-            specification.WithIdentityName(message.IdentityName);
+            session = await _sessionRepository.FindAsync(message.IdentityName);
         }
-
-        var existingSession = (await _sessionQuery.SearchAsync(specification)).FirstOrDefault();
-
-        var session = existingSession != null ? await _sessionRepository.FindAsync(existingSession.Token) : null;
 
         if (session != null)
         {
             if (!session.HasExpired)
             {
-                await SaveAsync();
+                var token = message.RegistrationType == SessionRegistrationType.Token
+                    ? message.GetAuthenticationToken()
+                    : Guid.NewGuid();
 
-                message.Registered(session);
+                await SaveAsync(token);
+
+                message.Registered(token, session);
 
                 return;
             }
 
             if (session.ExpiryDate.Add(_accessOptions.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
             {
-                session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration));
+                var token = Guid.NewGuid();
 
-                await SaveAsync();
+                await SaveAsync(token);
 
-                message.Registered(session);
+                message.Registered(token, session);
 
                 return;
             }
@@ -121,28 +121,31 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
         if (message.RegistrationType != SessionRegistrationType.Token)
         {
             var now = DateTimeOffset.UtcNow;
+            var token = Guid.NewGuid();
 
-            session = new(Guid.NewGuid(), await _identityQuery.IdAsync(message.IdentityName, context.CancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
+            session = new(_hashingService.Sha256(token.ToString("D")) , await _identityQuery.IdAsync(message.IdentityName, context.CancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
 
-            await SaveAsync();
+            await SaveAsync(token);
 
-            message.Registered(session);
+            message.Registered(token, session);
         }
 
         return;
 
-        async Task SaveAsync()
+        async Task SaveAsync(Guid token)
         {
             foreach (var permission in await _authorizationService.GetPermissionsAsync(message.IdentityName, context.CancellationToken))
             {
                 session.AddPermission(permission);
             }
 
+            session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));
+
             await _sessionRepository.SaveAsync(session, context.CancellationToken);
 
             if (message.HasKnownApplicationOptions)
             {
-                var sessionTokenExchange = new SessionTokenExchange(Guid.NewGuid(), session.Token, DateTimeOffset.UtcNow.Add(_accessOptions.SessionTokenExchangeValidityTimeSpan));
+                var sessionTokenExchange = new SessionTokenExchange(Guid.NewGuid(), token, DateTimeOffset.UtcNow.Add(_accessOptions.SessionTokenExchangeValidityTimeSpan));
 
                 await _sessionTokenExchangeRepository.SaveAsync(sessionTokenExchange, context.CancellationToken);
 

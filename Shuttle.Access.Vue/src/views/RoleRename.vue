@@ -1,6 +1,6 @@
 <template>
-  <form @submit.prevent="submit" class="sv-form sv-form--sm">
-    <div class="sv-title">{{ $t("role") }}</div>
+  <form @submit.prevent="submit" class="sv-form">
+    <sv-title :title="$t('role')" close-path="/roles" type="borderless" />
     <v-text-field v-model="state.current" :label="$t('name')" class="mb-2" readonly>
     </v-text-field>
     <v-text-field v-model="state.name" :label="$t('new-value')" class="mb-2"
@@ -15,9 +15,11 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, type Reactive } from "vue";
 import { required } from '@vuelidate/validators';
-import { useValidation } from "@/composables/useValidation"
+import { useValidation } from "@/composables/Validation"
 import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
+
+const router = useRouter();
 
 const props = defineProps<{
   id: string;
@@ -58,16 +60,17 @@ const submit = async () => {
 
   busy.value = true;
 
-  api
-    .patch(`v1/roles/${props.id}/name`, {
+  try {
+    await api.patch(`v1/roles/${props.id}/name`, {
       name: state.name,
     })
-    .then(function () {
-      useAlertStore().requestSent();
-    })
-    .finally(() => {
-      busy.value = false;
-    });
+
+    useAlertStore().requestSent();
+
+    router.push("/roles");
+  } finally {
+    busy.value = false;
+  }
 }
 
 onMounted(() => {

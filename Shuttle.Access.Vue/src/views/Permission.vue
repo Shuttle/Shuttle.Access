@@ -1,7 +1,7 @@
 <template>
   <div>
-    <form @submit.prevent="submit" class="sv-form sv-form--sm">
-      <div class="sv-title">{{ $t("permission") }}</div>
+    <form @submit.prevent="submit" class="sv-form">
+      <sv-title :title="$t('permission')" close-path="/permissions" />
       <v-text-field v-model="state.name" :label="$t('name')" class="mb-2" :error-messages="validation.message('name')">
       </v-text-field>
       <div class="sv-strip sv-strip--reverse">
@@ -14,10 +14,12 @@
 <script setup lang="ts">
 import { computed, reactive, type Reactive } from "vue";
 import { required } from '@vuelidate/validators';
-import { useValidation } from "@/composables/useValidation"
+import { useValidation } from "@/composables/Validation"
 import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
 import type { RegisterPermission } from "@/access";
+
+const router = useRouter();
 
 const busy: Ref<boolean> = ref(false);
 
@@ -48,16 +50,17 @@ const submit = async () => {
 
   busy.value = true;
 
-  api
-    .post<RegisterPermission>("v1/permissions", {
+  try {
+    await api.post<RegisterPermission>("v1/permissions", {
       name: state.name,
       status: 1
     })
-    .then(function () {
-      useAlertStore().requestSent();
-    })
-    .finally(() => {
-      busy.value = false;
-    });
+
+    useAlertStore().requestSent();
+
+    router.push("/permissions");
+  } finally {
+    busy.value = false;
+  }
 }
 </script>

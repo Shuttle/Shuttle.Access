@@ -10,16 +10,16 @@ namespace Shuttle.Access.Application;
 
 public class RefreshSessionParticipant : IParticipant<RefreshSession>
 {
-    private readonly ISessionQuery _sessionQuery;
-    private readonly IAccessService _accessService;
+    private readonly ISessionCache _sessionCache;
     private readonly IAuthorizationService _authorizationService;
     private readonly IServiceBus _serviceBus;
+    private readonly ISessionQuery _sessionQuery;
     private readonly ISessionRepository _sessionRepository;
 
-    public RefreshSessionParticipant(IServiceBus serviceBus, IAccessService accessService, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery)
+    public RefreshSessionParticipant(IServiceBus serviceBus, ISessionCache sessionCache, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery)
     {
         _serviceBus = Guard.AgainstNull(serviceBus);
-        _accessService = Guard.AgainstNull(accessService);
+        _sessionCache = Guard.AgainstNull(sessionCache);
         _authorizationService = Guard.AgainstNull(authorizationService);
         _sessionRepository = Guard.AgainstNull(sessionRepository);
         _sessionQuery = Guard.AgainstNull(sessionQuery);
@@ -29,25 +29,16 @@ public class RefreshSessionParticipant : IParticipant<RefreshSession>
     {
         Guard.AgainstNull(context);
 
-        DataAccess.Session.Specification specification = new();
+        var specification = new DataAccess.Session.Specification().WithIdentityId(context.Message.IdentityId);
 
-        if (context.Message.Token.HasValue)
-        {
-            specification.WithToken(context.Message.Token.Value);
-        }
-        else
-        {
-            specification.WithIdentityName(context.Message.IdentityName);
-        }
+        var identityName = (await _sessionQuery.SearchAsync(specification, context.CancellationToken)).FirstOrDefault()?.IdentityName;
 
-        var token = (await _sessionQuery.SearchAsync(specification, context.CancellationToken)).FirstOrDefault()?.Token;
-
-        if (!token.HasValue)
+        if (string.IsNullOrWhiteSpace(identityName))
         {
             return;
         }
 
-        var session = await _sessionRepository.FindAsync(token.Value, context.CancellationToken);
+        var session = await _sessionRepository.FindAsync(identityName, context.CancellationToken);
 
         if (session == null)
         {
@@ -63,11 +54,11 @@ public class RefreshSessionParticipant : IParticipant<RefreshSession>
 
         await _sessionRepository.SaveAsync(session);
 
-        await _accessService.RemoveAsync(session.Token);
+        await _sessionCache.FlushAsync(context.Message.IdentityId);
 
         await _serviceBus.PublishAsync(new SessionRefreshed
         {
-            Token = session.Token
+            IdentityName = identityName
         });
     }
 }

@@ -12,8 +12,9 @@
   "date-registered": "Date registered",
   "deactivated": "Deactivated",
   "exceptions": {
+    "bad-request": "Bad request.",
     "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}",
-    "invalid-credentials": "Invalid credentials.",
+    "invalid-credentials": "Invalid credentials.  Reason: {reason}",
     "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access."
   },
   "expiry-date": "Expiry date",

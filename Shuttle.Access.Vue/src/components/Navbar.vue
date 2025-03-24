@@ -1,4 +1,10 @@
 <template>
+  <v-navigation-drawer v-model="showMainDrawer" :permanent="!$vuetify.display.mobile" class="pt-2">
+    <div class="flex justify-end">
+      <v-btn :icon="mdiArrowCollapseLeft" @click.stop="showMainDrawer = !showMainDrawer" class="mr-4" flat></v-btn>
+    </div>
+    <v-list :items="items"></v-list>
+  </v-navigation-drawer>
   <v-app-bar :elevation="2">
     <template v-slot:prepend v-if="sessionStore.authenticated">
       <v-app-bar-nav-icon variant="text" @click.stop="showMainDrawer = !showMainDrawer"></v-app-bar-nav-icon>
@@ -14,9 +20,6 @@
       </div>
     </template>
   </v-app-bar>
-  <v-navigation-drawer v-model="showMainDrawer" :location="$vuetify.display.mobile ? 'bottom' : undefined" temporary>
-    <v-list :items="items"></v-list>
-  </v-navigation-drawer>
   <v-navigation-drawer v-model="showProfileDrawer" location="right" temporary>
     <v-list>
       <v-list-item :title="sessionStore.identityName" class="select-none"></v-list-item>
@@ -30,7 +33,7 @@
 
 <script setup lang="ts">
 import map from "./navigation-map";
-import { mdiDotsVertical, mdiLogin, mdiLogout, mdiWhiteBalanceSunny, mdiWeatherNight, mdiShieldAccountOutline } from '@mdi/js';
+import { mdiArrowCollapseLeft, mdiDotsVertical, mdiLogin, mdiLogout, mdiWhiteBalanceSunny, mdiWeatherNight, mdiShieldAccountOutline } from '@mdi/js';
 import { computed, ref, watch } from "vue";
 import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";
@@ -86,7 +89,7 @@ const signIn = () => {
 }
 
 const signOut = () => {
-  axios.delete("v1/sessions/me", {
+  axios.delete("v1/sessions/self", {
     baseURL: configuration.url,
     headers: {
       "Authorization": `Shuttle.Access token=${sessionStore.token}`

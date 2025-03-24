@@ -1,9 +1,7 @@
 ﻿using System.Text;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -34,7 +32,7 @@ public static class OAuthEndpoints
                         Name = oauthProviderOptions.Name
                     };
 
-                    var path = Path.Combine(accessOptions.Value.SvgFolder, "OAuth", $"{oauthProviderOptions.Name}.svg");
+                    var path = Path.Combine(accessOptions.Value.ExtensionFolder, "OAuth", $"{oauthProviderOptions.Name}.svg");
 
                     if (File.Exists(path))
                     {
@@ -175,11 +173,13 @@ public static class OAuthEndpoints
 
                 if (registerSession.HasSession)
                 {
+                    sessionResponse.IdentityId = registerSession.Session!.IdentityId;
                     sessionResponse.IdentityName = registerSession.Session!.IdentityName;
-                    sessionResponse.Token = registerSession.Session.Token;
-                    sessionResponse.TokenExpiryDate = registerSession.Session.ExpiryDate;
+                    sessionResponse.Token = registerSession.SessionToken!.Value;
+                    sessionResponse.ExpiryDate = registerSession.Session.ExpiryDate;
                     sessionResponse.Permissions = registerSession.Session.Permissions.ToList();
                     sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
+                    sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
                 }
 
                 return Results.Ok(sessionResponse);
