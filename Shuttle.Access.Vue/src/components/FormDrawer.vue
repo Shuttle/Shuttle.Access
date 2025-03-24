@@ -3,7 +3,6 @@
     <div
       class="v-navigation-drawer v-navigation-drawer--right fixed right-0 bottom-0 top-[var(--v-layout-top)] border-t-1 z-[1001] p-2"
       :class="getClasses()" @click.stop>
-      <sv-title v-if="props.title" :title="props.title" :close-path="props.closePath" type="borderless" />
       <router-view></router-view>
     </div>
   </div>
