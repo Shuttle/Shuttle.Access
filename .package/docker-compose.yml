@@ -40,5 +40,6 @@ services:
             shuttle/access-vue:latest
         environment:
            - VITE_API_URL=http://localhost:5599
+           - VITE_API_ALLOW_PASSWORD_AUTHENTICATION=true
         ports:
             - "3000:80"
