@@ -1,8 +1,9 @@
 ﻿using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Shuttle.Access.WebApi;
+namespace Shuttle.Access.AspNetCore.Authentication;
 
 public class RoutingAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
@@ -52,7 +53,7 @@ public class RoutingAuthenticationHandler : AuthenticationHandler<Authentication
             : header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) 
                 ? JwtBearerAuthenticationHandler.AuthenticationScheme 
                 : header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase) 
-                    ? AccessAuthenticationHandler.AuthenticationScheme 
+                    ? SessionTokenAuthenticationHandler.AuthenticationScheme 
                     : null;
     }
 }

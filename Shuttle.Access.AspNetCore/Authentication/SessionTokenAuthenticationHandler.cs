@@ -3,21 +3,23 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.WebApi;
+namespace Shuttle.Access.AspNetCore.Authentication;
 
-public class AccessAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class SessionTokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly ISessionCache _sessionCache;
     public static readonly string AuthenticationScheme = "Shuttle.Access";
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
 
-    public AccessAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionCache sessionCache) : base(options, logger, encoder)
+    public SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionCache sessionCache) : base(options, logger, encoder)
     {
         _sessionCache = Guard.AgainstNull(sessionCache);
     }
@@ -41,14 +43,14 @@ public class AccessAuthenticationHandler : AuthenticationHandler<AuthenticationS
         if (!match.Success ||
             !Guid.TryParse(match.Groups["token"].Value, out var sessionToken))
         {
-            return AuthenticateResult.Fail(Resources.InvalidAuthenticationHeader);
+            return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
         }
 
         var session = await _sessionCache.FindByTokenAsync(sessionToken);
 
         if (session == null)
         {
-            return AuthenticateResult.Fail(Resources.InvalidAuthenticationHeader);
+            return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
         }
 
         List<Claim> claims =
@@ -56,7 +58,7 @@ public class AccessAuthenticationHandler : AuthenticationHandler<AuthenticationS
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
             new(nameof(Session.IdentityName), session.IdentityName),
-            new(AspNetCore.HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
+            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
         ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));

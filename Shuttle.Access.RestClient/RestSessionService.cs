@@ -33,21 +33,38 @@ public class RestSessionCache : SessionCache, ISessionCache
                 return session;
             }
 
-            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new() { IdentityName = identityName });
+            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new()
+            {
+                IdentityName = identityName,
+                ShouldIncludePermissions = true
+            });
 
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null })
             {
-                if (sessionResponse.Content.Count() != 1)
+                if (sessionResponse.Content.Count() == 1)
+                {
+                    return AddSession(null, sessionResponse.Content.Single());
+                }
+
+                if (sessionResponse.Content.Count() > 1)
                 {
                     throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityName", identityName));
                 }
-
-                return AddSession(null, sessionResponse.Content.Single());
             }
             else
             {
-                return null;
+                var registrationResponse = await _accessClient.Sessions.PostAsync(new RegisterSession
+                {
+                    IdentityName = identityName
+                });
+
+                if (registrationResponse is { IsSuccessStatusCode: true, Content: not null })
+                {
+                    return AddSession(registrationResponse.Content.Token, registrationResponse.Content);
+                }
             }
+
+            return null;
         }
         finally
         {
@@ -122,7 +139,11 @@ public class RestSessionCache : SessionCache, ISessionCache
                 return session;
             }
 
-            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new() { Token = token });
+            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new()
+            {
+                Token = token,
+                ShouldIncludePermissions = true
+            });
 
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null })
             {
@@ -131,14 +152,15 @@ public class RestSessionCache : SessionCache, ISessionCache
                     return AddSession(token, sessionResponse.Content.Single());
                 }
 
-                var tokenValue = token.ToString("N");
+                if (sessionResponse.Content.Count() > 1)
+                {
+                    var tokenValue = token.ToString("N");
 
-                throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "token", $"{tokenValue[..4]}****-****-****-****-********{tokenValue[^4..]}"));
+                    throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "token", $"{tokenValue[..4]}****-****-****-****-********{tokenValue[^4..]}"));
+                }
             }
-            else
-            {
-                return null;
-            }
+            
+            return null;
         }
         finally
         {
@@ -159,7 +181,11 @@ public class RestSessionCache : SessionCache, ISessionCache
                 return session;
             }
 
-            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new() { Token = identityId });
+            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new()
+            {
+                IdentityId = identityId,
+                ShouldIncludePermissions = true
+            });
 
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null })
             {
@@ -168,12 +194,13 @@ public class RestSessionCache : SessionCache, ISessionCache
                     return AddSession(null, sessionResponse.Content.Single());
                 }
 
-                throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityId", identityId.ToString("D")));
+                if (sessionResponse.Content.Count() > 1)
+                {
+                    throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityId", identityId.ToString("D")));
+                }
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
         finally
         {

@@ -6,6 +6,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shuttle.Access.AspNetCore;
+using Shuttle.Access.AspNetCore.Authentication;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Data;
@@ -66,21 +67,6 @@ public class Program
             {
                 options.GroupNameFormat = "'v'VVV";
                 options.SubstituteApiVersionInUrl = true;
-            });
-
-        webApplicationBuilder.Services
-            .AddAuthentication(options =>
-            {
-                options.DefaultScheme = "Routing";
-            })
-            .AddScheme<AuthenticationSchemeOptions, RoutingAuthenticationHandler>(RoutingAuthenticationHandler.AuthenticationScheme, _ =>
-            {
-            })
-            .AddScheme<AuthenticationSchemeOptions, JwtBearerAuthenticationHandler>(JwtBearerAuthenticationHandler.AuthenticationScheme, _ =>
-            {
-            })
-            .AddScheme<AuthenticationSchemeOptions, AccessAuthenticationHandler>(AccessAuthenticationHandler.AuthenticationScheme, _ =>
-            {
             });
 
         webApplicationBuilder.Services
@@ -183,17 +169,6 @@ public class Program
             .AddOAuth(builder =>
             {
                 webApplicationBuilder.Configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);
-
-                Log.Debug($"[oauth] : DefaultRedirectUri = '{builder.Options.DefaultRedirectUri}'");
-
-                foreach (var optionsProvider in builder.Options.Providers)
-                {
-                    Log.Debug($"[oauth:{optionsProvider.Name}] : Scope = '{optionsProvider.Scope}'");
-                    Log.Debug($"[oauth:{optionsProvider.Name}.Issuer] : Uri = '{optionsProvider.Issuer.Uri}'");
-                    Log.Debug($"[oauth:{optionsProvider.Name}.Authorize] : ClientId = '{optionsProvider.Authorize.ClientId}' / CodeChallengeMethod = '{optionsProvider.Authorize.CodeChallengeMethod}' / Url = '{optionsProvider.Authorize.Url}'");
-                    Log.Debug($"[oauth:{optionsProvider.Name}.Token] : ClientId = '{optionsProvider.Token.ClientId}' / ContentTypeHeader = '{optionsProvider.Token.ContentTypeHeader}' / OriginHeader = '{optionsProvider.Token.OriginHeader}' / Url = '{optionsProvider.Token.Url}'");
-                    Log.Debug($"[oauth:{optionsProvider.Name}.Data] : AuthorizationHeaderScheme = '{optionsProvider.Data.AuthorizationHeaderScheme}' / AcceptHeader = '{optionsProvider.Data.AcceptHeader}' / EMailPropertyName = '{optionsProvider.Data.EMailPropertyName}' / Url = '{optionsProvider.Data.Url}'");
-                }
             })
             .AddInMemoryOAuthGrantRepository();
 

@@ -58,6 +58,7 @@ public class RefreshSessionParticipant : IParticipant<RefreshSession>
 
         await _serviceBus.PublishAsync(new SessionRefreshed
         {
+            IdentityId = context.Message.IdentityId,
             IdentityName = identityName
         });
     }

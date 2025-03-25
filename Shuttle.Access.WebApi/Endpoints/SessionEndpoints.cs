@@ -27,6 +27,11 @@ public static class SessionEndpoints
                     specification.WithToken(hashingService.Sha256(model.Token.Value.ToString("D")));
                 }
 
+                if (model.IdentityId.HasValue)
+                {
+                    specification.WithIdentityId(model.IdentityId.Value);
+                }
+
                 if (!string.IsNullOrWhiteSpace(model.IdentityName))
                 {
                     specification.WithIdentityName(model.IdentityName);
@@ -53,24 +58,41 @@ public static class SessionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Sessions.View);
 
-        app.MapPost("/v{version:apiVersion}/sessions", async (IOptions<AccessOptions> accessOptions, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] Messages.v1.RegisterSession message) =>
+        app.MapPost("/v{version:apiVersion}/sessions", async (HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] Messages.v1.RegisterSession message) =>
             {
                 var options = Guard.AgainstNull(accessOptions.Value);
 
-                if (!options.AllowPasswordAuthentication &&
-                    Guid.Empty.Equals(message.Token))
+                if (!options.AllowPasswordAuthentication && !string.IsNullOrWhiteSpace(message.Password))
                 {
                     return Results.BadRequest(Resources.PasswordAuthenticationNotAllowed);
                 }
 
-                if (string.IsNullOrWhiteSpace(message.IdentityName) ||
-                    (string.IsNullOrWhiteSpace(message.Password) &&
-                     Guid.Empty.Equals(message.Token)))
+                if (string.IsNullOrWhiteSpace(message.IdentityName))
                 {
                     return Results.BadRequest();
                 }
-
+                
                 var registerSession = new RegisterSession(message.IdentityName);
+
+                if (!string.IsNullOrWhiteSpace(message.Password))
+                {
+                    registerSession.UsePassword(message.Password);
+                }
+                else if (!Guid.Empty.Equals(message.Token))
+                {
+                    registerSession.UseAuthenticationToken(message.Token);
+                }
+                else
+                {
+                    var identityId = httpContext.GetIdentityId();
+
+                    if (!identityId.HasValue || !await sessionCache.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))
+                    {
+                        return Results.BadRequest();
+                    }
+
+                    registerSession.UseDirect();
+                }
 
                 if (!string.IsNullOrWhiteSpace(message.ApplicationName))
                 {
@@ -82,15 +104,6 @@ public static class SessionEndpoints
                     }
 
                     registerSession.WithKnownApplicationOptions(knownApplicationOptions);
-                }
-
-                if (!string.IsNullOrWhiteSpace(message.Password))
-                {
-                    registerSession.UsePassword(message.Password);
-                }
-                else
-                {
-                    registerSession.UseAuthenticationToken(message.Token);
                 }
 
                 return await RegisterSession(databaseContextFactory, mediator, registerSession);

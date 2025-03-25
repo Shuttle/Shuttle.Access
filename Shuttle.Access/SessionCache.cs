@@ -11,7 +11,7 @@ public abstract class SessionCache
     private Messages.v1.Session? ActiveSessionOnly(Messages.v1.Session? session)
     {
         if (session != null &&
-            session.ExpiryDate > DateTimeOffset.UtcNow)
+            DateTimeOffset.UtcNow > session.ExpiryDate)
         {
             Flush(session.IdentityId);
 

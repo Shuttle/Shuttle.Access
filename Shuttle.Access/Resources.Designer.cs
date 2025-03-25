@@ -223,6 +223,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find a valid session..
+        /// </summary>
+        public static string SessionNotFound {
+            get {
+                return ResourceManager.GetString("SessionNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No token could be retrieved to fulfill the request..
         /// </summary>
         public static string SessionTokenException {

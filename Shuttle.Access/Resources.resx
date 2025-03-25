@@ -178,6 +178,9 @@
     <value>Role '{0}' does not exist on user '{1}'.</value>
     <comment>0 = role name, 1 = user name</comment>
   </data>
+  <data name="SessionNotFound" xml:space="preserve">
+    <value>Could not find a valid session.</value>
+  </data>
   <data name="SessionTokenException" xml:space="preserve">
     <value>No token could be retrieved to fulfill the request.</value>
   </data>
