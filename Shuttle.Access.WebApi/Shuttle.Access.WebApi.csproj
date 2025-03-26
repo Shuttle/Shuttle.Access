@@ -11,18 +11,18 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.14" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.7.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.7.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.0" />
-    <PackageReference Include="Shuttle.Access.Messages" Version="7.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
+    <PackageReference Include="Shuttle.Access.Messages" Version="7.1.0" />
     <PackageReference Include="Shuttle.Core.Mediator" Version="20.0.0" />
     <PackageReference Include="Shuttle.Esb.AzureStorageQueues" Version="20.0.0" />
     <PackageReference Include="Shuttle.Esb.Sql.Subscription" Version="20.0.0" />
     <PackageReference Include="Shuttle.OAuth" Version="20.2.0" />
     <PackageReference Include="Shuttle.Recall.Sql.EventProcessing" Version="20.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />

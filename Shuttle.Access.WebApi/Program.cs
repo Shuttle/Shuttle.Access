@@ -153,7 +153,10 @@ public class Program
             {
                 builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
             })
-            .AddAccessAuthorization()
+            .AddAccessAuthorization(builder =>
+            {
+                webApplicationBuilder.Configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(builder.Options);
+            })
             .AddSqlAccess()
             .AddDataStoreAccessService()
             .AddCors(options =>

@@ -3,7 +3,7 @@
 <package>
   <metadata>
     <id>Shuttle.Access.RestClient</id>
-    <version>7.0.0</version>
+    <version>7.1.0</version>
     <authors>Eben Roux</authors>
     <owners>Eben Roux</owners>
     <license type="expression">BSD-3-Clause</license>
@@ -18,7 +18,7 @@
     <dependencies>
             <dependency id="Refit" version="8.0.0" />
       <dependency id="Refit.HttpClientFactory" version="8.0.0" />
-      <dependency id="Shuttle.Access" version="7.0.0" />
+      <dependency id="Shuttle.Access" version="7.1.0" />
       <dependency id="Shuttle.Core.Contract" version="20.0.0" />
     </dependencies>
   </metadata>
