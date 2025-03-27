@@ -39,7 +39,7 @@ public class RestSessionCache : SessionCache, ISessionCache
                 ShouldIncludePermissions = true
             });
 
-            if (sessionResponse is { IsSuccessStatusCode: true, Content: not null })
+            if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
                 if (sessionResponse.Content.Count() == 1)
                 {
@@ -145,7 +145,7 @@ public class RestSessionCache : SessionCache, ISessionCache
                 ShouldIncludePermissions = true
             });
 
-            if (sessionResponse is { IsSuccessStatusCode: true, Content: not null })
+            if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
                 if (sessionResponse.Content.Count() == 1)
                 {
@@ -187,7 +187,7 @@ public class RestSessionCache : SessionCache, ISessionCache
                 ShouldIncludePermissions = true
             });
 
-            if (sessionResponse is { IsSuccessStatusCode: true, Content: not null })
+            if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
                 if (sessionResponse.Content.Count() == 1)
                 {

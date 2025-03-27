@@ -78,9 +78,8 @@ public class Program
                 options.AddSecurityDefinition("Bearer", new()
                 {
                     Name = "Authorization",
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "Bearer",
-                    BearerFormat = "Token",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Custom",
                     In = ParameterLocation.Header,
                     Description = "Enter 'Bearer TOKEN', where 'TOKEN' is a JWT; else 'Shuttle.Access token=TOKEN', where 'TOKEN' is the Shuttle.Access GUID session token."
                 });
