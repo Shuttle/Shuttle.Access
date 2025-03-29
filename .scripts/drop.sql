@@ -1,0 +1,8 @@
+drop table [dbo].[SessionTokenExchange]
+drop table [dbo].[SessionPermission]
+drop table [dbo].[Session]
+drop table [dbo].[RolePermission]
+drop table [dbo].[Role]
+drop table [dbo].[Identity]
+drop table [dbo].[IdentityRole]
+drop table [dbo].[Permission]

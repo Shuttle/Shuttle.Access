@@ -70,7 +70,7 @@ const headers = useSecureTableHeaders([
     title: t("date-registered"),
     key: "item.dateRegistered",
     value: (item: any) => {
-      return useDateFormatter(item.dateActivated).dateTimeMilliseconds();
+      return useDateFormatter(item.dateRegistered).dateTimeMilliseconds();
     }
   },
   {
