@@ -15,9 +15,9 @@
 import { computed, reactive, type Reactive } from "vue";
 import { required } from '@vuelidate/validators';
 import { useValidation } from "@/composables/Validation"
-import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
 import type { RegisterPermission } from "@/access";
+import { useSnackbarStore } from "@/stores/snackbar";
 
 const router = useRouter();
 
@@ -56,7 +56,7 @@ const submit = async () => {
       status: 1
     })
 
-    useAlertStore().requestSent();
+    useSnackbarStore().requestSent();
 
     router.push("/permissions");
   } finally {

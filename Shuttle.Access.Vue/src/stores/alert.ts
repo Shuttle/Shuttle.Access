@@ -1,13 +1,6 @@
 import type { Alert, AlertStoreState } from "@/access";
 import { defineStore } from "pinia";
 
-export const messages = {
-  requestSent:
-    "The request has been submitted.  It may take a moment to process.",
-  working:
-    "Please wait until the current operation completes and then try again.",
-};
-
 let key = 0;
 
 export const useAlertStore = defineStore("alert", {
@@ -38,7 +31,7 @@ export const useAlertStore = defineStore("alert", {
         }, alert.expirySeconds * 1000);
       }
     },
-    remove(name: String) {
+    remove(name: string) {
       if (!name) {
         return false;
       }
@@ -52,18 +45,6 @@ export const useAlertStore = defineStore("alert", {
       this.alerts.splice(index, 1);
 
       return true;
-    },
-    requestSent() {
-      this.add({
-        message: messages.requestSent,
-        name: "request-sent",
-      });
-    },
-    working() {
-      this.add({
-        message: messages.working,
-        name: "working-message",
-      });
     },
   },
 });

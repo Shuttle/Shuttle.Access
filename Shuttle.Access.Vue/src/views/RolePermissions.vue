@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <sv-title :title="`${t('permissions')} - ${name}`" close-path="/roles" type="borderless" />
+      <sv-title :title="`${t('permissions')} - ${name}`" close-drawer type="borderless" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -29,12 +29,12 @@
 import api from "@/api";
 import { computed, onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { useAlertStore } from "@/stores/alert";
 import { mdiMagnify, mdiTimerSand, mdiPlayCircleOutline, mdiStopCircleOutline, mdiCloseCircleOutline, mdiRefresh } from '@mdi/js';
 import type { IdentifierAvailability, Permission } from "@/access";
+import { useSnackbarStore } from "@/stores/snackbar";
 
 const { t } = useI18n({ useScope: 'global' });
-const alertStore = useAlertStore();
+const snackbarStore = useSnackbarStore();
 
 const props = defineProps<{
   id: string;
@@ -183,7 +183,7 @@ const getPermissionAvailability = async () => {
 
 const toggle = async (item: PermissionItem) => {
   if (item.working) {
-    alertStore.working();
+    snackbarStore.working();
     return;
   }
 

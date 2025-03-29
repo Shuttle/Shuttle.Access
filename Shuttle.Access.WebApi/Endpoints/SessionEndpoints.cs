@@ -8,6 +8,7 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
+using System.Reflection;
 using RegisterSession = Shuttle.Access.Application.RegisterSession;
 
 namespace Shuttle.Access.WebApi;
@@ -186,6 +187,21 @@ public static class SessionEndpoints
                 }
 
                 return Results.Ok();
+            })
+            .WithTags("Sessions")
+            .RequirePermission(AccessPermissions.Sessions.Manage)
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
+
+        app.MapDelete("/v{version:apiVersion}/sessions/{identityId:Guid}", async (Guid identityId, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
+            {
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    return await sessionRepository.RemoveAsync(identityId)
+                        ? Results.Ok()
+                        : Results.Problem();
+                }
             })
             .WithTags("Sessions")
             .RequirePermission(AccessPermissions.Sessions.Manage)

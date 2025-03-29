@@ -47,11 +47,6 @@ public class SessionRepository : ISessionRepository
         return await FindAsync(new DataAccess.Session.Specification().WithIdentityId(identityId), cancellationToken);
     }
 
-    public async ValueTask<bool> RemoveAsync(byte[] token, CancellationToken cancellationToken = default)
-    {
-        return await _databaseContextService.Active.ExecuteAsync(_queryFactory.Remove(token), cancellationToken) != 0;
-    }
-
     private async Task<Session?> FindAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken)
     {
         var result = await _dataRepository.FetchItemAsync(_queryFactory.Search(specification), cancellationToken);

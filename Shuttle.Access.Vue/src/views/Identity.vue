@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="submit" class="sv-form">
-    <sv-title :title="$t('identity')" close-path="/identities" type="borderless" />
+    <sv-title :title="$t('identity')" close-drawer type="borderless" />
     <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
       class="mb-2" :error-messages="validation.message('identityName')" autocomplete="new">
     </v-text-field>
@@ -20,11 +20,12 @@ import { mdiAccountOutline, mdiEyeOutline, mdiEyeOffOutline, mdiShieldOutline } 
 import { computed, reactive, ref } from "vue";
 import { required } from '@vuelidate/validators';
 import { useValidation } from "@/composables/Validation"
-import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
 import type { RegisterIdentity } from '@/access';
+import { useDrawerStore } from '@/stores/drawer';
+import { useSnackbarStore } from '@/stores/snackbar';
 
-const router = useRouter()
+const drawerStore = useDrawerStore()
 
 const busy: Ref<boolean> = ref(false);
 
@@ -74,9 +75,9 @@ const submit = async () => {
       activated: true
     });
 
-    useAlertStore().requestSent();
+    useSnackbarStore().requestSent();
 
-    router.push("/identities");
+    drawerStore.close()
   } finally {
     busy.value = false;
   }

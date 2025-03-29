@@ -111,18 +111,6 @@ VALUES
             .AddParameter(Columns.ExpiryDate, session.ExpiryDate);
     }
 
-    public IQuery Remove(byte[] token)
-    {
-        return new Query(@"
-DELETE 
-FROM 
-	[dbo].[Session] 
-WHERE 
-	Token = @Token
-")
-            .AddParameter(Columns.Token, token);
-    }
-
     public IQuery Search(DataAccess.Session.Specification specification)
     {
         Guard.AgainstNull(specification);

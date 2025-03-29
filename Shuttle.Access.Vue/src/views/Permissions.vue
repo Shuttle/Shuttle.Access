@@ -14,7 +14,7 @@
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy">
       <template v-slot:item.rename="{ item }">
-        <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" v-tooltip:end="$t('rename')" />
+        <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" />
       </template>
       <template v-slot:item.status="{ item }">
         <div class="flex flex-row items-center my-2">
@@ -30,8 +30,7 @@
       </template>
     </v-data-table>
   </v-card>
-  <sv-form-drawer v-if="drawer" close-path="/permissions">
-  </sv-form-drawer>
+  <sv-form-drawer></sv-form-drawer>
 </template>
 
 <script setup lang="ts">
@@ -45,15 +44,16 @@ import Permissions from "@/permissions";
 import type { Permission } from "@/access";
 import { useSessionStore } from "@/stores/session";
 import { usePermissionStatuses } from "@/composables/Data";
+import { useDrawerStore } from "@/stores/drawer";
 
 const sessionStore = useSessionStore();
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
 const route = useRoute();
+const drawerStore = useDrawerStore()
 
 const busy: Ref<boolean> = ref(false);
 const search: Ref<string> = ref('')
-const drawer = ref(false)
 
 type PermissionItem = Permission & {
   working: boolean;
@@ -163,18 +163,12 @@ const rename = (item: PermissionItem) => {
   router.push({ name: "permission-rename", params: { id: item.id } });
 }
 
-watch(
-  () => route.fullPath,
-  async (fullPath) => {
-    drawer.value = !fullPath.endsWith('/permissions')
-
-    if (!drawer.value) {
-      await refresh()
-    }
-  },
-)
-
 onMounted(() => {
   refresh();
+
+  drawerStore.initialize({
+    refresh: refresh,
+    parentPath: '/permissions',
+  })
 })
 </script>

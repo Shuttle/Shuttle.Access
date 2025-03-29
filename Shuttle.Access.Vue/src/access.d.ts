@@ -13,15 +13,6 @@ export type AlertStoreState = {
   alerts: Alert[];
 };
 
-export type Breadcrumb = {
-  name: RouteRecordNameGeneric;
-  path: string;
-};
-
-export type BreadcrumbStoreState = {
-  breadcrumbs: Breadcrumb[];
-};
-
 export type Configuration = {
   url: string;
   allowPasswordAuthentication: boolean;
@@ -60,6 +51,11 @@ export type DashboardItem = {
   value: number;
 };
 
+export type DrawerOptions = {
+  parentPath: string;
+  refresh: () => Promise<void>;
+};
+
 export type Env = {
   VITE_API_URL: string;
   VITE_API_ALLOW_PASSWORD_AUTHENTICATION: string;
@@ -71,7 +67,9 @@ export type FormDrawer = {
 
 export type FormTitle = {
   title: string;
+  closeDrawer?: boolean;
   closePath?: string;
+  closeClick?: () => void;
   type?: "borderless" | "normal";
 };
 
@@ -130,6 +128,7 @@ export type RegisterPermission = {
 };
 
 export type Session = {
+  identityId: string;
   identityName: string;
   token: string;
   permissions: string[];
@@ -143,6 +142,7 @@ export type SessionPermission = {
 };
 
 export type SessionResponse = {
+  identityId: string;
   identityName: string;
   permissions: string[];
   registrationRequested: boolean;

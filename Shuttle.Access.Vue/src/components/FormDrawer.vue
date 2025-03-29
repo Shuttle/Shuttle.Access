@@ -1,7 +1,8 @@
 <template>
-  <div class="sv-form-drawer" @click="router.push(props.closePath)">
+  <div v-if="drawerStore.isOpen" class="sv-form-drawer">
+    <div class="sv-form-drawer__overlay" @click.self="drawerStore.close(false)"></div>
     <div
-      class="v-navigation-drawer v-navigation-drawer--right fixed right-0 bottom-0 top-[var(--v-layout-top)] border-t-1 z-[1001] p-2"
+      class="v-navigation-drawer v-navigation-drawer--right fixed right-0 bottom-0 top-[var(--v-layout-top)] border-t-1 z-[1001] p-2 overflow-y-scroll opacity-100"
       :class="getClasses()" @click.stop>
       <router-view></router-view>
     </div>
@@ -9,29 +10,27 @@
 </template>
 
 <script setup lang="ts">
-import type { FormDrawer } from '@/access'
-import { useRouter } from 'vue-router'
+import { useDrawerStore } from '@/stores/drawer'
 
-const router = useRouter()
-const props = defineProps<FormDrawer>()
+const drawerStore = useDrawerStore()
 
 const getClasses = () => {
-  return "w-1/3"
+  return 'w-full md:w-1/3'
 }
 
 const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key !== "Escape") {
+  if (event.key !== 'Escape') {
     return
   }
 
-  router.push(props.closePath)
-};
+  drawerStore.close(false)
+}
 
 onMounted(() => {
-  window.addEventListener("keydown", handleKeydown);
-});
+  window.addEventListener('keydown', handleKeydown)
+})
 
 onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeydown);
-});
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>

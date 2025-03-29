@@ -57,6 +57,7 @@ export const useSessionStore = defineStore("session", {
     register(session: Session) {
       if (
         !session ||
+        !session.identityId ||
         !session.identityName ||
         !session.token ||
         !session.permissions
@@ -115,6 +116,7 @@ export const useSessionStore = defineStore("session", {
           }
 
           this.register({
+            identityId: data.identityId,
             identityName: credentials.identityName,
             token: data.token,
             permissions: data.permissions,
@@ -155,6 +157,7 @@ export const useSessionStore = defineStore("session", {
 
       if (data.result == "Registered") {
         this.register({
+          identityId: data.identityId,
           identityName: data.identityName,
           token: data.token,
           permissions: data.permissions,

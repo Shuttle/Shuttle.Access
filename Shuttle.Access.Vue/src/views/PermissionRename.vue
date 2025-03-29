@@ -18,8 +18,8 @@
 import { computed, onMounted, reactive, ref } from "vue";
 import { required } from '@vuelidate/validators';
 import { useValidation } from "@/composables/Validation"
-import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
+import { useSnackbarStore } from "@/stores/snackbar";
 
 const router = useRouter();
 
@@ -67,7 +67,7 @@ const submit = async () => {
       name: state.name,
     })
 
-    useAlertStore().requestSent();
+    useSnackbarStore().requestSent();
 
     router.push("/permissions");
   } finally {

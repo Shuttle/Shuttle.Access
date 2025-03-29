@@ -28,6 +28,10 @@
     @apply fixed top-0 right-0 bottom-0 w-full z-[1000];
   }
 
+  .sv-form-drawer__overlay {
+    @apply h-full w-full bg-black opacity-25;
+  }
+
   /* Strip */
   .sv-strip {
     @apply flex flex-row items-center gap-2 mb-2;

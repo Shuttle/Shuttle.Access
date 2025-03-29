@@ -14,15 +14,14 @@
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
       <template v-slot:item.permissions="{ item }">
-        <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="permissions(item)"
-          v-tooltip:end="$t('permissions')" />
+        <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="permissions(item)" />
       </template>
       <template v-slot:item.rename="{ item }">
-        <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" v-tooltip:end="$t('rename')" />
+        <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" />
       </template>
       <template v-slot:item.remove="{ item }">
         <v-btn :icon="mdiDeleteOutline" size="x-small"
-          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" v-tooltip:end="$t('remove')" />
+          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
@@ -37,8 +36,7 @@
       </template>
     </v-data-table>
   </v-card>
-  <sv-form-drawer v-if="drawer" close-path="/roles">
-  </sv-form-drawer>
+  <sv-form-drawer></sv-form-drawer>
 </template>
 
 <script setup lang="ts">
@@ -47,26 +45,25 @@ import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline } from '@mdi/js';
 import { useRouter } from "vue-router";
-import { useAlertStore } from "@/stores/alert";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
 import type { Permission, Role } from "@/access";
 import { useSessionStore } from "@/stores/session";
 import { usePermissionStatuses } from "@/composables/Data";
+import { useDrawerStore } from "@/stores/drawer";
+import { useSnackbarStore } from "@/stores/snackbar";
 
 const confirmationStore = useConfirmationStore();
 const sessionStore = useSessionStore();
-
+const drawerStore = useDrawerStore()
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
-const route = useRoute()
 
 const busy: Ref<boolean> = ref(false);
 const search: Ref<string> = ref('')
 const expanded: Ref<string[]> = ref([])
 const permissionStatuses = usePermissionStatuses();
-const drawer = ref(false)
 
 const headers = useSecureTableHeaders([
   {
@@ -135,7 +132,8 @@ const remove = async (item: Role) => {
 
   try {
     await api.delete(`v1/roles/${item.id}`)
-    useAlertStore().requestSent();
+
+    useSnackbarStore().requestSent();
 
     refresh();
   } finally {
@@ -155,18 +153,12 @@ const rename = (item: Role) => {
   router.push({ name: "role-rename", params: { id: item.id } });
 }
 
-watch(
-  () => route.fullPath,
-  async (fullPath) => {
-    drawer.value = !fullPath.endsWith('/roles')
-
-    if (!drawer.value) {
-      await refresh()
-    }
-  },
-)
-
 onMounted(() => {
   refresh();
+
+  drawerStore.initialize({
+    refresh: refresh,
+    parentPath: '/roles',
+  })
 })
 </script>

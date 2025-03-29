@@ -1,5 +1,6 @@
 import type { SnackbarStoreState } from "@/access";
 import { defineStore } from "pinia";
+import { i18n } from "@/i18n";
 
 export const useSnackbarStore = defineStore("snackbar", {
   state: (): SnackbarStoreState => {
@@ -17,6 +18,12 @@ export const useSnackbarStore = defineStore("snackbar", {
     },
     close() {
       this.visible = false;
+    },
+    requestSent(timeout: number = 3000) {
+      this.open(i18n.global.t("messages.request-sent"), timeout);
+    },
+    working(timeout: number = 3000) {
+      this.open(i18n.global.t("messages.working"), timeout);
     },
   },
 });

@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="submit" class="sv-form">
-    <sv-title :title="$t('role')" close-path="/roles" type="borderless" />
+    <sv-title :title="$t('role')" close-drawer type="borderless" />
     <v-text-field v-model="state.current" :label="$t('name')" class="mb-2" readonly>
     </v-text-field>
     <v-text-field v-model="state.name" :label="$t('new-value')" class="mb-2"
@@ -16,10 +16,11 @@
 import { computed, onMounted, reactive, ref, type Reactive } from "vue";
 import { required } from '@vuelidate/validators';
 import { useValidation } from "@/composables/Validation"
-import { useAlertStore } from "@/stores/alert";
 import api from "@/api";
+import { useDrawerStore } from "@/stores/drawer";
+import { useSnackbarStore } from "@/stores/snackbar";
 
-const router = useRouter();
+const drawerStore = useDrawerStore()
 
 const props = defineProps<{
   id: string;
@@ -65,9 +66,9 @@ const submit = async () => {
       name: state.name,
     })
 
-    useAlertStore().requestSent();
+    useSnackbarStore().requestSent();
 
-    router.push("/roles");
+    drawerStore.close();
   } finally {
     busy.value = false;
   }

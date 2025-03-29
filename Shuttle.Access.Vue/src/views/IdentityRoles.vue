@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <sv-title :title="`${t('roles')} - ${name}`" close-path="/identities" type="borderless"></sv-title>
+      <sv-title :title="`${t('roles')} - ${name}`" close-drawer type="borderless"></sv-title>
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -24,14 +24,12 @@ import api from "@/api";
 import { computed, onMounted, reactive, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from 'vue-router';
-import { useAlertStore } from "@/stores/alert";
 import { mdiTimerSand, mdiMagnify, mdiRefresh } from '@mdi/js';
-
 import type { IdentifierAvailability } from "@/access";
-import type { AxiosResponse } from "axios";
+import { useSnackbarStore } from "@/stores/snackbar";
 
 const { t } = useI18n({ useScope: 'global' });
-const alertStore = useAlertStore();
+const snackbarStore = useSnackbarStore();
 
 const id: Ref<string | string[]> = ref(useRoute().params.id);
 const name: Ref<string> = ref('');
@@ -119,36 +117,33 @@ const getRoleAssignment = (id: string): RoleItem | undefined => {
   return items.value.find(item => item.roleId === id);
 };
 
-const getWorkingRoles = () => {
+const getWorkingRoles = async () => {
   if (workingCount.value === 0) {
     return;
   }
 
-  api
-    .post(`v1/identities/${id.value}/roles/availability`, {
-      values: workingItems.value.map(item => item.roleId)
-    })
-    .then(function (response: AxiosResponse<IdentifierAvailability[]>) {
-      response.data.forEach((availability: IdentifierAvailability) => {
-        const roleItem = getRoleAssignment(availability.id);
+  const response = await api.post(`v1/identities/${id.value}/roles/availability`, {
+    values: workingItems.value.map(item => item.roleId)
+  });
 
-        if (!roleItem) {
-          return;
-        }
+  response.data.forEach((availability: IdentifierAvailability) => {
+    const roleItem = getRoleAssignment(availability.id);
 
-        roleItem.working = roleItem.activeOnToggle ? availability.active : !availability.active;
-      });
-    })
-    .then(() => {
-      setTimeout(() => {
-        getWorkingRoles();
-      }, 1000);
-    });
+    if (!roleItem) {
+      return;
+    }
+
+    roleItem.working = roleItem.activeOnToggle ? availability.active : !availability.active;
+  });
+
+  setTimeout(async () => {
+    await getWorkingRoles();
+  }, 1000);
 };
 
 const toggle = (item: RoleItem) => {
   if (item.working) {
-    alertStore.working();
+    snackbarStore.working();
     return;
   }
 
