@@ -57,7 +57,6 @@ public class SessionTokenAuthenticationHandler : AuthenticationHandler<Authentic
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
-            new(nameof(Session.IdentityName), session.IdentityName),
             new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
         ];
 

@@ -68,31 +68,29 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
             return AuthenticateResult.Fail(Access.Resources.IdentityNameClaimNotFound);
         }
 
-        var session = await _sessionCache.FindAsync(identityName);
-
-        if (session == null)
-        {
-            return AuthenticateResult.Fail(Access.Resources.SessionNotFound);
-        }
-
-        Guid? identityId;
-        if (session != null)
-        {
-            identityId = session.IdentityId;
-        }
-        else
-        {
-            identityId = null;
-        }
-
-
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, identityName),
             new(ClaimTypes.Name, identityName),
-            new(nameof(Session.IdentityName), identityName),
-            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{identityId:D}")
         ];
+
+        var session = await _sessionCache.FindAsync(identityName);
+
+        if (session != null)
+        {
+            Guid? identityId;
+
+            if (session != null)
+            {
+                identityId = session.IdentityId;
+            }
+            else
+            {
+                identityId = null;
+            }
+
+            claims.Add(new(HttpContextExtensions.SessionIdentityIdClaimType, $"{identityId:D}"));
+        }
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
     }

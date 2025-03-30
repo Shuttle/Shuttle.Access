@@ -37,6 +37,31 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static AccessClientBuilder AddBearerAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<BearerAuthenticationProviderBuilder>? builder = null)
+    {
+        Guard.AgainstNull(accessClientBuilder).Services
+            .AddHttpClient<IAuthenticationProvider, BearerAuthenticationProvider>("BearerAuthenticationProvider");
+
+        var bearerAuthenticationProviderBuilder = new BearerAuthenticationProviderBuilder(accessClientBuilder.Services);
+
+        builder?.Invoke(bearerAuthenticationProviderBuilder);
+
+        bearerAuthenticationProviderBuilder.Services
+            .Configure<BearerAuthenticationProviderOptions>(options =>
+        {
+            options.GetTokenAsync = bearerAuthenticationProviderBuilder.Options.GetTokenAsync;
+        });
+
+        bearerAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<BearerAuthenticationProviderOptions>, BearerAuthenticationProviderOptionsValidator>();
+
+        accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
+        {
+            httpRequestMessage.Headers.Authorization = await serviceProvider.GetRequiredService<IAuthenticationProvider>().GetAuthenticationHeaderAsync(httpRequestMessage);
+        };
+
+        return accessClientBuilder;
+    }
+
     public static AccessClientBuilder AddPasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
     {
         Guard.AgainstNull(accessClientBuilder).Services
@@ -55,9 +80,9 @@ public static class ServiceCollectionExtensions
 
         passwordAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<PasswordAuthenticationProviderOptions>, PasswordAuthenticationProviderOptionsValidator>();
 
-        accessClientBuilder.Options.ConfigureHttpRequestAsync = async (request, serviceProvider) =>
+        accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
         {
-            request.Headers.Authorization = await serviceProvider.GetRequiredService<IAuthenticationProvider>().GetAuthenticationHeaderAsync();
+            httpRequestMessage.Headers.Authorization = await serviceProvider.GetRequiredService<IAuthenticationProvider>().GetAuthenticationHeaderAsync(httpRequestMessage);
         };
 
         return accessClientBuilder;

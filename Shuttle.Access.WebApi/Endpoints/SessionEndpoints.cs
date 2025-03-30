@@ -85,11 +85,16 @@ public static class SessionEndpoints
                 }
                 else
                 {
-                    var identityId = httpContext.GetIdentityId();
+                    var identityName = httpContext.GetIdentityName();
 
-                    if (!identityId.HasValue || !await sessionCache.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))
+                    if (string.IsNullOrWhiteSpace(identityName) || !identityName.Equals(message.IdentityName, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        return Results.BadRequest();
+                        var identityId = httpContext.GetIdentityId();
+
+                        if (!identityId.HasValue || !await sessionCache.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))
+                        {
+                            return Results.BadRequest();
+                        }
                     }
 
                     registerSession.UseDirect();

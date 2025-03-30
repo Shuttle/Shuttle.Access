@@ -7,27 +7,32 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class PasswordAuthenticationProvider : IAuthenticationProvider
+public class BearerAuthenticationProvider : IAuthenticationProvider
 {
-    private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly AccessClientOptions _accessClientOptions;
     private readonly string _baseAddress;
+    private readonly BearerAuthenticationProviderOptions _bearerAuthenticationProviderOptions;
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
-    private string _token = string.Empty;
+    private readonly IJwtService _jwtService;
+    private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly IServiceProvider _serviceProvider;
     private DateTimeOffset _expiryDate = DateTimeOffset.MinValue;
-    private readonly PasswordAuthenticationProviderOptions _passwordAuthenticationProviderOptions;
+    private string _token = string.Empty;
 
-    public PasswordAuthenticationProvider(IOptions<AccessClientOptions> accessClientOptions, IOptions<PasswordAuthenticationProviderOptions> passwordAuthenticationProviderOptions, HttpClient httpClient)
+    public BearerAuthenticationProvider(IOptions<AccessClientOptions> accessClientOptions, IOptions<BearerAuthenticationProviderOptions> bearerAuthenticationProviderOptions, HttpClient httpClient, IJwtService jwtService, IServiceProvider serviceProvider)
     {
         _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
-        _passwordAuthenticationProviderOptions = Guard.AgainstNull(Guard.AgainstNull(passwordAuthenticationProviderOptions).Value);
+        _bearerAuthenticationProviderOptions = Guard.AgainstNull(Guard.AgainstNull(bearerAuthenticationProviderOptions).Value);
         _httpClient = Guard.AgainstNull(httpClient);
+        _jwtService = Guard.AgainstNull(jwtService);
+        _serviceProvider = Guard.AgainstNull(serviceProvider);
 
         _baseAddress = _accessClientOptions.BaseAddress;
 
@@ -36,7 +41,7 @@ public class PasswordAuthenticationProvider : IAuthenticationProvider
             _baseAddress = _baseAddress[..^1];
         }
     }
-    
+
     public async Task<AuthenticationHeaderValue> GetAuthenticationHeaderAsync(HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
@@ -48,16 +53,29 @@ public class PasswordAuthenticationProvider : IAuthenticationProvider
                 return new("Shuttle.Access", _token);
             }
 
+            var token = await _bearerAuthenticationProviderOptions.GetTokenAsync!.Invoke(httpRequestMessage, _serviceProvider);
+
+            var identityName = await _jwtService.GetIdentityNameAsync(token);
+
+            if (string.IsNullOrWhiteSpace(identityName))
+            {
+                throw new AuthenticationException();
+            }
+
             var requestData = new
             {
-                identityName = _passwordAuthenticationProviderOptions.IdentityName,
-                password = _passwordAuthenticationProviderOptions.Password
+                IdentityName = identityName
             };
 
             var json = JsonSerializer.Serialize(requestData);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{_baseAddress}/v1/sessions", content, cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseAddress}/v1/sessions");
+
+            request.Content = content;
+            request.Headers.Authorization = new("Bearer", token);
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {

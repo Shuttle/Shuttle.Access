@@ -18,6 +18,10 @@ public class Session
     public byte[] Token { get; set; } = new byte[32];
 
     [Required]
+    [StringLength(320)]
+    public string RegisteredBy { get; set; } = string.Empty;
+
+    [Required]
     public DateTimeOffset DateRegistered { get; set; }
 
     [Required]

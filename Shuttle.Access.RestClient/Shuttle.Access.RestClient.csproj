@@ -26,6 +26,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Shuttle.Access.AspNetCore\Shuttle.Access.AspNetCore.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Compile Update="Resources.Designer.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
