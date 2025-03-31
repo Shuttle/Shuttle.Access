@@ -1,4 +1,5 @@
-﻿using Asp.Versioning;
+﻿using System.Transactions;
+using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -8,7 +9,7 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
-using System.Reflection;
+using Shuttle.Esb;
 using RegisterSession = Shuttle.Access.Application.RegisterSession;
 
 namespace Shuttle.Access.WebApi;
@@ -141,22 +142,37 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapDelete("/v{version:apiVersion}/sessions/self", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
+        app.MapDelete("/v{version:apiVersion}/sessions/self", async (HttpContext httpContext, IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
-                var sessionIdentityId = httpContext.GetIdentityId();
+                var identityId = httpContext.GetIdentityId();
 
-                if (sessionIdentityId == null)
+                if (identityId == null)
                 {
                     return Results.BadRequest();
                 }
 
                 using (new DatabaseContextScope())
+                using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 await using (databaseContextFactory.Create())
                 {
-                    return await sessionRepository.RemoveAsync(sessionIdentityId.Value)
-                        ? Results.Ok()
-                        : Results.Problem();
+                    var session = await sessionRepository.FindAsync(identityId.Value);
+
+                    if (session != null)
+                    {
+                        if (await sessionRepository.RemoveAsync(identityId.Value))
+                        {
+                            await serviceBus.PublishAsync(new SessionDeleted
+                            {
+                                IdentityId = session.IdentityId,
+                                IdentityName = session.IdentityName
+                            });
+                        }
+                    }
+
+                    tx.Complete();
                 }
+
+                return Results.Ok();
             })
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
@@ -183,12 +199,17 @@ public static class SessionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequireSession();
 
-        app.MapDelete("/v{version:apiVersion}/sessions", async (IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
+        app.MapDelete("/v{version:apiVersion}/sessions", async (IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
                 using (new DatabaseContextScope())
+                using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 await using (databaseContextFactory.Create())
                 {
                     await sessionRepository.RemoveAllAsync();
+
+                    await serviceBus.PublishAsync(new AllSessionsDeleted());
+
+                    tx.Complete();
                 }
 
                 return Results.Ok();
@@ -198,15 +219,30 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapDelete("/v{version:apiVersion}/sessions/{identityId:Guid}", async (Guid identityId, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
+        app.MapDelete("/v{version:apiVersion}/sessions/{identityId:Guid}", async (Guid identityId, IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
                 using (new DatabaseContextScope())
+                using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 await using (databaseContextFactory.Create())
                 {
-                    return await sessionRepository.RemoveAsync(identityId)
-                        ? Results.Ok()
-                        : Results.Problem();
+                    var session = await sessionRepository.FindAsync(identityId);
+
+                    if (session != null)
+                    {
+                        if (await sessionRepository.RemoveAsync(identityId))
+                        {
+                            await serviceBus.PublishAsync(new SessionDeleted
+                            {
+                                IdentityId = session.IdentityId,
+                                IdentityName = session.IdentityName
+                            });
+                        }
+                    }
+
+                    tx.Complete();
                 }
+
+                return Results.Ok();
             })
             .WithTags("Sessions")
             .RequirePermission(AccessPermissions.Sessions.Manage)
