@@ -78,18 +78,7 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
 
         if (session != null)
         {
-            Guid? identityId;
-
-            if (session != null)
-            {
-                identityId = session.IdentityId;
-            }
-            else
-            {
-                identityId = null;
-            }
-
-            claims.Add(new(HttpContextExtensions.SessionIdentityIdClaimType, $"{identityId:D}"));
+            claims.Add(new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"));
         }
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));

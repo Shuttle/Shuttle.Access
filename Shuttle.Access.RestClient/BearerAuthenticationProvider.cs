@@ -59,7 +59,7 @@ public class BearerAuthenticationProvider : IAuthenticationProvider
 
             if (string.IsNullOrWhiteSpace(identityName))
             {
-                throw new AuthenticationException();
+                throw new AuthenticationException(Access.Resources.IdentityNameClaimNotFound);
             }
 
             var requestData = new
