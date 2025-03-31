@@ -14,6 +14,7 @@
 		<PackageReference Include="Refit" Version="8.0.0" />
 		<PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
 		<PackageReference Include="Shuttle.Access" Version="7.1.1" />
+		<PackageReference Include="Shuttle.Access.AspNetCore" Version="7.1.1" />
 		<PackageReference Include="Shuttle.Core.Contract" Version="20.0.0" />
 	</ItemGroup>
 
@@ -23,10 +24,6 @@
 		<None Include=".package\package.nuspec.template" />
 		<None Include=".package\Shuttle.NuGetPackager.MSBuild.dll" />
 		<None Include=".package\Shuttle.NuGetPackager.targets" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Shuttle.Access.AspNetCore\Shuttle.Access.AspNetCore.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
