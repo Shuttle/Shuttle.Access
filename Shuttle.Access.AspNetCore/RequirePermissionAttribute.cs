@@ -19,7 +19,7 @@ public class RequirePermissionAttribute : TypeFilterAttribute
         public RequiresPermission(ISessionCache sessionCache, string permission)
         {
             _sessionCache = Guard.AgainstNull(sessionCache);
-            _permission = Guard.AgainstNullOrEmptyString(permission);
+            _permission = Guard.AgainstEmpty(permission);
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)

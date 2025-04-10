@@ -73,7 +73,7 @@ public class Program
             .AddEndpointsApiExplorer()
             .AddSwaggerGen(options =>
             {
-                options.CustomSchemaIds(type => type.FullName);
+                options.CustomSchemaIds(type => (type.FullName ?? string.Empty).Replace("+", "_"));
 
                 options.AddSecurityDefinition("Bearer", new()
                 {

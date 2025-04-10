@@ -11,7 +11,7 @@ public class RegisterSession
 
     public RegisterSession(string identityName)
     {
-        IdentityName = Guard.AgainstNullOrEmptyString(identityName);
+        IdentityName = Guard.AgainstEmpty(identityName);
     }
 
     public bool HasSession => Session != null && SessionToken.HasValue;
@@ -105,7 +105,7 @@ public class RegisterSession
     {
         SetRegistrationType(SessionRegistrationType.Password);
 
-        _password = Guard.AgainstNullOrEmptyString(password);
+        _password = Guard.AgainstEmpty(password);
 
         return this;
     }
@@ -130,7 +130,7 @@ public class RegisterSession
 
     public RegisterSession WithSessionTokenExchangeUrl(string sessionTokenExchangeUrl)
     {
-        SessionTokenExchangeUrl = Guard.AgainstNullOrEmptyString(sessionTokenExchangeUrl);
+        SessionTokenExchangeUrl = Guard.AgainstEmpty(sessionTokenExchangeUrl);
 
         return this;
     }

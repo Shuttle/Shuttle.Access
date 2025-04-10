@@ -7,7 +7,7 @@ public static class RouteHandlerBuilderExtensions
 {
     public static RouteHandlerBuilder RequirePermission(this RouteHandlerBuilder builder, string permission)
     {
-        return Guard.AgainstNull(builder).WithMetadata(new AccessPermissionRequirement(Guard.AgainstNullOrEmptyString(permission)));
+        return Guard.AgainstNull(builder).WithMetadata(new AccessPermissionRequirement(Guard.AgainstEmpty(permission)));
     }
 
     public static RouteHandlerBuilder RequireSession(this RouteHandlerBuilder builder)

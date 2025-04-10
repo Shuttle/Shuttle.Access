@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
     <PackageReference Include="Shuttle.Access.Messages" Version="7.1.1" />
-    <PackageReference Include="Shuttle.Core.Contract" Version="20.0.0" />
+    <PackageReference Include="Shuttle.Core.Contract" Version="20.0.1" />
     <PackageReference Include="Shuttle.Core.Data" Version="20.0.0" />
   </ItemGroup>
 

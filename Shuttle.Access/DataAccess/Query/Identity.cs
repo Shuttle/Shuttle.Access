@@ -77,7 +77,7 @@ public class Identity
 
         public Specification WithNameMatch(string nameMatch)
         {
-            NameMatch = Guard.AgainstNullOrEmptyString(nameMatch);
+            NameMatch = Guard.AgainstEmpty(nameMatch);
             return this;
         }
     }

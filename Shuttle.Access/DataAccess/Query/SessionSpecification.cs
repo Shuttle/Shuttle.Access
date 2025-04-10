@@ -14,7 +14,7 @@ public class Session
 
         public Specification AddPermission(string permission)
         {
-            Guard.AgainstNullOrEmptyString(permission, nameof(permission));
+            Guard.AgainstEmpty(permission, nameof(permission));
 
             if (!_permissions.Contains(permission))
             {
@@ -48,7 +48,7 @@ public class Session
 
         public Specification WithIdentityName(string identityName)
         {
-            IdentityName = Guard.AgainstNullOrEmptyString(identityName);
+            IdentityName = Guard.AgainstEmpty(identityName);
             MaximumRows = 1;
 
             return this;
@@ -56,7 +56,7 @@ public class Session
 
         public Specification WithIdentityNameMatch(string identityNameMatch)
         {
-            IdentityNameMatch = Guard.AgainstNullOrEmptyString(identityNameMatch);
+            IdentityNameMatch = Guard.AgainstEmpty(identityNameMatch);
 
             return this;
         }

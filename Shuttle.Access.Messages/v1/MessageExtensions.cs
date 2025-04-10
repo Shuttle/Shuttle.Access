@@ -8,13 +8,13 @@ public static class MessageExtensions
     public static void ApplyInvariants(this RegisterRole message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNullOrEmptyString(message.Name);
+        Guard.AgainstEmpty(message.Name);
     }
 
     public static void ApplyInvariants(this GetPasswordResetToken message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNullOrEmptyString(message.Name);
+        Guard.AgainstEmpty(message.Name);
     }
 
     public static void ApplyInvariants(this GetRolePermissions message)
@@ -52,8 +52,8 @@ public static class MessageExtensions
     public static void ApplyInvariants(this ResetPassword message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNullOrEmptyString(message.Name);
-        Guard.AgainstNullOrEmptyString(message.Password);
+        Guard.AgainstEmpty(message.Name);
+        Guard.AgainstEmpty(message.Password);
     }
 
     public static void ApplyInvariants(this ActivateIdentity message)
@@ -76,41 +76,41 @@ public static class MessageExtensions
     public static void ApplyInvariants(this SetRolePermission message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.RoleId);
-        Guard.AgainstEmptyGuid(message.PermissionId);
+        Guard.AgainstEmpty(message.RoleId);
+        Guard.AgainstEmpty(message.PermissionId);
     }
 
     public static void ApplyInvariants(this RegisterPermission message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNullOrEmptyString(message.Name);
+        Guard.AgainstEmpty(message.Name);
     }
 
     public static void ApplyInvariants(this SetIdentityName message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.Id);
-        Guard.AgainstNullOrEmptyString(message.Name);
+        Guard.AgainstEmpty(message.Id);
+        Guard.AgainstEmpty(message.Name);
     }
 
     public static void ApplyInvariants(this SetRoleName message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.Id);
-        Guard.AgainstNullOrEmptyString(message.Name);
+        Guard.AgainstEmpty(message.Id);
+        Guard.AgainstEmpty(message.Name);
     }
 
     public static void ApplyInvariants(this SetPermissionName message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.Id);
-        Guard.AgainstNullOrEmptyString(message.Name);
+        Guard.AgainstEmpty(message.Id);
+        Guard.AgainstEmpty(message.Name);
     }
 
     public static void ApplyInvariants(this SetPermissionStatus message)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstEmptyGuid(message.Id);
+        Guard.AgainstEmpty(message.Id);
     }
 
     public static void ApplyInvariants<T>(this Identifiers<T> message)

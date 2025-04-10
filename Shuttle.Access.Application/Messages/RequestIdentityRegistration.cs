@@ -22,7 +22,7 @@ public class RequestIdentityRegistration
 
     public RequestIdentityRegistration Allowed(string registeredBy, bool activationAllowed)
     {
-        Guard.AgainstNullOrEmptyString(registeredBy);
+        Guard.AgainstEmpty(registeredBy);
 
         IsAllowed = true;
         RegisteredBy = registeredBy;

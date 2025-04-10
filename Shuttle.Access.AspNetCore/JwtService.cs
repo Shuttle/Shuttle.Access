@@ -24,7 +24,7 @@ public class JwtService : IJwtService
 
     public async ValueTask<string> GetIdentityNameAsync(string token)
     {
-        var jsonToken = _jwtHandler.ReadJsonWebToken(Guard.AgainstNullOrEmptyString(token));
+        var jsonToken = _jwtHandler.ReadJsonWebToken(Guard.AgainstEmpty(token));
         var options = GetOptions(jsonToken);
 
         if (options == null)
@@ -49,7 +49,7 @@ public class JwtService : IJwtService
 
     public async Task<TokenValidationResult> ValidateTokenAsync(string token)
     {
-        var jwt = _jwtHandler.ReadJsonWebToken(Guard.AgainstNullOrEmptyString(token));
+        var jwt = _jwtHandler.ReadJsonWebToken(Guard.AgainstEmpty(token));
         var options = GetOptions(jwt);
 
         if (options == null)

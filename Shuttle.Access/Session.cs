@@ -11,7 +11,7 @@ public class Session
 
     public Session(byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
     {
-        Guard.AgainstNullOrEmptyString(identityName);
+        Guard.AgainstEmpty(identityName);
 
         Token = Guard.AgainstNull(token);
         IdentityId = identityId;
@@ -34,7 +34,7 @@ public class Session
 
     public Session AddPermission(string permission)
     {
-        Guard.AgainstNullOrEmptyString(permission);
+        Guard.AgainstEmpty(permission);
 
         if (!HasPermission(permission))
         {

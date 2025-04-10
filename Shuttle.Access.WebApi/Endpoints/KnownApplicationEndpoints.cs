@@ -15,7 +15,7 @@ public static class KnownApplicationEndpoints
         app.MapGet("/v{version:apiVersion}/applications/{applicationName}", (IOptions<AccessOptions> accessOptions, string applicationName) =>
             {
                 Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
-                Guard.AgainstNullOrEmptyString(applicationName);
+                Guard.AgainstEmpty(applicationName);
 
                 var knownApplicationOptions = accessOptions.Value.KnownApplications.FirstOrDefault(item => item.Name.Equals(applicationName, StringComparison.InvariantCultureIgnoreCase));
 

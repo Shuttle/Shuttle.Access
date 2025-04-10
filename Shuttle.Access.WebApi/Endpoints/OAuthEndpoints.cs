@@ -114,21 +114,26 @@ public static class OAuthEndpoints
 
                 var grant = await oauthGrantRepository.GetAsync(requestId);
 
-                logger.LogDebug($"[oauth/e-mail request] : grant id = '{requestId}'");
+                logger.LogDebug($"[oauth/identity request] : grant id = '{requestId}'");
 
                 var data = await oauthService.GetDataAsync(grant, code);
                 var oauthProviderOptions = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value).GetProviderOptions(grant.ProviderName);
 
-                var email = data.GetProperty(oauthProviderOptions.Data.EMailPropertyName).ToString();
-
-                if (string.IsNullOrWhiteSpace(email))
+                if (string.IsNullOrWhiteSpace(oauthProviderOptions.Data.IdentityPropertyName))
                 {
-                    return Results.BadRequest($"No e-mail address property '{oauthProviderOptions.Data.EMailPropertyName}' was returned from the data endpoint provider.");
+                    return Results.Problem($"The 'Data.IdentityPropertyName' is empty for the '{grant.ProviderName}' provider options.");
                 }
 
-                logger.LogDebug($"[oauth/e-mail] : grant id = '{requestId}' / e-mail = '{email}'");
+                var identity = data.GetProperty(oauthProviderOptions.Data.IdentityPropertyName).ToString();
 
-                var registerSession = new RegisterSession(email).UseDirect();
+                if (string.IsNullOrWhiteSpace(identity))
+                {
+                    return Results.BadRequest($"No identity property '{oauthProviderOptions.Data.IdentityPropertyName}' was returned from the data endpoint provider.");
+                }
+
+                logger.LogDebug($"[oauth/identity] : grant id = '{requestId}' / identity = '{identity}'");
+
+                var registerSession = new RegisterSession(identity).UseDirect();
 
                 if (grant.HasData("ApplicationName"))
                 {
@@ -156,7 +161,7 @@ public static class OAuthEndpoints
                 {
                     var requestIdentityRegistration = new RequestIdentityRegistration(new()
                         {
-                            Name = email,
+                            Name = identity,
                             Activated = true
                         })
                         .Allowed(grant.ProviderName);
@@ -168,7 +173,7 @@ public static class OAuthEndpoints
                 {
                     Result = registerSession.Result.ToString(),
                     RegistrationRequested = requestRegistration,
-                    IdentityName = email
+                    IdentityName = identity
                 };
 
                 if (registerSession.HasSession)
