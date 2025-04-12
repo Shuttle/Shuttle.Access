@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.7.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.7.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
-    <PackageReference Include="Shuttle.Access.Messages" Version="7.2.1" />
+    <PackageReference Include="Shuttle.Access.Messages" Version="7.2.2" />
     <PackageReference Include="Shuttle.Core.Mediator" Version="20.0.0" />
     <PackageReference Include="Shuttle.Esb.AzureStorageQueues" Version="20.0.0" />
     <PackageReference Include="Shuttle.Esb.Sql.Subscription" Version="20.0.0" />

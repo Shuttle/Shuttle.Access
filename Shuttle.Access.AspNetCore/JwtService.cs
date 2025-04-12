@@ -102,16 +102,8 @@ public class JwtService : IJwtService
             : options.SigningKeyCacheDuration;
 
         var jwksContent = await response.Content.ReadAsStringAsync();
-        var jwks = JsonDocument.Parse(jwksContent);
-        var keys = new List<SecurityKey>();
 
-        foreach (var key in jwks.RootElement.GetProperty("keys").EnumerateArray())
-        {
-            var e = Base64UrlEncoder.DecodeBytes(key.GetProperty("e").GetString());
-            var n = Base64UrlEncoder.DecodeBytes(key.GetProperty("n").GetString());
-            var rsa = new RSAParameters { Exponent = e, Modulus = n };
-            keys.Add(new RsaSecurityKey(rsa));
-        }
+        var keys = new JsonWebKeySet(jwksContent).GetSigningKeys();
 
         Cache.Set(options.JwksUri, keys, cacheDuration);
 

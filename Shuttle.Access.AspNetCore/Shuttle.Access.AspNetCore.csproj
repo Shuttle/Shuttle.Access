@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.7.0" />
-    <PackageReference Include="Shuttle.Access" Version="7.2.1" />
+    <PackageReference Include="Shuttle.Access" Version="7.2.2" />
     <PackageReference Include="Shuttle.Core.Contract" Version="20.0.1" />
   </ItemGroup>
 

@@ -5,7 +5,7 @@ USER root
 
 RUN mkdir /tmp/db && chown -R mssql /tmp/db
 
-COPY ./deployment/efbundle-linux /tmp/db/efbundle-linux
+COPY ./deployment/efbundle-linux-x64 /tmp/db/efbundle-linux-x64
 COPY ./data-appsettings.json tmp/db/appsettings.json
 
 # Configure external build arguments to allow configurability.
@@ -19,7 +19,7 @@ ENV SA_PASSWORD=$PASSWORD
 # Launch SQL Server, confirm startup is complete, deploy the DACPAC, then terminate SQL Server.
 # See https://stackoverflow.com/a/51589787/488695
 RUN ( /opt/mssql/bin/sqlservr & ) | grep -q "Service Broker manager has started" \
-    && /tmp/db/efbundle-linux --connection "Data Source=.;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true" --verbose \
+    && /tmp/db/efbundle-linux-x64 --connection "Data Source=.;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true" --verbose \
     && rm -r /tmp/db \
     && pkill sqlservr 
 
