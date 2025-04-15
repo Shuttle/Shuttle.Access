@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Server.v1.MessageHandlers;
 using Shuttle.Core.Contract;
@@ -11,13 +12,15 @@ namespace Shuttle.Access.Server;
 
 public class KeepAliveObserver : IPipelineObserver<OnAfterGetMessage>
 {
+    private readonly ILogger<KeepAliveObserver> _logger;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly IServiceBus _serviceBus;
     private bool _keepAliveSent;
     private readonly ServerOptions _serverOptions;
 
-    public KeepAliveObserver(IOptions<ServerOptions> serverOptions, IServiceBus serviceBus)
+    public KeepAliveObserver(ILogger<KeepAliveObserver> logger, IOptions<ServerOptions> serverOptions, IServiceBus serviceBus)
     {
+        _logger = Guard.AgainstNull(logger);
         _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
         _serviceBus = Guard.AgainstNull(serviceBus);
     }
@@ -33,9 +36,16 @@ public class KeepAliveObserver : IPipelineObserver<OnAfterGetMessage>
                 return;
             }
 
-            await _serviceBus.SendAsync(new MonitorKeepAlive(), builder => builder.Local().Defer(DateTime.UtcNow.Add(_serverOptions.MonitorKeepAliveInterval)));
+            var ignoreTillDate = DateTime.UtcNow.Add(_serverOptions.MonitorKeepAliveInterval);
+
+            await _serviceBus.SendAsync(new MonitorKeepAlive(), builder =>
+            {
+                builder.Local().Defer(ignoreTillDate);
+            });
 
             _keepAliveSent = true;
+
+            _logger.LogDebug($"[keep-alive] : ignore till date = '{ignoreTillDate:O}'");
         }
         finally
         {
