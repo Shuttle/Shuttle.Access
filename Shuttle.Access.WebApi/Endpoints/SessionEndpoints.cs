@@ -60,7 +60,7 @@ public static class SessionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Sessions.View);
 
-        app.MapPost("/v{version:apiVersion}/sessions", async (HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] Messages.v1.RegisterSession message) =>
+        app.MapPost("/v{version:apiVersion}/sessions", async (ILogger<RegisterSession> logger, HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] Messages.v1.RegisterSession message) =>
             {
                 var options = Guard.AgainstNull(accessOptions.Value);
 
@@ -71,7 +71,7 @@ public static class SessionEndpoints
 
                 if (string.IsNullOrWhiteSpace(message.IdentityName))
                 {
-                    return Results.BadRequest();
+                    return Results.BadRequest(Resources.SessionIdentityNameRequired);
                 }
                 
                 var registerSession = new RegisterSession(message.IdentityName);
@@ -92,9 +92,16 @@ public static class SessionEndpoints
                     {
                         var identityId = httpContext.GetIdentityId();
 
-                        if (!identityId.HasValue || !await sessionCache.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))
+                        if (!identityId.HasValue)
                         {
-                            return Results.BadRequest();
+                            return Results.BadRequest(Resources.HttpContextIdentityNotFound);
+                        }
+
+                        if (!await sessionCache.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))
+                        {
+                            logger.LogDebug($"[UNAUTHORIZED] : identity id = '{identityId.Value}' / permission = '{AccessPermissions.Sessions.Register}'");
+
+                            return Results.Unauthorized();
                         }
                     }
 

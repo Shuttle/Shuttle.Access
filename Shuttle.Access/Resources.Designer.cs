@@ -115,6 +115,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not determine the identity from the HttpContext..
+        /// </summary>
+        public static string HttpContextIdentityNotFound {
+            get {
+                return ResourceManager.GetString("HttpContextIdentityNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Identity with name &apos;{0}&apos; is inactive..
         /// </summary>
         public static string IdentityInactiveException {
@@ -219,6 +228,15 @@ namespace Shuttle.Access {
         public static string RoleNotFoundException {
             get {
                 return ResourceManager.GetString("RoleNotFoundException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to `IdentityName` may not be empty..
+        /// </summary>
+        public static string SessionIdentityNameRequired {
+            get {
+                return ResourceManager.GetString("SessionIdentityNameRequired", resourceCulture);
             }
         }
         

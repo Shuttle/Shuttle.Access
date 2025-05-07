@@ -138,6 +138,9 @@
     <value>Permission with Id '{0}' already exists on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
   </data>
+  <data name="HttpContextIdentityNotFound" xml:space="preserve">
+    <value>Could not determine the identity from the HttpContext.</value>
+  </data>
   <data name="IdentityInactiveException" xml:space="preserve">
     <value>Identity with name '{0}' is inactive.</value>
     <comment>0 = identity name</comment>
@@ -177,6 +180,9 @@
   <data name="RoleNotFoundException" xml:space="preserve">
     <value>Role '{0}' does not exist on user '{1}'.</value>
     <comment>0 = role name, 1 = user name</comment>
+  </data>
+  <data name="SessionIdentityNameRequired" xml:space="preserve">
+    <value>`IdentityName` may not be empty.</value>
   </data>
   <data name="SessionNotFound" xml:space="preserve">
     <value>Could not find a valid session.</value>
