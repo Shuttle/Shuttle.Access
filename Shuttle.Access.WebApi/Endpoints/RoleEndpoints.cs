@@ -174,6 +174,34 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
+        app.MapPost("/v{version:apiVersion}/roles/bulk", async ([FromServices] IServiceBus serviceBus, List<RegisterRole> messages) =>
+            {
+                if (!messages.Any())
+                {
+                    return Results.BadRequest();
+                }
+
+                foreach (var message in messages)
+                {
+                    foreach (var permission in message.Permissions.Where(item => !string.IsNullOrWhiteSpace(item)))
+                    {
+                        await serviceBus.SendAsync(new RegisterPermission
+                        {
+                            Name = permission,
+                            Status = 1
+                        });
+                    }
+
+                    await serviceBus.SendAsync(message);
+                }
+
+                return Results.Accepted();
+            })
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Roles.Register);
+
         return app;
     }
 }

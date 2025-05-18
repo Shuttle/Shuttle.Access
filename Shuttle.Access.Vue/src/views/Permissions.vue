@@ -3,9 +3,7 @@
     <v-card-title class="sv-card-title">
       <sv-title :title="$t('permissions')" />
       <div class="sv-strip">
-        <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
-        <v-btn v-if="sessionStore.hasPermission(Permissions.Permissions.Manage)" :icon="mdiPlus" size="small"
-          @click="add"></v-btn>
+        <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
           variant="solo-filled" flat hide-details single-line></v-text-field>
       </div>
@@ -13,7 +11,13 @@
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy">
-      <template v-slot:item.rename="{ item }">
+      <template v-slot:header.action="">
+        <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
+          <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
+          <v-btn :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
+        </div>
+      </template>
+      <template v-slot:item.action="{ item }">
         <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" />
       </template>
       <template v-slot:item.status="{ item }">
@@ -37,7 +41,7 @@
 import api from "@/api";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil } from '@mdi/js';
+import { mdiCodeJson, mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
@@ -49,7 +53,6 @@ import { useDrawerStore } from "@/stores/drawer";
 const sessionStore = useSessionStore();
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
-const route = useRoute();
 const drawerStore = useDrawerStore()
 
 const busy: Ref<boolean> = ref(false);
@@ -63,9 +66,9 @@ const statuses = usePermissionStatuses();
 
 const headers = useSecureTableHeaders([
   {
-    value: "rename",
+    value: "action",
     headerProps: {
-      class: "xl:w-1"
+      class: "w-1"
     },
     permission: Permissions.Permissions.Manage,
     filterable: false
@@ -157,6 +160,10 @@ const setStatus = async (permission: PermissionItem) => {
 
 const add = () => {
   router.push({ name: "permission" })
+}
+
+const json = () => {
+  router.push({ name: "permission-json" })
 }
 
 const rename = (item: PermissionItem) => {

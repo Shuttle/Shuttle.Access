@@ -2,15 +2,20 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore.Authentication;
 
 public class RoutingAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
+    private readonly ILogger _logger;
+    private readonly AccessOptions _accessOptions;
     public const string AuthenticationScheme = "Routing";
 
-    public RoutingAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
+    public RoutingAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
     {
+        _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+        _logger = logger.CreateLogger(GetType());
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()

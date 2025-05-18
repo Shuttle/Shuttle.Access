@@ -84,10 +84,7 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
         {
             _logger.LogDebug("[role/registration] : name = 'Administrator'");
 
-            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(new()
-            {
-                Name = "Administrator"
-            });
+            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(new("Administrator"));
 
             await _mediator.SendAsync(registerRoleMessage);
 

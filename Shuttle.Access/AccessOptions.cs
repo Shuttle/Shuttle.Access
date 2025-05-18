@@ -14,7 +14,7 @@ public class AccessOptions
     public bool AllowPasswordAuthentication { get; set; } = true;
     public TimeSpan SessionDuration { get; set; } = TimeSpan.FromHours(8);
     public TimeSpan SessionRenewalTolerance { get; set; } = TimeSpan.FromMinutes(15);
-    public List<KnownApplicationOptions> KnownApplications { get; set; } = new();
+    public List<KnownApplicationOptions> KnownApplications { get; set; } = [];
     public TimeSpan SessionTokenExchangeValidityTimeSpan { get; set; } = TimeSpan.FromMinutes(1);
     public string AdministratorPermissionName { get; set; } = "*";
     public ConfigurationOptions Configuration { get; set; } = new();

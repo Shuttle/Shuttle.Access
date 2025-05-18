@@ -3,9 +3,7 @@
     <v-card-title class="sv-card-title">
       <sv-title :title="$t('sessions')" />
       <div class="sv-strip">
-        <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
-        <v-btn v-if="sessionStore.hasPermission(Permissions.Sessions.Manage)" :icon="mdiAccountMultipleMinusOutline"
-          size="small" @click="confirmRemoveAll"></v-btn>
+        <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
           variant="solo-filled" flat hide-details single-line></v-text-field>
       </div>
@@ -13,7 +11,11 @@
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="identityName" expand-on-click>
-      <template v-slot:item.remove="{ item }">
+      <template v-slot:header.action="">
+        <v-btn v-if="sessionStore.hasPermission(Permissions.Sessions.Manage)" :icon="mdiDeleteSweepOutline"
+          size="x-small" @click="confirmRemoveAll"></v-btn>
+      </template>
+      <template v-slot:item.action="{ item }">
         <v-btn :icon="mdiDeleteOutline" size="x-small"
           @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
       </template>
@@ -36,7 +38,7 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiAccountMultipleMinusOutline, mdiDeleteOutline, mdiMagnify, mdiRefresh } from '@mdi/js';
+import { mdiDeleteOutline, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from '@mdi/js';
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
@@ -55,7 +57,7 @@ const expanded: Ref<string[]> = ref([])
 
 const headers = useSecureTableHeaders([
   {
-    value: "remove",
+    value: "action",
     headerProps: {
       class: "w-1",
     },

@@ -142,6 +142,7 @@ INNER JOIN
     RolePermission rp ON (rp.PermissionId = p.Id)
 ")}
 {Where(specification)}
+{(columns ? "ORDER BY p.[Name]" : string.Empty)}
 ")
             .AddParameter(Columns.NameMatch, specification.NameMatch);
     }

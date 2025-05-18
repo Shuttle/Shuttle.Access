@@ -26,6 +26,7 @@
   "last-administrator": "You cannot remove the administrator role as this identity is the last administrator.",
   "messages": {
     "invalid-credentials": "Invalid credentials.",
+    "invalid-json": "Invalid JSON.",
     "invalid-session": "Invalid session.",
     "missing-credentials": "Incomplete credentials specified.",
     "no-items": "There are no items to display.",
@@ -47,6 +48,7 @@
   "password": "Password",
   "password-mismatch": "Your new password must must the new confirmation password.",
   "permission": "Permission",
+  "permission-json": "JSON Permissions",
   "permission-required": "You do not have permission to access the requested route.",
   "permissions": "Permissions",
   "permissions-button": "permissions",
@@ -57,6 +59,7 @@
   "removed": "Removed",
   "rename": "Rename",
   "role": "Role",
+  "role-json": "JSON Roles",
   "roles": "Roles",
   "role-permissions": "Permissions",
   "role-name": "Role Name",

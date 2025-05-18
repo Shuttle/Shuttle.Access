@@ -3,9 +3,7 @@
     <v-card-title class="sv-card-title">
       <sv-title :title="$t('roles')" />
       <div class="sv-strip">
-        <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
-        <v-btn v-if="sessionStore.hasPermission(Permissions.Roles.Manage)" :icon="mdiPlus" size="small"
-          @click="add"></v-btn>
+        <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
           variant="solo-filled" flat hide-details single-line></v-text-field>
       </div>
@@ -13,6 +11,12 @@
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
+      <template v-slot:header.action="">
+        <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
+          <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
+          <v-btn :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
+        </div>
+      </template>
       <template v-slot:item.action="{ item }">
         <div class="sv-strip">
           <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="permissions(item)" />
@@ -41,7 +45,7 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline } from '@mdi/js';
+import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline, mdiCodeJson } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
@@ -125,6 +129,10 @@ const remove = async (item: Role) => {
 
 const add = () => {
   router.push({ name: "role" })
+}
+
+const json = () => {
+  router.push({ name: "role-json" })
 }
 
 const permissions = (item: Role) => {

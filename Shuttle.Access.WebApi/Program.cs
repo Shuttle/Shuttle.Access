@@ -1,12 +1,10 @@
 using System.Data.Common;
 using System.Reflection;
 using Asp.Versioning;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.Data.SqlClient;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.AspNetCore.Authentication;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Sql;
 using Shuttle.Core.Data;

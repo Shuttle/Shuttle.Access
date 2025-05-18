@@ -291,10 +291,7 @@ AND
     OR
     i.Id = @IdentityId
 )
-{(columns ? @"
-ORDER BY
-    i.[Name]
-" : string.Empty)}
+{(columns ? @"ORDER BY i.[Name]" : string.Empty)}
 ")
             .AddParameter(Columns.RoleName, specification.RoleName)
             .AddParameter(Columns.Name, specification.Name)

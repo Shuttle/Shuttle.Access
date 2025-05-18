@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
@@ -34,12 +35,30 @@ public class RoleHandler :
             return;
         }
 
-        var requestResponse = new RequestResponseMessage<RegisterRole, RoleRegistered>(message);
+        var registerRole = new Application.RegisterRole(message.Name);
+
+        registerRole.AddPermissions(message.Permissions);
+
+        var requestResponse = new RequestResponseMessage<Application.RegisterRole, RoleRegistered>(registerRole);
 
         using (new DatabaseContextScope())
         await using (_databaseContextFactory.Create())
         {
             await _mediator.SendAsync(requestResponse);
+        }
+
+        if (registerRole.HasMissingPermissions)
+        {
+            if (message.WaitCount < 5)
+            {
+                message.WaitCount++;
+
+                await context.SendAsync(message, builder => builder.Defer(DateTime.Now.AddSeconds(5)).Local());
+
+                return;
+            }
+
+            throw new UnrecoverableHandlerException("Maximum permission wait count reached.");
         }
 
         if (requestResponse.Response != null)

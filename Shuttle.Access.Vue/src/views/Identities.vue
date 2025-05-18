@@ -3,9 +3,7 @@
     <v-card-title class="sv-card-title">
       <sv-title :title="$t('identities')" />
       <div class="sv-strip">
-        <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
-        <v-btn v-if="sessionStore.hasPermission(Permissions.Identities.Manage)" :icon="mdiPlus" size="small"
-          @click="add"></v-btn>
+        <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
           variant="solo-filled" flat hide-details single-line></v-text-field>
       </div>
@@ -13,6 +11,10 @@
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
+      <template v-slot:header.action="">
+        <v-btn v-if="sessionStore.hasPermission(Permissions.Identities.Manage)" :icon="mdiPlus" size="x-small"
+          @click="add"></v-btn>
+      </template>
       <template v-slot:item.action="{ item }">
         <div class="sv-strip">
           <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click.stop="roles(item)" />

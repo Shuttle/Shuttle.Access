@@ -73,6 +73,34 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
+        app.MapPost("/v{version:apiVersion}/permissions/bulk", async (IServiceBus serviceBus, List<string> permissions) =>
+            {
+                if (!permissions.Any())
+                {
+                    return Results.BadRequest();
+                }
+
+                foreach (var permission in permissions)
+                {
+                    if (string.IsNullOrWhiteSpace(permission))
+                    {
+                        continue;
+                    }
+
+                    await serviceBus.SendAsync(new RegisterPermission
+                    {
+                        Name = permission,
+                        Status = 1
+                    });
+                }
+
+                return Results.Accepted();
+            })
+            .WithTags("Permissions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Permissions.Register);
+
         app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/name", async (Guid id, SetPermissionName message, IServiceBus serviceBus) =>
             {
                 try
