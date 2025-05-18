@@ -13,18 +13,25 @@
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
-      <template v-slot:item.roles="{ item }">
-        <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click.stop="roles(item)" />
+      <template v-slot:item.action="{ item }">
+        <div class="sv-strip">
+          <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click.stop="roles(item)" />
+          <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="password(item)" />
+          <v-btn :icon="mdiDeleteOutline" size="x-small"
+            @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+        </div>
       </template>
-      <template v-slot:item.rename="{ item }">
-        <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" />
+      <template v-slot:item.name="{ item }">
+        <div class="flex">
+          <div class="flex-grow">{{ item.name }}</div>
+          <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" class="flex-none" />
+        </div>
       </template>
-      <template v-slot:item.password="{ item }">
-        <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="password(item)" />
-      </template>
-      <template v-slot:item.remove="{ item }">
-        <v-btn :icon="mdiDeleteOutline" size="x-small"
-          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+      <template v-slot:item.description="{ item }">
+        <div class="flex">
+          <div class="flex-grow">{{ item.description }}</div>
+          <v-btn :icon="mdiPencil" size="x-small" @click.stop="description(item)" class="flex-none" />
+        </div>
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
@@ -68,28 +75,7 @@ const expanded: Ref<string[]> = ref([])
 
 const headers = useSecureTableHeaders([
   {
-    value: "roles",
-    headerProps: {
-      class: "w-1"
-    },
-    permission: Permissions.Identities.Manage
-  },
-  {
-    value: "password",
-    headerProps: {
-      class: "w-1"
-    },
-    permission: Permissions.Identities.Manage
-  },
-  {
-    value: "rename",
-    headerProps: {
-      class: "w-1"
-    },
-    permission: Permissions.Identities.Manage
-  },
-  {
-    value: "remove",
+    value: "action",
     headerProps: {
       class: "w-1"
     },
@@ -98,6 +84,10 @@ const headers = useSecureTableHeaders([
   {
     title: t("name"),
     value: "name",
+  },
+  {
+    title: t("description"),
+    value: "description",
   },
   {
     title: t("generated-password"),
@@ -181,6 +171,10 @@ const password = (item: Identity) => {
 
 const rename = (item: Identity) => {
   router.push({ name: "identity-rename", params: { id: item.id } });
+}
+
+const description = (item: Identity) => {
+  router.push({ name: "identity-description", params: { id: item.id } });
 }
 
 onMounted(() => {

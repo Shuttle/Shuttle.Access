@@ -13,7 +13,8 @@ public class IdentityHandler :
     IMessageHandler<RemoveIdentity>,
     IMessageHandler<SetPassword>,
     IMessageHandler<ActivateIdentity>,
-    IMessageHandler<SetIdentityName>
+    IMessageHandler<SetIdentityName>,
+    IMessageHandler<SetIdentityDescription>
 {
     private readonly IDatabaseContextFactory _databaseContextFactory;
     private readonly IMediator _mediator;
@@ -96,6 +97,29 @@ public class IdentityHandler :
         }
 
         var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
+        {
+            await _mediator.SendAsync(requestResponse);
+        }
+
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response);
+        }
+    }
+
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityDescription> context)
+    {
+        var message = context.Message;
+
+        if (string.IsNullOrEmpty(message.Description))
+        {
+            return;
+        }
+
+        var requestResponse = new RequestResponseMessage<SetIdentityDescription, IdentityDescriptionSet>(message);
 
         using (new DatabaseContextScope())
         await using (_databaseContextFactory.Create())

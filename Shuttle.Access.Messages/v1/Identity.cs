@@ -11,6 +11,7 @@ public class Identity
 
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
     public string RegisteredBy { get; set; } = string.Empty;
     public List<Role> Roles { get; set; } = [];
 

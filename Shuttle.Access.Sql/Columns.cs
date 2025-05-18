@@ -8,6 +8,7 @@ public class Columns
 {
     public static readonly Column<DateTimeOffset> DateActivated = new("DateActivated", DbType.DateTimeOffset);
     public static readonly Column<DateTimeOffset> DateRegistered = new("DateRegistered", DbType.DateTimeOffset);
+    public static readonly Column<string> Description = new("Description", DbType.String);
     public static readonly Column<Guid> ExchangeToken = new("ExchangeToken", DbType.Guid);
     public static readonly Column<DateTimeOffset> ExpiryDate = new("ExpiryDate", DbType.DateTimeOffset);
     public static readonly Column<string> GeneratedPassword = new("GeneratedPassword", DbType.String);

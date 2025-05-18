@@ -9,6 +9,8 @@
       @click:append="togglePasswordIcon" :type="getPasswordType()" :error-messages="validation.message('password')"
       autocomplete="new">
     </v-text-field>
+    <v-text-field v-model="state.description" :label="$t('description')" class="mb-2">
+    </v-text-field>
     <div class="flex justify-end mt-4">
       <v-btn type="submit" :disabled="busy">{{ $t("save") }}</v-btn>
     </div>
@@ -31,6 +33,7 @@ const busy: Ref<boolean> = ref(false);
 
 const state = reactive({
   identityName: "",
+  description: "",
   password: ""
 });
 
@@ -70,6 +73,7 @@ const submit = async () => {
   try {
     await api.post<RegisterIdentity>("v1/identities", {
       name: state.identityName,
+      description: state.description,
       password: state.password,
       system: "system://access",
       activated: true

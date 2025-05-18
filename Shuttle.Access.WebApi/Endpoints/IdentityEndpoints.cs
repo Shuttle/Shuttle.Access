@@ -40,6 +40,27 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
+        app.MapPatch("/v{version:apiVersion}/identities/{id}/description", async (IServiceBus serviceBus, Guid id, [FromBody] SetIdentityDescription message) =>
+            {
+                try
+                {
+                    message.Id = id;
+                    message.ApplyInvariants();
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+
+                await serviceBus.SendAsync(message);
+
+                return Results.Accepted();
+            })
+            .WithTags("Identities")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Roles.Register);
+
         app.MapPost("/v{version:apiVersion}/identities/search", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, [FromBody] Messages.v1.Identity.Specification specification) =>
             {
                 var search = new DataAccess.Identity.Specification();

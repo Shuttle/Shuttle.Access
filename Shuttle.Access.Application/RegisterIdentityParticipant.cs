@@ -59,7 +59,7 @@ public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<R
             stream = await _eventStore.GetAsync(id.Value);
         }
 
-        var registered = identity.Register(message.Name, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
+        var registered = identity.Register(message.Name, message.Description, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
         stream.Add(registered);
 

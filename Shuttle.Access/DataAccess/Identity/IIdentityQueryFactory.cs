@@ -20,4 +20,5 @@ public interface IIdentityQueryFactory
     IQuery RoleRemoved(Guid id, RoleRemoved domainEvent);
     IQuery Roles(Identity.Specification specification);
     IQuery Search(Identity.Specification specification);
+    IQuery DescriptionSet(Guid id, DescriptionSet domainEvent);
 }

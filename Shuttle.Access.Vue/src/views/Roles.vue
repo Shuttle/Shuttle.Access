@@ -13,15 +13,13 @@
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
-      <template v-slot:item.permissions="{ item }">
-        <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="permissions(item)" />
-      </template>
-      <template v-slot:item.rename="{ item }">
-        <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" />
-      </template>
-      <template v-slot:item.remove="{ item }">
-        <v-btn :icon="mdiDeleteOutline" size="x-small"
-          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+      <template v-slot:item.action="{ item }">
+        <div class="sv-strip">
+          <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="permissions(item)" />
+          <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" />
+          <v-btn :icon="mdiDeleteOutline" size="x-small"
+            @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+        </div>
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
@@ -67,23 +65,7 @@ const permissionStatuses = usePermissionStatuses();
 
 const headers = useSecureTableHeaders([
   {
-    value: "permissions",
-    headerProps: {
-      class: "w-1",
-    },
-    permission: Permissions.Roles.Manage,
-    filterable: false
-  },
-  {
-    value: "rename",
-    headerProps: {
-      class: "w-1",
-    },
-    permission: Permissions.Roles.Manage,
-    filterable: false
-  },
-  {
-    value: "remove",
+    value: "action",
     headerProps: {
       class: "w-1",
     },

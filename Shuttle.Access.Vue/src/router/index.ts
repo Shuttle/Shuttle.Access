@@ -43,6 +43,15 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/Password.vue"),
       },
       {
+        path: "identity/:id/description",
+        name: "identity-description",
+        component: () => import("../views/IdentityDescription.vue"),
+        props: true,
+        meta: {
+          permission: Permissions.Identities.Manage,
+        },
+      },
+      {
         path: "identity/:id/rename",
         name: "identity-rename",
         component: () => import("../views/IdentityRename.vue"),

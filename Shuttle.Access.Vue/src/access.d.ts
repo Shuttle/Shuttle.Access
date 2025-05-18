@@ -58,7 +58,6 @@ export type DrawerOptions = {
 
 export type Env = {
   VITE_API_URL: string;
-  VITE_API_ALLOW_PASSWORD_AUTHENTICATION: string;
 };
 
 export type FormDrawer = {
@@ -81,6 +80,7 @@ export type IdentifierAvailability = {
 export type Identity = {
   dateActivated?: Date | null;
   dateRegistered: Date;
+  description?: string;
   generatedPassword: string;
   id: string;
   name: string;
@@ -125,6 +125,10 @@ export type RegisterIdentity = {
 export type RegisterPermission = {
   name: string;
   status: number;
+};
+
+export type ServerConfiguration = {
+  allowPasswordAuthentication: boolean;
 };
 
 export type Session = {

@@ -13,4 +13,5 @@ public interface IIdentityProjectionQuery
     Task RemovedAsync(PrimitiveEvent primitiveEvent, CancellationToken cancellationToken = default);
     Task RoleAddedAsync(PrimitiveEvent primitiveEvent, RoleAdded domainEvent, CancellationToken cancellationToken = default);
     Task RoleRemovedAsync(PrimitiveEvent primitiveEvent, RoleRemoved domainEvent, CancellationToken cancellationToken = default);
+    Task DescriptionSetAsync(PrimitiveEvent primitiveEvent, DescriptionSet domainEvent, CancellationToken cancellationToken = default);
 }

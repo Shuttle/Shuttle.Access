@@ -11,6 +11,7 @@ public class IdentityQueryFactory : IIdentityQueryFactory
     private const string SelectedColumns = @"
     i.[Id],
     i.[Name],
+    i.[Description],
     i.[DateRegistered],
     i.[RegisteredBy],
     i.[DateActivated],
@@ -24,6 +25,7 @@ INSERT INTO [dbo].[Identity]
 (
 	[Id],
 	[Name],
+	[Description],
 	[DateRegistered],
 	[RegisteredBy],
     [GeneratedPassword]
@@ -32,6 +34,7 @@ VALUES
 (
 	@Id,
 	@Name,
+	@Description,
 	@DateRegistered,
 	@RegisteredBy,
     @GeneratedPassword
@@ -39,6 +42,7 @@ VALUES
 ")
             .AddParameter(Columns.Id, id)
             .AddParameter(Columns.Name, domainEvent.Name)
+            .AddParameter(Columns.Description, domainEvent.Description)
             .AddParameter(Columns.DateRegistered, domainEvent.DateRegistered)
             .AddParameter(Columns.RegisteredBy, domainEvent.RegisteredBy)
             .AddParameter(Columns.GeneratedPassword, domainEvent.GeneratedPassword);
@@ -74,6 +78,20 @@ IF NOT EXISTS(SELECT NULL FROM [dbo].[IdentityRole] WHERE IdentityId = @Identity
     public IQuery Search(DataAccess.Identity.Specification specification)
     {
         return Specification(specification, true);
+    }
+
+    public IQuery DescriptionSet(Guid id, DescriptionSet domainEvent)
+    {
+        return new Query(@"
+UPDATE
+    [dbo].[Identity]
+SET
+    [Description] = @Description
+WHERE
+    Id = @Id
+")
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Description, domainEvent.Description);
     }
 
     public IQuery Get(Guid id)
@@ -238,12 +256,16 @@ WHERE
     ISNULL(@NameMatch, '') = ''
     OR
     i.Name LIKE '%' + @NameMatch + '%'
+    OR
+    i.Description LIKE '%' + @NameMatch + '%'
 )
 AND
 (
     ISNULL(@Name, '') = ''
     OR
     i.Name = @Name
+    OR
+    i.Description = @Name
 )
 AND
 (

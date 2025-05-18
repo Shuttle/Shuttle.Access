@@ -11,6 +11,7 @@
   "date-activated": "Date activated",
   "date-registered": "Date registered",
   "deactivated": "Deactivated",
+  "description": "Description",
   "exceptions": {
     "bad-request": "Bad request.",
     "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}",

@@ -86,6 +86,13 @@ public static class MessageExtensions
         Guard.AgainstEmpty(message.Name);
     }
 
+    public static void ApplyInvariants(this SetIdentityDescription message)
+    {
+        Guard.AgainstNull(message);
+        Guard.AgainstEmpty(message.Id);
+        Guard.AgainstEmpty(message.Description);
+    }
+
     public static void ApplyInvariants(this SetIdentityName message)
     {
         Guard.AgainstNull(message);

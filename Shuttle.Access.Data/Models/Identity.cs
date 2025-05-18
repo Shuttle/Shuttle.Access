@@ -11,7 +11,10 @@ public class Identity
 
     [Required]
     [StringLength(320)]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;    
+
+    [StringLength(500)]
+    public string Description { get; set; } = string.Empty;
 
     [Required]
     public DateTimeOffset DateRegistered { get; set; }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Contract;
 
@@ -8,13 +9,14 @@ namespace Shuttle.Access;
 
 public class Identity
 {
-    private readonly List<Guid> _roles = new();
+    private readonly List<Guid> _roles = [];
     private byte[]? _passwordHash;
     public bool Activated => DateActivated.HasValue;
     public DateTimeOffset? DateActivated { get; private set; }
     public bool HasPasswordResetToken => PasswordResetToken.HasValue;
 
     public string Name { get; private set; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
     public Guid? PasswordResetToken { get; private set; }
     public bool Removed { get; private set; }
 
@@ -60,6 +62,7 @@ public class Identity
         Guard.AgainstNull(registered);
 
         Name = registered.Name;
+        Description = registered.Description;
         _passwordHash = registered.PasswordHash;
 
         Removed = false;
@@ -93,6 +96,15 @@ public class Identity
         Name = nameSet.Name;
 
         return nameSet;
+    }
+
+    private DescriptionSet On(DescriptionSet descriptionSet)
+    {
+        Guard.AgainstNull(descriptionSet);
+
+        Description = descriptionSet.Description;
+
+        return descriptionSet;
     }
 
     private RoleAdded On(RoleAdded roleAdded)
@@ -129,11 +141,12 @@ public class Identity
         return _passwordHash != null && _passwordHash.SequenceEqual(hash);
     }
 
-    public Registered Register(string name, byte[] passwordHash, string registeredBy, string generatedPassword, bool activated)
+    public Registered Register(string name, string description, byte[] passwordHash, string registeredBy, string generatedPassword, bool activated)
     {
         return On(new Registered
         {
             Name = name,
+            Description = description,
             PasswordHash = passwordHash,
             RegisteredBy = registeredBy,
             GeneratedPassword = generatedPassword,
@@ -180,6 +193,19 @@ public class Identity
         return On(new NameSet
         {
             Name = name
+        });
+    }
+
+    public DescriptionSet SetDescription(string description)
+    {
+        if (description.Equals(Description))
+        {
+            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Description", Description));
+        }
+
+        return On(new DescriptionSet
+        {
+            Description = description
         });
     }
 

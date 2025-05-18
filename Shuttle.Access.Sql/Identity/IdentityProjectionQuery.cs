@@ -45,6 +45,11 @@ public class IdentityProjectionQuery : IIdentityProjectionQuery
         await _databaseContextService.Active.ExecuteAsync(_queryFactory.Activated(primitiveEvent.Id, domainEvent), cancellationToken);
     }
 
+    public async Task DescriptionSetAsync(PrimitiveEvent primitiveEvent, DescriptionSet domainEvent, CancellationToken cancellationToken = default)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.DescriptionSet(primitiveEvent.Id, domainEvent), cancellationToken);
+    }
+
     public async Task NameSetAsync(PrimitiveEvent primitiveEvent, NameSet domainEvent, CancellationToken cancellationToken = default)
     {
         await _databaseContextService.Active.ExecuteAsync(_queryFactory.NameSet(primitiveEvent.Id, domainEvent), cancellationToken);

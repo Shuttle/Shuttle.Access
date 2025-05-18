@@ -94,7 +94,14 @@ public static class SessionEndpoints
 
                         if (!identityId.HasValue)
                         {
-                            return Results.BadRequest(Resources.HttpContextIdentityNotFound);
+                            if (string.IsNullOrWhiteSpace(identityName))
+                            {
+                                return Results.BadRequest(Resources.HttpContextIdentityNotFound);
+                            }
+
+                            logger.LogDebug($"[BAD REQUEST] : requested identity = '{message.IdentityName}' / http context identity = '{identityName}'");
+
+                            return Results.BadRequest();
                         }
 
                         if (!await sessionCache.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))

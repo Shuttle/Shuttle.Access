@@ -13,7 +13,8 @@ public class IdentityHandler :
     IEventHandler<RoleRemoved>,
     IEventHandler<Removed>,
     IEventHandler<Activated>,
-    IEventHandler<NameSet>
+    IEventHandler<NameSet>,
+    IEventHandler<DescriptionSet>
 {
     private readonly ILogger<IdentityHandler> _logger;
     private readonly IIdentityProjectionQuery _query;
@@ -31,6 +32,15 @@ public class IdentityHandler :
         await _query.ActivatedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
         _logger.LogDebug($"[Activated] : id = '{context.PrimitiveEvent.Id}' / date activated = '{context.Event.DateActivated:O}'");
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<DescriptionSet> context)
+    {
+        Guard.AgainstNull(context);
+
+        await _query.DescriptionSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+
+        _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / description = '{context.Event.Description}'");
     }
 
     public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context)
