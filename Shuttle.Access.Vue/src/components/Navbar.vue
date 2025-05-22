@@ -5,7 +5,7 @@
     </div>
     <v-list :items="items"></v-list>
   </v-navigation-drawer>
-  <v-app-bar :elevation="2">
+  <v-app-bar class="shadow-sm">
     <template v-slot:prepend v-if="sessionStore.authenticated">
       <v-app-bar-nav-icon variant="text" @click.stop="showMainDrawer = !showMainDrawer"></v-app-bar-nav-icon>
     </template>
@@ -97,6 +97,8 @@ const signOut = () => {
   })
     .then(() => {
       sessionStore.signOut()
+      showMainDrawer.value = false;
+      showProfileDrawer.value = false;
 
       signIn();
     })

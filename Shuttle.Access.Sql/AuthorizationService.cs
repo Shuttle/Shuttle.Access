@@ -11,7 +11,6 @@ namespace Shuttle.Access.Sql;
 public class AuthorizationService : IAuthorizationService
 {
     private static readonly string AdministratorRoleName = "Administrator";
-    private static readonly List<string> AdministratorPermissions = ["*"];
     private readonly IIdentityQuery _identityQuery;
 
     private readonly IRoleQuery _roleQuery;
@@ -29,12 +28,18 @@ public class AuthorizationService : IAuthorizationService
 
         if (user == null)
         {
-            return Enumerable.Empty<string>();
+            return [];
         }
 
-        return user.Roles.Any(item =>
-            item.Name.Equals(AdministratorRoleName, StringComparison.InvariantCultureIgnoreCase))
-            ? AdministratorPermissions
-            : await _identityQuery.PermissionsAsync(userId, cancellationToken);
+        var result = new List<string>();
+
+        if (user.Roles.Any(item => item.Name.Equals(AdministratorRoleName, StringComparison.InvariantCultureIgnoreCase)))
+        {
+            result.Add("*");
+        }
+
+        result.AddRange(await _identityQuery.PermissionsAsync(userId, cancellationToken));
+
+        return result;
     }
 }

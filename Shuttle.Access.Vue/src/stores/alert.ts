@@ -46,5 +46,8 @@ export const useAlertStore = defineStore("alert", {
 
       return true;
     },
+    clear() {
+      this.alerts = [];
+    },
   },
 });

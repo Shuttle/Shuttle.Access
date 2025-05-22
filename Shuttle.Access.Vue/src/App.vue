@@ -1,9 +1,10 @@
 <template>
   <v-app>
     <v-layout>
-      <Navbar />
-      <v-main>
-        <div v-if="alertStore.alerts.length" class="my-4 lg:w-1/2 md:w-100 lg:mx-auto md:mx-2">
+      <div v-if="alertStore.alerts.length"
+        class="absolute top-0 left-0 right-0 bottom-0 z-5000 flex flex-col items-center bg-black/25 w-full"
+        @click="clearAlerts">
+        <div class="mt-6 mb-2 lg:w-1/2 md:w-100 lg:mx-auto md:mx-2">
           <v-alert :type="alert.type" v-bind:key="alert.key" v-for="alert in alertStore.alerts" :text="alert.message"
             class="mb-2">
             <template v-slot:close>
@@ -11,13 +12,11 @@
             </template>
           </v-alert>
         </div>
+      </div>
+      <Navbar />
+      <v-main>
         <div class="p-2">
           <RouterView />
-          <!-- <RouterView v-slot="{ Component, route }">
-            <transition name="route" mode="out-in">
-              <component :is="Component" :key="route.fullPath"></component>
-            </transition>
-          </RouterView> -->
         </div>
         <v-snackbar v-model="snackbarStore.visible" :timeout="snackbarStore.timeout">
           {{ snackbarStore.text }}
@@ -56,6 +55,10 @@ import { useSnackbarStore } from '@/stores/snackbar'
 const alertStore = useAlertStore();
 const confirmationStore = useConfirmationStore();
 const snackbarStore = useSnackbarStore()
+
+const clearAlerts = () => {
+  alertStore.clear()
+}
 
 const closeClicked = (name: string) => {
   alertStore.remove(name);

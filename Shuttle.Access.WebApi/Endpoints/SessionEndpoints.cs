@@ -190,8 +190,7 @@ public static class SessionEndpoints
             })
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequireSession();
+            .MapToApiVersion(apiVersion1);
 
         app.MapGet("/v{version:apiVersion}/sessions/self", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery) =>
             {
@@ -210,8 +209,7 @@ public static class SessionEndpoints
             })
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequireSession();
+            .MapToApiVersion(apiVersion1);
 
         app.MapDelete("/v{version:apiVersion}/sessions", async (IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
