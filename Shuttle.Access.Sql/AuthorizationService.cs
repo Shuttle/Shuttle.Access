@@ -13,11 +13,8 @@ public class AuthorizationService : IAuthorizationService
     private static readonly string AdministratorRoleName = "Administrator";
     private readonly IIdentityQuery _identityQuery;
 
-    private readonly IRoleQuery _roleQuery;
-
-    public AuthorizationService(IRoleQuery roleQuery, IIdentityQuery identityQuery)
+    public AuthorizationService(IIdentityQuery identityQuery)
     {
-        _roleQuery = Guard.AgainstNull(roleQuery);
         _identityQuery = Guard.AgainstNull(identityQuery);
     }
 

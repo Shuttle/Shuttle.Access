@@ -36,7 +36,7 @@ public class Session
     {
         Guard.AgainstEmpty(permission);
 
-        if (!HasPermission(permission))
+        if (!_permissions.Contains(permission))
         {
             _permissions.Add(permission);
         }
@@ -51,8 +51,7 @@ public class Session
 
     public bool HasPermission(string permission)
     {
-        return _permissions.Find(
-            candidate => candidate.Equals(permission, StringComparison.InvariantCultureIgnoreCase)) != null || _permissions.Contains("*");
+        return _permissions.Find(candidate => candidate.Equals(permission, StringComparison.InvariantCultureIgnoreCase)) != null || _permissions.Contains("*");
     }
 
     public void Renew(DateTimeOffset expiryDate, byte[] token)

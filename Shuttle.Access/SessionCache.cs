@@ -63,7 +63,7 @@ public abstract class SessionCache
             return false;
         }
 
-        return sessionEntry.Session.Permissions.Contains(permission) ||  (!string.IsNullOrWhiteSpace(administratorPermissionName) && sessionEntry.Session.Permissions.Contains("*"));
+        return sessionEntry.Session.Permissions.Contains(permission) || (!string.IsNullOrWhiteSpace(administratorPermissionName) && sessionEntry.Session.Permissions.Contains(administratorPermissionName));
     }
 
     private class SessionEntry
