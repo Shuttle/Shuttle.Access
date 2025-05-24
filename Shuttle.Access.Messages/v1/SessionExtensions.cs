@@ -1,11 +1,17 @@
-﻿using Shuttle.Core.Contract;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Messages.v1;
 
 public static class SessionExtensions
 {
-    public static bool HasPermission(this Session session, string permission)
+    public static bool HasPermission(this Session session, string requiredPermission)
     {
-        return Guard.AgainstNull(session).Permissions.Contains(Guard.AgainstEmpty(permission));
+        Guard.AgainstEmpty(requiredPermission);
+
+        return Guard.AgainstNull(session).Permissions
+            .Any(permission =>
+                Regex.IsMatch(requiredPermission, $"^{Regex.Escape(permission).Replace(@"\*", ".*")}$", RegexOptions.IgnoreCase));
     }
 }

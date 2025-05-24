@@ -16,15 +16,15 @@ public class AccessOptions
     public TimeSpan SessionRenewalTolerance { get; set; } = TimeSpan.FromMinutes(15);
     public List<KnownApplicationOptions> KnownApplications { get; set; } = [];
     public TimeSpan SessionTokenExchangeValidityTimeSpan { get; set; } = TimeSpan.FromMinutes(1);
-    public string AdministratorPermissionName { get; set; } = "*";
     public ConfigurationOptions Configuration { get; set; } = new();
 }
 
 public class ConfigurationOptions
 {
     public bool ShouldConfigure { get; set; } = true;
-    public string AdministratorIdentityName { get; set; } = "admin";
-    public string AdministratorPassword { get; set; } = "admin";
+    public string AdministratorIdentityName { get; set; } = "shuttle-admin";
+    public string AdministratorPassword { get; set; } = "shuttle-admin";
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 }
 
 public class KnownApplicationOptions

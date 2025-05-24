@@ -7,6 +7,9 @@
         <div class="mt-6 mb-2 lg:w-1/2 md:w-100 lg:mx-auto md:mx-2">
           <v-alert :type="alert.type" v-bind:key="alert.key" v-for="alert in alertStore.alerts" :text="alert.message"
             class="mb-2">
+            <template v-slot:text>
+              {{ alert.message }}
+            </template>
             <template v-slot:close>
               <v-icon :icon="`svg:${mdiCloseCircleOutline}`" @click="closeClicked(alert.name)" />
             </template>
@@ -55,6 +58,8 @@ import { useSnackbarStore } from '@/stores/snackbar'
 const alertStore = useAlertStore();
 const confirmationStore = useConfirmationStore();
 const snackbarStore = useSnackbarStore()
+
+alertStore.initialize();
 
 const clearAlerts = () => {
   alertStore.clear()

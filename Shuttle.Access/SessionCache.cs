@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access;
 
@@ -54,7 +55,7 @@ public abstract class SessionCache
         _sessionEntries.RemoveAll(item => item.Session.IdentityId.Equals(identityId));
     }
 
-    protected bool HasPermission(Guid identityId, string permission, string administratorPermissionName)
+    protected bool HasPermission(Guid identityId, string requiredPermission)
     {
         var sessionEntry = _sessionEntries.FirstOrDefault(item => item.Session.IdentityId.Equals(identityId));
 
@@ -63,7 +64,7 @@ public abstract class SessionCache
             return false;
         }
 
-        return sessionEntry.Session.Permissions.Contains(permission) || (!string.IsNullOrWhiteSpace(administratorPermissionName) && sessionEntry.Session.Permissions.Contains(administratorPermissionName));
+        return sessionEntry.Session.HasPermission(requiredPermission);
     }
 
     private class SessionEntry
@@ -76,6 +77,6 @@ public abstract class SessionCache
 
         public Messages.v1.Session Session { get; }
 
-        public Guid? Token { get; set; }
+        public Guid? Token { get; }
     }
 }

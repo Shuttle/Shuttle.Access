@@ -1,7 +1,8 @@
+using Shuttle.Core.Contract;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Shuttle.Core.Contract;
+using System.Text.RegularExpressions;
 
 namespace Shuttle.Access;
 
@@ -49,9 +50,13 @@ public class Session
         _permissions.Clear();
     }
 
-    public bool HasPermission(string permission)
+    public bool HasPermission(string requiredPermission)
     {
-        return _permissions.Find(candidate => candidate.Equals(permission, StringComparison.InvariantCultureIgnoreCase)) != null || _permissions.Contains("*");
+        Guard.AgainstEmpty(requiredPermission);
+
+        return _permissions
+            .Any(permission =>
+                Regex.IsMatch(requiredPermission, $"^{Regex.Escape(permission).Replace(@"\*", ".*")}$", RegexOptions.IgnoreCase));
     }
 
     public void Renew(DateTimeOffset expiryDate, byte[] token)

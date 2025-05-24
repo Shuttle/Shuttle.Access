@@ -10,7 +10,6 @@ namespace Shuttle.Access.DataAccess;
 
 public class DataStoreSessionCache : SessionCache, ISessionCache
 {
-    private readonly AccessOptions _accessOptions;
     private readonly string _connectionStringName;
     private readonly IDatabaseContextFactory _databaseContextFactory;
     private readonly IHashingService _hashingService;
@@ -19,9 +18,8 @@ public class DataStoreSessionCache : SessionCache, ISessionCache
 
     public DataStoreSessionCache(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository)
     {
-        _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
         _hashingService = Guard.AgainstNull(hashingService);
-        _connectionStringName = _accessOptions.ConnectionStringName;
+        _connectionStringName = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value).ConnectionStringName;
         _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
         _sessionRepository = Guard.AgainstNull(sessionRepository);
     }
@@ -44,7 +42,7 @@ public class DataStoreSessionCache : SessionCache, ISessionCache
     {
         var session = await FindAsync(identityId, cancellationToken);
 
-        return session != null && HasPermission(session.IdentityId, permission, _accessOptions.AdministratorPermissionName);
+        return session != null && HasPermission(session.IdentityId, permission);
     }
 
     public async Task FlushAsync(Guid identityId, CancellationToken cancellationToken = default)

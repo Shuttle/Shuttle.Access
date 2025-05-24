@@ -61,11 +61,29 @@ namespace Shuttle.Access.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find the &apos;Administrator&apos; role.  It appears as though the projection has not been built as the `RegisterRole` event should be in the event store..
+        ///   Looks up a localized string similar to The &apos;Access Administrator&apos; role does not have the required &apos;access://*&apos; permission..
+        /// </summary>
+        public static string AdministratorPermissionException {
+            get {
+                return ResourceManager.GetString("AdministratorPermissionException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find the &apos;Access Administrator&apos; role.  It appears as though the projection has not been built as the `RegisterRole` event should be in the event store..
         /// </summary>
         public static string AdministratorRoleException {
             get {
                 return ResourceManager.GetString("AdministratorRoleException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not register/find all required permissions.  Please restart the server to try again..
+        /// </summary>
+        public static string PermissionsException {
+            get {
+                return ResourceManager.GetString("PermissionsException", resourceCulture);
             }
         }
         

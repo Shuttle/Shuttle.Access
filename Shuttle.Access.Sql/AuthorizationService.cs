@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,7 +9,6 @@ namespace Shuttle.Access.Sql;
 
 public class AuthorizationService : IAuthorizationService
 {
-    private static readonly string AdministratorRoleName = "Administrator";
     private readonly IIdentityQuery _identityQuery;
 
     public AuthorizationService(IIdentityQuery identityQuery)
@@ -28,15 +26,6 @@ public class AuthorizationService : IAuthorizationService
             return [];
         }
 
-        var result = new List<string>();
-
-        if (user.Roles.Any(item => item.Name.Equals(AdministratorRoleName, StringComparison.InvariantCultureIgnoreCase)))
-        {
-            result.Add("*");
-        }
-
-        result.AddRange(await _identityQuery.PermissionsAsync(userId, cancellationToken));
-
-        return result;
+        return await _identityQuery.PermissionsAsync(userId, cancellationToken);
     }
 }

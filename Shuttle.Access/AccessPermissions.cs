@@ -2,6 +2,7 @@
 
 public static class AccessPermissions
 {
+    public const string Administrator = "access://*";
     public static class Identities
     {
         public const string Activate = "access://identities/activate";

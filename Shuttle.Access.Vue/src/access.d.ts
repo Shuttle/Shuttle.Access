@@ -4,9 +4,11 @@ export type Alert = {
   type?: "error" | "success" | "warning" | "info" | undefined;
   expire?: boolean;
   expirySeconds?: number;
+  expiryDate?: Date;
   dismissable?: boolean;
   key?: string;
   variant?: string;
+  visiblePercentage?: number;
 };
 
 export type AlertStoreState = {

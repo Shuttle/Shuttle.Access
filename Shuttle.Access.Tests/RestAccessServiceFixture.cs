@@ -23,7 +23,7 @@ public class RestAccessServiceFixture
         sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.SessionResponse>>(new(HttpStatusCode.BadRequest), null, new()));
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-        var service = new RestSessionCache(Options.Create(new AccessOptions()), accessClient.Object);
+        var service = new RestSessionCache(accessClient.Object);
 
         Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
     }
@@ -38,10 +38,7 @@ public class RestAccessServiceFixture
 
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-        var service = new RestSessionCache(Options.Create(new AccessOptions
-        {
-            SessionDuration = TimeSpan.FromHours(1)
-        }), accessClient.Object);
+        var service = new RestSessionCache(accessClient.Object);
 
         Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Not.Null);
 

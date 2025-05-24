@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
@@ -11,12 +10,10 @@ namespace Shuttle.Access.RestClient;
 public class RestSessionCache : SessionCache, ISessionCache
 {
     private readonly IAccessClient _accessClient;
-    private readonly AccessOptions _accessOptions;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
-    public RestSessionCache(IOptions<AccessOptions> accessOptions, IAccessClient accessClient)
+    public RestSessionCache(IAccessClient accessClient)
     {
-        _accessOptions = Guard.AgainstNull(accessOptions).Value;
         _accessClient = Guard.AgainstNull(accessClient);
     }
 
@@ -104,7 +101,7 @@ public class RestSessionCache : SessionCache, ISessionCache
     {
         var session = await FindAsync(identityId, cancellationToken);
 
-        return session != null && HasPermission(session.IdentityId, permission, _accessOptions.AdministratorPermissionName);
+        return session != null && HasPermission(session.IdentityId, permission);
     }
 
     public async Task AddAsync(Guid? token, Messages.v1.Session session, CancellationToken cancellationToken = default)

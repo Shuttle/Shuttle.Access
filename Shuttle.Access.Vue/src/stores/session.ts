@@ -189,16 +189,29 @@ export const useSessionStore = defineStore("session", {
     },
     hasPermission(permission: string) {
       let result = false;
-      const permissionCompare = permission.toLowerCase();
+      const permissionRequired = permission.toLowerCase();
 
       this.permissions.forEach(function (item) {
         if (result) {
           return;
         }
 
-        result =
-          item.permission === "*" ||
-          item.permission.toLowerCase() === permissionCompare;
+        if (item.permission.toLowerCase() === permissionRequired) {
+          result = true;
+          return;
+        }
+
+        if (item.permission.indexOf("*") !== -1) {
+          const escaped = item.permission
+            .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+            .replace(/\\\*/g, ".*");
+
+          const regex = new RegExp(`^${escaped}$`, "i");
+          if (regex.test(permissionRequired)) {
+            result = true;
+            return;
+          }
+        }
       });
 
       return result;

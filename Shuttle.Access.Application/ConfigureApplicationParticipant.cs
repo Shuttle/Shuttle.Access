@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,6 +21,7 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
 
     private readonly List<string> _permissions =
     [
+        AccessPermissions.Administrator,
         AccessPermissions.Identities.Activate,
         AccessPermissions.Identities.Manage,
         AccessPermissions.Identities.Register,
@@ -59,6 +61,8 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
                 continue;
             }
 
+            _logger.LogDebug($"[permission/registration] : name = '{permission}'");
+
             var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
                 new()
                 {
@@ -69,26 +73,49 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
             await _mediator.SendAsync(registerPermissionMessage);
         }
 
+        var timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
+
+        var permissionSpecification = new DataAccess.Permission.Specification();
+
+        foreach (var permission in _permissions)
+        {
+            permissionSpecification.AddName(permission);
+        }
+
+        while (await _permissionQuery.CountAsync(permissionSpecification) != _permissions.Count && DateTimeOffset.Now < timeout)
+        {
+            Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+        }
+
+        if (await _permissionQuery.CountAsync(permissionSpecification) != _permissions.Count)
+        {
+            throw new ApplicationException(Resources.PermissionsException);
+        }
+
         if (!_accessOptions.Configuration.ShouldConfigure)
         {
             return;
         }
 
-        var roleSpecification = new DataAccess.Role.Specification().AddName("Administrator");
+        var roleSpecification = new DataAccess.Role.Specification()
+            .AddName("Access Administrator")
+            .IncludePermissions();
 
         var administratorExists = await _roleQuery.CountAsync(roleSpecification) > 0;
 
-        _logger.LogDebug($"[role] : name = 'Administrator' / exists = {administratorExists}");
+        _logger.LogDebug($"[role] : name = 'Access Administrator' / exists = {administratorExists}");
 
         if (!administratorExists)
         {
-            _logger.LogDebug("[role/registration] : name = 'Administrator'");
+            _logger.LogDebug("[role/registration] : name = 'Access Administrator'");
 
-            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(new("Administrator"));
+            var registerRole = new RegisterRole("Access Administrator");
+
+            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(registerRole);
 
             await _mediator.SendAsync(registerRoleMessage);
 
-            var timeout = DateTimeOffset.Now.AddSeconds(15);
+            timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
 
             while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTimeOffset.Now < timeout)
             {
@@ -101,7 +128,56 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
             }
         }
 
-        if (await _identityQuery.CountAsync(new()) == 0)
+        var role  = (await _roleQuery.SearchAsync(roleSpecification)).SingleOrDefault();
+
+        if (role == null)
+        {
+            throw new ApplicationException(Resources.AdministratorRoleException);
+        }
+
+        var administratorPermission = (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddName("access://*"))).SingleOrDefault();
+
+        if (administratorPermission == null)
+        {
+            throw new ApplicationException(Resources.AdministratorPermissionException);
+        }
+
+        await _mediator.SendAsync(new RequestResponseMessage<SetRolePermission, RolePermissionSet>(new()
+        {
+            Active = true,
+            RoleId = role.Id,
+            PermissionId = administratorPermission.Id
+        }));
+
+        timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
+
+        var administratorPermissionsRegistered = false;
+
+        while (!administratorPermissionsRegistered && DateTimeOffset.Now < timeout)
+        {
+            role = (await _roleQuery.SearchAsync(roleSpecification)).SingleOrDefault();
+
+            if (role == null)
+            {
+                throw new ApplicationException(Resources.AdministratorRoleException);
+            }
+
+            administratorPermissionsRegistered = role.Permissions.FirstOrDefault(item => item.Name.Equals(AccessPermissions.Administrator, StringComparison.InvariantCultureIgnoreCase)) != null;
+
+            if (administratorPermissionsRegistered)
+            {
+                continue;
+            }
+
+            Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+        }
+
+        if (!administratorPermissionsRegistered)
+        {
+            throw new ApplicationException(Resources.AdministratorPermissionException);
+        }
+
+        if (await _identityQuery.CountAsync(new DataAccess.Identity.Specification().WithRoleName("Access Administrator")) == 0)
         {
             var generateHash = new GenerateHash { Value = _accessOptions.Configuration.AdministratorPassword };
 

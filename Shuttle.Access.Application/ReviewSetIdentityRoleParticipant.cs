@@ -23,7 +23,7 @@ public class ReviewSetIdentityRoleParticipant : IParticipant<RequestMessage<SetI
         Guard.AgainstNull(context);
 
         var request = context.Message.Request;
-        var roles = (await _roleQuery.SearchAsync(new DataAccess.Role.Specification().AddName("Administrator"))).ToList();
+        var roles = (await _roleQuery.SearchAsync(new DataAccess.Role.Specification().AddName("Access Administrator"))).ToList();
 
         if (roles.Count != 1)
         {
