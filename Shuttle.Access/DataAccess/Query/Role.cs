@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Shuttle.Access.DataAccess;
@@ -83,6 +84,16 @@ public class Role
         public Specification WithMaximumRows(int maximumRows)
         {
             MaximumRows = maximumRows;
+
+            return this;
+        }
+
+        public Specification AddRoleIds(IEnumerable<Guid> ids)
+        {
+            foreach (var id in ids)
+            {
+                AddRoleId(id);
+            }
 
             return this;
         }

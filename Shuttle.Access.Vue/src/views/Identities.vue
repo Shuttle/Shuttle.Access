@@ -24,13 +24,13 @@
         </div>
       </template>
       <template v-slot:item.name="{ item }">
-        <div class="flex">
+        <div class="flex items-center">
           <div class="flex-grow">{{ item.name }}</div>
           <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" class="flex-none" />
         </div>
       </template>
       <template v-slot:item.description="{ item }">
-        <div class="flex">
+        <div class="flex items-center">
           <div class="flex-grow">{{ item.description }}</div>
           <v-btn :icon="mdiPencil" size="x-small" @click.stop="description(item)" class="flex-none" />
         </div>

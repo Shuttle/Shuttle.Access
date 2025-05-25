@@ -10,11 +10,12 @@
     </v-card-title>
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
-      :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
+      :loading="busy" show-expand v-model:expanded="expanded" expand-on-click show-select v-model="selected">
       <template v-slot:header.action="">
         <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
           <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
           <v-btn :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
+          <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
       </template>
       <template v-slot:item.action="{ item }">
@@ -45,7 +46,7 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline, mdiCodeJson } from '@mdi/js';
+import { mdiDeleteOutline, mdiDownload, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline, mdiCodeJson } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
@@ -63,8 +64,10 @@ const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
 
 const busy: Ref<boolean> = ref(false);
+const items: Ref<Role[]> = ref([]);
 const search: Ref<string> = ref('')
 const expanded: Ref<string[]> = ref([])
+const selected: Ref<string[]> = ref([])
 const permissionStatuses = usePermissionStatuses();
 
 const headers = useSecureTableHeaders([
@@ -95,8 +98,6 @@ const permissionHeaders = useSecureTableHeaders([
     }
   },
 ]);
-
-const items: Ref<Role[]> = ref([]);
 
 const refresh = async () => {
   busy.value = true;
@@ -141,6 +142,23 @@ const permissions = (item: Role) => {
 
 const rename = (item: Role) => {
   router.push({ name: "role-rename", params: { id: item.id } });
+}
+
+const download = async () => {
+  if (selected.value.length === 0) {
+    return;
+  }
+
+  const response = await api.post("v1/roles/bulk-download", selected.value, { responseType: 'blob' });
+
+  const blob = new Blob([response.data], { type: 'application/json' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'roles.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 onMounted(() => {

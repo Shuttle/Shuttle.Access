@@ -10,11 +10,12 @@
     </v-card-title>
     <v-divider></v-divider>
     <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
-      :loading="busy">
+      :loading="busy" show-select v-model="selected">
       <template v-slot:header.action="">
-        <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
+        <div class="flex flex-row items-center gap-2" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
           <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
           <v-btn :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
+          <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
       </template>
       <template v-slot:item.action="{ item }">
@@ -41,7 +42,7 @@
 import api from "@/api";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiCodeJson, mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil } from '@mdi/js';
+import { mdiCodeJson, mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil, mdiDownload } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
@@ -57,6 +58,7 @@ const drawerStore = useDrawerStore()
 
 const busy: Ref<boolean> = ref(false);
 const search: Ref<string> = ref('')
+const selected: Ref<string[]> = ref([])
 
 type PermissionItem = Permission & {
   working: boolean;
@@ -168,6 +170,23 @@ const json = () => {
 
 const rename = (item: PermissionItem) => {
   router.push({ name: "permission-rename", params: { id: item.id } });
+}
+
+const download = async () => {
+  if (selected.value.length === 0) {
+    return;
+  }
+
+  const response = await api.post("v1/permissions/bulk-download", selected.value, { responseType: 'blob' });
+
+  const blob = new Blob([response.data], { type: 'application/json' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'permissions.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 onMounted(() => {

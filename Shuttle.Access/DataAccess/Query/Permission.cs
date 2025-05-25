@@ -31,11 +31,6 @@ public class Permission
 
         public Specification AddIds(IEnumerable<Guid> ids)
         {
-            if (ids == null)
-            {
-                return this;
-            }
-
             foreach (var id in ids)
             {
                 AddId(id);

@@ -158,12 +158,12 @@ public class Program
             .AddDataStoreAccessService()
             .AddCors(options =>
             {
-                options.AddPolicy("AllowAll", builder =>
+                options.AddDefaultPolicy(builder =>
                 {
                     builder
                         .AllowAnyOrigin()
-                        .AllowAnyHeader()
-                        .AllowAnyMethod();
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
                 });
             })
             .AddOAuth(builder =>
@@ -179,7 +179,9 @@ public class Program
             .ReportApiVersions()
             .Build();
 
-        app.UseCors("AllowAll");
+        app.UseCors();
+        app.UseSwagger();
+        app.UseSwaggerUI();
         app.UseAccessAuthorization();
 
         app
@@ -191,10 +193,6 @@ public class Program
             .MapServerEndpoints(versionSet)
             .MapSessionEndpoints(versionSet)
             .MapStatisticEndpoints(versionSet);
-
-        app
-            .UseSwagger()
-            .UseSwaggerUI();
 
         await app.RunAsync();
     }

@@ -1,4 +1,6 @@
-﻿using Asp.Versioning;
+﻿using System.Text;
+using System.Text.Json;
+using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
@@ -201,6 +203,36 @@ public static class RoleEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
+
+        app.MapPost("/v{version:apiVersion}/roles/bulk-download", async (IDatabaseContextFactory databaseContextFactory, IRoleQuery roleQuery, List<Guid> ids) =>
+            {
+                if (!ids.Any())
+                {
+                    return Results.BadRequest();
+                }
+
+                List<Messages.v1.Role> roles;
+
+                using (new DatabaseContextScope())
+                {
+                    await using (databaseContextFactory.Create())
+                    {
+                        roles = (await roleQuery.SearchAsync(new DataAccess.Role.Specification().IncludePermissions().AddRoleIds(ids))).ToList();
+                    }
+                }
+
+                var result = roles.Select(item => new
+                {
+                    item.Name,
+                    Permissions = item.Permissions.Select(permission => permission.Name).ToList()
+                });
+
+                return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(result)), "application/json", "permissions.json");
+            })
+            .WithTags("Permissions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Permissions.Register);
 
         return app;
     }

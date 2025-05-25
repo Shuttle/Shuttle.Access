@@ -7,6 +7,9 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Data;
 using Shuttle.Esb;
+using System.Text;
+using System.Text.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Shuttle.Access.WebApi;
 
@@ -95,6 +98,32 @@ public static class PermissionEndpoints
                 }
 
                 return Results.Accepted();
+            })
+            .WithTags("Permissions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Permissions.Register);
+
+        app.MapPost("/v{version:apiVersion}/permissions/bulk-download", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery, List<Guid> ids) =>
+            {
+                if (!ids.Any())
+                {
+                    return Results.BadRequest();
+                }
+
+                List<string> permissions;
+
+                using (new DatabaseContextScope())
+                {
+                    await using (databaseContextFactory.Create())
+                    {
+                        permissions = (await permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddIds(ids)))
+                            .Select(item => item.Name)
+                            .ToList();
+                    }
+                }
+
+                return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(permissions)), "application/json", "permissions.json");
             })
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
