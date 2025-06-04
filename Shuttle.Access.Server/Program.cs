@@ -53,7 +53,10 @@ internal class Program
             .UseSerilog()
             .ConfigureServices(services =>
             {
-                var configuration = new ConfigurationBuilder().AddJsonFile(appsettingsPath).Build();
+                var configuration = new ConfigurationBuilder()
+                    .AddJsonFile(appsettingsPath)
+                    .AddEnvironmentVariables()
+                    .Build();
 
                 Log.Logger = new LoggerConfiguration()
                     .ReadFrom.Configuration(configuration)

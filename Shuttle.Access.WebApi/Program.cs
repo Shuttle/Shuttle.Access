@@ -46,7 +46,8 @@ public class Program
         webApplicationBuilder.Host.UseSerilog();
 
         webApplicationBuilder.Configuration
-            .AddJsonFile(appsettingsPath);
+            .AddJsonFile(appsettingsPath)
+            .AddEnvironmentVariables();
 
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(webApplicationBuilder.Configuration)
