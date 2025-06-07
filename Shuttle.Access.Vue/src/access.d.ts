@@ -16,9 +16,11 @@ export type AlertStoreState = {
 };
 
 export type Configuration = {
-  url: string;
-  allowPasswordAuthentication: boolean;
-  debugging: () => boolean;
+  isOk: () => boolean;
+  getErrorMessage: () => string;
+  getUrl: () => string;
+  isPasswordAuthenticationAllowed: () => boolean;
+  isDebugging: () => boolean;
   getApiUrl: (path: string) => string;
 };
 

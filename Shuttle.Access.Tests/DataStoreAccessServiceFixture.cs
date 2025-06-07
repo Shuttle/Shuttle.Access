@@ -27,7 +27,7 @@ public class DataStoreAccessServiceFixture
             ConnectionString = "connection-string"
         });
 
-        var service = new DataStoreSessionCache(Options.Create(new AccessOptions
+        var service = new DataStoreSessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
         }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, repository.Object);
@@ -53,7 +53,7 @@ public class DataStoreAccessServiceFixture
             ConnectionString = "connection-string"
         });
 
-        var service = new DataStoreSessionCache(Options.Create(new AccessOptions
+        var service = new DataStoreSessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
         }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, sessionRepository.Object);

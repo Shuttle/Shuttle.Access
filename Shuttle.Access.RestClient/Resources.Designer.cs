@@ -61,6 +61,15 @@ namespace Shuttle.Access.RestClient {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;HttpContext&apos; does not contain an &apos;Authorization&apos; header..
+        /// </summary>
+        public static string AuthorizationHeaderNotFound {
+            get {
+                return ResourceManager.GetString("AuthorizationHeaderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Option `{0}` may not be empty..
         /// </summary>
         public static string OptionMissingException {

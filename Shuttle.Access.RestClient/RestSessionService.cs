@@ -2,18 +2,22 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class RestSessionCache : SessionCache, ISessionCache
+public class RestSessionService : SessionCache, ISessionService, IContextSessionService
 {
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
     private readonly IAccessClient _accessClient;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
-    public RestSessionCache(IAccessClient accessClient)
+    public RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IAccessClient accessClient)
     {
+        _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
         _accessClient = Guard.AgainstNull(accessClient);
     }
 
@@ -28,6 +32,11 @@ public class RestSessionCache : SessionCache, ISessionCache
             if (session != null)
             {
                 return session;
+            }
+
+            if (_accessAuthorizationOptions.PassThrough)
+            {
+                return await FindAsync(cancellationToken);
             }
 
             var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new()
@@ -67,6 +76,13 @@ public class RestSessionCache : SessionCache, ISessionCache
         {
             _lock.Release();
         }
+    }
+
+    public async Task<Messages.v1.Session?> FindAsync(CancellationToken cancellationToken = default)
+    {
+        var sessionResponse = await _accessClient.Sessions.GetSelfAsync();
+
+        return sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? AddSession(null, sessionResponse.Content) : null;
     }
 
     public async Task FlushAsync(CancellationToken cancellationToken = default)
@@ -156,7 +172,7 @@ public class RestSessionCache : SessionCache, ISessionCache
                     throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "token", $"{tokenValue[..4]}****-****-****-****-********{tokenValue[^4..]}"));
                 }
             }
-            
+
             return null;
         }
         finally

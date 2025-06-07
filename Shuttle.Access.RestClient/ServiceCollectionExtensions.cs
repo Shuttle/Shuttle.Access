@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -32,7 +33,11 @@ public static class ServiceCollectionExtensions
             })
             .AddHttpMessageHandler<AccessHttpMessageHandler>();
 
-        services.TryAddSingleton<ISessionCache, RestSessionCache>();
+        services.AddSingleton<RestSessionService>();
+        services.AddSingleton<ISessionService>(sp => sp.GetRequiredService<RestSessionService>());
+        services.AddSingleton<IContextSessionService>(sp => sp.GetRequiredService<RestSessionService>());
+
+        services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
         return services;
     }
@@ -51,8 +56,6 @@ public static class ServiceCollectionExtensions
         {
             options.GetTokenAsync = bearerAuthenticationProviderBuilder.Options.GetTokenAsync;
         });
-
-        bearerAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<BearerAuthenticationProviderOptions>, BearerAuthenticationProviderOptionsValidator>();
 
         accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
         {

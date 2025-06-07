@@ -1,4 +1,10 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using Shuttle.Access.AspNetCore;
+using Shuttle.Access.Messages.v1;
+using Shuttle.Core.Contract;
+using System;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Authentication;
@@ -6,15 +12,12 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
 
 public class BearerAuthenticationProvider : IAuthenticationProvider
 {
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly AccessClientOptions _accessClientOptions;
     private readonly string _baseAddress;
     private readonly BearerAuthenticationProviderOptions _bearerAuthenticationProviderOptions;
@@ -25,11 +28,14 @@ public class BearerAuthenticationProvider : IAuthenticationProvider
     private readonly IServiceProvider _serviceProvider;
     private DateTimeOffset _expiryDate = DateTimeOffset.MinValue;
     private string _token = string.Empty;
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
 
-    public BearerAuthenticationProvider(IOptions<AccessClientOptions> accessClientOptions, IOptions<BearerAuthenticationProviderOptions> bearerAuthenticationProviderOptions, HttpClient httpClient, IJwtService jwtService, IServiceProvider serviceProvider)
+    public BearerAuthenticationProvider(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptions<AccessClientOptions> accessClientOptions, IOptions<BearerAuthenticationProviderOptions> bearerAuthenticationProviderOptions, IHttpContextAccessor httpContextAccessor, HttpClient httpClient, IJwtService jwtService, IServiceProvider serviceProvider)
     {
+        _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
         _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
         _bearerAuthenticationProviderOptions = Guard.AgainstNull(Guard.AgainstNull(bearerAuthenticationProviderOptions).Value);
+        _httpContextAccessor = Guard.AgainstNull(httpContextAccessor);
         _httpClient = Guard.AgainstNull(httpClient);
         _jwtService = Guard.AgainstNull(jwtService);
         _serviceProvider = Guard.AgainstNull(serviceProvider);
@@ -53,7 +59,29 @@ public class BearerAuthenticationProvider : IAuthenticationProvider
                 return new("Shuttle.Access", _token);
             }
 
-            var token = await _bearerAuthenticationProviderOptions.GetTokenAsync!.Invoke(httpRequestMessage, _serviceProvider);
+            var token = await (_bearerAuthenticationProviderOptions.GetTokenAsync?.Invoke(httpRequestMessage, _serviceProvider) ?? ValueTask.FromResult(string.Empty));
+
+            if (_accessAuthorizationOptions.PassThrough)
+            {
+                if (!string.IsNullOrEmpty(token))
+                {
+                    return new("Bearer", token);
+                }
+
+                token = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
+
+                if (token == null || string.IsNullOrWhiteSpace(token) || !token.StartsWith("Bearer ", StringComparison.InvariantCultureIgnoreCase) || token.Length < 8)
+                {
+                    throw new AuthenticationException(Resources.AuthorizationHeaderNotFound);
+                }
+
+                return new("Bearer", token[7..]);
+            }
+
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                throw new AuthenticationException(Resources.AuthorizationHeaderNotFound);
+            }
 
             var identityName = await _jwtService.GetIdentityNameAsync(token);
 

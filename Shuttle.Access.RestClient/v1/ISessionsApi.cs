@@ -11,7 +11,7 @@ public interface ISessionsApi
     [Delete("/v1/sessions/self")]
     Task<IApiResponse> DeleteSelfAsync();
     [Get("/v1/sessions/self")]
-    Task<IApiResponse> GetSelfAsync();
+    Task<IApiResponse<Messages.v1.SessionResponse>> GetSelfAsync();
     [Post("/v1/sessions/search")]
     Task<IApiResponse<IEnumerable<Messages.v1.SessionResponse>>> PostSearchAsync(Messages.v1.Session.Specification specification);
     [Post("/v1/sessions")]

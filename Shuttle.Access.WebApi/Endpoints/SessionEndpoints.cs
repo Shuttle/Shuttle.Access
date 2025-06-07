@@ -60,7 +60,7 @@ public static class SessionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Sessions.View);
 
-        app.MapPost("/v{version:apiVersion}/sessions", async (ILogger<RegisterSession> logger, HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] Messages.v1.RegisterSession message) =>
+        app.MapPost("/v{version:apiVersion}/sessions", async (ILogger<RegisterSession> logger, HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionService sessionService, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] Messages.v1.RegisterSession message) =>
             {
                 var options = Guard.AgainstNull(accessOptions.Value);
 
@@ -104,7 +104,7 @@ public static class SessionEndpoints
                             return Results.BadRequest();
                         }
 
-                        if (!await sessionCache.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))
+                        if (!await sessionService.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))
                         {
                             logger.LogDebug($"[UNAUTHORIZED] : identity id = '{identityId.Value}' / permission = '{AccessPermissions.Sessions.Register}'");
 
@@ -204,7 +204,9 @@ public static class SessionEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    return Results.Ok(await sessionQuery.SearchAsync(new DataAccess.Session.Specification().WithIdentityId(sessionIdentityId.Value).IncludePermissions()));
+                    var session = (await sessionQuery.SearchAsync(new DataAccess.Session.Specification().WithIdentityId(sessionIdentityId.Value).IncludePermissions())).FirstOrDefault();
+
+                    return session != null ? Results.Ok(session) : Results.NotFound();
                 }
             })
             .WithTags("Sessions")

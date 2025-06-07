@@ -13,11 +13,11 @@ public class RequireSessionAttribute : TypeFilterAttribute
 
     private class RequiresSession : IAuthorizationFilter
     {
-        private readonly ISessionCache _sessionCache;
+        private readonly ISessionService _sessionService;
 
-        public RequiresSession(ISessionCache sessionCache)
+        public RequiresSession(ISessionService sessionService)
         {
-            _sessionCache = Guard.AgainstNull(sessionCache);
+            _sessionService = Guard.AgainstNull(sessionService);
         }
 
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -30,7 +30,7 @@ public class RequireSessionAttribute : TypeFilterAttribute
                 return;
             }
 
-            if (_sessionCache.FindAsync(sessionIdentityId.Value).GetAwaiter().GetResult() == null)
+            if (_sessionService.FindAsync(sessionIdentityId.Value).GetAwaiter().GetResult() == null)
             {
                 SetUnauthorized(context);
             }

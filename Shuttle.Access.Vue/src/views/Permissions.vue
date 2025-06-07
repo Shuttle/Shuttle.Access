@@ -14,7 +14,7 @@
       <template v-slot:header.action="">
         <div class="flex flex-row items-center gap-2" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
           <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
-          <v-btn :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
+          <v-btn :icon="mdiUpload" size="x-small" @click="download"></v-btn>
           <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
       </template>
@@ -42,7 +42,7 @@
 import api from "@/api";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiCodeJson, mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil, mdiDownload } from '@mdi/js';
+import { mdiCodeJson, mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil, mdiDownload, mdiUpload } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";

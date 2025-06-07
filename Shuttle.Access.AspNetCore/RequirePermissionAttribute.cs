@@ -13,12 +13,12 @@ public class RequirePermissionAttribute : TypeFilterAttribute
 
     private class RequiresPermission : IAuthorizationFilter
     {
-        private readonly ISessionCache _sessionCache;
+        private readonly ISessionService _sessionService;
         private readonly string _permission;
 
-        public RequiresPermission(ISessionCache sessionCache, string permission)
+        public RequiresPermission(ISessionService sessionService, string permission)
         {
-            _sessionCache = Guard.AgainstNull(sessionCache);
+            _sessionService = Guard.AgainstNull(sessionService);
             _permission = Guard.AgainstEmpty(permission);
         }
 
@@ -32,7 +32,7 @@ public class RequirePermissionAttribute : TypeFilterAttribute
                 return;
             }
 
-            if (!_sessionCache.HasPermissionAsync(sessionIdentityId.Value, _permission).GetAwaiter().GetResult())
+            if (!_sessionService.HasPermissionAsync(sessionIdentityId.Value, _permission).GetAwaiter().GetResult())
             {
                 SetUnauthorized(context);
             }

@@ -10,16 +10,16 @@ namespace Shuttle.Access.Application;
 
 public class RefreshSessionParticipant : IParticipant<RefreshSession>
 {
-    private readonly ISessionCache _sessionCache;
+    private readonly ISessionService _sessionService;
     private readonly IAuthorizationService _authorizationService;
     private readonly IServiceBus _serviceBus;
     private readonly ISessionQuery _sessionQuery;
     private readonly ISessionRepository _sessionRepository;
 
-    public RefreshSessionParticipant(IServiceBus serviceBus, ISessionCache sessionCache, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery)
+    public RefreshSessionParticipant(IServiceBus serviceBus, ISessionService sessionService, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery)
     {
         _serviceBus = Guard.AgainstNull(serviceBus);
-        _sessionCache = Guard.AgainstNull(sessionCache);
+        _sessionService = Guard.AgainstNull(sessionService);
         _authorizationService = Guard.AgainstNull(authorizationService);
         _sessionRepository = Guard.AgainstNull(sessionRepository);
         _sessionQuery = Guard.AgainstNull(sessionQuery);
@@ -54,7 +54,7 @@ public class RefreshSessionParticipant : IParticipant<RefreshSession>
 
         await _sessionRepository.SaveAsync(session);
 
-        await _sessionCache.FlushAsync(context.Message.IdentityId);
+        await _sessionService.FlushAsync(context.Message.IdentityId);
 
         await _serviceBus.PublishAsync(new SessionRefreshed
         {

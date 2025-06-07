@@ -8,7 +8,7 @@ using Shuttle.Core.Data;
 
 namespace Shuttle.Access.DataAccess;
 
-public class DataStoreSessionCache : SessionCache, ISessionCache
+public class DataStoreSessionService : SessionCache, ISessionService
 {
     private readonly string _connectionStringName;
     private readonly IDatabaseContextFactory _databaseContextFactory;
@@ -16,7 +16,7 @@ public class DataStoreSessionCache : SessionCache, ISessionCache
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly ISessionRepository _sessionRepository;
 
-    public DataStoreSessionCache(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository)
+    public DataStoreSessionService(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository)
     {
         _hashingService = Guard.AgainstNull(hashingService);
         _connectionStringName = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value).ConnectionStringName;

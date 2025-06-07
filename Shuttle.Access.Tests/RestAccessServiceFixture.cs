@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Refit;
+using Shuttle.Access.AspNetCore;
 using Shuttle.Access.RestClient;
 using Shuttle.Access.RestClient.v1;
 
@@ -23,7 +24,7 @@ public class RestAccessServiceFixture
         sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.SessionResponse>>(new(HttpStatusCode.BadRequest), null, new()));
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-        var service = new RestSessionCache(accessClient.Object);
+        var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), accessClient.Object);
 
         Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
     }
@@ -38,7 +39,7 @@ public class RestAccessServiceFixture
 
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-        var service = new RestSessionCache(accessClient.Object);
+        var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), accessClient.Object);
 
         Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Not.Null);
 

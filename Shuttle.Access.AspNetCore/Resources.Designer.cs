@@ -61,6 +61,15 @@ namespace Shuttle.Access.AspNetCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find a session for the current context..
+        /// </summary>
+        public static string ContextSessionNotFound {
+            get {
+                return ResourceManager.GetString("ContextSessionNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find `IssuerOptions` matching Issuer &apos;{0}&apos; with audience(s) &apos;{1}&apos;..
         /// </summary>
         public static string IssuerNotFoundException {

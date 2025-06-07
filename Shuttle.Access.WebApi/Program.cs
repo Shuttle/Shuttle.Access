@@ -68,6 +68,7 @@ public class Program
             });
 
         webApplicationBuilder.Services
+            .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddEndpointsApiExplorer()
             .AddSwaggerGen(options =>
             {
@@ -153,6 +154,8 @@ public class Program
             .AddAccessAuthorization(builder =>
             {
                 webApplicationBuilder.Configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(builder.Options);
+
+                builder.Options.PassThrough = false;
             })
             .AddSqlAccess()
             .AddDataStoreAccessService()

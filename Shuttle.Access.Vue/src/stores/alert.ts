@@ -21,7 +21,7 @@ export const useAlertStore = defineStore("alert", {
       alert.expirySeconds = alert.expirySeconds ?? 10;
       alert.expiryDate = new Date(Date.now() + alert.expirySeconds * 1000);
       alert.visiblePercentage = 100;
-      alert.dismissable = alert.dismissable || !!alert.name;
+      alert.dismissable = alert.dismissable ?? !!alert.name;
 
       alert.key = `${alert.name}-${key++}`;
 
@@ -49,7 +49,7 @@ export const useAlertStore = defineStore("alert", {
       return true;
     },
     clear() {
-      this.alerts = [];
+      this.alerts = this.alerts.filter((item) => !item.dismissable);
     },
     initialize() {},
   },

@@ -8,14 +8,14 @@ namespace Shuttle.Access.AspNetCore;
 
 public class AccessAuthorizationMiddleware : IMiddleware
 {
-    private readonly ISessionCache _sessionCache;
+    private readonly ISessionService _sessionService;
     private readonly StringValues _wwwAuthenticate;
 
-    public AccessAuthorizationMiddleware(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache)
+    public AccessAuthorizationMiddleware(IOptions<AccessOptions> accessOptions, ISessionService sessionService)
     {
         var options = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
 
-        _sessionCache = Guard.AgainstNull(sessionCache);
+        _sessionService = Guard.AgainstNull(sessionService);
 
         _wwwAuthenticate = $"Shuttle.Access realm=\"{options.Realm}\", token=\"GUID\"; Bearer realm=\"{options.Realm}\"";
     }
@@ -27,7 +27,7 @@ public class AccessAuthorizationMiddleware : IMiddleware
         var permissionRequirement = endpoint?.Metadata.GetMetadata<AccessPermissionRequirement>();
         var sessionRequirement = endpoint?.Metadata.GetMetadata<AccessSessionRequirement>();
 
-        if (context.Response.StatusCode == (int)HttpStatusCode.Unauthorized )
+        if (context.Response.StatusCode == (int)HttpStatusCode.Unauthorized)
         {
             return;
         }
@@ -43,23 +43,18 @@ public class AccessAuthorizationMiddleware : IMiddleware
 
         if (sessionIdentityId == null)
         {
-            Unauthorized(context);
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            context.Response.Headers.Append("WWW-Authenticate", _wwwAuthenticate);
             return;
         }
 
         if (permissionRequirement != null &&
-            !await _sessionCache.HasPermissionAsync(sessionIdentityId.Value, permissionRequirement.Permission))
+            !await _sessionService.HasPermissionAsync(sessionIdentityId.Value, permissionRequirement.Permission))
         {
-            Unauthorized(context);
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }
 
         await next(context);
-    }
-
-    private void Unauthorized(HttpContext context)
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        context.Response.Headers.Append("WWW-Authenticate", _wwwAuthenticate);
     }
 }

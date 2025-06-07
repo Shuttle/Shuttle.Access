@@ -68,7 +68,7 @@ onMounted(async () => {
     router.push({ name: "dashboard" });
   } catch (error: any) {
     alertStore.add({
-      message: error.response?.status == 400 ? t("exceptions.invalid-credentials") : error.toString(),
+      message: error.response?.status == 400 ? t("exceptions.invalid-credentials", { reason: error.response?.data }) : error.toString(),
       type: "error",
       name: "sign-in-exception"
     });

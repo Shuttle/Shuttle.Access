@@ -10,7 +10,7 @@
             <template v-slot:text>
               {{ alert.message }}
             </template>
-            <template v-slot:close>
+            <template v-slot:close v-if="alert.dismissable">
               <v-icon :icon="`svg:${mdiCloseCircleOutline}`" @click="closeClicked(alert.name)" />
             </template>
           </v-alert>
@@ -54,10 +54,14 @@ import { useAlertStore } from "@/stores/alert";
 import { RouterView } from "vue-router";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSnackbarStore } from '@/stores/snackbar'
+import configuration from "@/configuration";
+import { useI18n } from "vue-i18n";
 
 const alertStore = useAlertStore();
 const confirmationStore = useConfirmationStore();
 const snackbarStore = useSnackbarStore()
+
+const { t } = useI18n({ useScope: 'global' });
 
 alertStore.initialize();
 
@@ -67,5 +71,16 @@ const clearAlerts = () => {
 
 const closeClicked = (name: string) => {
   alertStore.remove(name);
+}
+
+if (!configuration.isOk()) {
+  t("configuration-error")
+  alertStore.add({
+    message: t("exceptions.configuration-error", { error: configuration.getErrorMessage() }),
+    type: "error",
+    name: "configuration-error",
+    dismissable: false,
+    expire: false
+  });
 }
 </script>

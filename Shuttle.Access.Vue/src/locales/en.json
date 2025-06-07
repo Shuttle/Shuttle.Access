@@ -14,9 +14,10 @@
   "description": "Description",
   "exceptions": {
     "bad-request": "Bad request.",
-    "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}",
+    "configuration-error": "Could not complete configuration.  Error: {error}",
     "invalid-credentials": "Invalid credentials.  Reason: {reason}",
-    "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access."
+    "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access.",
+    "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}"
   },
   "expiry-date": "Expiry date",
   "generated-password": "Generated password",

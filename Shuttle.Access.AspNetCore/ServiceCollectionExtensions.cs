@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.Configure<AccessAuthorizationOptions>(options =>
         {
             options.Issuers = accessAuthorizationBuilder.Options.Issuers;
+            options.PassThrough = accessAuthorizationBuilder.Options.PassThrough;
         });
 
         services

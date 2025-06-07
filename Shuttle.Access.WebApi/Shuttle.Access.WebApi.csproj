@@ -11,12 +11,12 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Http" Version="8.1.0" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.16" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.7.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.7.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
-    <PackageReference Include="Shuttle.Access.Messages" Version="7.4.0" />
+    <PackageReference Include="Shuttle.Access.Messages" Version="8.0.0" />
     <PackageReference Include="Shuttle.Core.Mediator" Version="20.0.0" />
     <PackageReference Include="Shuttle.Esb.AzureStorageQueues" Version="20.0.0" />
     <PackageReference Include="Shuttle.Esb.Sql.Subscription" Version="20.0.0" />
@@ -27,7 +27,7 @@
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>

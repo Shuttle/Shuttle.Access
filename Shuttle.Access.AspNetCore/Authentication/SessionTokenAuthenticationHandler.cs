@@ -14,14 +14,14 @@ namespace Shuttle.Access.AspNetCore.Authentication;
 
 public class SessionTokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    private readonly ISessionCache _sessionCache;
+    private readonly ISessionService _sessionService;
     public static readonly string AuthenticationScheme = "Shuttle.Access";
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
 
-    public SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionCache sessionCache) : base(options, logger, encoder)
+    public SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionService sessionService) : base(options, logger, encoder)
     {
-        _sessionCache = Guard.AgainstNull(sessionCache);
+        _sessionService = Guard.AgainstNull(sessionService);
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -46,7 +46,7 @@ public class SessionTokenAuthenticationHandler : AuthenticationHandler<Authentic
             return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
         }
 
-        var session = await _sessionCache.FindByTokenAsync(sessionToken);
+        var session = await _sessionService.FindByTokenAsync(sessionToken);
 
         if (session == null)
         {

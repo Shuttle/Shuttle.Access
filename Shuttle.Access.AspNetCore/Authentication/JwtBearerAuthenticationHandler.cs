@@ -9,25 +9,56 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 
 namespace Shuttle.Access.AspNetCore.Authentication;
 
 public class JwtBearerAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    private readonly ISessionCache _sessionCache;
-    private readonly IJwtService _jwtService;
-    public static readonly string AuthenticationScheme = "Bearer";
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
+    public static readonly string AuthenticationScheme = "Bearer";
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
+    private readonly IContextSessionService _contextSessionService;
+    private readonly IJwtService _jwtService;
+    private readonly ISessionService _sessionService;
 
-    public JwtBearerAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, ISessionCache sessionCache, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
+    public JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
     {
+        _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
         _jwtService = Guard.AgainstNull(jwtService);
-        _sessionCache = Guard.AgainstNull(sessionCache);
+        _sessionService = Guard.AgainstNull(sessionService);
+        _contextSessionService = Guard.AgainstNull(contextSessionService);
+    }
+
+    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync()
+    {
+        var session = await _contextSessionService.FindAsync();
+
+        if (session == null)
+        {
+            return AuthenticateResult.Fail(Resources.ContextSessionNotFound);
+        }
+
+        List<Claim> claims =
+        [
+            new(ClaimTypes.NameIdentifier, session.IdentityName),
+            new(ClaimTypes.Name, session.IdentityName)
+        ];
+
+        if (session != null)
+        {
+            claims.Add(new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"));
+        }
+
+        return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (_accessAuthorizationOptions.PassThrough)
+        {
+            return await GetContextAuthenticateResultAsync();
+        }
+
         var header = Request.Headers["Authorization"].FirstOrDefault();
 
         if (header == null)
@@ -42,6 +73,13 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
         }
 
         var token = header[7..];
+        var identityName = await _jwtService.GetIdentityNameAsync(token);
+
+        if (string.IsNullOrWhiteSpace(identityName))
+        {
+            return AuthenticateResult.Fail(Access.Resources.IdentityNameClaimNotFound);
+        }
+
         var tokenValidationResult = await _jwtService.ValidateTokenAsync(token);
 
         if (!tokenValidationResult.IsValid)
@@ -61,20 +99,13 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
             return AuthenticateResult.Fail(failureMessage);
         }
 
-        var identityName = await _jwtService.GetIdentityNameAsync(token);
-
-        if (string.IsNullOrWhiteSpace(identityName))
-        {
-            return AuthenticateResult.Fail(Access.Resources.IdentityNameClaimNotFound);
-        }
-
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, identityName),
-            new(ClaimTypes.Name, identityName),
+            new(ClaimTypes.Name, identityName)
         ];
 
-        var session = await _sessionCache.FindAsync(identityName);
+        var session = await _sessionService.FindAsync(identityName);
 
         if (session != null)
         {
@@ -92,7 +123,7 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
         {
             return;
         }
-        
+
         Response.StatusCode = StatusCodes.Status401Unauthorized;
         Response.Headers.WWWAuthenticate = "Shuttle.Access";
 

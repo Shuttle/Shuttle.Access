@@ -4,14 +4,13 @@ import { useSessionStore } from "@/stores/session";
 import configuration from "./configuration";
 import router from "./router";
 
-const api = axios.create({ baseURL: configuration.url });
+const api = axios.create({ baseURL: configuration.getUrl() });
 
 api.interceptors.request.use(function (config) {
   const sessionStore = useSessionStore();
 
-  config.headers[
-    "Authorization"
-  ] = `Shuttle.Access token=${sessionStore.token}`;
+  config.headers["Authorization"] =
+    `Shuttle.Access token=${sessionStore.token}`;
 
   return config;
 });
@@ -37,7 +36,7 @@ api.interceptors.response.use(
     });
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

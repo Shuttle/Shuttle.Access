@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Shuttle.Access;
 
-public interface ISessionCache
+public interface ISessionService
 {
     Task AddAsync(Guid? token, Messages.v1.Session session, CancellationToken cancellationToken = default);
     Task<Messages.v1.Session?> FindByTokenAsync(Guid token, CancellationToken cancellationToken = default);

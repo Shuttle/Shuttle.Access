@@ -129,4 +129,7 @@
     <value>More than one session found for {0} '{1}'.</value>
     <comment>0 = type, 1 = value</comment>
   </data>
+  <data name="AuthorizationHeaderNotFound" xml:space="preserve">
+    <value>The 'HttpContext' does not contain an 'Authorization' header.</value>
+  </data>
 </root>
