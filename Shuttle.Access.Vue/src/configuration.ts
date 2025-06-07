@@ -38,25 +38,17 @@ const getConfiguration = (): Configuration => {
       return errorMessage;
     },
     getUrl() {
-      if (!isOk) {
-        throw new Error(errorMessage);
-      }
-      return `${values.VITE_API_URL}${values.VITE_API_URL.endsWith("/") ? "" : "/"}`;
+      return isOk
+        ? `${values.VITE_API_URL}${values.VITE_API_URL.endsWith("/") ? "" : "/"}`
+        : "";
     },
     isPasswordAuthenticationAllowed() {
-      if (!isOk) {
-        throw new Error(errorMessage);
-      }
-      return serverConfiguration.allowPasswordAuthentication;
+      return isOk ? serverConfiguration.allowPasswordAuthentication : false;
     },
     isDebugging() {
       return import.meta.env.DEV;
     },
     getApiUrl(path: string) {
-      if (!isOk) {
-        throw new Error(errorMessage);
-      }
-
       if (path.startsWith("/") && path.length < 2) {
         path = "";
       }

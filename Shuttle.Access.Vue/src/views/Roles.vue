@@ -15,6 +15,7 @@
         <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
           <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
           <v-btn :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
+          <v-btn :icon="mdiUpload" size="x-small" @click="upload"></v-btn>
           <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
       </template>
@@ -46,7 +47,7 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiDownload, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline, mdiCodeJson } from '@mdi/js';
+import { mdiDeleteOutline, mdiDownload, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline, mdiCodeJson, mdiUpload } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
@@ -134,6 +135,10 @@ const add = () => {
 
 const json = () => {
   router.push({ name: "role-json" })
+}
+
+const upload = () => {
+  router.push({ name: "role-upload" })
 }
 
 const permissions = (item: Role) => {

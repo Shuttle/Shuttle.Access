@@ -10,7 +10,10 @@ import "vuetify/styles";
 import { aliases, mdi } from "vuetify/iconsets/mdi-svg";
 import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
 import { i18n } from "@/i18n";
+
+// Components
 import { VDateInput } from "vuetify/labs/VDateInput";
+import { VFileUpload } from "vuetify/labs/components";
 
 // Composables
 import { createVuetify, type ThemeDefinition } from "vuetify";
@@ -44,6 +47,7 @@ const lightTheme: ThemeDefinition = {
 export default createVuetify({
   components: {
     VDateInput,
+    VFileUpload,
   },
   locale: {
     adapter: createVueI18nAdapter({ i18n, useI18n }),

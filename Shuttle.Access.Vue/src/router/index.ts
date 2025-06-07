@@ -114,6 +114,14 @@ const routes: Array<RouteRecordRaw> = [
           permission: Permissions.Permissions.Manage,
         },
       },
+      {
+        path: "permission/upload",
+        name: "permission-upload",
+        component: () => import("../views/PermissionUpload.vue"),
+        meta: {
+          permission: Permissions.Permissions.Manage,
+        },
+      },
     ],
   },
   {
@@ -156,6 +164,14 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import("../views/RolePermissions.vue"),
         meta: {
           permission: Permissions.Roles.View,
+        },
+      },
+      {
+        path: "role/upload",
+        name: "role-upload",
+        component: () => import("../views/RoleUpload.vue"),
+        meta: {
+          permission: Permissions.Roles.Manage,
         },
       },
     ],

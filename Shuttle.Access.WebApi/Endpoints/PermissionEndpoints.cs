@@ -76,6 +76,43 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
+        app.MapPost("/v{version:apiVersion}/permissions/file", async (HttpContext httpContext, IServiceBus serviceBus) =>
+            {
+                var form = httpContext.Request.Form;
+
+                if (form.Files.Count == 0)
+                {
+                    return Results.BadRequest();
+                }
+
+                var permissions = JsonSerializer.Deserialize<List<string>>(form.Files[0].OpenReadStream());
+
+                if (permissions == null || !permissions.Any())
+                {
+                    return Results.BadRequest();
+                }
+
+                foreach (var permission in permissions)
+                {
+                    if (string.IsNullOrWhiteSpace(permission))
+                    {
+                        continue;
+                    }
+
+                    await serviceBus.SendAsync(new RegisterPermission
+                    {
+                        Name = permission,
+                        Status = 1
+                    });
+                }
+
+                return Results.Accepted();
+            })
+            .WithTags("Permissions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Permissions.Register);
+        
         app.MapPost("/v{version:apiVersion}/permissions/bulk", async (IServiceBus serviceBus, List<string> permissions) =>
             {
                 if (!permissions.Any())

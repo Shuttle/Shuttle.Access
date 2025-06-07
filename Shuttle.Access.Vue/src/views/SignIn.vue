@@ -138,53 +138,52 @@ const signIn = async () => {
   }
 }
 
-const oauthAuthenticate = (name: string) => {
+const oauthAuthenticate = async (name: string) => {
   busy.value = true;
 
-  api
-    .get(`v1/oauth/authenticate/${name}${props.applicationName ? `/${props.applicationName}` : ""}`)
-    .then((response) => {
-      window.location.replace(response?.data?.authorizationUrl);
-    })
-    .finally(() => {
-      busy.value = false;
-    });
+  try {
+    const response = await api.get(`v1/oauth/authenticate/${name}${props.applicationName ? `/${props.applicationName}` : ""}`)
+
+    window.location.replace(response?.data?.authorizationUrl);
+  } finally {
+    busy.value = false;
+  }
 }
 
 const refreshOAuthProviders = async () => {
   busy.value = true;
 
-  api
-    .get("v1/oauth/providers")
-    .then(async (response) => {
-      oauthProviders.value = response?.data;
-    })
-    .finally(function () {
-      busy.value = false;
-    });
+  try {
+    const response = await api.get("v1/oauth/providers")
+
+    oauthProviders.value = response?.data;
+  } finally {
+    busy.value = false;
+  }
 }
 
 const fetchApplication = async () => {
   busy.value = true;
 
-  api
-    .get("v1/applications/" + props.applicationName)
-    .then(async (response) => {
-      application.value = response?.data;
-    })
-    .catch(error => {
-      alertStore.add({
-        message: error.toString(),
-        type: "error",
-        name: "fetch-application-exception"
-      });
-    })
-    .finally(function () {
-      busy.value = false;
+  try {
+    const response = await api.get("v1/applications/" + props.applicationName)
+    application.value = response?.data;
+  } catch (error: any) {
+    alertStore.add({
+      message: error.toString(),
+      type: "error",
+      name: "fetch-application-exception"
     });
+  } finally {
+    busy.value = false;
+  }
 }
 
 onMounted(async () => {
+  if (!configuration.isOk()) {
+    return;
+  }
+
   await refreshOAuthProviders();
 
   if (props.applicationName) {

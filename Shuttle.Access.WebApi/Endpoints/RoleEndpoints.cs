@@ -176,6 +176,42 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
+        app.MapPost("/v{version:apiVersion}/roles/file", async (HttpContext httpContext, IServiceBus serviceBus) =>
+            {
+                var form = httpContext.Request.Form;
+
+                if (form.Files.Count == 0)
+                {
+                    return Results.BadRequest();
+                }
+
+                var messages = JsonSerializer.Deserialize<List<RegisterRole>>(form.Files[0].OpenReadStream());
+
+                if (messages == null || !messages.Any())
+                {
+                    return Results.BadRequest();
+                }
+
+                foreach (var message in messages)
+                {
+                    foreach (var permission in message.Permissions.Where(item => !string.IsNullOrWhiteSpace(item)))
+                    {
+                        await serviceBus.SendAsync(new RegisterPermission
+                        {
+                            Name = permission,
+                            Status = 1
+                        });
+                    }
+
+                    await serviceBus.SendAsync(message);
+                }
+
+                return Results.Accepted();
+            })
+            .WithTags("Permissions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Permissions.Register);
         app.MapPost("/v{version:apiVersion}/roles/bulk", async ([FromServices] IServiceBus serviceBus, List<RegisterRole> messages) =>
             {
                 if (!messages.Any())
