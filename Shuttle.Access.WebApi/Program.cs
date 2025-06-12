@@ -68,6 +68,17 @@ public class Program
                 options.SubstituteApiVersionInUrl = true;
             });
 
+        webApplicationBuilder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(builder =>
+            {
+                builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+        });
+
         webApplicationBuilder.Services
             .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddEndpointsApiExplorer()
@@ -160,16 +171,6 @@ public class Program
             })
             .AddSqlAccess()
             .AddDataStoreAccessService()
-            .AddCors(options =>
-            {
-                options.AddDefaultPolicy(builder =>
-                {
-                    builder
-                        .AllowAnyOrigin()
-                        .AllowAnyMethod()
-                        .AllowAnyHeader();
-                });
-            })
             .AddOAuth(builder =>
             {
                 webApplicationBuilder.Configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);

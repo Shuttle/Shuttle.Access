@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
@@ -48,7 +49,7 @@ public static class OAuthEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}/{applicationName?}", async (ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName, string? applicationName) =>
+        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}/{applicationName?}", async (ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName, string? applicationName, [FromQuery] string? redirectUri) =>
             {
                 if (string.IsNullOrWhiteSpace(providerName))
                 {
@@ -80,7 +81,7 @@ public static class OAuthEndpoints
 
                 authorizationUrl.Append($"?response_type=code&client_id={oauthProviderOptions.Authorize.ClientId}");
                 authorizationUrl.Append($"&scope={oauthProviderOptions.Scope}");
-                authorizationUrl.Append($"&redirect_uri={oauthOptionsValue.DefaultRedirectUri}");
+                authorizationUrl.Append($"&redirect_uri={(string.IsNullOrWhiteSpace(redirectUri) ? oauthOptionsValue.DefaultRedirectUri : redirectUri)}");
 
                 if (!string.IsNullOrWhiteSpace(oauthProviderOptions.Authorize.CodeChallengeMethod))
                 {
