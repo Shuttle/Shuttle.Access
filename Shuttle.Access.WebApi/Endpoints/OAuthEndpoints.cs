@@ -70,6 +70,13 @@ public static class OAuthEndpoints
                     data.Add("ApplicationName", applicationName);
                 }
 
+                var hasRedirectUri = !string.IsNullOrWhiteSpace(redirectUri);
+
+                if (hasRedirectUri)
+                {
+                    data.Add("RedirectUri", redirectUri!);
+                }
+
                 var grant = await oauthService.RegisterAsync(providerName, data);
 
                 logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{providerName}' / application name = '{(string.IsNullOrWhiteSpace(applicationName) ? string.Empty : applicationName)}'");
@@ -81,7 +88,7 @@ public static class OAuthEndpoints
 
                 authorizationUrl.Append($"?response_type=code&client_id={oauthProviderOptions.Authorize.ClientId}");
                 authorizationUrl.Append($"&scope={oauthProviderOptions.Scope}");
-                authorizationUrl.Append($"&redirect_uri={(string.IsNullOrWhiteSpace(redirectUri) ? oauthOptionsValue.DefaultRedirectUri : redirectUri)}");
+                authorizationUrl.Append($"&redirect_uri={(hasRedirectUri ? redirectUri : oauthOptionsValue.DefaultRedirectUri)}");
 
                 if (!string.IsNullOrWhiteSpace(oauthProviderOptions.Authorize.CodeChallengeMethod))
                 {
