@@ -162,7 +162,7 @@ public static class SessionEndpoints
 
                 if (identityId == null)
                 {
-                    return Results.BadRequest();
+                    return Results.Ok();
                 }
 
                 using (new DatabaseContextScope())
