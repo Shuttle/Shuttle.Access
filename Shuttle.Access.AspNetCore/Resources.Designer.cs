@@ -70,6 +70,15 @@ namespace Shuttle.Access.AspNetCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find the &apos;SessionIdentityIdClaimType&apos; in the &apos;HttpContext&apos;..
+        /// </summary>
+        public static string HttpContextIdentityIdNotFoundException {
+            get {
+                return ResourceManager.GetString("HttpContextIdentityIdNotFoundException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find `IssuerOptions` matching Issuer &apos;{0}&apos; with audience(s) &apos;{1}&apos;..
         /// </summary>
         public static string IssuerNotFoundException {

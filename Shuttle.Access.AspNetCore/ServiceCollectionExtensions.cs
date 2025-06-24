@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore.Authentication;
 using Shuttle.Core.Contract;
@@ -22,10 +24,13 @@ public static class ServiceCollectionExtensions
             options.PassThrough = accessAuthorizationBuilder.Options.PassThrough;
         });
 
+        services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
         services
             .AddSingleton<IValidateOptions<AccessAuthorizationOptions>, AccessAuthorizationOptionsValidator>()
             .AddSingleton<AccessAuthorizationMiddleware>()
             .AddSingleton<IJwtService, JwtService>()
+            .AddSingleton<IHttpContextSessionService, HttpContextSessionService>()
             .AddAuthentication(options =>
             {
                 options.DefaultScheme = "Routing";

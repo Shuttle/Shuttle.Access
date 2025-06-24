@@ -120,6 +120,9 @@
   <data name="ContextSessionNotFound" xml:space="preserve">
     <value>Could not find a session for the current context.</value>
   </data>
+  <data name="HttpContextIdentityIdNotFoundException" xml:space="preserve">
+    <value>Could not find the 'SessionIdentityIdClaimType' in the 'HttpContext'.</value>
+  </data>
   <data name="IssuerNotFoundException" xml:space="preserve">
     <value>Could not find `IssuerOptions` matching Issuer '{0}' with audience(s) '{1}'.</value>
     <comment>0 = issuer, 1 = audience list (csv)</comment>
