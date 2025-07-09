@@ -1,23 +1,18 @@
 ﻿FROM mcr.microsoft.com/mssql/server:2022-latest
 
-# Elevate to root to install required packages
 USER root
 
 RUN mkdir /tmp/db && chown -R mssql /tmp/db
 
-COPY ./deployment/efbundle-linux-x64 /tmp/db/efbundle-linux-x64
+COPY ./deployment/shuttle-access-efbundle-linux-x64 /tmp/db/efbundle-linux-x64
 COPY ./data-appsettings.json tmp/db/appsettings.json
 
-# Configure external build arguments to allow configurability.
 ARG DBNAME=Access
 ARG PASSWORD=Pass!000
 
-# Configure the required environmental variables
 ENV ACCEPT_EULA=Y
 ENV SA_PASSWORD=$PASSWORD
 
-# Launch SQL Server, confirm startup is complete, deploy the DACPAC, then terminate SQL Server.
-# See https://stackoverflow.com/a/51589787/488695
 RUN ( /opt/mssql/bin/sqlservr & ) | grep -q "Service Broker manager has started" \
     && /tmp/db/efbundle-linux-x64 --connection "Data Source=.;Initial Catalog=Access;user id=sa;password=Pass!000;TrustServerCertificate=true" --verbose \
     && rm -r /tmp/db \

@@ -2,7 +2,7 @@
 setlocal
 
 :: List of container names
-set containers=shuttle/access-server shuttle/access-projection shuttle/access-webapi shuttle/access-sqlserver-linux
+set containers=shuttle/access-server shuttle/access-webapi shuttle/access-sqlserver-linux
 
 :: Prompt for version input
 set /p version="Enter the version tag (e.g., 1.0.0): "
