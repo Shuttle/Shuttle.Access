@@ -3,6 +3,7 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
@@ -73,7 +74,7 @@ public static class SessionEndpoints
                 {
                     return Results.BadRequest(Resources.SessionIdentityNameRequired);
                 }
-                
+
                 var registerSession = new RegisterSession(message.IdentityName);
 
                 if (!string.IsNullOrWhiteSpace(message.Password))
@@ -192,13 +193,38 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/sessions/self", async (HttpContext httpContext, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery) =>
+        app.MapGet("/v{version:apiVersion}/sessions/self", async (HttpContext httpContext, ISessionService sessionService, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery, IMediator mediator) =>
             {
+                async Task<IResult> AttemptRegistration()
+                {
+                    var identityName = httpContext.GetIdentityName();
+
+                    if (string.IsNullOrWhiteSpace(identityName))
+                    {
+                        return Results.BadRequest();
+                    }
+
+                    var registerSession = new RegisterSession(identityName).UseDirect();
+
+                    await RegisterSession(databaseContextFactory, mediator, registerSession);
+
+                    return registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession
+                        ? Results.BadRequest()
+                        : Results.Ok(new Messages.v1.Session
+                        {
+                            DateRegistered = registerSession.Session!.DateRegistered,
+                            ExpiryDate = registerSession.Session.ExpiryDate,
+                            IdentityId = registerSession.Session.IdentityId,
+                            IdentityName = identityName,
+                            Permissions = registerSession.Session.Permissions.OrderBy(item => item).ToList()
+                        });
+                }
+
                 var sessionIdentityId = httpContext.GetIdentityId();
 
                 if (sessionIdentityId == null)
                 {
-                    return Results.BadRequest();
+                    return await AttemptRegistration();
                 }
 
                 using (new DatabaseContextScope())
@@ -206,13 +232,19 @@ public static class SessionEndpoints
                 {
                     var session = (await sessionQuery.SearchAsync(new DataAccess.Session.Specification().WithIdentityId(sessionIdentityId.Value).IncludePermissions())).FirstOrDefault();
 
-                    return session != null ? Results.Ok(session) : Results.NotFound();
+                    if (session != null)
+                    {
+                        return Results.Ok(session);
+                    }
+
+                    await sessionService.FlushAsync(sessionIdentityId.Value);
+
+                    return await AttemptRegistration();
                 }
             })
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
-
         app.MapDelete("/v{version:apiVersion}/sessions", async (IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
                 using (new DatabaseContextScope())
