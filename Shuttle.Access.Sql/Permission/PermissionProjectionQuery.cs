@@ -39,6 +39,11 @@ public class PermissionProjectionQuery : IPermissionProjectionQuery
         await _databaseContextService.Active.ExecuteAsync(_queryFactory.Removed(primitiveEvent.Id, domainEvent), cancellationToken);
     }
 
+    public async Task DescriptionSetAsync(PrimitiveEvent primitiveEvent, DescriptionSet domainEvent, CancellationToken cancellationToken)
+    {
+        await _databaseContextService.Active.ExecuteAsync(_queryFactory.DescriptionSet(primitiveEvent.Id, domainEvent), cancellationToken);
+    }
+
     public async Task NameSetAsync(PrimitiveEvent primitiveEvent, NameSet domainEvent, CancellationToken cancellationToken = default)
     {
         await _databaseContextService.Active.ExecuteAsync(_queryFactory.NameSet(primitiveEvent.Id, domainEvent), cancellationToken);

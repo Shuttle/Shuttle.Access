@@ -19,9 +19,6 @@
           <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
       </template>
-      <template v-slot:item.action="{ item }">
-        <v-btn :icon="mdiPencil" size="x-small" @click="rename(item)" />
-      </template>
       <template v-slot:item.status="{ item }">
         <div class="flex flex-row items-center my-2">
           <v-btn-toggle v-model="item.status" variant="outlined" divided>
@@ -32,6 +29,18 @@
           <div v-if="item.working" class="flex flex-row items-center justify-center ml-2">
             <v-icon :icon="mdiTimerSand"></v-icon>
           </div>
+        </div>
+      </template>
+      <template v-slot:item.name="{ item }">
+        <div class="flex items-center">
+          <div class="flex-grow">{{ item.name }}</div>
+          <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" class="flex-none" />
+        </div>
+      </template>
+      <template v-slot:item.description="{ item }">
+        <div class="flex items-center">
+          <div class="flex-grow">{{ item.description }}</div>
+          <v-btn :icon="mdiPencil" size="x-small" @click.stop="description(item)" class="flex-none" />
         </div>
       </template>
     </v-data-table>
@@ -88,6 +97,10 @@ const headers = useSecureTableHeaders([
   {
     title: t("permission"),
     value: "name",
+  },
+  {
+    title: t("description"),
+    value: "description",
   },
 ]);
 
@@ -175,6 +188,10 @@ const upload = () => {
 
 const rename = (item: PermissionItem) => {
   router.push({ name: "permission-rename", params: { id: item.id } });
+}
+
+const description = (item: PermissionItem) => {
+  router.push({ name: "permission-description", params: { id: item.id } });
 }
 
 const download = async () => {

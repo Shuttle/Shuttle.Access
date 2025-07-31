@@ -45,12 +45,13 @@ public class RegisterPermissionParticipant : IParticipant<RequestResponseMessage
             status = (int)PermissionStatus.Active;
         }
 
-        stream.Add(aggregate.Register(message.Name, (PermissionStatus)status));
+        stream.Add(aggregate.Register(message.Name, message.Description, (PermissionStatus)status));
 
         context.Message.WithResponse(new()
         {
             Id = id,
             Name = message.Name,
+            Description = message.Description,
             SequenceNumber = await _eventStore.SaveAsync(stream)
         });
     }

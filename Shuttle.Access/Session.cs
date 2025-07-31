@@ -8,15 +8,25 @@ namespace Shuttle.Access;
 
 public class Session
 {
-    private readonly List<string> _permissions = [];
+    public class Permission
+    {
+        public Guid Id { get; }
+        public string Name { get; }
+
+        public Permission(Guid id, string name)
+        {
+            Id = Guard.AgainstEmpty(id);
+            Name = Guard.AgainstEmpty(name);
+        }
+    }
+
+    private readonly List<Permission> _permissions = [];
 
     public Session(byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
     {
-        Guard.AgainstEmpty(identityName);
-
         Token = Guard.AgainstNull(token);
-        IdentityId = identityId;
-        IdentityName = identityName;
+        IdentityId = Guard.AgainstEmpty(identityId);
+        IdentityName = Guard.AgainstEmpty(identityName);
         DateRegistered = dateRegistered;
         ExpiryDate = expiryDate;
     }
@@ -29,15 +39,15 @@ public class Session
     public Guid IdentityId { get; }
     public string IdentityName { get; }
 
-    public IEnumerable<string> Permissions => _permissions.AsReadOnly();
+    public IEnumerable<Permission> Permissions => _permissions.AsReadOnly();
     public byte[] Token { get; private set; }
     public bool HasPermissions => _permissions.Any();
 
-    public Session AddPermission(string permission)
+    public Session AddPermission(Permission permission)
     {
-        Guard.AgainstEmpty(permission);
+        Guard.AgainstNull(permission);
 
-        if (!_permissions.Contains(permission))
+        if (_permissions.All(item => item.Id != permission.Id))
         {
             _permissions.Add(permission);
         }
@@ -56,7 +66,7 @@ public class Session
 
         return _permissions
             .Any(permission =>
-                Regex.IsMatch(requiredPermission, $"^{Regex.Escape(permission).Replace(@"\*", ".*")}$", RegexOptions.IgnoreCase));
+                Regex.IsMatch(requiredPermission, $"^{Regex.Escape(permission.Name).Replace(@"\*", ".*")}$", RegexOptions.IgnoreCase));
     }
 
     public void Renew(DateTimeOffset expiryDate, byte[] token)

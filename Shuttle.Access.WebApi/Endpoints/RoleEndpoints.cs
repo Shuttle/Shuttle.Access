@@ -247,7 +247,7 @@ public static class RoleEndpoints
                     return Results.BadRequest();
                 }
 
-                List<Messages.v1.Role> roles;
+                List<DataAccess.Role> roles;
 
                 using (new DatabaseContextScope())
                 {

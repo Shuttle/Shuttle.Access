@@ -8,5 +8,5 @@ public interface IPermissionQuery
 {
     ValueTask<bool> ContainsAsync(Permission.Specification specification, CancellationToken cancellationToken = default);
     ValueTask<int> CountAsync(Permission.Specification specification, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Messages.v1.Permission>> SearchAsync(Permission.Specification specification, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Permission>> SearchAsync(Permission.Specification specification, CancellationToken cancellationToken = default);
 }

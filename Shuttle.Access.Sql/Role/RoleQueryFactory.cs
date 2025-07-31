@@ -124,6 +124,7 @@ SELECT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : st
     rp.RoleId,
     p.Id,
     p.Name,
+    p.Description,
     p.Status
 FROM
     RolePermission rp

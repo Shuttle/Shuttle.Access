@@ -23,11 +23,11 @@ public class RoleQuery : IRoleQuery
         _dataRowMapper = Guard.AgainstNull(dataRowMapper);
     }
 
-    public async Task<IEnumerable<Messages.v1.Role>> SearchAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataAccess.Role>> SearchAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 
-        var result = (await _queryMapper.MapObjectsAsync<Messages.v1.Role>(_queryFactory.Search(specification), cancellationToken)).ToList();
+        var result = (await _queryMapper.MapObjectsAsync<DataAccess.Role>(_queryFactory.Search(specification), cancellationToken)).ToList();
 
         if (specification.PermissionsIncluded)
         {
@@ -42,16 +42,16 @@ public class RoleQuery : IRoleQuery
                     continue;
                 }
 
-                role.Permissions = _dataRowMapper.MapObjects<Messages.v1.Role.Permission>(permissionGroup).ToList();
+                role.Permissions = _dataRowMapper.MapObjects<DataAccess.Permission>(permissionGroup).ToList();
             }
         }
 
         return result;
     }
 
-    public async Task<IEnumerable<Messages.v1.Permission>> PermissionsAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataAccess.Permission>> PermissionsAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)
     {
-        return await _queryMapper.MapObjectsAsync<Messages.v1.Role.Permission>(_queryFactory.Permissions(specification), cancellationToken);
+        return await _queryMapper.MapObjectsAsync<DataAccess.Permission>(_queryFactory.Permissions(specification), cancellationToken);
     }
 
     public async ValueTask<int> CountAsync(DataAccess.Role.Specification specification, CancellationToken cancellationToken = default)

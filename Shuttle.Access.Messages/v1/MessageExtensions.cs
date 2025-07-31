@@ -114,6 +114,13 @@ public static class MessageExtensions
         Guard.AgainstEmpty(message.Name);
     }
 
+    public static void ApplyInvariants(this SetPermissionDescription message)
+    {
+        Guard.AgainstNull(message);
+        Guard.AgainstEmpty(message.Id);
+        Guard.AgainstEmpty(message.Description);
+    }
+
     public static void ApplyInvariants(this SetPermissionStatus message)
     {
         Guard.AgainstNull(message);

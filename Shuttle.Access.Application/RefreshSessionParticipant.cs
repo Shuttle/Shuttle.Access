@@ -49,7 +49,7 @@ public class RefreshSessionParticipant : IParticipant<RefreshSession>
 
         foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName))
         {
-            session.AddPermission(permission);
+            session.AddPermission(new(permission.Id, permission.Name));
         }
 
         await _sessionRepository.SaveAsync(session);

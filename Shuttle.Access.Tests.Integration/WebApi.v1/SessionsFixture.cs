@@ -18,12 +18,12 @@ public class SessionsFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var session = new Messages.v1.Session
+        var session = new Access.DataAccess.Session
         {
             IdentityId = Guid.NewGuid()
         };
 
-        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Messages.v1.Session> { session }.AsEnumerable()));
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Access.DataAccess.Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 

@@ -31,17 +31,17 @@ public class SessionQuery : ISessionQuery
         return await _databaseContextService.Active.GetScalarAsync<int>(_queryFactory.Contains(specification), cancellationToken) == 1;
     }
 
-    public async Task<IEnumerable<Messages.v1.Session>> SearchAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataAccess.Session>> SearchAsync(DataAccess.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 
-        var sessions = await _queryMapper.MapObjectsAsync<Messages.v1.Session>(_queryFactory.Search(specification), cancellationToken);
+        var sessions = await _queryMapper.MapObjectsAsync<DataAccess.Session>(_queryFactory.Search(specification), cancellationToken);
 
         if (specification.ShouldIncludePermissions)
         {
             foreach (var session in sessions)
             {
-                session.Permissions = (await _queryMapper.MapValuesAsync<string>(_queryFactory.GetPermissions(session.IdentityId), cancellationToken)).ToList();
+                session.Permissions = (await _queryMapper.MapObjectsAsync<DataAccess.Permission>(_queryFactory.GetPermissions(session.IdentityId), cancellationToken)).ToList();
             }
         }
 

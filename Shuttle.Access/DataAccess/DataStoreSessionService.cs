@@ -163,7 +163,7 @@ public class DataStoreSessionService : SessionCache, ISessionService
             IdentityName = session.IdentityName,
             DateRegistered = session.DateRegistered,
             ExpiryDate = session.ExpiryDate,
-            Permissions = session.Permissions.ToList()
+            Permissions = session.Permissions.Select(item => item.Name).ToList()
         });
     }
 }

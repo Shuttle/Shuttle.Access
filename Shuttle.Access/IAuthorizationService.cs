@@ -6,5 +6,5 @@ namespace Shuttle.Access;
 
 public interface IAuthorizationService
 {
-    Task<IEnumerable<string>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default);
+    Task<IEnumerable<DataAccess.Permission>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default);
 }

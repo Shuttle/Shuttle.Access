@@ -1,16 +1,19 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Shuttle.Access.DataAccess;
 
 public class Role
 {
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public List<Permission> Permissions { get; set; } = [];
+
     public class Specification
     {
-        private readonly List<string> _names = new();
-        private readonly List<Guid> _permissionIds = new();
-        private readonly List<Guid> _rolesIds = new();
+        private readonly List<string> _names = [];
+        private readonly List<Guid> _permissionIds = [];
+        private readonly List<Guid> _rolesIds = [];
 
         public string NameMatch { get; private set; } = string.Empty;
         public IEnumerable<string> Names => _names.AsReadOnly();

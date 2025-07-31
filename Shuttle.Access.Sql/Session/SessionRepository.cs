@@ -58,7 +58,7 @@ public class SessionRepository : ISessionRepository
 
         foreach (var row in await _databaseContextService.Active.GetRowsAsync(_queryFactory.GetPermissions(result.IdentityId), cancellationToken))
         {
-            result.AddPermission(Columns.PermissionName.Value(row)!);
+            result.AddPermission(new(Columns.Id.Value(row), Columns.Name.Value(row)!));
         }
 
         return result;

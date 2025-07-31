@@ -20,9 +20,9 @@ public class PermissionQuery : IPermissionQuery
         _queryFactory = Guard.AgainstNull(queryFactory);
     }
 
-    public async Task<IEnumerable<Messages.v1.Permission>> SearchAsync(DataAccess.Permission.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataAccess.Permission>> SearchAsync(DataAccess.Permission.Specification specification, CancellationToken cancellationToken = default)
     {
-        return await _queryMapper.MapObjectsAsync<Messages.v1.Permission>(_queryFactory.Search(specification), cancellationToken);
+        return await _queryMapper.MapObjectsAsync<DataAccess.Permission>(_queryFactory.Search(specification), cancellationToken);
     }
 
     public async ValueTask<int> CountAsync(DataAccess.Permission.Specification specification, CancellationToken cancellationToken = default)

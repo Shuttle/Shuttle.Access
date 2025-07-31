@@ -42,7 +42,7 @@ import { mdiDeleteOutline, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from 
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
-import type { Session } from "@/access";
+import type { Permission, Session } from "@/access";
 import type { AxiosResponse } from "axios";
 import { useDateFormatter } from "@/composables/DateFormatter";
 import { useSessionStore } from "@/stores/session";
@@ -87,10 +87,11 @@ const headers = useSecureTableHeaders([
 const permissionHeaders = useSecureTableHeaders([
   {
     title: t("permission"),
-    key: "permission",
-    value: (item: string) => {
-      return item;
-    },
+    value: "name",
+  },
+  {
+    title: t("description"),
+    value: "description",
   },
 ]);
 

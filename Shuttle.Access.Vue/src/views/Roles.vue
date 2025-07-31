@@ -92,6 +92,10 @@ const permissionHeaders = useSecureTableHeaders([
     value: "name"
   },
   {
+    title: t("description"),
+    value: "description"
+  },
+  {
     title: t("status"),
     key: "status",
     value: (item: Permission) => {

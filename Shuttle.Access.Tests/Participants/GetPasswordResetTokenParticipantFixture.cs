@@ -22,10 +22,10 @@ public class GetPasswordResetTokenParticipantFixture
         var eventStore = new FixtureEventStore();
         var identityQuery = new Mock<IIdentityQuery>();
 
-        var identity = new Messages.v1.Identity { Id = Guid.NewGuid() };
+        var identity = new DataAccess.Identity { Id = Guid.NewGuid() };
 
         identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None))
-            .Returns(Task.FromResult(new List<Messages.v1.Identity> { identity }.AsEnumerable()));
+            .Returns(Task.FromResult(new List<DataAccess.Identity> { identity }.AsEnumerable()));
 
         var participant = new GetPasswordResetTokenParticipant(identityQuery.Object, eventStore);
 

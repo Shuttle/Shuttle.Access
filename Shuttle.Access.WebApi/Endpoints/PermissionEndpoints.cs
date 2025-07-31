@@ -9,7 +9,6 @@ using Shuttle.Core.Data;
 using Shuttle.Esb;
 using System.Text;
 using System.Text.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Shuttle.Access.WebApi;
 
@@ -187,6 +186,27 @@ public static class PermissionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
+
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/description", async (IServiceBus serviceBus, Guid id, [FromBody] SetPermissionDescription message) =>
+            {
+                try
+                {
+                    message.Id = id;
+                    message.ApplyInvariants();
+                }
+                catch (Exception ex)
+                {
+                    return Results.BadRequest(ex.Message);
+                }
+
+                await serviceBus.SendAsync(message);
+
+                return Results.Accepted();
+            })
+            .WithTags("Identities")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Roles.Register);
 
         app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, SetPermissionStatus message, IServiceBus serviceBus) =>
             {

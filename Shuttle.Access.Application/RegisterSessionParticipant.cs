@@ -136,7 +136,7 @@ public class RegisterSessionParticipant : IParticipant<RegisterSession>
         {
             foreach (var permission in await _authorizationService.GetPermissionsAsync(message.IdentityName, context.CancellationToken))
             {
-                session.AddPermission(permission);
+                session.AddPermission(new(permission.Id, permission.Name));
             }
 
             session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));

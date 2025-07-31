@@ -12,28 +12,28 @@ public class SessionFixture
     {
         var session = new Session([], Guid.NewGuid(), "identity", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(30));
 
-        session.AddPermission("system-a://component-a/function-a");
+        session.AddPermission(new(Guid.NewGuid(), "system-a://component-a/function-a"));
 
         Assert.That(session.HasPermission("system-a://component-a/function-a"), Is.True);
         Assert.That(session.HasPermission("system-a://component-a/function-b"), Is.False);
         Assert.That(session.HasPermission("system-a://component-b/function-a"), Is.False);
         Assert.That(session.HasPermission("system-b://component-a/function-a"), Is.False);
 
-        session.AddPermission("system-a://component/*");
+        session.AddPermission(new(Guid.NewGuid(), "system-a://component/*"));
 
         Assert.That(session.HasPermission("system-a://component/function-a"), Is.True);
         Assert.That(session.HasPermission("system-a://component/function-b"), Is.True);
         Assert.That(session.HasPermission("system-a://component-b/function-a"), Is.False);
         Assert.That(session.HasPermission("system-b://component-a/function-a"), Is.False);
 
-        session.AddPermission("system-a://*");
+        session.AddPermission(new(Guid.NewGuid(), "system-a://*"));
 
         Assert.That(session.HasPermission("system-a://component/function-a"), Is.True);
         Assert.That(session.HasPermission("system-a://component/function-b"), Is.True);
         Assert.That(session.HasPermission("system-a://component-b/function-a"), Is.True);
         Assert.That(session.HasPermission("system-b://component-a/function-a"), Is.False);
 
-        session.AddPermission("*");
+        session.AddPermission(new(Guid.NewGuid(), "*"));
 
         Assert.That(session.HasPermission("system-a://component/function-a"), Is.True);
         Assert.That(session.HasPermission("system-a://component/function-b"), Is.True);

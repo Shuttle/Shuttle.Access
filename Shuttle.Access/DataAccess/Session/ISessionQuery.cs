@@ -8,5 +8,5 @@ public interface ISessionQuery
 {
     ValueTask<int> CountAsync(Session.Specification specification, CancellationToken cancellationToken = default); 
     ValueTask<bool> ContainsAsync(Session.Specification specification, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Messages.v1.Session>> SearchAsync(Session.Specification specification, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Session>> SearchAsync(Session.Specification specification, CancellationToken cancellationToken = default);
 }

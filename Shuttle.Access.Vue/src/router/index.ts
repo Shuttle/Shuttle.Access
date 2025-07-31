@@ -115,6 +115,15 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
+        path: "permission/:id/permission",
+        name: "permission-description",
+        component: () => import("../views/PermissionDescription.vue"),
+        props: true,
+        meta: {
+          permission: Permissions.Identities.Manage,
+        },
+      },
+      {
         path: "permission/upload",
         name: "permission-upload",
         component: () => import("../views/PermissionUpload.vue"),

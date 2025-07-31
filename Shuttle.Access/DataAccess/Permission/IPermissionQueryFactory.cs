@@ -14,4 +14,5 @@ public interface IPermissionQueryFactory
     IQuery Registered(Guid id, Registered domainEvent);
     IQuery Removed(Guid id, Removed domainEvent);
     IQuery Search(Permission.Specification specification);
+    IQuery DescriptionSet(Guid id, DescriptionSet domainEvent);
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shuttle.Access.Data;
 
@@ -11,9 +12,11 @@ using Shuttle.Access.Data;
 namespace Shuttle.Access.Data.Migrations
 {
     [DbContext(typeof(AccessDbContext))]
-    partial class AccessDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250731100652_PermissionDescription_Migration")]
+    partial class PermissionDescription_Migration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -176,10 +179,11 @@ namespace Shuttle.Access.Data.Migrations
                     b.Property<Guid>("IdentityId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("PermissionId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("PermissionName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.HasKey("IdentityId", "PermissionId");
+                    b.HasKey("IdentityId", "PermissionName");
 
                     b.ToTable("SessionPermission");
                 });

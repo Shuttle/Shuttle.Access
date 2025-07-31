@@ -191,13 +191,16 @@ WHERE
 SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 
 SELECT
-	p.[Name]
+    p.[Id],
+    p.[Name],
+    p.[Description],
+    p.[Status]
 FROM
-	Permission p 
+	[dbo].[Permission] p 
 INNER JOIN
-	RolePermission rp ON rp.PermissionId = p.Id
+	[dbo].[RolePermission] rp ON rp.PermissionId = p.Id
 INNER JOIN
-	IdentityRole ir ON ir.RoleId = rp.RoleId
+	[dbo].[IdentityRole] ir ON ir.RoleId = rp.RoleId
 WHERE
 	ir.IdentityId = @IdentityId
 AND
@@ -244,13 +247,13 @@ SELECT DISTINCT
 FROM
 	[dbo].[Identity] i
 LEFT JOIN
-	IdentityRole ir on (ir.IdentityId = i.Id)
+	[dbo].[IdentityRole] ir on (ir.IdentityId = i.Id)
 LEFT JOIN
-	Role r ON (r.Id = ir.RoleId)   
+	[dbo].[Role] r ON (r.Id = ir.RoleId)   
 LEFT JOIN
-	RolePermission rp ON (rp.RoleId = r.Id)    
+	[dbo].[RolePermission] rp ON (rp.RoleId = r.Id)    
 LEFT JOIN
-    Permission p ON (p.Id = rp.PermissionId)
+    [dbo].[Permission] p ON (p.Id = rp.PermissionId)
 WHERE
 (
     ISNULL(@NameMatch, '') = ''

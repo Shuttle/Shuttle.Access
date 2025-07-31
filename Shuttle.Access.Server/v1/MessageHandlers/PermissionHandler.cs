@@ -10,7 +10,8 @@ namespace Shuttle.Access.Server.v1.MessageHandlers;
 public class PermissionHandler :
     IMessageHandler<RegisterPermission>,
     IMessageHandler<SetPermissionStatus>,
-    IMessageHandler<SetPermissionName>
+    IMessageHandler<SetPermissionName>,
+    IMessageHandler<SetPermissionDescription>
 {
     private readonly IDatabaseContextFactory _databaseContextFactory;
     private readonly IMediator _mediator;
@@ -74,6 +75,29 @@ public class PermissionHandler :
         var message = context.Message;
 
         var requestResponse = new RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>(message);
+
+        using (new DatabaseContextScope())
+        await using (_databaseContextFactory.Create())
+        {
+            await _mediator.SendAsync(requestResponse);
+        }
+
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response);
+        }
+    }
+
+    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionDescription> context)
+    {
+        var message = context.Message;
+
+        if (string.IsNullOrEmpty(message.Description))
+        {
+            return;
+        }
+
+        var requestResponse = new RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet>(message);
 
         using (new DatabaseContextScope())
         await using (_databaseContextFactory.Create())

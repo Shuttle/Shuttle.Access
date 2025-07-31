@@ -12,7 +12,8 @@ public class PermissionHandler :
     IEventHandler<Activated>,
     IEventHandler<Deactivated>,
     IEventHandler<Removed>,
-    IEventHandler<NameSet>
+    IEventHandler<NameSet>,
+    IEventHandler<DescriptionSet>
 {
     private readonly ILogger<PermissionHandler> _logger;
     private readonly IPermissionProjectionQuery _query;
@@ -48,6 +49,15 @@ public class PermissionHandler :
         await _query.NameSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
 
         _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}'");
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<DescriptionSet> context)
+    {
+        Guard.AgainstNull(context);
+
+        await _query.DescriptionSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+
+        _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / description = '{context.Event.Description}'");
     }
 
     public async Task ProcessEventAsync(IEventHandlerContext<Registered> context)

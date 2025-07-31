@@ -40,7 +40,7 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPatch("/v{version:apiVersion}/identities/{id}/description", async (IServiceBus serviceBus, Guid id, [FromBody] SetIdentityDescription message) =>
+        app.MapPatch("/v{version:apiVersion}/identities/{id:guid}/description", async (IServiceBus serviceBus, Guid id, [FromBody] SetIdentityDescription message) =>
             {
                 try
                 {

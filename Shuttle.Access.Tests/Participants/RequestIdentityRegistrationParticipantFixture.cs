@@ -19,8 +19,8 @@ public class RequestIdentityRegistrationParticipantFixture
         var now = DateTimeOffset.UtcNow;
         var identityId = Guid.NewGuid();
         var session = new Session(Guid.NewGuid().ToByteArray(), identityId, "identity-name", now, now.AddSeconds(5))
-            .AddPermission(AccessPermissions.Identities.Register)
-            .AddPermission(AccessPermissions.Identities.Activate);
+            .AddPermission(new(Guid.NewGuid(), AccessPermissions.Identities.Register))
+            .AddPermission(new(Guid.NewGuid(), AccessPermissions.Identities.Activate));
         var sessionRepository = new Mock<ISessionRepository>();
 
         sessionRepository.Setup(m => m.FindAsync(session.IdentityId, CancellationToken.None)).Returns(Task.FromResult(session)!);

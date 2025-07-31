@@ -4,6 +4,8 @@
       <sv-title :title="$t('permission')" close-path="/permissions" />
       <v-text-field v-model="state.name" :label="$t('name')" class="mb-2" :error-messages="validation.message('name')">
       </v-text-field>
+      <v-text-field v-model="state.description" :label="$t('description')" class="mb-2">
+      </v-text-field>
       <div class="sv-strip sv-strip--reverse">
         <v-btn type="submit" :disabled="busy">{{ $t("save") }}</v-btn>
       </div>
@@ -25,10 +27,12 @@ const busy: Ref<boolean> = ref(false);
 
 type State = {
   name: string;
+  description: string;
 }
 
 const state: Reactive<State> = reactive({
   name: "",
+  description: "",
 });
 
 const rules = computed(() => {
@@ -53,6 +57,7 @@ const submit = async () => {
   try {
     await api.post<RegisterPermission>("v1/permissions", {
       name: state.name,
+      description: state.description,
       status: 1
     })
 

@@ -14,7 +14,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
 public class IdentitiesFixture
 {
-    private static Messages.v1.Identity CreateIdentity()
+    private static Access.DataAccess.Identity CreateIdentity()
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -46,7 +46,7 @@ public class IdentitiesFixture
 
         factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
-                new List<Messages.v1.Identity>
+                new List<Access.DataAccess.Identity>
                 {
                     identity
                 }.AsEnumerable()));
@@ -113,7 +113,7 @@ public class IdentitiesFixture
         var factory = new FixtureWebApplicationFactory();
 
         factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
-            new List<Messages.v1.Identity>
+            new List<Access.DataAccess.Identity>
             {
                 identity
             }.AsEnumerable()));
@@ -145,7 +145,7 @@ public class IdentitiesFixture
         var factory = new FixtureWebApplicationFactory();
 
         factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(
-            Task.FromResult(new List<Messages.v1.Identity>
+            Task.FromResult(new List<Access.DataAccess.Identity>
             {
                 identity
             }.AsEnumerable()));

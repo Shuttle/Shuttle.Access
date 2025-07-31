@@ -193,7 +193,7 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/sessions/self", async (HttpContext httpContext, ISessionService sessionService, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery, IMediator mediator) =>
+        app.MapGet("/v{version:apiVersion}/sessions/self", async (IOptions<AccessOptions> accessOptions, HttpContext httpContext, ISessionService sessionService, IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery, IMediator mediator) =>
             {
                 async Task<IResult> AttemptRegistration()
                 {
@@ -216,7 +216,7 @@ public static class SessionEndpoints
                             ExpiryDate = registerSession.Session.ExpiryDate,
                             IdentityId = registerSession.Session.IdentityId,
                             IdentityName = identityName,
-                            Permissions = registerSession.Session.Permissions.OrderBy(item => item).ToList()
+                            Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList()
                         });
                 }
 
@@ -232,9 +232,16 @@ public static class SessionEndpoints
                 {
                     var session = (await sessionQuery.SearchAsync(new DataAccess.Session.Specification().WithIdentityId(sessionIdentityId.Value).IncludePermissions())).FirstOrDefault();
 
-                    if (session != null)
+                    if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
                     {
-                        return Results.Ok(session);
+                        return Results.Ok(new Messages.v1.Session
+                        {
+                            DateRegistered = session.DateRegistered,
+                            ExpiryDate = session.ExpiryDate,
+                            IdentityId = session.IdentityId,
+                            IdentityName = session.IdentityName,
+                            Permissions = session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList()
+                        });
                     }
 
                     await sessionService.FlushAsync(sessionIdentityId.Value);
@@ -347,7 +354,7 @@ public static class SessionEndpoints
             sessionResponse.IdentityName = registerSession.Session!.IdentityName;
             sessionResponse.Token = registerSession.SessionToken!.Value;
             sessionResponse.ExpiryDate = registerSession.Session.ExpiryDate;
-            sessionResponse.Permissions = registerSession.Session.Permissions.ToList();
+            sessionResponse.Permissions = registerSession.Session.Permissions.Select(item => item.Name).ToList();
             sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
             sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
         }

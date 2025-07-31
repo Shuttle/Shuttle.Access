@@ -12,7 +12,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 [TestFixture]
 public class RolesFixture
 {
-    private static Messages.v1.Role CreateRole()
+    private static Access.DataAccess.Role CreateRole()
     {
         return new()
         {
@@ -42,7 +42,7 @@ public class RolesFixture
         var role = CreateRole();
 
         factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Messages.v1.Role>
+            Task.FromResult(new List<Access.DataAccess.Role>
             {
                 role
             }.AsEnumerable()));
@@ -72,7 +72,7 @@ public class RolesFixture
         var role = CreateRole();
 
         factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Messages.v1.Role>
+            Task.FromResult(new List<Access.DataAccess.Role>
             {
                 role
             }.AsEnumerable()));
@@ -140,7 +140,7 @@ public class RolesFixture
         var factory = new FixtureWebApplicationFactory();
 
         factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Messages.v1.Permission>
+            Task.FromResult(new List<Access.DataAccess.Permission>
             {
                 new()
                 {

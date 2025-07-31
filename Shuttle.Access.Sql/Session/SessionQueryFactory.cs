@@ -8,14 +8,6 @@ namespace Shuttle.Access.Sql;
 
 public class SessionQueryFactory : ISessionQueryFactory
 {
-    private const string SelectedColumns = @"
-	Token, 
-	IdentityId, 
-	IdentityName, 
-	DateRegistered, 
-	ExpiryDate 
-";
-
     public IQuery Contains(DataAccess.Session.Specification specification)
     {
         Guard.AgainstNull(specification);
@@ -26,7 +18,7 @@ IF EXISTS
     SELECT 
         NULL 
     FROM 
-        [dbo].[Session] 
+        [dbo].[Session] s
 {Where(specification)}
 ) 
 	SELECT 1 
@@ -42,9 +34,14 @@ ELSE
     {
         return new Query(@"
 SELECT 
-	PermissionName 
+    p.[Id],
+    p.[Name],
+    p.[Description],
+    p.[Status]
 FROM 
-	[dbo].[SessionPermission] 
+	[dbo].[SessionPermission] sp
+INNER JOIN
+    [dbo].[Permission] p ON p.Id = sp.PermissionId
 WHERE 
 	IdentityId = @IdentityId
 ")
@@ -56,11 +53,15 @@ WHERE
         Guard.AgainstNull(session);
 
         return new Query($@"
-IF NOT EXISTS (SELECT NULL FROM [dbo].[Session] WHERE IdentityName = @IdentityName)
+IF NOT EXISTS (SELECT NULL FROM [dbo].[Session] WHERE IdentityId = @IdentityId)
 BEGIN
     INSERT INTO [dbo].[Session] 
     (
-    {SelectedColumns}
+	    Token, 
+	    IdentityId, 
+	    IdentityName, 
+	    DateRegistered, 
+	    ExpiryDate 
     )
     VALUES
     (
@@ -79,7 +80,7 @@ BEGIN
         Token = @Token,
         ExpiryDate = @ExpiryDate
     WHERE
-        IdentityName = @IdentityName
+        IdentityId = @IdentityId
 END
 
 DELETE FROM 
@@ -93,13 +94,13 @@ WHERE
 INSERT INTO [dbo].[SessionPermission]
 (
     IdentityId,
-    PermissionName
+    PermissionId
 )
 VALUES
 {string.Join(",", session.Permissions.Select(permission => $@"
 (
     @IdentityId,
-    '{permission}'
+    '{permission.Id}'
 )
 "))}
 ")}
@@ -117,11 +118,18 @@ VALUES
 
         return new Query($@"
 SELECT DISTINCT {(specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
-{SelectedColumns}
+	s.Token, 
+	s.IdentityId, 
+	s.IdentityName, 
+	i.Description IdentityDescription, 
+	s.DateRegistered, 
+	s.ExpiryDate 
 FROM
-	[dbo].[Session] 
+	[dbo].[Session] s
+INNER JOIN
+    [dbo].[Identity] i ON i.Id = s.IdentityId
 {Where(specification)}
-{(specification.MaximumRows != 1 ? "ORDER BY IdentityName, DateRegistered DESC" : string.Empty)}
+{(specification.MaximumRows != 1 ? "ORDER BY s.IdentityName, s.DateRegistered DESC" : string.Empty)}
 ")
             .AddParameter(Columns.Token, specification.Token)
             .AddParameter(Columns.IdentityName, specification.IdentityName)
@@ -137,7 +145,7 @@ FROM
 SELECT 
     COUNT(*)
 FROM
-	[dbo].[Session] 
+	[dbo].[Session] s
 {Where(specification)}
 ")
             .AddParameter(Columns.Token, specification.Token)
@@ -170,29 +178,29 @@ WHERE
 (
     @Token IS NULL
     OR  
-	Token = @Token
+	s.Token = @Token
 )
 AND
 (
     @IdentityId IS NULL
     OR
-    IdentityId = @IdentityId
+    s.IdentityId = @IdentityId
 )
 AND
 (
     @IdentityName IS NULL
     OR
-    IdentityName = @IdentityName
+    s.IdentityName = @IdentityName
 )
 AND
 (
     @IdentityNameMatch IS NULL
     OR
-    IdentityName LIKE '%' + @IdentityNameMatch + '%'
+    s.IdentityName LIKE '%' + @IdentityNameMatch + '%'
 )
 {(!specification.Permissions.Any() ? string.Empty : $@"
 AND
-    Token IN (SELECT DISTINCT Token FROM [dbo].[SessionPermission] WHERE PermissionName in ({string.Join(",", specification.Permissions.Select(item => $"'{item}'"))}))
+    s.Token IN (SELECT DISTINCT Token FROM [dbo].[SessionPermission] WHERE PermissionName in ({string.Join(",", specification.Permissions.Select(item => $"'{item}'"))}))
 ")}
 ";
     }

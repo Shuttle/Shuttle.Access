@@ -37,17 +37,20 @@ IF NOT EXISTS
     (
 	    [Id],
 	    [Name],
+	    [Description],
         [Status]
     )
     VALUES
     (
 	    @Id,
 	    @Name,
+        @Description,
         @Status
     )
 ")
             .AddParameter(Columns.Id, id)
             .AddParameter(Columns.Name, domainEvent.Name)
+            .AddParameter(Columns.Description, domainEvent.Description)
             .AddParameter(Columns.Status, (int)domainEvent.Status);
     }
 
@@ -82,7 +85,7 @@ IF EXISTS
     SELECT
         NULL
     FROM
-        Permission p
+        [dbo].[Permission] p
 {Where(specification)}
 )
     SELECT 1
@@ -96,7 +99,7 @@ ELSE
     {
         return new Query(@"
 UPDATE
-    PERMISSION
+    [dbo].[Permission]
 SET
     [Name] = @Name
 WHERE
@@ -106,11 +109,25 @@ WHERE
             .AddParameter(Columns.Name, domainEvent.Name);
     }
 
+    public IQuery DescriptionSet(Guid id, DescriptionSet domainEvent)
+    {
+        return new Query(@"
+UPDATE
+    [dbo].[Permission]
+SET
+    [Description] = @Description
+WHERE
+    Id = @Id
+")
+            .AddParameter(Columns.Id, id)
+            .AddParameter(Columns.Description, domainEvent.Description);
+    }
+
     private static IQuery SetStatus(Guid id, int status)
     {
         return new Query(@"
 UPDATE
-    Permission
+    [dbo].[Permission]
 SET
     Status = @Status
 WHERE
@@ -128,6 +145,7 @@ WHERE
             ? @"
     p.[Id],
     p.[Name],
+    p.[Description],
     p.[Status]
 "
             : "count(*)";
@@ -136,10 +154,10 @@ WHERE
 SELECT DISTINCT {(columns && specification.MaximumRows > 0 ? $"TOP {specification.MaximumRows}" : string.Empty)}
 {what}
 FROM
-    Permission p
+    [dbo].[Permission] p
 {(!specification.RoleIds.Any() ? string.Empty : @"
 INNER JOIN
-    RolePermission rp ON (rp.PermissionId = p.Id)
+    [dbo].[RolePermission] rp ON (rp.PermissionId = p.Id)
 ")}
 {Where(specification)}
 {(columns ? "ORDER BY p.[Name]" : string.Empty)}
@@ -155,10 +173,16 @@ WHERE
     isnull(@NameMatch, '') = ''
     OR
     p.[Name] LIKE '%' + @NameMatch + '%'
+    OR
+    p.Description LIKE '%' + @NameMatch + '%'
 )
 {(!specification.Names.Any() ? string.Empty : $@"
 AND
+(
     p.[Name] IN ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+    OR
+    p.[Description] IN ({string.Join(",", specification.Names.Select(item => $"'{item}'"))})
+)
 ")}
 {(!specification.Ids.Any() ? string.Empty : $@"
 AND

@@ -106,6 +106,7 @@ export type OAuthData = {
 export type Permission = {
   id: string;
   name: string;
+  description: string;
   status: number;
 };
 
@@ -122,12 +123,14 @@ export type Role = {
 
 export type RegisterIdentity = {
   name: string;
+  description: string;
   password: string;
   system: string;
 };
 
 export type RegisterPermission = {
   name: string;
+  description: string;
   status: number;
 };
 

@@ -13,6 +13,7 @@ public enum PermissionStatus
 public class Permission
 {
     public string Name { get; private set; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
     public PermissionStatus Status { get; private set; }
 
     public Activated Activate()
@@ -35,6 +36,7 @@ public class Permission
         Guard.AgainstNull(registered);
 
         Name = registered.Name;
+        Description = registered.Description;
         Status = registered.Status;
 
         return registered;
@@ -58,6 +60,15 @@ public class Permission
         return activated;
     }
 
+    private DescriptionSet On(DescriptionSet descriptionSet)
+    {
+        Guard.AgainstNull(descriptionSet);
+
+        Description = descriptionSet.Description;
+
+        return descriptionSet;
+    }
+
     private Removed On(Removed removed)
     {
         Guard.AgainstNull(removed);
@@ -76,11 +87,12 @@ public class Permission
         return nameSet;
     }
 
-    public Registered Register(string name, PermissionStatus status)
+    public Registered Register(string name, string description, PermissionStatus status)
     {
         return On(new Registered
         {
             Name = name,
+            Description = description,
             Status = status
         });
     }
@@ -100,6 +112,19 @@ public class Permission
         return On(new NameSet
         {
             Name = name
+        });
+    }
+
+    public DescriptionSet SetDescription(string description)
+    {
+        if (description.Equals(Description))
+        {
+            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Description", Description));
+        }
+
+        return On(new DescriptionSet
+        {
+            Description = description
         });
     }
 }

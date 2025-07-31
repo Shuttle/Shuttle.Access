@@ -32,16 +32,16 @@ public class IdentityQuery : IIdentityQuery
         return await _databaseContextService.Active.GetScalarAsync<Guid>(_queryFactory.GetId(identityName), cancellationToken);
     }
 
-    public async Task<IEnumerable<string>> PermissionsAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataAccess.Permission>> PermissionsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        return await _queryMapper.MapValuesAsync<string>(_queryFactory.Permissions(userId), cancellationToken);
+        return await _queryMapper.MapObjectsAsync<DataAccess.Permission>(_queryFactory.Permissions(userId), cancellationToken);
     }
 
-    public async Task<IEnumerable<Messages.v1.Identity>> SearchAsync(DataAccess.Identity.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataAccess.Identity>> SearchAsync(DataAccess.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 
-        var result = await _queryMapper.MapObjectsAsync<Messages.v1.Identity>(_queryFactory.Search(specification), cancellationToken);
+        var result = await _queryMapper.MapObjectsAsync<DataAccess.Identity>(_queryFactory.Search(specification), cancellationToken);
 
         if (specification.RolesIncluded)
         {
@@ -56,7 +56,7 @@ public class IdentityQuery : IIdentityQuery
                     continue;
                 }
 
-                user.Roles = roleGroup.Select(row => new Messages.v1.Identity.Role
+                user.Roles = roleGroup.Select(row => new DataAccess.Identity.Role
                     { Id = Columns.Id.Value(row), Name = Columns.Name.Value(row)! }).ToList();
             }
         }

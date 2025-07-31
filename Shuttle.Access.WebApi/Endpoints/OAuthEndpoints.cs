@@ -190,7 +190,7 @@ public static class OAuthEndpoints
                     sessionResponse.IdentityName = registerSession.Session!.IdentityName;
                     sessionResponse.Token = registerSession.SessionToken!.Value;
                     sessionResponse.ExpiryDate = registerSession.Session.ExpiryDate;
-                    sessionResponse.Permissions = registerSession.Session.Permissions.ToList();
+                    sessionResponse.Permissions = registerSession.Session.Permissions.Select(item => item.Name).ToList();
                     sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
                     sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
                 }

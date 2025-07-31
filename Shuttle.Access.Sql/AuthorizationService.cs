@@ -16,16 +16,8 @@ public class AuthorizationService : IAuthorizationService
         _identityQuery = Guard.AgainstNull(identityQuery);
     }
 
-    public async Task<IEnumerable<string>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataAccess.Permission>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default)
     {
-        var userId = await _identityQuery.IdAsync(identityName, cancellationToken);
-        var user = (await _identityQuery.SearchAsync(new DataAccess.Identity.Specification().WithIdentityId(userId).IncludeRoles(), cancellationToken)).FirstOrDefault();
-
-        if (user == null)
-        {
-            return [];
-        }
-
-        return await _identityQuery.PermissionsAsync(userId, cancellationToken);
+        return await _identityQuery.PermissionsAsync(await _identityQuery.IdAsync(identityName, cancellationToken), cancellationToken);
     }
 }
