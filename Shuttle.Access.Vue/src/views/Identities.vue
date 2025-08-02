@@ -84,10 +84,16 @@ const headers = useSecureTableHeaders([
     permission: Permissions.Identities.Manage
   },
   {
+    headerProps: {
+      class: "w-96",
+    },
     title: t("name"),
     value: "name",
   },
   {
+    headerProps: {
+      class: "w-96",
+    },
     title: t("description"),
     value: "description",
   },

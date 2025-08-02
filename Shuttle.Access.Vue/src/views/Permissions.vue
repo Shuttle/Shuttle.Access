@@ -14,7 +14,7 @@
       <template v-slot:header.action="">
         <div class="flex flex-row items-center gap-2" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
           <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
-          <v-btn :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
+          <v-btn v-if="false" :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
           <v-btn :icon="mdiUpload" size="x-small" @click="upload"></v-btn>
           <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
@@ -95,10 +95,16 @@ const headers = useSecureTableHeaders([
     filterable: false
   },
   {
+    headerProps: {
+      class: "w-96",
+    },
     title: t("permission"),
     value: "name",
   },
   {
+    headerProps: {
+      class: "w-96",
+    },
     title: t("description"),
     value: "description",
   },

@@ -86,10 +86,16 @@ const headers = useSecureTableHeaders([
 
 const permissionHeaders = useSecureTableHeaders([
   {
+    headerProps: {
+      class: "w-96",
+    },
     title: t("permission"),
     value: "name",
   },
   {
+    headerProps: {
+      class: "w-96",
+    },
     title: t("description"),
     value: "description",
   },

@@ -194,13 +194,9 @@ public static class RoleEndpoints
 
                 foreach (var message in messages)
                 {
-                    foreach (var permission in message.Permissions.Where(item => !string.IsNullOrWhiteSpace(item)))
+                    foreach (var registerPermission in message.Permissions)
                     {
-                        await serviceBus.SendAsync(new RegisterPermission
-                        {
-                            Name = permission,
-                            Status = 1
-                        });
+                        await serviceBus.SendAsync(registerPermission);
                     }
 
                     await serviceBus.SendAsync(message);
@@ -212,7 +208,7 @@ public static class RoleEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
-        app.MapPost("/v{version:apiVersion}/roles/bulk", async ([FromServices] IServiceBus serviceBus, List<RegisterRole> messages) =>
+        app.MapPost("/v{version:apiVersion}/roles/bulk-upload", async ([FromServices] IServiceBus serviceBus, List<RegisterRole> messages) =>
             {
                 if (!messages.Any())
                 {
@@ -221,13 +217,9 @@ public static class RoleEndpoints
 
                 foreach (var message in messages)
                 {
-                    foreach (var permission in message.Permissions.Where(item => !string.IsNullOrWhiteSpace(item)))
+                    foreach (var registerPermission in message.Permissions)
                     {
-                        await serviceBus.SendAsync(new RegisterPermission
-                        {
-                            Name = permission,
-                            Status = 1
-                        });
+                        await serviceBus.SendAsync(registerPermission);
                     }
 
                     await serviceBus.SendAsync(message);
@@ -260,10 +252,15 @@ public static class RoleEndpoints
                 var result = roles.Select(item => new
                 {
                     item.Name,
-                    Permissions = item.Permissions.Select(permission => permission.Name).ToList()
+                    Permissions = item.Permissions.Select(permission => new RegisterPermission
+                    {
+                        Name = permission.Name,
+                        Description = permission.Description,
+                        Status = permission.Status
+                    }).ToList()
                 });
 
-                return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(result)), "application/json", "permissions.json");
+                return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(result)), "application/json", "roles.json");
             })
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)

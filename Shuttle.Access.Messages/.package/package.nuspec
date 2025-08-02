@@ -3,7 +3,7 @@
 <package>
   <metadata>
     <id>Shuttle.Access.Messages</id>
-    <version>8.1.0</version>
+    <version>8.1.1</version>
     <authors>Eben Roux</authors>
     <owners>Eben Roux</owners>
     <license type="expression">BSD-3-Clause</license>

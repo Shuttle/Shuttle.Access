@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
 
 public class RegisterRole
 {
-    private readonly List<string> _permissions = [];
+    private readonly List<RegisterPermission> _permissions = [];
 
     public string Name { get; }
     public bool HasMissingPermissions { get; private set; }
@@ -15,13 +18,13 @@ public class RegisterRole
         Name = Guard.AgainstEmpty(name);
     }
 
-    public RegisterRole AddPermissions(IEnumerable<string> permissions)
+    public RegisterRole AddPermissions(IEnumerable<RegisterPermission> permissions)
     {
         Guard.AgainstNull(permissions);
 
         foreach (var permission in permissions)
         {
-            if (!_permissions.Contains(permission))
+            if (_permissions.All(item => !item.Name.Equals(permission.Name, StringComparison.InvariantCultureIgnoreCase)))
             {
                 _permissions.Add(permission);
             }
@@ -30,7 +33,7 @@ public class RegisterRole
         return this;
     }
 
-    public IEnumerable<string> GetPermissions() => _permissions.AsReadOnly();
+    public IEnumerable<RegisterPermission> GetPermissions() => _permissions.AsReadOnly();
 
     public RegisterRole MissingPermissions()
     {

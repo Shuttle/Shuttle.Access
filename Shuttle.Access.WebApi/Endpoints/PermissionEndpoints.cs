@@ -84,25 +84,16 @@ public static class PermissionEndpoints
                     return Results.BadRequest();
                 }
 
-                var permissions = JsonSerializer.Deserialize<List<string>>(form.Files[0].OpenReadStream());
+                var registerPermissions = JsonSerializer.Deserialize<List<RegisterPermission>>(form.Files[0].OpenReadStream());
 
-                if (permissions == null || !permissions.Any())
+                if (registerPermissions == null || !registerPermissions.Any())
                 {
                     return Results.BadRequest();
                 }
 
-                foreach (var permission in permissions)
+                foreach (var registerPermission in registerPermissions)
                 {
-                    if (string.IsNullOrWhiteSpace(permission))
-                    {
-                        continue;
-                    }
-
-                    await serviceBus.SendAsync(new RegisterPermission
-                    {
-                        Name = permission,
-                        Status = 1
-                    });
+                    await serviceBus.SendAsync(registerPermission);
                 }
 
                 return Results.Accepted();
@@ -112,25 +103,16 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
         
-        app.MapPost("/v{version:apiVersion}/permissions/bulk", async (IServiceBus serviceBus, List<string> permissions) =>
+        app.MapPost("/v{version:apiVersion}/permissions/bulk-upload", async (IServiceBus serviceBus, List<RegisterPermission> registerPermissions) =>
             {
-                if (!permissions.Any())
+                if (!registerPermissions.Any())
                 {
                     return Results.BadRequest();
                 }
 
-                foreach (var permission in permissions)
+                foreach (var registerPermission in registerPermissions)
                 {
-                    if (string.IsNullOrWhiteSpace(permission))
-                    {
-                        continue;
-                    }
-
-                    await serviceBus.SendAsync(new RegisterPermission
-                    {
-                        Name = permission,
-                        Status = 1
-                    });
+                    await serviceBus.SendAsync(registerPermission);
                 }
 
                 return Results.Accepted();
@@ -147,14 +129,19 @@ public static class PermissionEndpoints
                     return Results.BadRequest();
                 }
 
-                List<string> permissions;
+                List<RegisterPermission> permissions;
 
                 using (new DatabaseContextScope())
                 {
                     await using (databaseContextFactory.Create())
                     {
                         permissions = (await permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddIds(ids)))
-                            .Select(item => item.Name)
+                            .Select(item => new RegisterPermission
+                            {
+                                Name = item.Name,
+                                Description = item.Description,
+                                Status = item.Status
+                            })
                             .ToList();
                     }
                 }

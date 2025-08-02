@@ -34,7 +34,7 @@ public class RegisterRoleParticipant : IParticipant<RequestResponseMessage<Regis
 
         foreach (var permission in message.GetPermissions())
         {
-            var permissionId = (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddName(permission))).FirstOrDefault()?.Id;
+            var permissionId = (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddName(permission.Name))).FirstOrDefault()?.Id;
 
             if (permissionId.HasValue)
             {
@@ -42,7 +42,6 @@ public class RegisterRoleParticipant : IParticipant<RequestResponseMessage<Regis
             }
             else
             {
-
                 message.MissingPermissions();
                 return;
             }
