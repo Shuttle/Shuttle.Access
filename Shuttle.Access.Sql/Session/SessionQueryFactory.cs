@@ -200,7 +200,17 @@ AND
 )
 {(!specification.Permissions.Any() ? string.Empty : $@"
 AND
-    s.Token IN (SELECT DISTINCT Token FROM [dbo].[SessionPermission] WHERE PermissionName in ({string.Join(",", specification.Permissions.Select(item => $"'{item}'"))}))
+    s.IdentityId IN 
+    (
+        SELECT DISTINCT 
+            IdentityId 
+        FROM 
+            [dbo].[SessionPermission] sp
+        INNER JOIN 
+            [dbo].[Permission] p ON p.Id = sp.PermissionId
+        WHERE 
+            PermissionName IN ({string.Join(",", specification.Permissions.Select(item => $"'{item}'"))})
+    )
 ")}
 ";
     }
