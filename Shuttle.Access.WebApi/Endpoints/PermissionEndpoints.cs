@@ -32,8 +32,7 @@ public static class PermissionEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    var permissions = (await permissionQuery.SearchAsync(search)).ToList();
-                    return Results.Ok(permissions);
+                    return Results.Ok((await permissionQuery.SearchAsync(search)).Select(Map).ToList());
                 }
             })
             .WithTags("Permissions")
@@ -47,7 +46,7 @@ public static class PermissionEndpoints
                 await using (databaseContextFactory.Create())
                 {
                     var permission = (await permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddId(id))).SingleOrDefault();
-                    return permission != null ? Results.Ok(permission) : Results.BadRequest();
+                    return permission != null ? Results.Ok(Map(permission)) : Results.BadRequest();
                 }
             })
             .WithTags("Permissions")
@@ -219,5 +218,16 @@ public static class PermissionEndpoints
             .RequirePermission(AccessPermissions.Permissions.Manage);
 
         return app;
+    }
+
+    private static Messages.v1.Permission Map(DataAccess.Permission permission)
+    {
+        return new()
+        {
+            Id = permission.Id,
+            Name = permission.Name,
+            Description = permission.Description,
+            Status = permission.Status
+        };
     }
 }

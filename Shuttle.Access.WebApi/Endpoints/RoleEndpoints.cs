@@ -14,6 +14,23 @@ namespace Shuttle.Access.WebApi;
 
 public static class RoleEndpoints
 {
+    private static Messages.v1.Role Map(DataAccess.Role role)
+    {
+        return new()
+        {
+            Id = role.Id,
+            Name = role.Name,
+            Permissions = role.Permissions.Select(item => new Messages.v1.Role.Permission
+            {
+                Id = item.Id,
+                Name = item.Name,
+                RoleId = role.Id,
+                Description = item.Description,
+                Status = item.Status
+            }).ToList()
+        };
+    }
+
     public static WebApplication MapRoleEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
@@ -107,7 +124,7 @@ public static class RoleEndpoints
 
                 await using var context = databaseContextFactory.Create();
 
-                return Results.Ok(await roleQuery.SearchAsync(search));
+                return Results.Ok((await roleQuery.SearchAsync(search)).Select(Map).ToList());
             })
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
@@ -133,7 +150,7 @@ public static class RoleEndpoints
                     var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
 
                     return role != null
-                        ? Results.Ok(role)
+                        ? Results.Ok(Map(role))
                         : Results.BadRequest();
                 }
             })

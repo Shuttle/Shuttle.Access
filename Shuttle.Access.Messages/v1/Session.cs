@@ -10,6 +10,7 @@ public class Session
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
     public List<string> Permissions { get; set; } = [];
+    public string IdentityDescription { get; set; } = string.Empty;
 
     public class Specification
     {

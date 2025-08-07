@@ -78,7 +78,7 @@ public static class IdentityEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    return Results.Ok(await identityQuery.SearchAsync(search));
+                    return Results.Ok((await identityQuery.SearchAsync(search)).Select(Map).ToList());
                 }
             })
             .WithTags("Identities")
@@ -102,10 +102,10 @@ public static class IdentityEndpoints
                         specification.WithName(value);
                     }
 
-                    var user = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
+                    var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
 
-                    return user != null
-                        ? Results.Ok(user)
+                    return identity != null
+                        ? Results.Ok(Map(identity))
                         : Results.BadRequest();
                 }
             })
@@ -376,5 +376,24 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1);
 
         return app;
+    }
+
+    private static Messages.v1.Identity Map(DataAccess.Identity identity)
+    {
+        return new()
+        {
+            Id = identity.Id,
+            Name = identity.Name,
+            Description = identity.Description,
+            DateRegistered = identity.DateRegistered,
+            DateActivated = identity.DateActivated,
+            GeneratedPassword = identity.GeneratedPassword,
+            RegisteredBy = identity.RegisteredBy,
+            Roles = identity.Roles.Select(item => new Messages.v1.Identity.Role
+            {
+                Id = item.Id,
+                Name = item.Name
+            }).ToList()
+        };
     }
 }

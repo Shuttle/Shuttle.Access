@@ -3,7 +3,7 @@
 <package>
   <metadata>
     <id>Shuttle.Access</id>
-    <version>8.1.1</version>
+    <version>8.1.2</version>
     <authors>Eben Roux</authors>
     <owners>Eben Roux</owners>
     <license type="expression">BSD-3-Clause</license>
@@ -17,7 +17,7 @@
     <tags>iam identity authorization authentication security permissions</tags>
     <dependencies>
             <dependency id="Microsoft.Extensions.Caching.Memory" version="8.0.1" />
-      <dependency id="Shuttle.Access.Messages" version="8.1.1" />
+      <dependency id="Shuttle.Access.Messages" version="8.1.2" />
       <dependency id="Shuttle.Core.Contract" version="20.0.1" />
       <dependency id="Shuttle.Core.Data" version="20.0.0" />
     </dependencies>

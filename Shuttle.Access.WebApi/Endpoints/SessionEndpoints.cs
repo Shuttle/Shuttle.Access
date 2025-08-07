@@ -53,7 +53,7 @@ public static class SessionEndpoints
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
                 {
-                    return Results.Ok((await sessionQuery.SearchAsync(specification)).ToList());
+                    return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(Map).ToList());
                 }
             })
             .WithTags("Sessions")
@@ -325,7 +325,7 @@ public static class SessionEndpoints
 
                     return session == null
                         ? Results.BadRequest()
-                        : Results.Ok(session);
+                        : Results.Ok(Map(session));
                 }
             })
             .WithTags("Sessions")
@@ -333,6 +333,19 @@ public static class SessionEndpoints
             .MapToApiVersion(apiVersion1);
 
         return app;
+    }
+
+    private static Messages.v1.Session Map(DataAccess.Session session)
+    {
+        return new()
+        {
+            IdentityId = session.IdentityId,
+            IdentityName = session.IdentityName,
+            IdentityDescription = session.IdentityDescription,
+            DateRegistered = session.DateRegistered,
+            ExpiryDate = session.ExpiryDate,
+            Permissions = session.Permissions.Select(item => item.Name).ToList()
+        };
     }
 
     private static async Task<IResult> RegisterSession(IDatabaseContextFactory databaseContextFactory, IMediator mediator, RegisterSession registerSession)
