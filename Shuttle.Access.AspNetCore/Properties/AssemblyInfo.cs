@@ -9,10 +9,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle(".NET Unified Platform")]
 #endif
 
-[assembly: AssemblyVersion("8.1.2.0")]
+[assembly: AssemblyVersion("8.1.3.0")]
 [assembly: AssemblyCopyright("Copyright (c) 2025, Eben Roux")]
 [assembly: AssemblyProduct("Shuttle.Access.AspNetCore")]
 [assembly: AssemblyCompany("Eben Roux")]
 [assembly: AssemblyConfiguration("Release")]
-[assembly: AssemblyInformationalVersion("8.1.2")]
+[assembly: AssemblyInformationalVersion("8.1.3")]
 [assembly: ComVisible(false)]

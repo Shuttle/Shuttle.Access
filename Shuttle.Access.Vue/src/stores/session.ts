@@ -3,7 +3,6 @@ import axios from "axios";
 import configuration from "@/configuration";
 import { i18n } from "@/i18n";
 import type {
-  Session,
   SessionStoreState,
   Credentials,
   OAuthData,
@@ -47,14 +46,14 @@ export const useSessionStore = defineStore("session", {
 
       return Promise.resolve();
     },
-    addPermission(type: string, permission: string) {
+    addPermission(permission: string) {
       if (this.hasPermission(permission)) {
         return;
       }
 
-      this.permissions.push({ type: type, permission: permission });
+      this.permissions.push(permission);
     },
-    register(session: Session) {
+    register(session: SessionResponse) {
       if (
         !session ||
         !session.identityId ||
@@ -71,10 +70,10 @@ export const useSessionStore = defineStore("session", {
       this.identityName = session.identityName;
       this.token = session.token;
 
-      this.removePermissions("identity");
+      this.removePermissions();
 
       session.permissions.forEach((item: string) => {
-        this.addPermission("identity", item);
+        this.addPermission(item);
       });
 
       this.authenticated = true;
@@ -106,21 +105,16 @@ export const useSessionStore = defineStore("session", {
         throw new Error("Argument 'response.data' may not be undefined.");
       }
 
-      const data = response.data;
+      const sessionResponse = response.data;
 
-      switch (data.result) {
+      switch (sessionResponse.result) {
         case "Registered": {
-          if (data.sessionTokenExchangeUrl) {
-            window.location.replace(data.sessionTokenExchangeUrl);
+          if (sessionResponse.sessionTokenExchangeUrl) {
+            window.location.replace(sessionResponse.sessionTokenExchangeUrl);
             break;
           }
 
-          this.register({
-            identityId: data.identityId,
-            identityName: credentials.identityName,
-            token: data.token,
-            permissions: data.permissions,
-          });
+          this.register(sessionResponse);
 
           break;
         }
@@ -153,15 +147,10 @@ export const useSessionStore = defineStore("session", {
         throw new Error("Argument 'response.data' may not be undefined.");
       }
 
-      const data = response.data;
+      const sessionResponse = response.data;
 
-      if (data.result == "Registered") {
-        this.register({
-          identityId: data.identityId,
-          identityName: data.identityName,
-          token: data.token,
-          permissions: data.permissions,
-        });
+      if (sessionResponse.result == "Registered") {
+        this.register(sessionResponse);
       }
 
       this.initialized = true;
@@ -175,14 +164,12 @@ export const useSessionStore = defineStore("session", {
       localStorage.removeItem("shuttle-access.identityName");
       localStorage.removeItem("shuttle-access.token");
 
-      this.removePermissions("identity");
+      this.removePermissions();
 
       this.authenticated = false;
     },
-    removePermissions(type: string) {
-      this.permissions = this.permissions.filter(function (item) {
-        return item.type !== type;
-      });
+    removePermissions() {
+      this.permissions = [];
     },
     hasSession() {
       return !!this.token;
@@ -196,13 +183,13 @@ export const useSessionStore = defineStore("session", {
           return;
         }
 
-        if (item.permission.toLowerCase() === permissionRequired) {
+        if (item.toLowerCase() === permissionRequired) {
           result = true;
           return;
         }
 
-        if (item.permission.indexOf("*") !== -1) {
-          const escaped = item.permission
+        if (item.indexOf("*") !== -1) {
+          const escaped = item
             .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
             .replace(/\\\*/g, ".*");
 

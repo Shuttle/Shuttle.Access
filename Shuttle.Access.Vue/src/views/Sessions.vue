@@ -42,7 +42,7 @@ import { mdiDeleteOutline, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from 
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
-import type { Permission, Session } from "@/access";
+import type { SessionData } from "@/access";
 import type { AxiosResponse } from "axios";
 import { useDateFormatter } from "@/composables/DateFormatter";
 import { useSessionStore } from "@/stores/session";
@@ -102,19 +102,19 @@ const permissionHeaders = useSecureTableHeaders([
     },
     title: t("description"),
     value: "description",
-  },
+  }
 ]);
 
-const items: Ref<Session[]> = ref([]);
+const items: Ref<SessionData[]> = ref([]);
 
 const refresh = () => {
   busy.value = true;
 
   api
-    .post("v1/sessions/search", {
+    .post("v1/sessions/search/data", {
       shouldIncludePermissions: true,
     })
-    .then(function (response: AxiosResponse<Session[]>) {
+    .then(function (response: AxiosResponse<SessionData[]>) {
       if (!response || !response.data) {
         return;
       }
@@ -126,7 +126,7 @@ const refresh = () => {
     });
 }
 
-const remove = (item: Session) => {
+const remove = (item: SessionData) => {
   confirmationStore.close();
 
   busy.value = true;

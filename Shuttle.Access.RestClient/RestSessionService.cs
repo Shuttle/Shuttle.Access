@@ -64,10 +64,23 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
                     IdentityName = identityName
                 });
 
-                if (registrationResponse is { IsSuccessStatusCode: true, Content: not null })
+                var content = registrationResponse.Content;
+
+                if (!registrationResponse.IsSuccessStatusCode ||
+                    content == null ||
+                    content.RegistrationRequested)
                 {
-                    return AddSession(registrationResponse.Content.Token, registrationResponse.Content);
+                    return null;
                 }
+
+                return Add(content.Token, new()
+                {
+                    IdentityId = content.IdentityId,
+                    IdentityName = content.IdentityName,
+                    DateRegistered = content.DateRegistered,
+                    ExpiryDate = content.ExpiryDate,
+                    Permissions = content.Permissions.ToList()
+                });
             }
 
             return null;
@@ -221,15 +234,8 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
         }
     }
 
-    private Messages.v1.Session AddSession(Guid? token, SessionResponse sessionResponse)
+    private Messages.v1.Session AddSession(Guid? token, Messages.v1.Session session)
     {
-        return Add(token, new()
-        {
-            IdentityId = sessionResponse.IdentityId,
-            IdentityName = sessionResponse.IdentityName,
-            DateRegistered = sessionResponse.DateRegistered,
-            ExpiryDate = sessionResponse.ExpiryDate,
-            Permissions = sessionResponse.Permissions.ToList()
-        });
+        return Add(token, session);
     }
 }

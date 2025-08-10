@@ -141,15 +141,19 @@ export type ServerConfiguration = {
 export type Session = {
   identityId: string;
   identityName: string;
-  token: string;
+  identityDescription: string;
   permissions: string[];
   expiryDate?: Date;
   dateRegistered?: Date;
 };
 
-export type SessionPermission = {
-  type: string;
-  permission: string;
+export type SessionData = {
+  identityId: string;
+  identityName: string;
+  identityDescription: string;
+  permissions: Permission[];
+  expiryDate?: Date;
+  dateRegistered?: Date;
 };
 
 export type SessionResponse = {
@@ -168,7 +172,7 @@ export type SessionStoreState = {
   initialized: boolean;
   identityName?: string;
   token?: string;
-  permissions: SessionPermission[];
+  permissions: string[];
 };
 
 export type SnackbarStoreState = {

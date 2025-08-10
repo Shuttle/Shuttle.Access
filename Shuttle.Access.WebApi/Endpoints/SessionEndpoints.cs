@@ -17,38 +17,77 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
+    private static DataAccess.Session.Specification GetSpecification(Messages.v1.Session.Specification model, IHashingService hashingService)
+    {
+        var specification = new DataAccess.Session.Specification();
+
+        if (model.Token != null)
+        {
+            specification.WithToken(hashingService.Sha256(model.Token.Value.ToString("D")));
+        }
+
+        if (model.IdentityId.HasValue)
+        {
+            specification.WithIdentityId(model.IdentityId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.IdentityName))
+        {
+            specification.WithIdentityName(model.IdentityName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.IdentityNameMatch))
+        {
+            specification.WithIdentityNameMatch(model.IdentityNameMatch);
+        }
+
+        if (model.ShouldIncludePermissions)
+        {
+            specification.IncludePermissions();
+        }
+
+        return specification;
+    }
+
+    private static Messages.v1.Session Map(DataAccess.Session session)
+    {
+        return new()
+        {
+            IdentityId = session.IdentityId,
+            IdentityName = session.IdentityName,
+            IdentityDescription = session.IdentityDescription,
+            DateRegistered = session.DateRegistered,
+            ExpiryDate = session.ExpiryDate,
+            Permissions = session.Permissions.Select(item => item.Name).ToList()
+        };
+    }
+
+    private static SessionData MapData(DataAccess.Session session)
+    {
+        return new()
+        {
+            IdentityId = session.IdentityId,
+            IdentityName = session.IdentityName,
+            IdentityDescription = session.IdentityDescription,
+            DateRegistered = session.DateRegistered,
+            ExpiryDate = session.ExpiryDate,
+            Permissions = session.Permissions.Select(item => new Messages.v1.Permission
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                Status = item.Status
+            }).ToList()
+        };
+    }
+
     public static WebApplication MapSessionEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
         app.MapPost("/v{version:apiVersion}/sessions/search", async (IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery, IHashingService hashingService, [FromBody] Messages.v1.Session.Specification model) =>
             {
-                var specification = new DataAccess.Session.Specification();
-
-                if (model.Token != null)
-                {
-                    specification.WithToken(hashingService.Sha256(model.Token.Value.ToString("D")));
-                }
-
-                if (model.IdentityId.HasValue)
-                {
-                    specification.WithIdentityId(model.IdentityId.Value);
-                }
-
-                if (!string.IsNullOrWhiteSpace(model.IdentityName))
-                {
-                    specification.WithIdentityName(model.IdentityName);
-                }
-
-                if (!string.IsNullOrWhiteSpace(model.IdentityNameMatch))
-                {
-                    specification.WithIdentityNameMatch(model.IdentityNameMatch);
-                }
-
-                if (model.ShouldIncludePermissions)
-                {
-                    specification.IncludePermissions();
-                }
+                var specification = GetSpecification(model, hashingService);
 
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())
@@ -59,7 +98,24 @@ public static class SessionEndpoints
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Sessions.View);
+            .RequirePermission(AccessPermissions.Sessions.View)
+            .Produces<List<Messages.v1.Session>>();
+
+        app.MapPost("/v{version:apiVersion}/sessions/search/data", async (IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery, IHashingService hashingService, [FromBody] Messages.v1.Session.Specification model) =>
+            {
+                var specification = GetSpecification(model, hashingService);
+
+                using (new DatabaseContextScope())
+                await using (databaseContextFactory.Create())
+                {
+                    return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(MapData).ToList());
+                }
+            })
+            .WithTags("Sessions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Sessions.View)
+            .Produces<List<SessionData>>();
 
         app.MapPost("/v{version:apiVersion}/sessions", async (ILogger<RegisterSession> logger, HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionService sessionService, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] Messages.v1.RegisterSession message) =>
             {
@@ -333,19 +389,6 @@ public static class SessionEndpoints
             .MapToApiVersion(apiVersion1);
 
         return app;
-    }
-
-    private static Messages.v1.Session Map(DataAccess.Session session)
-    {
-        return new()
-        {
-            IdentityId = session.IdentityId,
-            IdentityName = session.IdentityName,
-            IdentityDescription = session.IdentityDescription,
-            DateRegistered = session.DateRegistered,
-            ExpiryDate = session.ExpiryDate,
-            Permissions = session.Permissions.Select(item => item.Name).ToList()
-        };
     }
 
     private static async Task<IResult> RegisterSession(IDatabaseContextFactory databaseContextFactory, IMediator mediator, RegisterSession registerSession)

@@ -21,7 +21,7 @@ public class RestAccessServiceFixture
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
 
-        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.SessionResponse>>(new(HttpStatusCode.BadRequest), null, new()));
+        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.Session>>(new(HttpStatusCode.BadRequest), null, new()));
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
         var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), accessClient.Object);
@@ -35,7 +35,7 @@ public class RestAccessServiceFixture
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
 
-        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.SessionResponse>>(new(HttpStatusCode.OK), [new() { Permissions = new() }], new()));
+        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.Session>>(new(HttpStatusCode.OK), [new() { Permissions = [] }], new()));
 
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
