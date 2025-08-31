@@ -9,17 +9,12 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class RestSessionService : SessionCache, ISessionService, IContextSessionService
+public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IAccessClient accessClient)
+    : SessionCache, ISessionService, IContextSessionService
 {
-    private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
-    private readonly IAccessClient _accessClient;
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
+    private readonly IAccessClient _accessClient = Guard.AgainstNull(accessClient);
     private readonly SemaphoreSlim _lock = new(1, 1);
-
-    public RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IAccessClient accessClient)
-    {
-        _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
-        _accessClient = Guard.AgainstNull(accessClient);
-    }
 
     public async Task<Messages.v1.Session?> FindAsync(string identityName, CancellationToken cancellationToken = default)
     {
@@ -31,6 +26,8 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
 
             if (session != null)
             {
+                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session));
+
                 return session;
             }
 
@@ -47,14 +44,20 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
 
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
-                if (sessionResponse.Content.Count() == 1)
+                switch (sessionResponse.Content.Count())
                 {
-                    return AddSession(null, sessionResponse.Content.Single());
-                }
+                    case 1:
+                    {
+                        var result = AddSession(null, sessionResponse.Content.Single());
 
-                if (sessionResponse.Content.Count() > 1)
-                {
-                    throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityName", identityName));
+                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+
+                        return result;
+                    }
+                    case > 1:
+                    {
+                        throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityName", identityName));
+                    }
                 }
             }
             else
@@ -70,18 +73,26 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
                     content == null ||
                     content.RegistrationRequested)
                 {
+                    await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identityName));
+
                     return null;
                 }
 
-                return Add(content.Token, new()
+                var result = new Messages.v1.Session
                 {
                     IdentityId = content.IdentityId,
                     IdentityName = content.IdentityName,
                     DateRegistered = content.DateRegistered,
                     ExpiryDate = content.ExpiryDate,
                     Permissions = content.Permissions.ToList()
-                });
+                };
+
+                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+
+                return Add(content.Token, result);
             }
+
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identityName));
 
             return null;
         }
@@ -95,7 +106,18 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
     {
         var sessionResponse = await _accessClient.Sessions.GetSelfAsync();
 
-        return sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? AddSession(null, sessionResponse.Content) : null;
+        var result = sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? AddSession(null, sessionResponse.Content) : null;
+
+        if (result == null)
+        {
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"));
+        }
+        else
+        {
+            await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+        }
+
+        return result;
     }
 
     public async Task FlushAsync(CancellationToken cancellationToken = default)
@@ -162,6 +184,8 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
 
             if (session != null)
             {
+                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session));
+
                 return session;
             }
 
@@ -171,20 +195,28 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
                 ShouldIncludePermissions = true
             });
 
+            var tokenValue = token.ToString();
+
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
-                if (sessionResponse.Content.Count() == 1)
+                switch (sessionResponse.Content.Count())
                 {
-                    return AddSession(token, sessionResponse.Content.Single());
-                }
+                    case 1:
+                    {
+                        var result = AddSession(token, sessionResponse.Content.Single());
 
-                if (sessionResponse.Content.Count() > 1)
-                {
-                    var tokenValue = token.ToString("N");
+                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
 
-                    throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "token", $"{tokenValue[..4]}****-****-****-****-********{tokenValue[^4..]}"));
+                        return result;
+                    }
+                    case > 1:
+                    {
+                        throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "token", $"{tokenValue[..4]}****-****-****-****-********{tokenValue[^4..]}"));
+                    }
                 }
             }
+
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Token", tokenValue));
 
             return null;
         }
@@ -204,6 +236,8 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
 
             if (session != null)
             {
+                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session));
+
                 return session;
             }
 
@@ -215,16 +249,24 @@ public class RestSessionService : SessionCache, ISessionService, IContextSession
 
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
-                if (sessionResponse.Content.Count() == 1)
+                switch (sessionResponse.Content.Count())
                 {
-                    return AddSession(null, sessionResponse.Content.Single());
-                }
+                    case 1:
+                    {
+                        var result = AddSession(null, sessionResponse.Content.Single());
 
-                if (sessionResponse.Content.Count() > 1)
-                {
-                    throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityId", identityId.ToString("D")));
+                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+
+                        return result;
+                    }
+                    case > 1:
+                    {
+                        throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityId", identityId.ToString()));
+                    }
                 }
             }
+
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityId", identityId.ToString()));
 
             return null;
         }

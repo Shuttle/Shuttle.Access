@@ -6,28 +6,23 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore.Authentication;
 
-public class RoutingAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class RoutingAuthenticationHandler(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
-    private readonly ILogger _logger;
-    private readonly AccessOptions _accessOptions;
-    public const string AuthenticationScheme = "Routing";
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
 
-    public RoutingAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
-    {
-        _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
-        _logger = logger.CreateLogger(GetType());
-    }
+    public const string AuthenticationScheme = "Routing";
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var scheme = GetAuthenticationScheme();
+        var scheme = await GetAuthenticationSchemeAsync();
 
         return string.IsNullOrWhiteSpace(scheme) ? AuthenticateResult.NoResult() : await Context.AuthenticateAsync(scheme);
     }
 
     protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
     {
-        var scheme = GetAuthenticationScheme();
+        var scheme = await GetAuthenticationSchemeAsync();
 
         if (string.IsNullOrWhiteSpace(scheme))
         {
@@ -39,7 +34,7 @@ public class RoutingAuthenticationHandler : AuthenticationHandler<Authentication
 
     protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
     {
-        var scheme = GetAuthenticationScheme();
+        var scheme = await GetAuthenticationSchemeAsync();
         
         if (string.IsNullOrWhiteSpace(scheme))
         {
@@ -49,16 +44,21 @@ public class RoutingAuthenticationHandler : AuthenticationHandler<Authentication
         await Context.ForbidAsync(scheme);
     }
 
-    private string? GetAuthenticationScheme()
+    private async ValueTask<string?> GetAuthenticationSchemeAsync()
     {
         var header = Request.Headers["Authorization"].FirstOrDefault();
 
-        return header == null 
-            ? null 
-            : header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) 
-                ? JwtBearerAuthenticationHandler.AuthenticationScheme 
-                : header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase) 
-                    ? SessionTokenAuthenticationHandler.AuthenticationScheme 
-                    : null;
+        if (header == null)
+        {
+            return null;
+        }
+
+        await _accessAuthorizationOptions.AuthorizationHeaderAvailable.InvokeAsync(new(header));
+        
+        return header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? JwtBearerAuthenticationHandler.AuthenticationScheme
+            : header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase)
+                ? SessionTokenAuthenticationHandler.AuthenticationScheme
+                : null;
     }
 }

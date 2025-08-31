@@ -17,6 +17,7 @@ public class AccessOptions
     public List<KnownApplicationOptions> KnownApplications { get; set; } = [];
     public TimeSpan SessionTokenExchangeValidityTimeSpan { get; set; } = TimeSpan.FromMinutes(1);
     public ConfigurationOptions Configuration { get; set; } = new();
+    public bool AuthorizationHeaderLoggingEnabled { get; set; }
 }
 
 public class ConfigurationOptions

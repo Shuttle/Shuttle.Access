@@ -175,7 +175,8 @@ public class Program
             {
                 webApplicationBuilder.Configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);
             })
-            .AddInMemoryOAuthGrantRepository();
+            .AddInMemoryOAuthGrantRepository()
+            .AddHostedService<LoggingHostedService>();
 
         var app = webApplicationBuilder.Build();
 

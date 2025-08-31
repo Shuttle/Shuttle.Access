@@ -12,22 +12,15 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore.Authentication;
 
-public class JwtBearerAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory logger, UrlEncoder encoder)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Bearer";
-    private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
-    private readonly IContextSessionService _contextSessionService;
-    private readonly IJwtService _jwtService;
-    private readonly ISessionService _sessionService;
-
-    public JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory logger, UrlEncoder encoder) : base(options, logger, encoder)
-    {
-        _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
-        _jwtService = Guard.AgainstNull(jwtService);
-        _sessionService = Guard.AgainstNull(sessionService);
-        _contextSessionService = Guard.AgainstNull(contextSessionService);
-    }
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
+    private readonly IContextSessionService _contextSessionService = Guard.AgainstNull(contextSessionService);
+    private readonly IJwtService _jwtService = Guard.AgainstNull(jwtService);
+    private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
     private async Task<AuthenticateResult> GetContextAuthenticateResultAsync()
     {
@@ -41,29 +34,25 @@ public class JwtBearerAuthenticationHandler : AuthenticationHandler<Authenticati
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
-            new(ClaimTypes.Name, session.IdentityName)
+            new(ClaimTypes.Name, session.IdentityName),
+            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
         ];
-
-        if (session != null)
-        {
-            claims.Add(new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"));
-        }
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        if (_accessAuthorizationOptions.PassThrough)
-        {
-            return await GetContextAuthenticateResultAsync();
-        }
-
         var header = Request.Headers["Authorization"].FirstOrDefault();
 
         if (header == null)
         {
             return AuthenticateResult.NoResult();
+        }
+
+        if (_accessAuthorizationOptions.PassThrough)
+        {
+            return await GetContextAuthenticateResultAsync();
         }
 
         if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||

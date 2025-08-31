@@ -9,27 +9,18 @@ using Shuttle.Recall.Sql.EventProcessing;
 
 namespace Shuttle.Access.WebApi.Handlers;
 
-public class AccessServiceHandler :
-    IMessageHandler<IdentityRoleSet>,
-    IMessageHandler<RolePermissionSet>,
-    IMessageHandler<PermissionStatusSet>
+public class AccessServiceHandler(IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, IProjectionRepository projectionRepository, IPermissionQuery permissionQuery, ISessionQuery sessionQuery, IMediator mediator)
+    :
+        IMessageHandler<IdentityRoleSet>,
+        IMessageHandler<RolePermissionSet>,
+        IMessageHandler<PermissionStatusSet>
 {
-    private readonly IMediator _mediator;
-    private readonly IDatabaseContextFactory _databaseContextFactory;
-    private readonly IIdentityQuery _identityQuery;
-    private readonly IPermissionQuery _permissionQuery;
-    private readonly IProjectionRepository _projectionRepository;
-    private readonly ISessionQuery _sessionQuery;
-
-    public AccessServiceHandler(IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, IProjectionRepository projectionRepository, IPermissionQuery permissionQuery, ISessionQuery sessionQuery, IMediator mediator)
-    {
-        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
-        _identityQuery = Guard.AgainstNull(identityQuery);
-        _projectionRepository = Guard.AgainstNull(projectionRepository);
-        _permissionQuery = Guard.AgainstNull(permissionQuery);
-        _sessionQuery = Guard.AgainstNull(sessionQuery);
-        _mediator = Guard.AgainstNull(mediator);
-    }
+    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
+    private readonly IDatabaseContextFactory _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
+    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
+    private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
+    private readonly IProjectionRepository _projectionRepository = Guard.AgainstNull(projectionRepository);
+    private readonly ISessionQuery _sessionQuery = Guard.AgainstNull(sessionQuery);
 
     public async Task ProcessMessageAsync(IHandlerContext<IdentityRoleSet> context)
     {

@@ -7,12 +7,11 @@ namespace Shuttle.Access;
 
 public abstract class SessionCache
 {
-    private readonly List<SessionEntry> _sessionEntries = new();
+    private readonly List<SessionEntry> _sessionEntries = [];
 
     private Messages.v1.Session? ActiveSessionOnly(Messages.v1.Session? session)
     {
-        if (session != null &&
-            DateTimeOffset.UtcNow > session.ExpiryDate)
+        if (session != null && DateTimeOffset.UtcNow > session.ExpiryDate)
         {
             Flush(session.IdentityId);
 
@@ -59,24 +58,12 @@ public abstract class SessionCache
     {
         var sessionEntry = _sessionEntries.FirstOrDefault(item => item.Session.IdentityId.Equals(identityId));
 
-        if (sessionEntry == null)
-        {
-            return false;
-        }
-
-        return sessionEntry.Session.HasPermission(requiredPermission);
+        return sessionEntry != null && sessionEntry.Session.HasPermission(requiredPermission);
     }
 
-    private class SessionEntry
+    private class SessionEntry(Guid? token, Messages.v1.Session session)
     {
-        public SessionEntry(Guid? token, Messages.v1.Session session)
-        {
-            Session = session;
-            Token = token;
-        }
-
-        public Messages.v1.Session Session { get; }
-
-        public Guid? Token { get; }
+        public Messages.v1.Session Session { get; } = session;
+        public Guid? Token { get; } = token;
     }
 }

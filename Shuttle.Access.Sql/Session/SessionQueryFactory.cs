@@ -53,7 +53,7 @@ WHERE
         Guard.AgainstNull(session);
 
         return new Query($@"
-IF NOT EXISTS (SELECT NULL FROM [dbo].[Session] WHERE IdentityId = @IdentityId)
+IF NOT EXISTS (SELECT NULL FROM [dbo].[Session] WHERE IdentityName = @IdentityName)
 BEGIN
     INSERT INTO [dbo].[Session] 
     (
@@ -77,16 +77,20 @@ BEGIN
     UPDATE
         [dbo].[Session]
     SET
+        IdentityId = @IdentityId,
         Token = @Token,
         ExpiryDate = @ExpiryDate
     WHERE
-        IdentityId = @IdentityId
+        IdentityName = @IdentityName
 END
 
-DELETE FROM 
-    [dbo].[SessionPermission]
+DELETE FROM [dbo].[SessionPermission]
+FROM 
+    [dbo].[SessionPermission] sp
+INNER JOIN
+    [dbo].[Session] s ON s.IdentityId = sp.IdentityId
 WHERE
-    IdentityId = @IdentityId;
+    s.IdentityName = @IdentityName;
 
 {(!session.HasPermissions
     ? string.Empty

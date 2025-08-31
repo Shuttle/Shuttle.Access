@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
         {
             options.Issuers = accessAuthorizationBuilder.Options.Issuers;
             options.PassThrough = accessAuthorizationBuilder.Options.PassThrough;
+            options.SessionAvailable = accessAuthorizationBuilder.Options.SessionAvailable;
         });
 
         services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();

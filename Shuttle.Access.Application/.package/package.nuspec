@@ -3,7 +3,7 @@
 <package>
   <metadata>
     <id>Shuttle.Access.Application</id>
-    <version>8.1.3</version>
+    <version>8.1.4</version>
     <authors>Eben Roux</authors>
     <owners>Eben Roux</owners>
     <license type="expression">BSD-3-Clause</license>
@@ -17,7 +17,7 @@
     <tags>iam identity authorization authentication security permissions</tags>
     <dependencies>
             <dependency id="Microsoft.CSharp" version="4.7.0" />
-      <dependency id="Shuttle.Access" version="8.1.3" />
+      <dependency id="Shuttle.Access" version="8.1.4" />
       <dependency id="Shuttle.Core.Contract" version="20.0.1" />
       <dependency id="Shuttle.Core.Mediator" version="20.0.0" />
       <dependency id="Shuttle.Esb" version="20.0.0" />
