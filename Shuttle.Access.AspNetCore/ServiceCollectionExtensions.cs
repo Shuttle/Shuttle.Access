@@ -26,11 +26,11 @@ public static class ServiceCollectionExtensions
         });
 
         services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        services.TryAddSingleton<IJwtService, JwtService>();
 
         services
             .AddSingleton<IValidateOptions<AccessAuthorizationOptions>, AccessAuthorizationOptionsValidator>()
             .AddSingleton<AccessAuthorizationMiddleware>()
-            .AddSingleton<IJwtService, JwtService>()
             .AddSingleton<IHttpContextSessionService, HttpContextSessionService>()
             .AddAuthentication(options =>
             {

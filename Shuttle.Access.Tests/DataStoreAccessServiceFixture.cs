@@ -10,7 +10,7 @@ using Shuttle.Core.Data;
 namespace Shuttle.Access.Tests;
 
 [TestFixture]
-public class DataStoreAccessServiceFixture
+public class DataStoreSessionServiceFixture
 {
     [Test]
     public async Task Should_be_able_check_for_non_existent_session_async()
@@ -30,7 +30,7 @@ public class DataStoreAccessServiceFixture
         var service = new DataStoreSessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, repository.Object);
+        }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, repository.Object);
 
         Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
     }
@@ -56,7 +56,7 @@ public class DataStoreAccessServiceFixture
         var service = new DataStoreSessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, sessionRepository.Object);
+        }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, sessionRepository.Object);
 
         Assert.That(await service.FindByTokenAsync(sessionToken), Is.Not.Null);
 

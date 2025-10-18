@@ -308,6 +308,7 @@ public static class SessionEndpoints
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
+
         app.MapDelete("/v{version:apiVersion}/sessions", async (IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository) =>
             {
                 using (new DatabaseContextScope())

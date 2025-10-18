@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.AspNetCore;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
@@ -42,10 +43,18 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    [Obsolete("Replace with `UseBearerAuthenticationProvider`.")]
     public static AccessClientBuilder AddBearerAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<BearerAuthenticationProviderBuilder>? builder = null)
     {
-        Guard.AgainstNull(accessClientBuilder).Services
-            .AddHttpClient<IAuthenticationProvider, BearerAuthenticationProvider>("BearerAuthenticationProvider");
+        return accessClientBuilder.UseBearerAuthenticationProvider(builder);
+    }
+    
+    public static AccessClientBuilder UseBearerAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<BearerAuthenticationProviderBuilder>? builder = null)
+    {
+        Guard.AgainstNull(accessClientBuilder);
+
+        accessClientBuilder.Services.TryAddSingleton<IJwtService, JwtService>();
+        accessClientBuilder.Services.AddHttpClient<IAuthenticationProvider, BearerAuthenticationProvider>("BearerAuthenticationProvider");
 
         var bearerAuthenticationProviderBuilder = new BearerAuthenticationProviderBuilder(accessClientBuilder.Services);
 
@@ -65,7 +74,13 @@ public static class ServiceCollectionExtensions
         return accessClientBuilder;
     }
 
+    [Obsolete("Replace with `UsePasswordAuthenticationProvider`.")]
     public static AccessClientBuilder AddPasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
+    {
+        return accessClientBuilder.UsePasswordAuthenticationProvider(builder);
+    }
+
+    public static AccessClientBuilder UsePasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
     {
         Guard.AgainstNull(accessClientBuilder).Services
             .AddHttpClient<IAuthenticationProvider, PasswordAuthenticationProvider>("PasswordAuthenticationProvider");
