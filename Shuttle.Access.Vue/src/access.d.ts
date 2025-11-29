@@ -11,10 +11,6 @@ export type Alert = {
   visiblePercentage?: number;
 };
 
-export type AlertStoreState = {
-  alerts: Alert[];
-};
-
 export type Configuration = {
   isOk: () => boolean;
   getErrorMessage: () => string;
@@ -35,11 +31,6 @@ export type ConfirmationOptions = {
   onConfirm: (item?: any) => void;
   message?: string;
   title?: string;
-};
-
-export type ConfirmationStoreState = {
-  isOpen: boolean;
-  options?: ConfirmationOptions;
 };
 
 export type Credentials = {
@@ -165,18 +156,4 @@ export type SessionResponse = {
   token: string;
   tokenExpiryDate: string;
   sessionTokenExchangeUrl?: string;
-};
-
-export type SessionStoreState = {
-  authenticated: boolean;
-  initialized: boolean;
-  identityName?: string;
-  token?: string;
-  permissions: string[];
-};
-
-export type SnackbarStoreState = {
-  visible: boolean;
-  text: string;
-  timeout: number;
 };

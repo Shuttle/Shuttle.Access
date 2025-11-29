@@ -31,7 +31,6 @@ public static class ServiceCollectionExtensions
             options.KnownApplications = accessBuilder.Options.KnownApplications;
             options.Configuration = accessBuilder.Options.Configuration;
             options.AllowPasswordAuthentication = accessBuilder.Options.AllowPasswordAuthentication;
-            options.AuthorizationHeaderLoggingEnabled = accessBuilder.Options.AuthorizationHeaderLoggingEnabled;
         });
 
         return services;

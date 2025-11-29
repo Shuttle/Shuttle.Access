@@ -1,6 +1,4 @@
 ﻿using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -9,18 +7,13 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class JwtService : IJwtService
+public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IHttpClientFactory httpClientFactory)
+    : IJwtService
 {
     private static readonly MemoryCache Cache = new(new MemoryCacheOptions());
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IHttpClientFactory _httpClientFactory = Guard.AgainstNull(httpClientFactory);
     private readonly JsonWebTokenHandler _jwtHandler = new();
-    private readonly AccessAuthorizationOptions _accessAuthorizationOptionsOptions;
-
-    public JwtService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IHttpClientFactory httpClientFactory)
-    {
-        _accessAuthorizationOptionsOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
-        _httpClientFactory = Guard.AgainstNull(httpClientFactory);
-    }
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptionsOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
 
     public async ValueTask<string> GetIdentityNameAsync(string token)
     {

@@ -4,9 +4,8 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.WebApi;
 
-public class LoggingHostedService(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ILogger<LoggingHostedService> logger) : IHostedService
+public class LoggingHostedService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ILogger<LoggingHostedService> logger) : IHostedService
 {
-    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
     private readonly ILogger<LoggingHostedService> _logger = Guard.AgainstNull(logger);
 
@@ -15,7 +14,7 @@ public class LoggingHostedService(IOptions<AccessOptions> accessOptions, IOption
         _accessAuthorizationOptions.SessionAvailable += OnSessionAvailable;
         _accessAuthorizationOptions.SessionUnavailable += OnSessionUnavailable;
 
-        if (_accessOptions.AuthorizationHeaderLoggingEnabled)
+        if (_accessAuthorizationOptions.InsecureModeEnabled)
         {
             _accessAuthorizationOptions.AuthorizationHeaderAvailable += OnAuthorizationHeaderAvailable;
         }
@@ -49,7 +48,7 @@ public class LoggingHostedService(IOptions<AccessOptions> accessOptions, IOption
         _accessAuthorizationOptions.SessionAvailable -= OnSessionAvailable;
         _accessAuthorizationOptions.SessionUnavailable -= OnSessionUnavailable;
 
-        if (_accessOptions.AuthorizationHeaderLoggingEnabled)
+        if (_accessAuthorizationOptions.InsecureModeEnabled)
         {
             _accessAuthorizationOptions.AuthorizationHeaderAvailable -= OnAuthorizationHeaderAvailable;
         }

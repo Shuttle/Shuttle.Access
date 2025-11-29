@@ -1,27 +1,32 @@
-import type { ConfirmationOptions, ConfirmationStoreState } from "@/access";
 import { defineStore } from "pinia";
+import { ref } from "vue";
+import type { ConfirmationOptions } from "@/access";
 
-export const useConfirmationStore = defineStore("confirmation", {
-  state: (): ConfirmationStoreState => {
-    return {
-      isOpen: false,
-      options: undefined,
-    };
-  },
-  actions: {
-    show(options: ConfirmationOptions) {
-      if (!options) {
-        throw new Error("The 'options' argument may not be undefined.");
-      }
+export const useConfirmationStore = defineStore("confirmation", () => {
+  const isOpen = ref(false);
+  const options = ref<ConfirmationOptions | undefined>(undefined);
 
-      this.options = options;
-      this.isOpen = true;
-    },
-    close() {
-      this.isOpen = false;
-    },
-    confirmed() {
-      this.options?.onConfirm?.(this.options.item);
-    },
-  },
+  function show(data: ConfirmationOptions) {
+    if (!data) {
+      throw new Error("The 'options' argument may not be undefined.");
+    }
+    options.value = data;
+    isOpen.value = true;
+  }
+
+  function close() {
+    isOpen.value = false;
+  }
+
+  function confirmed() {
+    options.value?.onConfirm?.(options.value.item);
+  }
+
+  return {
+    isOpen,
+    options,
+    show,
+    close,
+    confirmed,
+  };
 });

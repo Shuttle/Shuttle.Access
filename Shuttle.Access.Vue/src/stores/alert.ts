@@ -1,56 +1,74 @@
-import type { Alert, AlertStoreState } from "@/access";
+import type { Alert } from "@/access";
 import { defineStore } from "pinia";
+import { i18n } from "@/i18n";
 
 let key = 0;
 
-export const useAlertStore = defineStore("alert", {
-  state: (): AlertStoreState => {
-    return {
-      alerts: [],
-    };
-  },
-  actions: {
-    add(alert: Alert) {
-      if (!alert || !alert.message) {
-        return;
-      }
+export const useAlertStore = defineStore("alert", () => {
+  const alerts = ref<Alert[]>([]);
 
-      this.remove(alert.name);
+  const add = (alert: Alert) => {
+    if (!alert || !alert.message) {
+      return;
+    }
 
-      alert.expire = alert.expire ?? true;
-      alert.expirySeconds = alert.expirySeconds ?? 10;
-      alert.expiryDate = new Date(Date.now() + alert.expirySeconds * 1000);
-      alert.visiblePercentage = 100;
-      alert.dismissable = alert.dismissable ?? !!alert.name;
+    remove(alert.name);
 
-      alert.key = `${alert.name}-${key++}`;
+    alert.expire = alert.expire ?? true;
+    alert.expirySeconds = alert.expirySeconds ?? 10;
+    alert.dismissable = alert.dismissable || !!alert.name;
 
-      this.alerts.push(alert);
+    alert.key = `${alert.name}-${key++}`;
 
-      if (alert.expire) {
-        setTimeout(() => {
-          this.remove(alert.name);
-        }, alert.expirySeconds * 1000);
-      }
-    },
-    remove(name: string) {
-      if (!name) {
-        return false;
-      }
+    alerts.value.push(alert);
 
-      const index = this.alerts.findIndex((item) => item.name === name);
+    if (alert.expire) {
+      setTimeout(() => {
+        remove(alert.name);
+      }, alert.expirySeconds * 1000);
+    }
+  };
 
-      if (index < 0) {
-        return false;
-      }
+  const remove = (name: string) => {
+    if (!name) {
+      return false;
+    }
 
-      this.alerts.splice(index, 1);
+    const index = alerts.value.findIndex((item) => item.name === name);
 
-      return true;
-    },
-    clear() {
-      this.alerts = this.alerts.filter((item) => !item.dismissable);
-    },
-    initialize() {},
-  },
+    if (index < 0) {
+      return false;
+    }
+
+    alerts.value.splice(index, 1);
+
+    return true;
+  };
+
+  const clear = () => {
+    alerts.value = [];
+  };
+
+  const requestSent = () => {
+    add({
+      message: i18n.global.t("system-messages.request-sent"),
+      name: "request-sent",
+    });
+  };
+
+  const working = () => {
+    add({
+      message: i18n.global.t("system-messages.working"),
+      name: "working-message",
+    });
+  };
+
+  return {
+    alerts: readonly(alerts),
+    add,
+    remove,
+    clear,
+    requestSent,
+    working,
+  };
 });

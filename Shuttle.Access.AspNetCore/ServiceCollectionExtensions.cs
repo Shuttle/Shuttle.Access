@@ -20,9 +20,16 @@ public static class ServiceCollectionExtensions
 
         services.Configure<AccessAuthorizationOptions>(options =>
         {
+            options.InsecureModeEnabled = accessAuthorizationBuilder.Options.InsecureModeEnabled;
+
             options.Issuers = accessAuthorizationBuilder.Options.Issuers;
             options.PassThrough = accessAuthorizationBuilder.Options.PassThrough;
             options.SessionAvailable = accessAuthorizationBuilder.Options.SessionAvailable;
+            options.SessionAvailable = accessAuthorizationBuilder.Options.SessionAvailable;
+
+            options.AuthorizationHeaderAvailable = accessAuthorizationBuilder.Options.AuthorizationHeaderAvailable;
+            options.SessionAvailable = accessAuthorizationBuilder.Options.SessionAvailable;
+            options.SessionUnavailable = accessAuthorizationBuilder.Options.SessionUnavailable;
         });
 
         services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();

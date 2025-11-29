@@ -5,7 +5,8 @@ namespace Shuttle.Access.AspNetCore;
 public class AccessAuthorizationOptions
 {
     public const string SectionName = "Shuttle:Access:Authorization";
-    
+
+    public bool InsecureModeEnabled { get; set; }
     public List<IssuerOptions> Issuers { get; set; } = [];
     public bool PassThrough { get; set; } = true;
 

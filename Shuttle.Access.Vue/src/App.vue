@@ -63,8 +63,6 @@ const snackbarStore = useSnackbarStore()
 
 const { t } = useI18n({ useScope: 'global' });
 
-alertStore.initialize();
-
 const clearAlerts = () => {
   alertStore.clear()
 }

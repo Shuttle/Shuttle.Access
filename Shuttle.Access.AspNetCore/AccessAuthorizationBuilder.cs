@@ -3,16 +3,11 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class AccessAuthorizationBuilder
+public class AccessAuthorizationBuilder(IServiceCollection services)
 {
     private AccessAuthorizationOptions _options = new();
 
-    public AccessAuthorizationBuilder(IServiceCollection services)
-    {
-        Services = Guard.AgainstNull(services);
-    }
-
-    public IServiceCollection Services { get; }
+    public IServiceCollection Services { get; } = Guard.AgainstNull(services);
 
     public AccessAuthorizationOptions Options
     {
