@@ -87,7 +87,7 @@ public static class SessionEndpoints
 
         app.MapPost("/v{version:apiVersion}/sessions/search", async (IDatabaseContextFactory databaseContextFactory, ISessionQuery sessionQuery, IHashingService hashingService, [FromBody] Messages.v1.Session.Specification model) =>
             {
-                var specification = GetSpecification(model, hashingService).IncludePermissions();
+                var specification = GetSpecification(model, hashingService);
 
                 using (new DatabaseContextScope())
                 await using (databaseContextFactory.Create())

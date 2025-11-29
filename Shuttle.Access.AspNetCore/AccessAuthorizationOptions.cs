@@ -13,4 +13,6 @@ public class AccessAuthorizationOptions
     public AsyncEvent<AuthorizationHeaderAvailableEventArgs> AuthorizationHeaderAvailable { get; set; } = new(); 
     public AsyncEvent<SessionAvailableEventArgs> SessionAvailable { get; set; } = new(); 
     public AsyncEvent<SessionUnavailableEventArgs> SessionUnavailable { get; set; } = new(); 
+    public AsyncEvent<JwtIssuerOptionsAvailableEventArgs> JwtIssuerOptionsAvailable { get; set; } = new(); 
+    public AsyncEvent<JwtIssuerOptionsUnavailableEventArgs> JwtIssuerOptionsUnavailable { get; set; } = new(); 
 }

@@ -17,19 +17,22 @@ public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorization
 
     public async ValueTask<string> GetIdentityNameAsync(string token)
     {
-        var jsonToken = _jwtHandler.ReadJsonWebToken(Guard.AgainstEmpty(token));
-        var options = GetOptions(jsonToken);
+        var jsonWebToken = _jwtHandler.ReadJsonWebToken(Guard.AgainstEmpty(token));
+        var issuerOptions = GetOptions(jsonWebToken);
 
-        if (options == null)
+        if (issuerOptions == null)
         {
+            await _accessAuthorizationOptionsOptions.JwtIssuerOptionsUnavailable.InvokeAsync(new (jsonWebToken));
             return string.Empty;
         }
 
+        await _accessAuthorizationOptionsOptions.JwtIssuerOptionsAvailable.InvokeAsync(new(jsonWebToken, issuerOptions));
+
         Claim? claim = null;
 
-        foreach (var identityNameClaimType in options.IdentityNameClaimTypes)
+        foreach (var identityNameClaimType in issuerOptions.IdentityNameClaimTypes)
         {
-            claim = jsonToken.Claims.FirstOrDefault(item => item.Type.Equals(identityNameClaimType, StringComparison.InvariantCultureIgnoreCase));
+            claim = jsonWebToken.Claims.FirstOrDefault(item => item.Type.Equals(identityNameClaimType, StringComparison.InvariantCultureIgnoreCase));
 
             if (claim != null)
             {

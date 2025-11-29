@@ -13,6 +13,8 @@ public class LoggingHostedService(IOptions<AccessAuthorizationOptions> accessAut
     {
         _accessAuthorizationOptions.SessionAvailable += OnSessionAvailable;
         _accessAuthorizationOptions.SessionUnavailable += OnSessionUnavailable;
+        _accessAuthorizationOptions.JwtIssuerOptionsAvailable += OnJwtIssuerOptionsAvailable;
+        _accessAuthorizationOptions.JwtIssuerOptionsUnavailable += OnJwtIssuerOptionsUnavailable;
 
         if (_accessAuthorizationOptions.InsecureModeEnabled)
         {
@@ -22,31 +24,47 @@ public class LoggingHostedService(IOptions<AccessAuthorizationOptions> accessAut
         await Task.CompletedTask;
     }
 
-    private Task OnAuthorizationHeaderAvailable(AuthorizationHeaderAvailableEventArgs args)
+    private async Task OnJwtIssuerOptionsUnavailable(JwtIssuerOptionsUnavailableEventArgs eventArgs)
+    {
+        logger.LogDebug("[JwtIssuerOptions/unavailable]: issuer = '{Issuer}'", eventArgs.JsonWebToken.Issuer);
+
+        await Task.CompletedTask;
+    }
+
+    private async Task OnJwtIssuerOptionsAvailable(JwtIssuerOptionsAvailableEventArgs eventArgs)
+    {
+        logger.LogDebug("[JwtIssuerOptions/available]: issuer = '{Issuer}' / identity name claim types = '{IdentityNameClaimTypes}' / claims = '{Claims}'", eventArgs.JsonWebToken.Issuer, string.Join(',', eventArgs.IssuerOptions.IdentityNameClaimTypes), string.Join(',', eventArgs.JsonWebToken.Claims.Select(claim => $"'{claim.Type} = {claim.Value}'")));
+
+        await Task.CompletedTask;
+    }
+
+    private async Task OnAuthorizationHeaderAvailable(AuthorizationHeaderAvailableEventArgs args)
     {
         _logger.LogDebug("[Authorization]: header = '{Header}'", args.Value);
 
-        return Task.CompletedTask;
+        await Task.CompletedTask;
     }
 
-    private Task OnSessionUnavailable(SessionUnavailableEventArgs args)
+    private async Task OnSessionUnavailable(SessionUnavailableEventArgs args)
     {
         _logger.LogDebug("[Session/unavailable]: identifier type = '{IdentifierType}' / identifier = '{Identifier}'", args.IdentifierType, args.Identifier);
 
-        return Task.CompletedTask;
+        await Task.CompletedTask;
     }
 
-    private Task OnSessionAvailable(SessionAvailableEventArgs args)
+    private async Task OnSessionAvailable(SessionAvailableEventArgs args)
     {
         _logger.LogDebug("[Session/available]: identity name = '{IdentityName}' / identity id = '{IdentityId}' / expiry date = '{ExpiryDate}'", args.Session.IdentityName, args.Session.IdentityId, args.Session.ExpiryDate.ToString("O"));
 
-        return Task.CompletedTask;
+        await Task.CompletedTask;
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         _accessAuthorizationOptions.SessionAvailable -= OnSessionAvailable;
         _accessAuthorizationOptions.SessionUnavailable -= OnSessionUnavailable;
+        _accessAuthorizationOptions.JwtIssuerOptionsAvailable -= OnJwtIssuerOptionsAvailable;
+        _accessAuthorizationOptions.JwtIssuerOptionsUnavailable -= OnJwtIssuerOptionsUnavailable;
 
         if (_accessAuthorizationOptions.InsecureModeEnabled)
         {
