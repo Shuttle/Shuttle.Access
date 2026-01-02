@@ -1,31 +1,21 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
-using Shuttle.Esb;
+using Shuttle.Hopper;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class PermissionHandler :
+public class PermissionHandler(IMediator mediator) :
     IMessageHandler<RegisterPermission>,
     IMessageHandler<SetPermissionStatus>,
     IMessageHandler<SetPermissionName>,
     IMessageHandler<SetPermissionDescription>
 {
-    private readonly IDatabaseContextFactory _databaseContextFactory;
-    private readonly IMediator _mediator;
+    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
-    public PermissionHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
-    {
-        Guard.AgainstNull(databaseContextFactory);
-        Guard.AgainstNull(mediator);
-
-        _databaseContextFactory = databaseContextFactory;
-        _mediator = mediator;
-    }
-
-    public async Task ProcessMessageAsync(IHandlerContext<RegisterPermission> context)
+    public async Task ProcessMessageAsync(IHandlerContext<RegisterPermission> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -33,19 +23,15 @@ public class PermissionHandler :
 
         var requestResponse = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionName> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionName> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
@@ -56,19 +42,15 @@ public class PermissionHandler :
 
         var requestResponse = new RequestResponseMessage<SetPermissionName, PermissionNameSet>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionStatus> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionStatus> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -76,19 +58,15 @@ public class PermissionHandler :
 
         var requestResponse = new RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionDescription> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionDescription> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
@@ -99,15 +77,11 @@ public class PermissionHandler :
 
         var requestResponse = new RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 }

@@ -6,28 +6,22 @@ using Microsoft.Extensions.Options;
 using Shuttle.Access.Server.v1.MessageHandlers;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Pipelines;
-using Shuttle.Esb;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server;
 
-public class KeepAliveObserver : IPipelineObserver<OnAfterGetMessage>
+public class KeepAliveObserver(ILogger<KeepAliveObserver> logger, IOptions<ServerOptions> serverOptions, IServiceBus serviceBus)
+    : IPipelineObserver<MessageReceived>
 {
-    private readonly ILogger<KeepAliveObserver> _logger;
+    private readonly ILogger<KeepAliveObserver> _logger = Guard.AgainstNull(logger);
     private readonly SemaphoreSlim _lock = new(1, 1);
-    private readonly IServiceBus _serviceBus;
+    private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
     private bool _keepAliveSent;
-    private readonly ServerOptions _serverOptions;
+    private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
 
-    public KeepAliveObserver(ILogger<KeepAliveObserver> logger, IOptions<ServerOptions> serverOptions, IServiceBus serviceBus)
+    public async Task ExecuteAsync(IPipelineContext<MessageReceived> pipelineContext, CancellationToken cancellationToken = default)
     {
-        _logger = Guard.AgainstNull(logger);
-        _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
-        _serviceBus = Guard.AgainstNull(serviceBus);
-    }
-
-    public async Task ExecuteAsync(IPipelineContext<OnAfterGetMessage> pipelineContext)
-    {
-        await _lock.WaitAsync();
+        await _lock.WaitAsync(cancellationToken);
 
         try
         {
@@ -41,7 +35,7 @@ public class KeepAliveObserver : IPipelineObserver<OnAfterGetMessage>
             await _serviceBus.SendAsync(new MonitorKeepAlive(), builder =>
             {
                 builder.Local().Defer(ignoreTillDate);
-            });
+            }, cancellationToken);
 
             _keepAliveSent = true;
 

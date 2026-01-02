@@ -1,24 +1,22 @@
-﻿using System;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
 
 public class RequestIdentityRegistration
 {
-    public RegisterIdentity RegisterIdentityMessage { get; }
-
     public RequestIdentityRegistration(RegisterIdentity registerIdentityMessage)
     {
         RegisterIdentityMessage = Guard.AgainstNull(registerIdentityMessage);
     }
 
+    public Guid? IdentityId { get; private set; }
+
     public bool IsActivationAllowed { get; private set; }
     public bool IsAllowed { get; private set; }
 
     public string RegisteredBy { get; private set; } = string.Empty;
-
-    public Guid? IdentityId { get; private set; }
+    public RegisterIdentity RegisterIdentityMessage { get; }
 
     public RequestIdentityRegistration Allowed(string registeredBy, bool activationAllowed)
     {

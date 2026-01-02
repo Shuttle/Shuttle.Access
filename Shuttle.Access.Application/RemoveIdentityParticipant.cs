@@ -1,38 +1,30 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RemoveIdentityParticipant : IParticipant<RemoveIdentity>
+public class RemoveIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RemoveIdentity>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IIdKeyRepository _idKeyRepository;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public RemoveIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
+    public async Task ProcessMessageAsync(RemoveIdentity message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<RemoveIdentity> context)
-    {
-        Guard.AgainstNull(context);
-
-        var message = context.Message;
         var id = message.Id;
         var identity = new Identity();
-        var stream = await _eventStore.GetAsync(id);
+        var stream = await _eventStore.GetAsync(id, cancellationToken: cancellationToken);
 
         stream.Apply(identity);
 
         stream.Add(identity.Remove());
 
-        await _idKeyRepository.RemoveAsync(id);
+        await _idKeyRepository.RemoveAsync(id, cancellationToken);
 
-        await _eventStore.SaveAsync(stream);
+        await _eventStore.SaveAsync(stream, cancellationToken);
     }
 }

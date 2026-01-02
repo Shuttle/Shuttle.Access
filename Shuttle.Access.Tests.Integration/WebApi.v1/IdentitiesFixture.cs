@@ -14,7 +14,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
 public class IdentitiesFixture
 {
-    private static Access.DataAccess.Identity CreateIdentity()
+    private static Data.Models.Identity CreateIdentity()
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -26,14 +26,17 @@ public class IdentitiesFixture
             DateActivated = now,
             GeneratedPassword = "generated-password",
             RegisteredBy = "system",
-            Roles = new()
-            {
+            IdentityRoles =
+            [
                 new()
                 {
-                    Id = Guid.NewGuid(),
-                    Name = "role"
+                    RoleId = Guid.NewGuid(),
+                    Role = new()
+                    {
+                        Name = "role"
+                    }
                 }
-            }
+            ]
         };
     }
 
@@ -44,9 +47,9 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
-                new List<Access.DataAccess.Identity>
+                new List<Data.Models.Identity>
                 {
                     identity
                 }.AsEnumerable()));
@@ -106,46 +109,14 @@ public class IdentitiesFixture
     }
 
     [Test]
-    public async Task Should_be_able_to_search_identities_async()
-    {
-        var identity = CreateIdentity();
-
-        var factory = new FixtureWebApplicationFactory();
-
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
-            new List<Access.DataAccess.Identity>
-            {
-                identity
-            }.AsEnumerable()));
-
-        var response = await factory.GetAccessClient().Identities.SearchAsync(new());
-
-        Assert.That(response, Is.Not.Null);
-        Assert.That(response.IsSuccessStatusCode, Is.True);
-        Assert.That(response.Content, Is.Not.Null);
-
-        Assert.That(response.Content!.Count, Is.EqualTo(1));
-
-        var responseIdentity = response.Content[0];
-
-        Assert.That(responseIdentity.Id, Is.EqualTo(identity.Id));
-        Assert.That(responseIdentity.Name, Is.EqualTo(identity.Name));
-        Assert.That(responseIdentity.DateRegistered, Is.EqualTo(identity.DateRegistered));
-        Assert.That(responseIdentity.DateActivated, Is.EqualTo(identity.DateActivated));
-        Assert.That(responseIdentity.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
-        Assert.That(responseIdentity.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
-        Assert.That(responseIdentity.Roles.Find(item => item.Id == identity.Roles[0].Id), Is.Not.Null);
-    }
-
-    [Test]
     public async Task Should_be_able_to_get_identity_by_value_async()
     {
         var identity = CreateIdentity();
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(
-            Task.FromResult(new List<Access.DataAccess.Identity>
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(
+            Task.FromResult(new List<Data.Models.Identity>
             {
                 identity
             }.AsEnumerable()));
@@ -161,7 +132,7 @@ public class IdentitiesFixture
         Assert.That(response.Content.DateActivated, Is.EqualTo(identity.DateActivated));
         Assert.That(response.Content.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
         Assert.That(response.Content.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
-        Assert.That(response.Content.Roles.Find(item => item.Id == identity.Roles[0].Id), Is.Not.Null);
+        Assert.That(response.Content.Roles.Find(item => item.Id == identity.IdentityRoles.First().RoleId), Is.Not.Null);
     }
 
     [Test]
@@ -172,7 +143,7 @@ public class IdentitiesFixture
         var factory = new FixtureWebApplicationFactory();
 
         factory.Mediator.Setup(m =>
-                m.SendAsync(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), default))
+                m.SendAsync(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>
             {
                 ((RequestResponseMessage<GetPasswordResetToken, Guid>)message).WithResponse(token);
@@ -196,7 +167,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
                 new List<Guid>
                 {
@@ -276,6 +247,38 @@ public class IdentitiesFixture
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
         factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_search_identities_async()
+    {
+        var identity = CreateIdentity();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
+            new List<Data.Models.Identity>
+            {
+                identity
+            }.AsEnumerable()));
+
+        var response = await factory.GetAccessClient().Identities.SearchAsync(new());
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.Content, Is.Not.Null);
+
+        Assert.That(response.Content!.Count, Is.EqualTo(1));
+
+        var responseIdentity = response.Content[0];
+
+        Assert.That(responseIdentity.Id, Is.EqualTo(identity.Id));
+        Assert.That(responseIdentity.Name, Is.EqualTo(identity.Name));
+        Assert.That(responseIdentity.DateRegistered, Is.EqualTo(identity.DateRegistered));
+        Assert.That(responseIdentity.DateActivated, Is.EqualTo(identity.DateActivated));
+        Assert.That(responseIdentity.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
+        Assert.That(responseIdentity.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
+        Assert.That(responseIdentity.Roles.Find(item => item.Id == identity.IdentityRoles.First().RoleId), Is.Not.Null);
     }
 
     [Test]

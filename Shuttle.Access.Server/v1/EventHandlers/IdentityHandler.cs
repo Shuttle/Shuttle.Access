@@ -1,8 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.Data;
 using Shuttle.Access.Events.Identity.v1;
-using Shuttle.Access.Sql;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
@@ -22,66 +22,66 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, IIdentityProjectio
     private readonly IIdentityProjectionQuery _identityProjectionQuery = Guard.AgainstNull(query);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Activated> context)
+    public async Task ProcessEventAsync(IEventHandlerContext<Activated> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
-        await _identityProjectionQuery.ActivatedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+        await _identityProjectionQuery.ActivatedAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 
         _logger.LogDebug($"[Activated] : id = '{context.PrimitiveEvent.Id}' / date activated = '{context.Event.DateActivated:O}'");
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<DescriptionSet> context)
+    public async Task ProcessEventAsync(IEventHandlerContext<DescriptionSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
-        await _identityProjectionQuery.DescriptionSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+        await _identityProjectionQuery.DescriptionSetAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 
         _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / description = '{context.Event.Description}'");
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context)
+    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
-        await _identityProjectionQuery.NameSetAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+        await _identityProjectionQuery.NameSetAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 
         _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}'");
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context)
+    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
-        await _identityProjectionQuery.RegisterAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+        await _identityProjectionQuery.RegisterAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 
         _logger.LogDebug($"[Registered] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}' / activated = '{context.Event.Activated}' / date registered = '{context.Event.DateRegistered}' / registered by = '{context.Event.RegisteredBy}'");
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Removed> context)
+    public async Task ProcessEventAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
-        await _sessionRepository.RemoveAsync(context.PrimitiveEvent.Id, context.CancellationToken);
-        await _identityProjectionQuery.RemovedAsync(context.PrimitiveEvent, context.CancellationToken);
+        await _sessionRepository.RemoveAsync(context.PrimitiveEvent.Id, cancellationToken);
+        await _identityProjectionQuery.RemovedAsync(context.PrimitiveEvent, cancellationToken);
 
         _logger.LogDebug($"[Removed] : id = '{context.PrimitiveEvent.Id}'");
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<RoleAdded> context)
+    public async Task ProcessEventAsync(IEventHandlerContext<RoleAdded> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
-        await _identityProjectionQuery.RoleAddedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+        await _identityProjectionQuery.RoleAddedAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 
         _logger.LogDebug($"[RoleAdded] : id = '{context.PrimitiveEvent.Id}' / role id = '{context.Event.RoleId}'");
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<RoleRemoved> context)
+    public async Task ProcessEventAsync(IEventHandlerContext<RoleRemoved> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
-        await _identityProjectionQuery.RoleRemovedAsync(context.PrimitiveEvent, context.Event, context.CancellationToken);
+        await _identityProjectionQuery.RoleRemovedAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 
         _logger.LogDebug($"[RoleRemoved] : id = '{context.PrimitiveEvent.Id}' / role id = '{context.Event.RoleId}'");
     }

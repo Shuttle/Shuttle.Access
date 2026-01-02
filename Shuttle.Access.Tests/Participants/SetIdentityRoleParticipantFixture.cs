@@ -28,9 +28,9 @@ public class SetIdentityRoleParticipantFixture
             IdentityId = identityId
         });
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>(setIdentityRole, new()));
+        await participant.ProcessMessageAsync(setIdentityRole);
 
-        var eventStream = eventStore.Get(identityId);
+        var eventStream = await eventStore.GetAsync(identityId);
 
         Assert.That(eventStream.Count, Is.EqualTo(1));
         Assert.That(((RoleAdded)eventStream.GetEvents(EventStream.EventRegistrationType.All).First().Event).RoleId, Is.EqualTo(setIdentityRole.Request.RoleId));

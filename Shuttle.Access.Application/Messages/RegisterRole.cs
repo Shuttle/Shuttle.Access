@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
@@ -10,13 +7,14 @@ public class RegisterRole
 {
     private readonly List<RegisterPermission> _permissions = [];
 
-    public string Name { get; }
-    public bool HasMissingPermissions { get; private set; }
-    
     public RegisterRole(string name)
     {
         Name = Guard.AgainstEmpty(name);
     }
+
+    public bool HasMissingPermissions { get; private set; }
+
+    public string Name { get; }
 
     public RegisterRole AddPermissions(IEnumerable<RegisterPermission> permissions)
     {
@@ -33,7 +31,10 @@ public class RegisterRole
         return this;
     }
 
-    public IEnumerable<RegisterPermission> GetPermissions() => _permissions.AsReadOnly();
+    public IEnumerable<RegisterPermission> GetPermissions()
+    {
+        return _permissions.AsReadOnly();
+    }
 
     public RegisterRole MissingPermissions()
     {

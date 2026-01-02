@@ -1,29 +1,20 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetPermissionStatusParticipant : IParticipant<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>>
+public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>>
 {
-    private readonly IEventStore _eventStore;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public SetPermissionStatusParticipant(IEventStore eventStore)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetPermissionStatus, PermissionStatusSet> message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var message = context.Message;
-
+        Guard.AgainstNull(message);
         Guard.AgainstUndefinedEnum<PermissionStatus>(message.Request.Status, nameof(message.Request.Status));
 
-        var stream = await _eventStore.GetAsync(message.Request.Id);
+        var stream = await _eventStore.GetAsync(message.Request.Id, cancellationToken: cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -55,12 +46,14 @@ public class SetPermissionStatusParticipant : IParticipant<RequestResponseMessag
             }
         }
 
-        context.Message.WithResponse(new()
+        await _eventStore.SaveAsync(stream, cancellationToken);
+
+        message.WithResponse(new()
         {
             Id = message.Request.Id,
             Name = permission.Name,
             Status = message.Request.Status,
-            SequenceNumber = await _eventStore.SaveAsync(stream)
+            Version = stream.Version
         });
     }
 }

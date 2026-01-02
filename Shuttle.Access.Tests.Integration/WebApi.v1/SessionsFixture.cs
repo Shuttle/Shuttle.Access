@@ -18,12 +18,12 @@ public class SessionsFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var session = new Access.DataAccess.Session
+        var session = new Data.Models.Session
         {
             IdentityId = Guid.NewGuid()
         };
 
-        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Access.DataAccess.Session> { session }.AsEnumerable()));
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Data.Models.Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 
@@ -43,7 +43,7 @@ public class SessionsFixture
         var sessionToken = Guid.NewGuid();
         var session = new Session(sessionToken.ToByteArray(), Guid.NewGuid(), "identity-name", DateTimeOffset.Now, DateTimeOffset.Now);
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), default))
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>
             {
                 ((RegisterSession)message).Registered(sessionToken, session);
@@ -66,7 +66,6 @@ public class SessionsFixture
         Assert.That(sessionRegistered.Content!.Token, Is.EqualTo(sessionToken));
         Assert.That(sessionRegistered.Content.IdentityName, Is.EqualTo(session.IdentityName));
 
-        factory.DatabaseContextFactory.Verify(m => m.Create(), Times.AtLeast(1));
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RegisterSession>(), default), Times.Once);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

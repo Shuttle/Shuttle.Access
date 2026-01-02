@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.Data;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 
@@ -20,12 +20,12 @@ public class ReviewSetIdentityRoleParticipantFixture
     {
         var roleQuery = new Mock<IRoleQuery>();
 
-        roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Role.Specification>(), default)).Returns(Task.FromResult(Enumerable.Empty<DataAccess.Role>()));
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(Enumerable.Empty<Data.Models.Role>()));
 
         var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
         var reviewRequest = new RequestMessage<SetIdentityRole>(new());
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestMessage<SetIdentityRole>>(reviewRequest, new()));
+        await participant.ProcessMessageAsync(reviewRequest);
 
         Assert.That(reviewRequest.Ok, Is.True);
     }
@@ -36,7 +36,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         var roleId = Guid.NewGuid();
         var roleQuery = new Mock<IRoleQuery>();
 
-        roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Role.Specification>(), default)).Returns(Task.FromResult(new List<DataAccess.Role>
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<Data.Models.Role>
         {
             new()
             {
@@ -52,7 +52,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, identityQuery.Object);
         var reviewRequest = new RequestMessage<SetIdentityRole>(new() { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestMessage<SetIdentityRole>>(reviewRequest, new()));
+        await participant.ProcessMessageAsync(reviewRequest);
 
         Assert.That(reviewRequest.Ok, Is.False);
         Assert.That(reviewRequest.Message, Is.EqualTo("last-administrator"));

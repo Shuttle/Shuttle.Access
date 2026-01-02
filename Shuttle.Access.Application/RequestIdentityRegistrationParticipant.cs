@@ -1,64 +1,56 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
-using Shuttle.Esb;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
-public class RequestIdentityRegistrationParticipant : IParticipant<RequestIdentityRegistration>
+public class RequestIdentityRegistrationParticipant(IServiceBus serviceBus, IHashingService hashingService, ISessionRepository sessionRepository, IMediator mediator)
+    : IParticipant<RequestIdentityRegistration>
 {
-    private readonly IHashingService _hashingService;
-    private readonly IServiceBus _serviceBus;
-    private readonly ISessionRepository _sessionRepository;
-    private readonly IMediator _mediator;
+    private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
+    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
+    private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
+    private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
-    public RequestIdentityRegistrationParticipant(IServiceBus serviceBus, IHashingService hashingService, ISessionRepository sessionRepository, IMediator mediator)
+    public async Task ProcessMessageAsync(RequestIdentityRegistration message, CancellationToken cancellationToken = default)
     {
-        _serviceBus = Guard.AgainstNull(serviceBus);
-        _hashingService = Guard.AgainstNull(hashingService);
-        _sessionRepository = Guard.AgainstNull(sessionRepository);
-        _mediator = Guard.AgainstNull(mediator);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<RequestIdentityRegistration> context)
-    {
-        Guard.AgainstNull(context);
-
-        if (context.Message.IdentityId.HasValue)
+        if (message.IdentityId.HasValue)
         {
-            var session = await _sessionRepository.FindAsync(context.Message.IdentityId.Value, context.CancellationToken);
+            var session = await _sessionRepository.FindAsync(message.IdentityId.Value, cancellationToken);
 
             if (session != null && session.HasPermission(AccessPermissions.Identities.Register))
             {
-                context.Message.Allowed(session.IdentityName, session.HasPermission(AccessPermissions.Identities.Activate));
+                message.Allowed(session.IdentityName, session.HasPermission(AccessPermissions.Identities.Activate));
             }
         }
 
-        if (!context.Message.IsAllowed)
+        if (!message.IsAllowed)
         {
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(context.Message.RegisterIdentityMessage.Password))
+        if (string.IsNullOrWhiteSpace(message.RegisterIdentityMessage.Password))
         {
             var generatePassword = new GeneratePassword();
 
-            await _mediator.SendAsync(generatePassword);
+            await _mediator.SendAsync(generatePassword, cancellationToken);
 
-            context.Message.RegisterIdentityMessage.Password = generatePassword.GeneratedPassword;
+            message.RegisterIdentityMessage.Password = generatePassword.GeneratedPassword;
         }
 
-        var generateHash = new GenerateHash { Value = context.Message.RegisterIdentityMessage.Password };
+        var generateHash = new GenerateHash { Value = message.RegisterIdentityMessage.Password };
 
-        await _mediator.SendAsync(generateHash);
+        await _mediator.SendAsync(generateHash, cancellationToken);
 
-        context.Message.RegisterIdentityMessage.Password = string.Empty;
-        context.Message.RegisterIdentityMessage.PasswordHash = generateHash.Hash;
-        context.Message.RegisterIdentityMessage.RegisteredBy = context.Message.RegisteredBy;
-        context.Message.RegisterIdentityMessage.Activated = context.Message.RegisterIdentityMessage.Activated && context.Message.IsActivationAllowed;
-        context.Message.RegisterIdentityMessage.System = context.Message.RegisterIdentityMessage.System;
+        message.RegisterIdentityMessage.Password = string.Empty;
+        message.RegisterIdentityMessage.PasswordHash = generateHash.Hash;
+        message.RegisterIdentityMessage.RegisteredBy = message.RegisteredBy;
+        message.RegisterIdentityMessage.Activated = message.RegisterIdentityMessage.Activated && message.IsActivationAllowed;
+        message.RegisterIdentityMessage.System = message.RegisterIdentityMessage.System;
 
-        await _serviceBus.SendAsync(context.Message.RegisterIdentityMessage);
+        await _serviceBus.SendAsync(message.RegisterIdentityMessage, cancellationToken: cancellationToken);
     }
 }

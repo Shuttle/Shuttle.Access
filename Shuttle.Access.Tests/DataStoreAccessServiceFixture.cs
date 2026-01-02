@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.DataAccess;
-using Shuttle.Core.Data;
+using Shuttle.Access.Data;
 
 namespace Shuttle.Access.Tests;
 
@@ -19,18 +19,10 @@ public class DataStoreSessionServiceFixture
 
         repository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult<Session?>(null));
 
-        var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
-
-        connectionStringOptions.Setup(m => m.Get("Access")).Returns(new ConnectionStringOptions
-        {
-            Name = "Access",
-            ConnectionString = "connection-string"
-        });
-
-        var service = new DataStoreSessionService(Options.Create(new AccessOptions
+        var service = new SqlServerSessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, repository.Object);
+        }), new HashingService(), new Mock<IDbContextFactory<AccessDbContext>>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, repository.Object);
 
         Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
     }
@@ -45,18 +37,10 @@ public class DataStoreSessionServiceFixture
 
         sessionRepository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
 
-        var connectionStringOptions = new Mock<IOptionsMonitor<ConnectionStringOptions>>();
-
-        connectionStringOptions.Setup(m => m.Get("Access")).Returns(new ConnectionStringOptions
-        {
-            Name = "Access",
-            ConnectionString = "connection-string"
-        });
-
-        var service = new DataStoreSessionService(Options.Create(new AccessOptions
+        var service = new SqlServerSessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new HashingService(), new Mock<IDatabaseContextFactory>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, sessionRepository.Object);
+        }), new HashingService(), new Mock<IDbContextFactory<AccessDbContext>>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, sessionRepository.Object);
 
         Assert.That(await service.FindByTokenAsync(sessionToken), Is.Not.Null);
 

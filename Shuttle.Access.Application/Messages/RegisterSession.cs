@@ -1,28 +1,29 @@
-﻿using System;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
 
 public class RegisterSession
 {
-    private string _password = string.Empty;
-
     private Guid? _authenticationToken;
+    private string _password = string.Empty;
 
     public RegisterSession(string identityName)
     {
         IdentityName = Guard.AgainstEmpty(identityName);
     }
 
+    public bool HasKnownApplicationOptions => KnownApplicationOptions != null;
+
     public bool HasSession => Session != null && SessionToken.HasValue;
 
     public string IdentityName { get; }
+
+    public KnownApplicationOptions? KnownApplicationOptions { get; private set; }
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
     public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;
     public Session? Session { get; private set; }
     public Guid? SessionToken { get; private set; }
     public string SessionTokenExchangeUrl { get; private set; } = string.Empty;
-    public bool HasKnownApplicationOptions => KnownApplicationOptions != null;
 
     public RegisterSession DelegationSessionInvalid()
     {
@@ -38,16 +39,6 @@ public class RegisterSession
         return this;
     }
 
-    public string GetPassword()
-    {
-        if (string.IsNullOrWhiteSpace(_password))
-        {
-            throw new InvalidOperationException(Resources.RegisterSessionPasswordNotSetException);
-        }
-
-        return _password;
-    }
-
     public Guid GetAuthenticationToken()
     {
         if (!_authenticationToken.HasValue)
@@ -56,6 +47,16 @@ public class RegisterSession
         }
 
         return _authenticationToken.Value;
+    }
+
+    public string GetPassword()
+    {
+        if (string.IsNullOrWhiteSpace(_password))
+        {
+            throw new InvalidOperationException(Resources.RegisterSessionPasswordNotSetException);
+        }
+
+        return _password;
     }
 
     public RegisterSession Registered(Guid sessionToken, Session session)
@@ -85,6 +86,15 @@ public class RegisterSession
         return this;
     }
 
+    public RegisterSession UseAuthenticationToken(Guid authenticationToken)
+    {
+        SetRegistrationType(SessionRegistrationType.Token);
+
+        _authenticationToken = authenticationToken;
+
+        return this;
+    }
+
     public RegisterSession UseDelegation(Guid registrationToken)
     {
         SetRegistrationType(SessionRegistrationType.Delegation);
@@ -110,23 +120,12 @@ public class RegisterSession
         return this;
     }
 
-    public RegisterSession UseAuthenticationToken(Guid authenticationToken)
-    {
-        SetRegistrationType(SessionRegistrationType.Token);
-
-        _authenticationToken = authenticationToken;
-
-        return this;
-    }
-
     public RegisterSession WithKnownApplicationOptions(KnownApplicationOptions knownApplicationOptions)
     {
         KnownApplicationOptions = Guard.AgainstNull(knownApplicationOptions);
 
         return this;
     }
-
-    public KnownApplicationOptions? KnownApplicationOptions { get; private set; }
 
     public RegisterSession WithSessionTokenExchangeUrl(string sessionTokenExchangeUrl)
     {

@@ -1,31 +1,22 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class SetIdentityNameParticipant : IParticipant<RequestResponseMessage<SetIdentityName, IdentityNameSet>>
+public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RequestResponseMessage<SetIdentityName, IdentityNameSet>>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IIdKeyRepository _idKeyRepository;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityName, IdentityNameSet> message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetIdentityName, IdentityNameSet>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var request = context.Message.Request;
+        var request = Guard.AgainstNull(message).Request;
 
         var identity = new Identity();
-        var stream = await _eventStore.GetAsync(request.Id);
+        var stream = await _eventStore.GetAsync(request.Id, cancellationToken: cancellationToken);
 
         stream.Apply(identity);
 
@@ -37,20 +28,21 @@ public class SetIdentityNameParticipant : IParticipant<RequestResponseMessage<Se
         var key = Identity.Key(identity.Name);
         var rekey = Identity.Key(request.Name);
 
-        if (await _idKeyRepository.ContainsAsync(rekey) || !await _idKeyRepository.ContainsAsync(key))
+        if (await _idKeyRepository.ContainsAsync(rekey, cancellationToken) || !await _idKeyRepository.ContainsAsync(key, cancellationToken))
         {
             return;
         }
 
-        await _idKeyRepository.RekeyAsync(key, rekey);
+        await _idKeyRepository.RekeyAsync(key, rekey, cancellationToken);
 
         stream.Add(identity.SetName(request.Name));
 
-        context.Message.WithResponse(new()
+        await _eventStore.SaveAsync(stream, cancellationToken);
+
+        message.WithResponse(new()
         {
             Id = request.Id,
-            Name = request.Name,
-            SequenceNumber = await _eventStore.SaveAsync(stream)
+            Name = request.Name
         });
     }
 }

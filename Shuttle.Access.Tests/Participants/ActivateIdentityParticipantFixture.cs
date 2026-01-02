@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.Data;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
@@ -22,10 +22,10 @@ public class ActivateIdentityParticipantFixture
         var eventStore = new FixtureEventStore();
         var identityQuery = new Mock<IIdentityQuery>();
 
-        var identity = new DataAccess.Identity { Id = Guid.NewGuid() };
+        var identity = new Data.Models.Identity { Id = Guid.NewGuid() };
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None))
-            .Returns(Task.FromResult(new List<DataAccess.Identity> { identity }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None))
+            .Returns(Task.FromResult(new List<Data.Models.Identity> { identity }.AsEnumerable()));
 
         var participant =
             new ActivateIdentityParticipant(identityQuery.Object, eventStore);
@@ -33,7 +33,7 @@ public class ActivateIdentityParticipantFixture
         var requestResponseMessage =
             new RequestResponseMessage<ActivateIdentity, IdentityActivated>(new() { Id = identity.Id });
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<ActivateIdentity, IdentityActivated>>(requestResponseMessage, CancellationToken.None));
+        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
 
         var @event = eventStore.FindEvent<Activated>(identity.Id);
 

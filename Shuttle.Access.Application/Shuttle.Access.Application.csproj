@@ -1,19 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="Shuttle.Access" Version="8.1.5" />
-    <PackageReference Include="Shuttle.Core.Contract" Version="20.0.1" />
-    <PackageReference Include="Shuttle.Core.Mediator" Version="20.0.0" />
-    <PackageReference Include="Shuttle.Esb" Version="20.0.0" />
-    <PackageReference Include="Shuttle.Recall" Version="20.0.0" />
-    <PackageReference Include="Shuttle.Recall.Sql.Storage" Version="20.0.0" />
+    <PackageReference Include="Shuttle.Access" Version="9.0.0" />
+    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Hopper" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Recall" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +32,7 @@
 
   <PropertyGroup>
     <Description>Application concern implementations such as Shuttle.Core.Mediator participants.</Description>
-    <Version>8.1.5</Version>
+    <Version>9.0.0</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>
@@ -54,6 +53,10 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shuttle.Access.Data\Shuttle.Access.Data.csproj" />
   </ItemGroup>
 
   <Target Name="CopyNuGetPackage" AfterTargets="Pack" Condition="'$(NUGET_PACKAGE_FOLDER)' != ''">

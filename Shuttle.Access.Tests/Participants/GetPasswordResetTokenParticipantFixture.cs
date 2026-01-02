@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.Data;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
@@ -22,17 +22,17 @@ public class GetPasswordResetTokenParticipantFixture
         var eventStore = new FixtureEventStore();
         var identityQuery = new Mock<IIdentityQuery>();
 
-        var identity = new DataAccess.Identity { Id = Guid.NewGuid() };
+        var identity = new Data.Models.Identity { Id = Guid.NewGuid() };
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None))
-            .Returns(Task.FromResult(new List<DataAccess.Identity> { identity }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None))
+            .Returns(Task.FromResult(new List<Data.Models.Identity> { identity }.AsEnumerable()));
 
         var participant = new GetPasswordResetTokenParticipant(identityQuery.Object, eventStore);
 
         var getPasswordResetToken = new GetPasswordResetToken { Name = "identity-name" };
         var requestResponseMessage = new RequestResponseMessage<GetPasswordResetToken, Guid>(getPasswordResetToken);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<GetPasswordResetToken, Guid>>(requestResponseMessage, CancellationToken.None));
+        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
 
         Assert.That(requestResponseMessage.Ok, Is.False);
 
@@ -40,7 +40,7 @@ public class GetPasswordResetTokenParticipantFixture
 
         requestResponseMessage = new(getPasswordResetToken);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<GetPasswordResetToken, Guid>>(requestResponseMessage, CancellationToken.None));
+        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
 
         Assert.That(requestResponseMessage.Ok, Is.True);
     }

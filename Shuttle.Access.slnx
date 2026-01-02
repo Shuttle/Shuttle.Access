@@ -1,7 +1,6 @@
 <Solution>
   <Folder Name="/.package/">
     <File Path=".package/data-appsettings.json" />
-    <File Path=".package/docker-compose-otel.yml" />
     <File Path=".package/docker-compose.yml" />
     <File Path=".package/docker-pull.cmd" />
     <File Path=".package/docker-push.cmd" />
@@ -27,7 +26,6 @@
   <Project Path="Shuttle.Access.Messages/Shuttle.Access.Messages.csproj" />
   <Project Path="Shuttle.Access.RestClient/Shuttle.Access.RestClient.csproj" />
   <Project Path="Shuttle.Access.Server/Shuttle.Access.Server.csproj" />
-  <Project Path="Shuttle.Access.Sql/Shuttle.Access.Sql.csproj" />
   <Project Path="Shuttle.Access.Tests.Integration/Shuttle.Access.Tests.Integration.csproj" />
   <Project Path="Shuttle.Access.Tests/Shuttle.Access.Tests.csproj" />
   <Project Path="Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj" />

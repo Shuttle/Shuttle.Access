@@ -4,29 +4,28 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.Data;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Data;
-using Shuttle.Esb;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
 
 public static class RoleEndpoints
 {
-    private static Messages.v1.Role Map(DataAccess.Role role)
+    private static Messages.v1.Role Map(Data.Models.Role role)
     {
         return new()
         {
             Id = role.Id,
             Name = role.Name,
-            Permissions = role.Permissions.Select(item => new Messages.v1.Role.Permission
+            Permissions = role.RolePermissions.Select(item => new Messages.v1.Role.Permission
             {
-                Id = item.Id,
-                Name = item.Name,
+                Id = item.PermissionId,
+                Name = item.Permission.Name,
                 RoleId = role.Id,
-                Description = item.Description,
-                Status = item.Status
+                Description = item.Permission.Description,
+                Status = item.Permission.Status
             }).ToList()
         };
     }
@@ -77,7 +76,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/{id}/permissions/availability", async (Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        app.MapPost("/v{version:apiVersion}/roles/{id}/permissions/availability", async (Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IRoleQuery roleQuery) =>
             {
                 try
                 {
@@ -88,29 +87,25 @@ public static class RoleEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    var permissions = (await roleQuery.PermissionsAsync(new DataAccess.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
+                var permissions = (await roleQuery.PermissionsAsync(new Data.Models.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
 
-                    var result = from permissionId in identifiers.Values
-                        select new IdentifierAvailability<Guid>
-                        {
-                            Id = permissionId,
-                            Active = permissions.Any(item => item.Id.Equals(permissionId))
-                        };
+                var result = from permissionId in identifiers.Values
+                    select new IdentifierAvailability<Guid>
+                    {
+                        Id = permissionId,
+                        Active = permissions.Any(item => item.Id.Equals(permissionId))
+                    };
 
-                    return Results.Ok(result);
-                }
+                return Results.Ok(result);
             })
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/search", async ([FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification) =>
+        app.MapPost("/v{version:apiVersion}/roles/search", async ([FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification) =>
             {
-                var search = new DataAccess.Role.Specification();
+                var search = new Data.Models.Role.Specification();
 
                 if (!string.IsNullOrWhiteSpace(specification.NameMatch))
                 {
@@ -122,8 +117,6 @@ public static class RoleEndpoints
                     search.IncludePermissions();
                 }
 
-                await using var context = databaseContextFactory.Create();
-
                 return Results.Ok((await roleQuery.SearchAsync(search)).Select(Map).ToList());
             })
             .WithTags("Roles")
@@ -131,28 +124,24 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.View);
 
-        app.MapGet("/v{version:apiVersion}/roles/{value}", async (string value, [FromServices] IDatabaseContextFactory databaseContextFactory, [FromServices] IRoleQuery roleQuery) =>
+        app.MapGet("/v{version:apiVersion}/roles/{value}", async (string value, [FromServices] IRoleQuery roleQuery) =>
             {
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
+                var specification = new Data.Models.Role.Specification();
+
+                if (Guid.TryParse(value, out var id))
                 {
-                    var specification = new DataAccess.Role.Specification();
-
-                    if (Guid.TryParse(value, out var id))
-                    {
-                        specification.AddRoleId(id);
-                    }
-                    else
-                    {
-                        specification.AddName(value);
-                    }
-
-                    var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
-
-                    return role != null
-                        ? Results.Ok(Map(role))
-                        : Results.BadRequest();
+                    specification.AddRoleId(id);
                 }
+                else
+                {
+                    specification.AddName(value);
+                }
+
+                var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
+
+                return role != null
+                    ? Results.Ok(Map(role))
+                    : Results.BadRequest();
             })
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
@@ -249,31 +238,23 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/bulk-download", async (IDatabaseContextFactory databaseContextFactory, IRoleQuery roleQuery, List<Guid> ids) =>
+        app.MapPost("/v{version:apiVersion}/roles/bulk-download", async (IRoleQuery roleQuery, List<Guid> ids) =>
             {
                 if (!ids.Any())
                 {
                     return Results.BadRequest();
                 }
 
-                List<DataAccess.Role> roles;
-
-                using (new DatabaseContextScope())
-                {
-                    await using (databaseContextFactory.Create())
-                    {
-                        roles = (await roleQuery.SearchAsync(new DataAccess.Role.Specification().IncludePermissions().AddRoleIds(ids))).ToList();
-                    }
-                }
+                var roles = (await roleQuery.SearchAsync(new Data.Models.Role.Specification().IncludePermissions().AddRoleIds(ids))).ToList();
 
                 var result = roles.Select(item => new
                 {
                     item.Name,
-                    Permissions = item.Permissions.Select(permission => new RegisterPermission
+                    Permissions = item.RolePermissions.Select(permission => new RegisterPermission
                     {
-                        Name = permission.Name,
-                        Description = permission.Description,
-                        Status = permission.Status
+                        Name = permission.Permission.Name,
+                        Description = permission.Permission.Description,
+                        Status = permission.Permission.Status
                     }).ToList()
                 });
 

@@ -1,23 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.Data;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication>
+public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptions, ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
+    : IParticipant<ConfigureApplication>
 {
-    private readonly IIdentityQuery _identityQuery;
-    private readonly ILogger<ConfigureApplicationParticipant> _logger;
-    private readonly IMediator _mediator;
-    private readonly IPermissionQuery _permissionQuery;
-    private readonly IRoleQuery _roleQuery;
+    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
+    private readonly ILogger<ConfigureApplicationParticipant> _logger = Guard.AgainstNull(logger);
+    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
+    private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
 
     private readonly List<string> _permissions =
     [
@@ -38,25 +35,15 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
         AccessPermissions.Sessions.View
     ];
 
-    private readonly AccessOptions _accessOptions;
+    private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
-    public ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptions, ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
+    public async Task ProcessMessageAsync(ConfigureApplication message, CancellationToken cancellationToken = default)
     {
-        _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
-        _logger = Guard.AgainstNull(logger);
-        _mediator = Guard.AgainstNull(mediator);
-        _roleQuery = Guard.AgainstNull(roleQuery);
-        _permissionQuery = Guard.AgainstNull(permissionQuery);
-        _identityQuery = Guard.AgainstNull(identityQuery);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<ConfigureApplication> context)
-    {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(message);
 
         foreach (var permission in _permissions)
         {
-            if (await _permissionQuery.ContainsAsync(new DataAccess.Permission.Specification().AddName(permission)))
+            if (await _permissionQuery.ContainsAsync(new Data.Models.Permission.Specification().AddName(permission), cancellationToken))
             {
                 continue;
             }
@@ -70,24 +57,24 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
                     Status = (int)PermissionStatus.Active
                 });
 
-            await _mediator.SendAsync(registerPermissionMessage);
+            await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
         }
 
         var timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
 
-        var permissionSpecification = new DataAccess.Permission.Specification();
+        var permissionSpecification = new Data.Models.Permission.Specification();
 
         foreach (var permission in _permissions)
         {
             permissionSpecification.AddName(permission);
         }
 
-        while (await _permissionQuery.CountAsync(permissionSpecification) != _permissions.Count && DateTimeOffset.Now < timeout)
+        while (await _permissionQuery.CountAsync(permissionSpecification, cancellationToken) != _permissions.Count && DateTimeOffset.Now < timeout)
         {
-            Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).WaitAsync(cancellationToken);
         }
 
-        if (await _permissionQuery.CountAsync(permissionSpecification) != _permissions.Count)
+        if (await _permissionQuery.CountAsync(permissionSpecification, cancellationToken) != _permissions.Count)
         {
             throw new ApplicationException(Resources.PermissionsException);
         }
@@ -97,11 +84,11 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
             return;
         }
 
-        var roleSpecification = new DataAccess.Role.Specification()
+        var roleSpecification = new Data.Models.Role.Specification()
             .AddName("Access Administrator")
             .IncludePermissions();
 
-        var administratorExists = await _roleQuery.CountAsync(roleSpecification) > 0;
+        var administratorExists = await _roleQuery.CountAsync(roleSpecification, cancellationToken) > 0;
 
         _logger.LogDebug($"[role] : name = 'Access Administrator' / exists = {administratorExists}");
 
@@ -113,29 +100,29 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
 
             var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(registerRole);
 
-            await _mediator.SendAsync(registerRoleMessage);
+            await _mediator.SendAsync(registerRoleMessage, cancellationToken);
 
             timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
 
-            while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTimeOffset.Now < timeout)
+            while (await _roleQuery.CountAsync(roleSpecification, cancellationToken) == 0 && DateTimeOffset.Now < timeout)
             {
-                Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).WaitAsync(cancellationToken);
             }
 
-            if (await _roleQuery.CountAsync(roleSpecification) == 0)
+            if (await _roleQuery.CountAsync(roleSpecification, cancellationToken) == 0)
             {
                 throw new ApplicationException(Resources.AdministratorRoleException);
             }
         }
 
-        var role  = (await _roleQuery.SearchAsync(roleSpecification)).SingleOrDefault();
+        var role = (await _roleQuery.SearchAsync(roleSpecification, cancellationToken)).SingleOrDefault();
 
         if (role == null)
         {
             throw new ApplicationException(Resources.AdministratorRoleException);
         }
 
-        var administratorPermission = (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddName("access://*"))).SingleOrDefault();
+        var administratorPermission = (await _permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddName("access://*"), cancellationToken)).SingleOrDefault();
 
         if (administratorPermission == null)
         {
@@ -147,7 +134,7 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
             Active = true,
             RoleId = role.Id,
             PermissionId = administratorPermission.Id
-        }));
+        }), cancellationToken);
 
         timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
 
@@ -155,21 +142,21 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
 
         while (!administratorPermissionsRegistered && DateTimeOffset.Now < timeout)
         {
-            role = (await _roleQuery.SearchAsync(roleSpecification)).SingleOrDefault();
+            role = (await _roleQuery.SearchAsync(roleSpecification, cancellationToken)).SingleOrDefault();
 
             if (role == null)
             {
                 throw new ApplicationException(Resources.AdministratorRoleException);
             }
 
-            administratorPermissionsRegistered = role.Permissions.FirstOrDefault(item => item.Name.Equals(AccessPermissions.Administrator, StringComparison.InvariantCultureIgnoreCase)) != null;
+            administratorPermissionsRegistered = role.RolePermissions.FirstOrDefault(item => item.Role.Name.Equals(AccessPermissions.Administrator, StringComparison.InvariantCultureIgnoreCase)) != null;
 
             if (administratorPermissionsRegistered)
             {
                 continue;
             }
 
-            Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).WaitAsync(cancellationToken);
         }
 
         if (!administratorPermissionsRegistered)
@@ -177,11 +164,11 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
             throw new ApplicationException(Resources.AdministratorPermissionException);
         }
 
-        if (await _identityQuery.CountAsync(new DataAccess.Identity.Specification().WithRoleName("Access Administrator")) == 0)
+        if (await _identityQuery.CountAsync(new Data.Models.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken) == 0)
         {
             var generateHash = new GenerateHash { Value = _accessOptions.Configuration.AdministratorPassword };
 
-            await _mediator.SendAsync(generateHash);
+            await _mediator.SendAsync(generateHash, cancellationToken);
 
             var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new()
             {
@@ -192,7 +179,7 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
                 Activated = true
             });
 
-            await _mediator.SendAsync(registerIdentityMessage);
+            await _mediator.SendAsync(registerIdentityMessage, cancellationToken);
         }
     }
 }

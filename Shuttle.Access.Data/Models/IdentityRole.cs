@@ -1,5 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shuttle.Access.Data.Models;
 
@@ -11,4 +12,10 @@ public class IdentityRole
 
     public Guid IdentityId { get; set; }
     public Guid RoleId { get; set; }
+
+    [ForeignKey(nameof(IdentityId))]
+    public Identity Identity { get; set; } = null!;
+    
+    [ForeignKey(nameof(RoleId))]
+    public Role Role { get; set; } = null!;
 }

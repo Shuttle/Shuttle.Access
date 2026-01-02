@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
 using Shuttle.OAuth;
 using RegisterSession = Shuttle.Access.Application.RegisterSession;
@@ -111,7 +110,7 @@ public static class OAuthEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/session/{state}/{code}", async (ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IDatabaseContextFactory databaseContextFactory, IMediator mediator, string state, string code) =>
+        app.MapGet("/v{version:apiVersion}/oauth/session/{state}/{code}", async (ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IMediator mediator, string state, string code) =>
             {
                 if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var requestId))
                 {
@@ -157,11 +156,7 @@ public static class OAuthEndpoints
                     registerSession.WithKnownApplicationOptions(knownApplicationOptions);
                 }
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    await mediator.SendAsync(registerSession);
-                }
+                await mediator.SendAsync(registerSession);
 
                 var requestRegistration = registerSession.Result == SessionRegistrationResult.UnknownIdentity && accessOptions.Value.OAuthRegisterUnknownIdentities;
 

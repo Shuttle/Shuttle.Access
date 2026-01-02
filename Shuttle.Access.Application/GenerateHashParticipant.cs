@@ -1,24 +1,18 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class GenerateHashParticipant : IParticipant<GenerateHash>
+public class GenerateHashParticipant(IHashingService hashingService) : IParticipant<GenerateHash>
 {
-    private readonly IHashingService _hashingService;
+    private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
 
-    public GenerateHashParticipant(IHashingService hashingService)
+    public async Task ProcessMessageAsync(GenerateHash message, CancellationToken cancellationToken = default)
     {
-        _hashingService = Guard.AgainstNull(hashingService);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<GenerateHash> context)
-    {
-        Guard.AgainstNull(context);
-
-        context.Message.Hash = _hashingService.Sha256(context.Message.Value);
+        message.Hash = _hashingService.Sha256(message.Value);
 
         await Task.CompletedTask;
     }

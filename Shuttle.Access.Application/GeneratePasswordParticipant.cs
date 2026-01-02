@@ -1,24 +1,18 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class GeneratePasswordParticipant : IParticipant<GeneratePassword>
+public class GeneratePasswordParticipant(IPasswordGenerator passwordGenerator) : IParticipant<GeneratePassword>
 {
-    private readonly IPasswordGenerator _passwordGenerator;
+    private readonly IPasswordGenerator _passwordGenerator = Guard.AgainstNull(passwordGenerator);
 
-    public GeneratePasswordParticipant(IPasswordGenerator passwordGenerator)
+    public async Task ProcessMessageAsync(GeneratePassword message, CancellationToken cancellationToken = default)
     {
-        _passwordGenerator = Guard.AgainstNull(passwordGenerator);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<GeneratePassword> context)
-    {
-        Guard.AgainstNull(context);
-
-        context.Message.GeneratedPassword = _passwordGenerator.Generate();
+        message.GeneratedPassword = _passwordGenerator.Generate();
 
         await Task.CompletedTask;
     }

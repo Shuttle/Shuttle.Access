@@ -1,30 +1,21 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RemoveRoleParticipant : IParticipant<RequestResponseMessage<RemoveRole, RoleRemoved>>
+public class RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RequestResponseMessage<RemoveRole, RoleRemoved>>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IIdKeyRepository _idKeyRepository;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
+    public async Task ProcessMessageAsync(RequestResponseMessage<RemoveRole, RoleRemoved> message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RemoveRole, RoleRemoved>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var message = context.Message;
-
-        var stream = await _eventStore.GetAsync(message.Request.Id);
+        var stream = await _eventStore.GetAsync(message.Request.Id, cancellationToken: cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -37,15 +28,16 @@ public class RemoveRoleParticipant : IParticipant<RequestResponseMessage<RemoveR
 
         stream.Add(role.Remove());
 
-        await _idKeyRepository.RemoveAsync(message.Request.Id);
+        await _idKeyRepository.RemoveAsync(message.Request.Id, cancellationToken);
 
-        await _eventStore.SaveAsync(stream);
+        await _eventStore.SaveAsync(stream, cancellationToken);
 
-        context.Message.WithResponse(new()
+        await _eventStore.SaveAsync(stream, cancellationToken);
+
+        message.WithResponse(new()
         {
             Id = message.Request.Id,
-            Name = role.Name,
-            SequenceNumber = await _eventStore.SaveAsync(stream)
+            Name = role.Name
         });
     }
 }

@@ -1,13 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
-using Shuttle.Esb;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class IdentityHandler :
+public class IdentityHandler(IMediator mediator) :
     IMessageHandler<RegisterIdentity>,
     IMessageHandler<SetIdentityRole>,
     IMessageHandler<RemoveIdentity>,
@@ -16,37 +16,23 @@ public class IdentityHandler :
     IMessageHandler<SetIdentityName>,
     IMessageHandler<SetIdentityDescription>
 {
-    private readonly IDatabaseContextFactory _databaseContextFactory;
-    private readonly IMediator _mediator;
+    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
-    public IdentityHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
-    {
-        Guard.AgainstNull(databaseContextFactory);
-        Guard.AgainstNull(mediator);
-
-        _databaseContextFactory = databaseContextFactory;
-        _mediator = mediator;
-    }
-
-    public async Task ProcessMessageAsync(IHandlerContext<ActivateIdentity> context)
+    public async Task ProcessMessageAsync(IHandlerContext<ActivateIdentity> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
         var requestResponse = new RequestResponseMessage<ActivateIdentity, IdentityActivated>(context.Message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+            await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<RegisterIdentity> context)
+    public async Task ProcessMessageAsync(IHandlerContext<RegisterIdentity> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -61,33 +47,25 @@ public class IdentityHandler :
 
         var requestResponse = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<RemoveIdentity> context)
+    public async Task ProcessMessageAsync(IHandlerContext<RemoveIdentity> context, CancellationToken cancellationToken = default)
     {
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(context.Message);
+        await _mediator.SendAsync(context.Message, cancellationToken);
 
-            await context.PublishAsync(new IdentityRemoved
-            {
-                Id = context.Message.Id
-            });
-        }
+        await context.PublishAsync(new IdentityRemoved
+        {
+            Id = context.Message.Id
+        }, cancellationToken: cancellationToken);
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
@@ -98,19 +76,15 @@ public class IdentityHandler :
 
         var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityDescription> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityDescription> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
@@ -121,19 +95,15 @@ public class IdentityHandler :
 
         var requestResponse = new RequestResponseMessage<SetIdentityDescription, IdentityDescriptionSet>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityRole> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityRole> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -141,33 +111,25 @@ public class IdentityHandler :
         var reviewRequest = new RequestMessage<SetIdentityRole>(message);
         var requestResponse = new RequestResponseMessage<SetIdentityRole, IdentityRoleSet>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
+        await _mediator.SendAsync(reviewRequest, cancellationToken);
+
+        if (!reviewRequest.Ok)
         {
-            await _mediator.SendAsync(reviewRequest);
+            return;
+        }
 
-            if (!reviewRequest.Ok)
-            {
-                return;
-            }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
-            await _mediator.SendAsync(requestResponse);
-
-            if (requestResponse.Response != null)
-            {
-                await context.PublishAsync(requestResponse.Response);
-            }
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetPassword> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetPassword> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(context.Message);
-        }
+        await _mediator.SendAsync(context.Message, cancellationToken);
     }
 }

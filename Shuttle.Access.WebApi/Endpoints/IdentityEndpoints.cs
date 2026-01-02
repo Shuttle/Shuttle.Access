@@ -3,13 +3,12 @@ using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.Data;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
-using Shuttle.Esb;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
 
@@ -61,9 +60,9 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/identities/search", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, [FromBody] Messages.v1.Identity.Specification specification) =>
+        app.MapPost("/v{version:apiVersion}/identities/search", async (IIdentityQuery identityQuery, [FromBody] Messages.v1.Identity.Specification specification) =>
             {
-                var search = new DataAccess.Identity.Specification();
+                var search = new Data.Models.Identity.Specification();
 
                 if (!string.IsNullOrWhiteSpace(specification.NameMatch))
                 {
@@ -75,39 +74,31 @@ public static class IdentityEndpoints
                     search.IncludeRoles();
                 }
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    return Results.Ok((await identityQuery.SearchAsync(search)).Select(Map).ToList());
-                }
+                return Results.Ok((await identityQuery.SearchAsync(search)).Select(Map).ToList());
             })
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.View);
 
-        app.MapGet("/v{version:apiVersion}/identities/{value}", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, string value) =>
+        app.MapGet("/v{version:apiVersion}/identities/{value}", async (IIdentityQuery identityQuery, string value) =>
             {
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
+                var specification = new Data.Models.Identity.Specification().IncludeRoles();
+
+                if (Guid.TryParse(value, out var id))
                 {
-                    var specification = new DataAccess.Identity.Specification().IncludeRoles();
-
-                    if (Guid.TryParse(value, out var id))
-                    {
-                        specification.WithIdentityId(id);
-                    }
-                    else
-                    {
-                        specification.WithName(value);
-                    }
-
-                    var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
-
-                    return identity != null
-                        ? Results.Ok(Map(identity))
-                        : Results.BadRequest();
+                    specification.WithIdentityId(id);
                 }
+                else
+                {
+                    specification.WithName(value);
+                }
+
+                var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
+
+                return identity != null
+                    ? Results.Ok(Map(identity))
+                    : Results.BadRequest();
             })
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
@@ -128,7 +119,7 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Remove);
 
-        app.MapPatch("/v{version:apiVersion}/identities/{id}/roles/{roleId}", async (IMediator mediator, IDatabaseContextFactory databaseContextFactory, IServiceBus serviceBus, Guid id, Guid roleId, [FromBody] SetIdentityRole message) =>
+        app.MapPatch("/v{version:apiVersion}/identities/{id}/roles/{roleId}", async (IMediator mediator, IServiceBus serviceBus, Guid id, Guid roleId, [FromBody] SetIdentityRole message) =>
             {
                 try
                 {
@@ -141,29 +132,25 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
+                var reviewRequest = new RequestMessage<SetIdentityRole>(message);
+
+                await mediator.SendAsync(reviewRequest);
+
+                if (!reviewRequest.Ok)
                 {
-                    var reviewRequest = new RequestMessage<SetIdentityRole>(message);
-
-                    await mediator.SendAsync(reviewRequest);
-
-                    if (!reviewRequest.Ok)
-                    {
-                        return Results.BadRequest(reviewRequest.Message);
-                    }
-
-                    await serviceBus.SendAsync(message);
-
-                    return Results.Accepted();
+                    return Results.BadRequest(reviewRequest.Message);
                 }
+
+                await serviceBus.SendAsync(message);
+
+                return Results.Accepted();
             })
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPut("/v{version:apiVersion}/identities/password", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, ISessionRepository sessionRepository, [FromBody] ChangePassword message) =>
+        app.MapPut("/v{version:apiVersion}/identities/password", async (HttpContext httpContext, IMediator mediator, ISessionRepository sessionRepository, [FromBody] ChangePassword message) =>
             {
                 try
                 {
@@ -181,30 +168,26 @@ public static class IdentityEndpoints
                     return Results.Unauthorized();
                 }
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
+                var session = await sessionRepository.FindAsync(identityId.Value);
+
+                if (message.Id.HasValue && !(session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
                 {
-                    var session = await sessionRepository.FindAsync(identityId.Value);
-
-                    if (message.Id.HasValue && !(session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
-                    {
-                        return Results.Unauthorized();
-                    }
-
-                    var changePassword = new RequestMessage<ChangePassword>(message);
-
-                    await mediator.SendAsync(changePassword);
-
-                    return !changePassword.Ok
-                        ? Results.BadRequest(changePassword.Message)
-                        : Results.Accepted();
+                    return Results.Unauthorized();
                 }
+
+                var changePassword = new RequestMessage<ChangePassword>(message);
+
+                await mediator.SendAsync(changePassword);
+
+                return !changePassword.Ok
+                    ? Results.BadRequest(changePassword.Message)
+                    : Results.Accepted();
             })
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapPut("/v{version:apiVersion}/identities/password/reset", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] ResetPassword message) =>
+        app.MapPut("/v{version:apiVersion}/identities/password/reset", async (HttpContext httpContext, IMediator mediator, [FromBody] ResetPassword message) =>
             {
                 try
                 {
@@ -224,22 +207,18 @@ public static class IdentityEndpoints
 
                 var requestMessage = new RequestMessage<ResetPassword>(message);
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    await mediator.SendAsync(requestMessage);
+                await mediator.SendAsync(requestMessage);
 
-                    return !requestMessage.Ok
-                        ? Results.BadRequest(requestMessage.Message)
-                        : Results.Ok();
-                }
+                return !requestMessage.Ok
+                    ? Results.BadRequest(requestMessage.Message)
+                    : Results.Ok();
             })
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPost("/v{version:apiVersion}/identities/{id}/roles/availability", async (IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, Guid id, [FromBody] Identifiers<Guid> identifiers) =>
+        app.MapPost("/v{version:apiVersion}/identities/{id}/roles/availability", async (IIdentityQuery identityQuery, Guid id, [FromBody] Identifiers<Guid> identifiers) =>
             {
                 try
                 {
@@ -250,27 +229,21 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                List<Guid> roles;
+                var roles = (await identityQuery.RoleIdsAsync(new Data.Models.Identity.Specification().WithIdentityId(id))).ToList();
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    roles = (await identityQuery.RoleIdsAsync(new DataAccess.Identity.Specification().WithIdentityId(id))).ToList();
-
-                    return Results.Ok(from roleId in identifiers.Values
-                        select new IdentifierAvailability<Guid>
-                        {
-                            Id = roleId,
-                            Active = roles.Any(item => item.Equals(roleId))
-                        });
-                }
+                return Results.Ok(from roleId in identifiers.Values
+                    select new IdentifierAvailability<Guid>
+                    {
+                        Id = roleId,
+                        Active = roles.Any(item => item.Equals(roleId))
+                    });
             })
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPut("/v{version:apiVersion}/identities/activate", async (IServiceBus serviceBus, IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, [FromBody] ActivateIdentity message) =>
+        app.MapPut("/v{version:apiVersion}/identities/activate", async (IServiceBus serviceBus, IIdentityQuery identityQuery, [FromBody] ActivateIdentity message) =>
             {
                 try
                 {
@@ -281,7 +254,7 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var specification = new DataAccess.Identity.Specification();
+                var specification = new Data.Models.Identity.Specification();
 
                 if (message.Id.HasValue)
                 {
@@ -292,27 +265,23 @@ public static class IdentityEndpoints
                     specification.WithName(message.Name);
                 }
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
+                var query = (await identityQuery.SearchAsync(specification)).FirstOrDefault();
+
+                if (query == null)
                 {
-                    var query = (await identityQuery.SearchAsync(specification)).FirstOrDefault();
-
-                    if (query == null)
-                    {
-                        return Results.BadRequest();
-                    }
-
-                    await serviceBus.SendAsync(message);
-
-                    return Results.Accepted();
+                    return Results.BadRequest();
                 }
+
+                await serviceBus.SendAsync(message);
+
+                return Results.Accepted();
             })
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapGet("/v{version:apiVersion}/identities/{name}/password/reset-token", async (IMediator mediator, IDatabaseContextFactory databaseContextFactory, string name) =>
+        app.MapGet("/v{version:apiVersion}/identities/{name}/password/reset-token", async (IMediator mediator, string name) =>
             {
                 var message = new GetPasswordResetToken
                 {
@@ -328,21 +297,17 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    var requestResponse = new RequestResponseMessage<GetPasswordResetToken, Guid>(message);
-                    await mediator.SendAsync(requestResponse);
+                var requestResponse = new RequestResponseMessage<GetPasswordResetToken, Guid>(message);
+                await mediator.SendAsync(requestResponse);
 
-                    return !requestResponse.Ok ? Results.BadRequest(requestResponse.Message) : Results.Ok(requestResponse.Response);
-                }
+                return !requestResponse.Ok ? Results.BadRequest(requestResponse.Message) : Results.Ok(requestResponse.Response);
             })
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPost("/v{version:apiVersion}/identities/", async (HttpContext httpContext, IMediator mediator, IDatabaseContextFactory databaseContextFactory, [FromBody] RegisterIdentity message) =>
+        app.MapPost("/v{version:apiVersion}/identities/", async (HttpContext httpContext, IMediator mediator, [FromBody] RegisterIdentity message) =>
             {
                 Guard.AgainstNull(message);
 
@@ -363,11 +328,7 @@ public static class IdentityEndpoints
                     requestIdentityRegistration.WithIdentityId(identityId.Value);
                 }
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    await mediator.SendAsync(requestIdentityRegistration);
-                }
+                await mediator.SendAsync(requestIdentityRegistration);
 
                 return !requestIdentityRegistration.IsAllowed ? Results.Unauthorized() : Results.Accepted();
             })
@@ -378,7 +339,7 @@ public static class IdentityEndpoints
         return app;
     }
 
-    private static Messages.v1.Identity Map(DataAccess.Identity identity)
+    private static Messages.v1.Identity Map(Data.Models.Identity identity)
     {
         return new()
         {
@@ -387,12 +348,12 @@ public static class IdentityEndpoints
             Description = identity.Description,
             DateRegistered = identity.DateRegistered,
             DateActivated = identity.DateActivated,
-            GeneratedPassword = identity.GeneratedPassword,
+            GeneratedPassword = identity.GeneratedPassword ?? string.Empty,
             RegisteredBy = identity.RegisteredBy,
-            Roles = identity.Roles.Select(item => new Messages.v1.Identity.Role
+            Roles = identity.IdentityRoles.Select(item=> new Messages.v1.Identity.Role
             {
-                Id = item.Id,
-                Name = item.Name
+                Id = item.RoleId,
+                Name = item.Role.Name
             }).ToList()
         };
     }

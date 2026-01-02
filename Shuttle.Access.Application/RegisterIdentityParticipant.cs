@@ -1,46 +1,35 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Shuttle.Access.DataAccess;
+﻿using Shuttle.Access.Data;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
+public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IIdentityQuery identityQuery, IRoleQuery roleQuery)
+    : IParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IIdentityQuery _identityQuery;
-    private readonly  IIdKeyRepository _idKeyRepository;
-    private readonly IRoleQuery _roleQuery;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
+    private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
+    private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
-    public RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IIdentityQuery identityQuery, IRoleQuery roleQuery)
+    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterIdentity, IdentityRegistered> message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
-        _identityQuery = Guard.AgainstNull(identityQuery);
-        _roleQuery = Guard.AgainstNull(roleQuery);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var message = context.Message.Request;
+        Guard.AgainstNull(message);
 
         EventStream stream;
         Identity identity;
 
-        var key = Identity.Key(message.Name);
-        var id = await _idKeyRepository.FindAsync(key);
+        var request = message.Request;
+        var key = Identity.Key(request.Name);
+        var id = await _idKeyRepository.FindAsync(key, cancellationToken);
 
         if (id.HasValue)
         {
             identity = new();
-            stream = await _eventStore.GetAsync(id.Value);
+            stream = await _eventStore.GetAsync(id.Value, cancellationToken: cancellationToken);
 
             stream.Apply(identity);
 
@@ -54,20 +43,20 @@ public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<R
             id = Guid.NewGuid();
             identity = new();
 
-            await _idKeyRepository.AddAsync(id.Value, key);
+            await _idKeyRepository.AddAsync(id.Value, key, cancellationToken);
 
-            stream = await _eventStore.GetAsync(id.Value);
+            stream = await _eventStore.GetAsync(id.Value, cancellationToken: cancellationToken);
         }
 
-        var registered = identity.Register(message.Name, message.Description, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
+        var registered = identity.Register(request.Name, request.Description, request.PasswordHash, request.RegisteredBy, request.GeneratedPassword, request.Activated);
 
         stream.Add(registered);
 
-        var count = await _identityQuery.CountAsync(new DataAccess.Identity.Specification().WithRoleName("Access Administrator"));
+        var count = await _identityQuery.CountAsync(new Data.Models.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken);
 
         if (count == 0)
         {
-            var roles = (await _roleQuery.SearchAsync(new DataAccess.Role.Specification().AddName("Access Administrator"))).ToList();
+            var roles = (await _roleQuery.SearchAsync(new Data.Models.Role.Specification().AddName("Access Administrator"), cancellationToken)).ToList();
 
             if (roles.Count != 1)
             {
@@ -82,19 +71,20 @@ public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<R
             }
         }
 
-        if (message.Activated)
+        if (request.Activated)
         {
             stream.Add(identity.Activate(registered.DateRegistered));
         }
 
-        context.Message.WithResponse(new()
+        await _eventStore.SaveAsync(stream, cancellationToken);
+
+        message.WithResponse(new()
         {
             Id = id.Value,
-            Name = message.Name,
-            RegisteredBy = message.RegisteredBy,
-            GeneratedPassword = message.GeneratedPassword,
-            System = message.System,
-            SequenceNumber = await _eventStore.SaveAsync(stream)
+            Name = request.Name,
+            RegisteredBy = request.RegisteredBy,
+            GeneratedPassword = request.GeneratedPassword,
+            System = request.System
         });
     }
 }

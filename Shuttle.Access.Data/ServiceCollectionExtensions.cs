@@ -1,28 +1,27 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Shuttle.Access.Data;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddEfCoreAccess(this IServiceCollection services, IConfiguration configuration)
+    extension(AccessBuilder accessBuilder)
     {
-        ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(configuration);
-
-        services.AddDbContextFactory<AccessDbContext>(builder =>
+        public IServiceCollection UseSqlServer(Action<AccessDataBuilder>? builder = null)
         {
-            var connectionString = configuration.GetConnectionString("Access");
+            var services = accessBuilder.Services;
+            var accessDataBuilder = new AccessDataBuilder(services);
 
-            if (string.IsNullOrWhiteSpace(connectionString))
+            builder?.Invoke(accessDataBuilder);
+
+            services.AddScoped<ISessionService, SqlServerSessionService>();
+
+            services.AddDbContextFactory<AccessDbContext>(dbContextFactoryBuilder =>
             {
-                throw new ArgumentException("Could not find a connection string for 'Access'.");
-            }
+                dbContextFactoryBuilder.UseSqlServer(accessDataBuilder.Options.ConnectionString, sqlServerOptions => { sqlServerOptions.CommandTimeout(300); });
+            });
 
-            builder.UseSqlServer(connectionString, sqlServerOptions => { sqlServerOptions.CommandTimeout(300); });
-        });
-
-        return services;
+            return services;
+        }
     }
 }

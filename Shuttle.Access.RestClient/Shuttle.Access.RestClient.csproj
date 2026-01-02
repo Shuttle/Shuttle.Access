@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -11,11 +11,11 @@
   </ItemGroup>
 	
   <ItemGroup>
-		<PackageReference Include="Refit" Version="8.0.0" />
-		<PackageReference Include="Refit.HttpClientFactory" Version="8.0.0" />
-		<PackageReference Include="Shuttle.Access" Version="8.1.5" />
+		<PackageReference Include="Refit" Version="9.0.2" />
+		<PackageReference Include="Refit.HttpClientFactory" Version="9.0.2" />
+		<PackageReference Include="Shuttle.Access" Version="9.0.0" />
 		<PackageReference Include="Shuttle.Access.AspNetCore" Version="8.1.6" />
-		<PackageReference Include="Shuttle.Core.Contract" Version="20.0.1" />
+		<PackageReference Include="Shuttle.Core.Contract" Version="21.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -35,7 +35,7 @@
 
   <PropertyGroup>
     <Description>A client used to interact with the restful Shuttle.Access web API.</Description>
-    <Version>8.1.8</Version>
+    <Version>9.0.0</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

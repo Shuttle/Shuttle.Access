@@ -1,31 +1,20 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class SetPermissionDescriptionParticipant : IParticipant<RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet>>
+public class SetPermissionDescriptionParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet>>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IIdKeyRepository _idKeyRepository;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public SetPermissionDescriptionParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet> message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var request = context.Message.Request;
+        var request = Guard.AgainstNull(message).Request;
 
         var permission = new Permission();
-        var stream = await _eventStore.GetAsync(request.Id);
+        var stream = await _eventStore.GetAsync(request.Id, cancellationToken: cancellationToken);
 
         stream.Apply(permission);
 
@@ -36,9 +25,9 @@ public class SetPermissionDescriptionParticipant : IParticipant<RequestResponseM
 
         stream.Add(permission.SetDescription(request.Description));
 
-        await _eventStore.SaveAsync(stream);
+        await _eventStore.SaveAsync(stream, cancellationToken);
 
-        context.Message.WithResponse(new()
+        message.WithResponse(new()
         {
             Id = request.Id,
             Description = request.Description

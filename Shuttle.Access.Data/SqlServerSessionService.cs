@@ -1,20 +1,16 @@
-﻿using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 
-namespace Shuttle.Access.DataAccess;
+namespace Shuttle.Access.Data;
 
-public class DataStoreSessionService(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IDatabaseContextFactory databaseContextFactory, IAuthorizationService authorizationService, IIdentityQuery identityQuery, ISessionRepository sessionRepository)
+public class SqlServerSessionService(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IDbContextFactory<AccessDbContext> dbContextFactory, IAuthorizationService authorizationService, IIdentityQuery identityQuery, ISessionRepository sessionRepository)
     : SessionCache, ISessionService
 {
+    private readonly IDbContextFactory<AccessDbContext> _dbContextFactory = Guard.AgainstNull(dbContextFactory);
     private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly AccessOptions _accessOptions = Guard.AgainstNull(accessOptions).Value;
-    private readonly IDatabaseContextFactory _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
@@ -86,10 +82,9 @@ public class DataStoreSessionService(IOptions<AccessOptions> accessOptions, IHas
                 return session;
             }
 
-            await using (_databaseContextFactory.Create(_accessOptions.ConnectionStringName))
-            {
-                return Add(token, await _sessionRepository.FindAsync(_hashingService.Sha256(token.ToString("D")), cancellationToken));
-            }
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+            return Add(token, await _sessionRepository.FindAsync(_hashingService.Sha256(token.ToString("D")), cancellationToken));
         }
         finally
         {
@@ -110,27 +105,26 @@ public class DataStoreSessionService(IOptions<AccessOptions> accessOptions, IHas
                 return session;
             }
 
-            await using (_databaseContextFactory.Create(_accessOptions.ConnectionStringName))
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+            
+            var aggregate = await _sessionRepository.FindAsync(identityId, cancellationToken);
+
+            if (aggregate == null)
             {
-                var aggregate = await _sessionRepository.FindAsync(identityId, cancellationToken);
+                var identity = (await _identityQuery.SearchAsync(new Models.Identity.Specification().WithIdentityId(identityId), cancellationToken)).FirstOrDefault();
 
-                if (aggregate == null)
+                if (identity != null)
                 {
-                    var identity = (await _identityQuery.SearchAsync(new Identity.Specification().WithIdentityId(identityId), cancellationToken)).FirstOrDefault();
+                    var now = DateTimeOffset.UtcNow;
+                    var token = Guid.NewGuid();
 
-                    if (identity != null)
-                    {
-                        var now = DateTimeOffset.UtcNow;
-                        var token = Guid.NewGuid();
+                    aggregate = new(_hashingService.Sha256(token.ToString("D")), identityId, identity.Name, now, now.Add(_accessOptions.SessionDuration));
 
-                        aggregate = new(_hashingService.Sha256(token.ToString("D")), identityId, identity.Name, now, now.Add(_accessOptions.SessionDuration));
-
-                        await SaveAsync(token, aggregate, cancellationToken);
-                    }
+                    await SaveAsync(token, aggregate, cancellationToken);
                 }
-
-                return Add(null, aggregate);
             }
+
+            return Add(null, aggregate);
         }
         finally
         {
@@ -151,22 +145,21 @@ public class DataStoreSessionService(IOptions<AccessOptions> accessOptions, IHas
                 return session;
             }
 
-            await using (_databaseContextFactory.Create(_accessOptions.ConnectionStringName))
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+            
+            var aggregate = await _sessionRepository.FindAsync(identityName, cancellationToken);
+
+            if (aggregate == null && await _identityQuery.CountAsync(new Models.Identity.Specification().WithName(identityName), cancellationToken) > 0)
             {
-                var aggregate = await _sessionRepository.FindAsync(identityName, cancellationToken);
+                var now = DateTimeOffset.UtcNow;
+                var token = Guid.NewGuid();
 
-                if (aggregate == null && await _identityQuery.CountAsync(new Identity.Specification().WithName(identityName), cancellationToken) > 0)
-                {
-                    var now = DateTimeOffset.UtcNow;
-                    var token = Guid.NewGuid();
+                aggregate = new(_hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
 
-                    aggregate = new(_hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
-
-                    await SaveAsync(token, aggregate, cancellationToken);
-                }
-
-                return Add(null, aggregate);
+                await SaveAsync(token, aggregate, cancellationToken);
             }
+
+            return Add(null, aggregate);
         }
         finally
         {
@@ -174,7 +167,7 @@ public class DataStoreSessionService(IOptions<AccessOptions> accessOptions, IHas
         }
     }
 
-    private async Task SaveAsync(Guid token, Access.Session session, CancellationToken cancellationToken)
+    private async Task SaveAsync(Guid token, Session session, CancellationToken cancellationToken)
     {
         foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, cancellationToken))
         {
@@ -186,7 +179,7 @@ public class DataStoreSessionService(IOptions<AccessOptions> accessOptions, IHas
         await _sessionRepository.SaveAsync(session, cancellationToken);
     }
 
-    private Messages.v1.Session? Add(Guid? token, Access.Session? session)
+    private Messages.v1.Session? Add(Guid? token, Session? session)
     {
         if (session == null)
         {

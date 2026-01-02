@@ -6,8 +6,7 @@ using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -25,7 +24,7 @@ public class RemoveIdentityParticipantFixture
 
         var participant = new RemoveIdentityParticipant(eventStore, new Mock<IIdKeyRepository>().Object);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RemoveIdentity>(removeIdentity, CancellationToken.None));
+        await participant.ProcessMessageAsync(removeIdentity, CancellationToken.None);
 
         Assert.That((await eventStore.GetAsync(removeIdentity.Id)).Count, Is.EqualTo(1));
 

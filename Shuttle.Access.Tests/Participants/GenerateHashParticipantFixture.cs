@@ -4,7 +4,6 @@ using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -22,7 +21,7 @@ public class GenerateHashParticipantFixture
 
         var participant = new GenerateHashParticipant(hashingService.Object);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<GenerateHash>(generateHash, CancellationToken.None));
+        await participant.ProcessMessageAsync(generateHash, CancellationToken.None);
 
         Assert.That(generateHash.Hash, Is.Not.Null);
         Assert.That(generateHash.Hash, Is.EqualTo(hash));

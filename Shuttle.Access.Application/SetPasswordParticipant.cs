@@ -1,31 +1,24 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetPasswordParticipant : IParticipant<SetPassword>
+public class SetPasswordParticipant(IEventStore eventStore) : IParticipant<SetPassword>
 {
-    private readonly IEventStore _eventStore;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public SetPasswordParticipant(IEventStore eventStore)
+    public async Task ProcessMessageAsync(SetPassword message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<SetPassword> context)
-    {
-        Guard.AgainstNull(context);
-
-        var message = context.Message;
         var identity = new Identity();
-        var stream = await _eventStore.GetAsync(message.Id);
+        var stream = await _eventStore.GetAsync(message.Id, cancellationToken: cancellationToken);
 
         stream.Apply(identity);
         stream.Add(identity.SetPassword(message.PasswordHash));
 
-        await _eventStore.SaveAsync(stream);
+        await _eventStore.SaveAsync(stream, cancellationToken);
     }
 }

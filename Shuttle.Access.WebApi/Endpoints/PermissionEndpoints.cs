@@ -2,13 +2,12 @@
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.DataAccess;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
-using Shuttle.Esb;
+using Shuttle.Hopper;
 using System.Text;
 using System.Text.Json;
+using Shuttle.Access.Data;
 
 namespace Shuttle.Access.WebApi;
 
@@ -18,9 +17,9 @@ public static class PermissionEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/v{version:apiVersion}/permissions/search", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery, [FromBody] Messages.v1.Permission.Specification specification) =>
+        app.MapPost("/v{version:apiVersion}/permissions/search", async (IPermissionQuery permissionQuery, [FromBody] Messages.v1.Permission.Specification specification) =>
             {
-                var search = new DataAccess.Permission.Specification();
+                var search = new Data.Models.Permission.Specification();
 
                 if (!string.IsNullOrWhiteSpace(specification.NameMatch))
                 {
@@ -29,25 +28,17 @@ public static class PermissionEndpoints
 
                 search.AddIds(specification.Ids);
 
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    return Results.Ok((await permissionQuery.SearchAsync(search)).Select(Map).ToList());
-                }
+                return Results.Ok((await permissionQuery.SearchAsync(search)).Select(Map).ToList());
             })
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequireSession();
 
-        app.MapGet("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery) =>
+        app.MapGet("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, IPermissionQuery permissionQuery) =>
             {
-                using (new DatabaseContextScope())
-                await using (databaseContextFactory.Create())
-                {
-                    var permission = (await permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddId(id))).SingleOrDefault();
-                    return permission != null ? Results.Ok(Map(permission)) : Results.BadRequest();
-                }
+                var permission = (await permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddId(id))).SingleOrDefault();
+                return permission != null ? Results.Ok(Map(permission)) : Results.BadRequest();
             })
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
@@ -121,7 +112,7 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPost("/v{version:apiVersion}/permissions/bulk-download", async (IDatabaseContextFactory databaseContextFactory, IPermissionQuery permissionQuery, List<Guid> ids) =>
+        app.MapPost("/v{version:apiVersion}/permissions/bulk-download", async (IPermissionQuery permissionQuery, List<Guid> ids) =>
             {
                 if (!ids.Any())
                 {
@@ -130,20 +121,14 @@ public static class PermissionEndpoints
 
                 List<RegisterPermission> permissions;
 
-                using (new DatabaseContextScope())
-                {
-                    await using (databaseContextFactory.Create())
+                permissions = (await permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddIds(ids)))
+                    .Select(item => new RegisterPermission
                     {
-                        permissions = (await permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddIds(ids)))
-                            .Select(item => new RegisterPermission
-                            {
-                                Name = item.Name,
-                                Description = item.Description,
-                                Status = item.Status
-                            })
-                            .ToList();
-                    }
-                }
+                        Name = item.Name,
+                        Description = item.Description,
+                        Status = item.Status
+                    })
+                    .ToList();
 
                 return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(permissions)), "application/json", "permissions.json");
             })
@@ -220,7 +205,7 @@ public static class PermissionEndpoints
         return app;
     }
 
-    private static Messages.v1.Permission Map(DataAccess.Permission permission)
+    private static Messages.v1.Permission Map(Data.Models.Permission permission)
     {
         return new()
         {

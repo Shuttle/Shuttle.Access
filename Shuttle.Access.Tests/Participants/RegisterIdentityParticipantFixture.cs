@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.Data;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -25,7 +25,7 @@ public class RegisterIdentityParticipantFixture
 
         var identity = new Messages.v1.Identity { Id = Guid.NewGuid(), Name = "name" };
 
-        identityQuery.Setup(m => m.CountAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
+        identityQuery.Setup(m => m.CountAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
 
         idKeyRepository.Setup(m => m.FindAsync(Identity.Key(identity.Name), CancellationToken.None)).ReturnsAsync(await ValueTask.FromResult((Guid?)null));
 
@@ -38,7 +38,7 @@ public class RegisterIdentityParticipantFixture
 
         var requestResponseMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(registerIdentity);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>(requestResponseMessage, CancellationToken.None));
+        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
 
         Assert.That(requestResponseMessage.Ok, Is.True);
         Assert.That(requestResponseMessage.Response, Is.Not.Null);

@@ -1,29 +1,21 @@
-﻿using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetIdentityRoleParticipant : IParticipant<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>
+public class SetIdentityRoleParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>
 {
-    private readonly IEventStore _eventStore;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public SetIdentityRoleParticipant(IEventStore eventStore)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityRole, IdentityRoleSet> message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var message = context.Message;
+        Guard.AgainstNull(message);
 
         var identity = new Identity();
         var request = message.Request;
-        var stream = await _eventStore.GetAsync(request.IdentityId);
+        var stream = await _eventStore.GetAsync(request.IdentityId, cancellationToken: cancellationToken);
 
         stream.Apply(identity);
 
@@ -37,6 +29,8 @@ public class SetIdentityRoleParticipant : IParticipant<RequestResponseMessage<Se
             stream.Add(identity.RemoveRole(request.RoleId));
         }
 
+        await _eventStore.SaveAsync(stream, cancellationToken);
+
         if (stream.ShouldSave())
         {
             message.WithResponse(new()
@@ -44,7 +38,7 @@ public class SetIdentityRoleParticipant : IParticipant<RequestResponseMessage<Se
                 RoleId = request.RoleId,
                 IdentityId = request.IdentityId,
                 Active = request.Active,
-                SequenceNumber = await _eventStore.SaveAsync(stream)
+                Version = stream.Version
             });
         }
     }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
@@ -10,19 +12,20 @@ namespace Shuttle.Access.Tests;
 public class FixtureEventStore : IEventStore
 {
     private readonly Dictionary<Guid, EventStream> _eventStreams = new();
-    private long _sequenceNumber = 1;
 
-    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null)
+    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
         return await Task.FromResult(Get(id, builder));
     }
 
-    public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
+    public Task<IEnumerable<EventEnvelope>> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(Save(eventStream, builder));
+        Save(eventStream, builder);
+
+        return Task.FromResult<IEnumerable<EventEnvelope>>([]);
     }
 
-    public async Task RemoveAsync(Guid id)
+    public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
     {
         _eventStreams.Remove(id);
 
@@ -36,7 +39,7 @@ public class FixtureEventStore : IEventStore
             throw new DuplicateKeyException(id.ToString());
         }
 
-        var result = new EventStream(id, new EventMethodInvoker(new EventMethodInvokerConfiguration()));
+        var result = new EventStream(id, new EventMethodInvoker(Options.Create(new RecallOptions())));
 
         _eventStreams.Add(id, result);
 
@@ -79,10 +82,8 @@ public class FixtureEventStore : IEventStore
         return _eventStreams.TryGetValue(id, out var stream) ? stream : CreateEventStream(id);
     }
 
-    public long Save(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
+    public void Save(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
     {
         Guard.AgainstNull(eventStream).Commit();
-
-        return _sequenceNumber++;
     }
 }

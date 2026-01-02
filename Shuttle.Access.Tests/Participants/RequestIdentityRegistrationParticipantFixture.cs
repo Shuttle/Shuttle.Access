@@ -6,7 +6,7 @@ using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
-using Shuttle.Esb;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -30,7 +30,7 @@ public class RequestIdentityRegistrationParticipantFixture
 
         var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).WithIdentityId(identityId);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestIdentityRegistration>(identityRegistrationRequested, CancellationToken.None));
+        await participant.ProcessMessageAsync(identityRegistrationRequested, CancellationToken.None);
 
         Assert.That(identityRegistrationRequested.IsAllowed, Is.True);
         Assert.That(identityRegistrationRequested.IsActivationAllowed, Is.True);

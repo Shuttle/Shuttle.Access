@@ -6,7 +6,6 @@ using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
 using PasswordSet = Shuttle.Access.Events.Identity.v1.PasswordSet;
 
 namespace Shuttle.Access.Tests.Participants;
@@ -38,9 +37,7 @@ public class ChangePasswordParticipantFixture
             Name = "user"
         });
 
-        await participant.ProcessMessageAsync(
-            new ParticipantContext<RequestMessage<ChangePassword>>(
-                new(changePassword), CancellationToken.None));
+        await participant.ProcessMessageAsync(new(changePassword), CancellationToken.None);
 
         var @event = eventStore.FindEvent<PasswordSet>(session.IdentityId);
 

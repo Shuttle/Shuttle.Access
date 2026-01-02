@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -11,10 +11,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.7.0" />
-    <PackageReference Include="Shuttle.Access" Version="8.1.5" />
-    <PackageReference Include="Shuttle.Core.Contract" Version="20.0.1" />
-    <PackageReference Include="Shuttle.Extensions.Options" Version="1.0.0" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.15.0" />
+    <PackageReference Include="Shuttle.Access" Version="9.0.0" />
+    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Extensions.Options" Version="21.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +34,7 @@
 
   <PropertyGroup>
     <Description>Authorization middleware for web API endpoints using Shuttle.Access.</Description>
-    <Version>8.1.6</Version>
+    <Version>9.0.0</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

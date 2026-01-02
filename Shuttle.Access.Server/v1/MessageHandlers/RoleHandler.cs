@@ -1,32 +1,22 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
 using Shuttle.Core.Mediator;
-using Shuttle.Esb;
+using Shuttle.Hopper;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class RoleHandler :
+public class RoleHandler(IMediator mediator) :
     IMessageHandler<RegisterRole>,
     IMessageHandler<RemoveRole>,
     IMessageHandler<SetRolePermission>,
     IMessageHandler<SetRoleName>
 {
-    private readonly IDatabaseContextFactory _databaseContextFactory;
-    private readonly IMediator _mediator;
+    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
-    public RoleHandler(IDatabaseContextFactory databaseContextFactory, IMediator mediator)
-    {
-        Guard.AgainstNull(databaseContextFactory);
-        Guard.AgainstNull(mediator);
-
-        _databaseContextFactory = databaseContextFactory;
-        _mediator = mediator;
-    }
-
-    public async Task ProcessMessageAsync(IHandlerContext<RegisterRole> context)
+    public async Task ProcessMessageAsync(IHandlerContext<RegisterRole> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
@@ -41,11 +31,7 @@ public class RoleHandler :
 
         var requestResponse = new RequestResponseMessage<Application.RegisterRole, RoleRegistered>(registerRole);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (registerRole.HasMissingPermissions)
         {
@@ -53,7 +39,7 @@ public class RoleHandler :
             {
                 message.WaitCount++;
 
-                await context.SendAsync(message, builder => builder.Defer(DateTime.Now.AddSeconds(5)).Local());
+                await context.SendAsync(message, builder => builder.Defer(DateTime.Now.AddSeconds(5)).Local(), cancellationToken);
 
                 return;
             }
@@ -63,29 +49,25 @@ public class RoleHandler :
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<RemoveRole> context)
+    public async Task ProcessMessageAsync(IHandlerContext<RemoveRole> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
         var requestResponse = new RequestResponseMessage<RemoveRole, RoleRemoved>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetRoleName> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetRoleName> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
@@ -96,33 +78,25 @@ public class RoleHandler :
 
         var requestResponse = new RequestResponseMessage<SetRoleName, RoleNameSet>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetRolePermission> context)
+    public async Task ProcessMessageAsync(IHandlerContext<SetRolePermission> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
         var requestResponse = new RequestResponseMessage<SetRolePermission, RolePermissionSet>(message);
 
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
-        {
-            await _mediator.SendAsync(requestResponse);
-        }
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response);
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 }

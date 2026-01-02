@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Messages.v1;

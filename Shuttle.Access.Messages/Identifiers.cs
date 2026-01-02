@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Shuttle.Access.Messages;
+﻿namespace Shuttle.Access.Messages;
 
 public class Identifiers<T>
 {

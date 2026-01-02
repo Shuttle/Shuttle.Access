@@ -1,30 +1,20 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class ChangePasswordParticipant : IParticipant<RequestMessage<ChangePassword>>
+public class ChangePasswordParticipant(IHashingService hashingService, ISessionRepository sessionRepository, IEventStore eventStore)
+    : IParticipant<RequestMessage<ChangePassword>>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IHashingService _hashingService;
-    private readonly ISessionRepository _sessionRepository;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
+    private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
-    public ChangePasswordParticipant(IHashingService hashingService, ISessionRepository sessionRepository, IEventStore eventStore)
+    public async Task ProcessMessageAsync(RequestMessage<ChangePassword> message, CancellationToken cancellationToken = default)
     {
-        _hashingService = Guard.AgainstNull(hashingService);
-        _sessionRepository = Guard.AgainstNull(sessionRepository);
-        _eventStore = Guard.AgainstNull(eventStore);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<ChangePassword>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var request = context.Message.Request;
+        var request = Guard.AgainstNull(message).Request;
 
         try
         {
@@ -32,7 +22,7 @@ public class ChangePasswordParticipant : IParticipant<RequestMessage<ChangePassw
         }
         catch (Exception ex)
         {
-            context.Message.Failed(ex.Message);
+            message.Failed(ex.Message);
             throw;
         }
 
@@ -44,7 +34,7 @@ public class ChangePasswordParticipant : IParticipant<RequestMessage<ChangePassw
 
             if (session == null)
             {
-                context.Message.Failed(Access.Resources.SessionTokenExpiredException);
+                message.Failed(Access.Resources.SessionTokenExpiredException);
 
                 return;
             }

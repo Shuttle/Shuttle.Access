@@ -1,58 +1,49 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterPermissionParticipant : IParticipant<RequestResponseMessage<RegisterPermission, PermissionRegistered>>
+public class RegisterPermissionParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RequestResponseMessage<RegisterPermission, PermissionRegistered>>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IIdKeyRepository _idKeyRepository;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public RegisterPermissionParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository)
+    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterPermission, PermissionRegistered> message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
-    }
+        var request = Guard.AgainstNull(message).Request;
 
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterPermission, PermissionRegistered>> context)
-    {
-        Guard.AgainstNull(context);
+        var key = Permission.Key(request.Name);
 
-        var message = context.Message.Request;
-
-        var key = Permission.Key(message.Name);
-
-        if (await _idKeyRepository.ContainsAsync(key))
+        if (await _idKeyRepository.ContainsAsync(key, cancellationToken))
         {
             return;
         }
 
         var id = Guid.NewGuid();
 
-        await _idKeyRepository.AddAsync(id, key);
+        await _idKeyRepository.AddAsync(id, key, cancellationToken);
 
         var aggregate = new Permission();
-        var stream = await _eventStore.GetAsync(id);
-        var status = message.Status;
+        var stream = await _eventStore.GetAsync(id, cancellationToken: cancellationToken);
+        var status = request.Status;
 
         if (!Enum.IsDefined(typeof(PermissionStatus), status))
         {
             status = (int)PermissionStatus.Active;
         }
 
-        stream.Add(aggregate.Register(message.Name, message.Description, (PermissionStatus)status));
+        stream.Add(aggregate.Register(request.Name, request.Description, (PermissionStatus)status));
 
-        context.Message.WithResponse(new()
+        await _eventStore.SaveAsync(stream, cancellationToken);
+
+        message.WithResponse(new()
         {
             Id = id,
-            Name = message.Name,
-            Description = message.Description,
-            SequenceNumber = await _eventStore.SaveAsync(stream)
+            Name = request.Name,
+            Description = request.Description
         });
     }
 }

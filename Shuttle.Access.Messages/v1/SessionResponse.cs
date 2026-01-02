@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Shuttle.Access.Messages.v1;
+﻿namespace Shuttle.Access.Messages.v1;
 
 public class SessionResponse
 {
-    public string IdentityName { get; set; } = default!;
+    public DateTimeOffset DateRegistered { get; set; }
+    public DateTimeOffset ExpiryDate { get; set; }
+    public Guid IdentityId { get; set; }
+    public string IdentityName { get; set; } = string.Empty;
     public List<string> Permissions { get; set; } = [];
     public bool RegistrationRequested { get; set; }
-    public string Result { get; set; } = default!;
-    public Guid Token { get; set; }
-    public DateTimeOffset ExpiryDate { get; set; }
+    public string Result { get; set; } = string.Empty;
     public string SessionTokenExchangeUrl { get; set; } = string.Empty;
-    public Guid IdentityId { get; set; }
-    public DateTimeOffset DateRegistered { get; set; }
+    public Guid Token { get; set; }
 }

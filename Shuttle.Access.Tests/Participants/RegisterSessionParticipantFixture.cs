@@ -7,8 +7,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
-using Shuttle.Core.Mediator;
+using Shuttle.Access.Data;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -23,7 +22,7 @@ public class RegisterSessionParticipantFixture
         var message = new RegisterSession(IdentityName);
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, new Mock<IIdentityQuery>().Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Exception);
+        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Exception);
     }
 
     [Test]
@@ -36,12 +35,12 @@ public class RegisterSessionParticipantFixture
 
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Identity() }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Identity() }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), authenticationService.Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Nothing);
+        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
     }
 
@@ -55,14 +54,14 @@ public class RegisterSessionParticipantFixture
 
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Identity() }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Identity() }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var sessionTokenExchangeRepository = new Mock<ISessionTokenExchangeRepository>();
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), authenticationService.Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, identityQuery.Object, sessionTokenExchangeRepository.Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Nothing);
+        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
         Assert.That(new Regex("http://localhost/[0-9a-fA-F-]{36}").Match(message.SessionTokenExchangeUrl).Success, Is.True);
 
@@ -83,18 +82,18 @@ public class RegisterSessionParticipantFixture
         var session = new Session(sessionTokenHash, Guid.NewGuid(), IdentityName, now, now.AddMinutes(1))
             .AddPermission(new (Guid.NewGuid(), AccessPermissions.Sessions.Register));
 
-        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Session { IdentityId = sessionToken } }.AsEnumerable()));
+        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
 
         sessionRepository.Setup(m => m.FindAsync(sessionTokenHash, CancellationToken.None)).Returns(Task.FromResult(session)!);
 
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Identity() }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Identity() }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Nothing);
+        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
     }
 
@@ -108,18 +107,18 @@ public class RegisterSessionParticipantFixture
 
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Identity() }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Identity() }.AsEnumerable()));
 
         var sessionRepository = new Mock<ISessionRepository>();
         var sessionQuery = new Mock<ISessionQuery>();
 
-        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Session { IdentityId = sessionToken } }.AsEnumerable()));
+        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
 
         sessionRepository.Setup(m => m.FindAsync(sessionTokenHash, CancellationToken.None)).Returns(Task.FromResult(new Session(sessionTokenHash, Guid.NewGuid(), IdentityName, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(1)))!);
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, hashingService, sessionRepository.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Nothing);
+        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
     }
 
@@ -130,12 +129,12 @@ public class RegisterSessionParticipantFixture
 
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Identity() }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Identity() }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Nothing);
+        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
     }
 
@@ -147,12 +146,12 @@ public class RegisterSessionParticipantFixture
         var identityQuery = new Mock<IIdentityQuery>();
         var sessionRepository = new Mock<ISessionRepository>();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Identity { Id = Guid.NewGuid() } }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Identity { Id = Guid.NewGuid() } }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Nothing);
+        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
 
         sessionRepository.Verify(m => m.SaveAsync(It.IsAny<Session>(), CancellationToken.None), Times.Once);
@@ -171,15 +170,15 @@ public class RegisterSessionParticipantFixture
         var sessionToken = Guid.NewGuid();
         var session = new Session(sessionToken.ToByteArray(), Guid.NewGuid(), IdentityName, now, now.AddMinutes(-5));
 
-        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Session { IdentityId = sessionToken } }.AsEnumerable()));
+        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
 
         sessionRepository.Setup(m => m.FindAsync(IdentityName, CancellationToken.None)).Returns(Task.FromResult(session)!);
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new DataAccess.Identity() }.AsEnumerable()));
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Identity() }.AsEnumerable()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
-        Assert.ThatAsync(async () => await participant.ProcessMessageAsync(new ParticipantContext<RegisterSession>(message, CancellationToken.None)), Throws.Nothing);
+        Assert.ThatAsync(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
 
         sessionRepository.Verify(m => m.SaveAsync(session, CancellationToken.None), Times.Once);
