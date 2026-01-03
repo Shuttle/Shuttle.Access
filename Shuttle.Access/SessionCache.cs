@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access;
 
@@ -21,9 +18,12 @@ public abstract class SessionCache
         return session;
     }
 
-    protected Messages.v1.Session? FindByToken(Guid token)
+    protected Messages.v1.Session Add(Guid? token, Messages.v1.Session session)
     {
-        return ActiveSessionOnly(_sessionEntries.FirstOrDefault(item => item.Token.HasValue && item.Token.Equals(token))?.Session);
+        _sessionEntries.RemoveAll(item => item.Session.IdentityId.Equals(session.IdentityId));
+        _sessionEntries.Add(new(token, session));
+
+        return session;
     }
 
     protected Messages.v1.Session? Find(Guid identityId)
@@ -36,12 +36,9 @@ public abstract class SessionCache
         return ActiveSessionOnly(_sessionEntries.FirstOrDefault(item => item.Session.IdentityName.Equals(identityName, StringComparison.InvariantCultureIgnoreCase))?.Session);
     }
 
-    protected Messages.v1.Session Add(Guid? token, Messages.v1.Session session)
+    protected Messages.v1.Session? FindByToken(Guid token)
     {
-        _sessionEntries.RemoveAll(item => item.Session.IdentityId.Equals(session.IdentityId));
-        _sessionEntries.Add(new(token, session));
-
-        return session;
+        return ActiveSessionOnly(_sessionEntries.FirstOrDefault(item => item.Token.HasValue && item.Token.Equals(token))?.Session);
     }
 
     public void Flush()

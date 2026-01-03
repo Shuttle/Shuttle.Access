@@ -1,5 +1,3 @@
-using System;
-
 namespace Shuttle.Access;
 
 public class AuthenticationEventArgs : EventArgs

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Shuttle.Access.Events.Role.v1;
+﻿using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;

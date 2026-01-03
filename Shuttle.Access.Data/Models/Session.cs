@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Shuttle.Core.Contract;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Data.Models;
 
@@ -9,16 +9,6 @@ namespace Shuttle.Access.Data.Models;
 [Index(nameof(IdentityName), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(IdentityName)}")]
 public class Session
 {
-    [Key]
-    public Guid IdentityId { get; set; }
-
-    [Required]
-    [StringLength(320)]
-    public string IdentityName { get; set; } = string.Empty;
-
-    [Required]
-    public byte[] Token { get; set; } = new byte[32];
-
     [Required]
     public DateTimeOffset DateRegistered { get; set; }
 
@@ -28,17 +18,35 @@ public class Session
     [ForeignKey(nameof(IdentityId))]
     public Identity Identity { get; set; } = null!;
 
+    [Key]
+    public Guid IdentityId { get; set; }
+
+    [Required]
+    [StringLength(320)]
+    public string IdentityName { get; set; } = string.Empty;
+
     public ICollection<SessionPermission> SessionPermissions { get; set; } = [];
+
+    [Required]
+    public byte[] Token { get; set; } = new byte[32];
 
     public class Specification
     {
         private readonly List<string> _permissions = [];
-        public IEnumerable<string> Permissions => _permissions.AsReadOnly();
+
+        public Guid? IdentityId { get; private set; }
+        public string? IdentityName { get; private set; }
+        public string? IdentityNameMatch { get; private set; }
         public int MaximumRows { get; private set; }
+        public IEnumerable<string> Permissions => _permissions.AsReadOnly();
+
+        public bool ShouldIncludePermissions { get; private set; }
+
+        public byte[]? Token { get; private set; }
 
         public Specification AddPermission(string permission)
         {
-            Guard.AgainstEmpty(permission, nameof(permission));
+            Guard.AgainstEmpty(permission);
 
             if (!_permissions.Contains(permission))
             {
@@ -60,15 +68,18 @@ public class Session
             return this;
         }
 
-        public Specification WithToken(byte[] token)
+        public Specification IncludePermissions()
         {
-            Token = Guard.AgainstNull(token);
-            MaximumRows = 1;
-
+            ShouldIncludePermissions = true;
             return this;
         }
 
-        public byte[]? Token { get; private set; }
+        public Specification WithIdentityId(Guid identityId)
+        {
+            IdentityId = identityId;
+            MaximumRows = 1;
+            return this;
+        }
 
         public Specification WithIdentityName(string identityName)
         {
@@ -85,18 +96,6 @@ public class Session
             return this;
         }
 
-        public Guid? IdentityId { get; private set; }
-        public string? IdentityName { get; private set; }
-        public string? IdentityNameMatch { get; private set; }
-
-        public Specification IncludePermissions()
-        {
-            ShouldIncludePermissions = true;
-            return this;
-        }
-
-        public bool ShouldIncludePermissions { get; private set; }
-
         public Specification WithMaximumRows(int maximumRows)
         {
             MaximumRows = maximumRows;
@@ -104,10 +103,11 @@ public class Session
             return this;
         }
 
-        public Specification WithIdentityId(Guid identityId)
+        public Specification WithToken(byte[] token)
         {
-            IdentityId = identityId;
+            Token = Guard.AgainstNull(token);
             MaximumRows = 1;
+
             return this;
         }
     }

@@ -20,13 +20,13 @@ public class Role
         private readonly List<string> _names = [];
         private readonly List<Guid> _permissionIds = [];
         private readonly List<Guid> _rolesIds = [];
+        public int MaximumRows { get; private set; }
 
         public string NameMatch { get; private set; } = string.Empty;
         public IEnumerable<string> Names => _names.AsReadOnly();
         public IEnumerable<Guid> PermissionIds => _permissionIds.AsReadOnly();
         public bool PermissionsIncluded { get; private set; }
         public IEnumerable<Guid> RoleIds => _rolesIds.AsReadOnly();
-        public int MaximumRows { get; private set; }
 
         public Specification AddName(string name)
         {
@@ -68,16 +68,19 @@ public class Role
             return this;
         }
 
-        public Specification IncludePermissions()
+        public Specification AddRoleIds(IEnumerable<Guid> ids)
         {
-            PermissionsIncluded = true;
+            foreach (var id in ids)
+            {
+                AddRoleId(id);
+            }
 
             return this;
         }
 
-        public Specification WithNameMatch(string nameMatch)
+        public Specification IncludePermissions()
         {
-            NameMatch = nameMatch;
+            PermissionsIncluded = true;
 
             return this;
         }
@@ -89,12 +92,9 @@ public class Role
             return this;
         }
 
-        public Specification AddRoleIds(IEnumerable<Guid> ids)
+        public Specification WithNameMatch(string nameMatch)
         {
-            foreach (var id in ids)
-            {
-                AddRoleId(id);
-            }
+            NameMatch = nameMatch;
 
             return this;
         }

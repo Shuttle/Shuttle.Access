@@ -14,10 +14,10 @@ namespace Shuttle.Access.AspNetCore.Authentication;
 
 public class SessionTokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    private readonly ISessionService _sessionService;
-    public static readonly string AuthenticationScheme = "Shuttle.Access";
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
+    public static readonly string AuthenticationScheme = "Shuttle.Access";
     public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
+    private readonly ISessionService _sessionService;
 
     public SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionService sessionService) : base(options, logger, encoder)
     {
@@ -71,7 +71,7 @@ public class SessionTokenAuthenticationHandler : AuthenticationHandler<Authentic
         {
             return;
         }
-        
+
         Response.StatusCode = StatusCodes.Status401Unauthorized;
         Response.Headers.WWWAuthenticate = "Shuttle.Access";
 

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Refit;
+﻿using Refit;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 

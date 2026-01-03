@@ -9,9 +9,26 @@ namespace Shuttle.Access.AspNetCore.Authentication;
 public class RoutingAuthenticationHandler(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
+    public const string AuthenticationScheme = "Routing";
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
 
-    public const string AuthenticationScheme = "Routing";
+    private async ValueTask<string?> GetAuthenticationSchemeAsync()
+    {
+        var header = Request.Headers["Authorization"].FirstOrDefault();
+
+        if (header == null)
+        {
+            return null;
+        }
+
+        await _accessAuthorizationOptions.AuthorizationHeaderAvailable.InvokeAsync(new(header));
+
+        return header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? JwtBearerAuthenticationHandler.AuthenticationScheme
+            : header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase)
+                ? SessionTokenAuthenticationHandler.AuthenticationScheme
+                : null;
+    }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -35,30 +52,12 @@ public class RoutingAuthenticationHandler(IOptions<AccessAuthorizationOptions> a
     protected override async Task HandleForbiddenAsync(AuthenticationProperties properties)
     {
         var scheme = await GetAuthenticationSchemeAsync();
-        
+
         if (string.IsNullOrWhiteSpace(scheme))
         {
             return;
         }
 
         await Context.ForbidAsync(scheme);
-    }
-
-    private async ValueTask<string?> GetAuthenticationSchemeAsync()
-    {
-        var header = Request.Headers["Authorization"].FirstOrDefault();
-
-        if (header == null)
-        {
-            return null;
-        }
-
-        await _accessAuthorizationOptions.AuthorizationHeaderAvailable.InvokeAsync(new(header));
-        
-        return header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
-            ? JwtBearerAuthenticationHandler.AuthenticationScheme
-            : header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase)
-                ? SessionTokenAuthenticationHandler.AuthenticationScheme
-                : null;
     }
 }

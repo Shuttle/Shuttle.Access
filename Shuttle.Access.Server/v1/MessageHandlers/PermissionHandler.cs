@@ -1,9 +1,9 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
@@ -22,6 +22,25 @@ public class PermissionHandler(IMediator mediator) :
         var message = context.Message;
 
         var requestResponse = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(message);
+
+        await _mediator.SendAsync(requestResponse, cancellationToken);
+
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
+        }
+    }
+
+    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionDescription> context, CancellationToken cancellationToken = default)
+    {
+        var message = context.Message;
+
+        if (string.IsNullOrEmpty(message.Description))
+        {
+            return;
+        }
+
+        var requestResponse = new RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet>(message);
 
         await _mediator.SendAsync(requestResponse, cancellationToken);
 
@@ -57,25 +76,6 @@ public class PermissionHandler(IMediator mediator) :
         var message = context.Message;
 
         var requestResponse = new RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
-    }
-
-    public async Task ProcessMessageAsync(IHandlerContext<SetPermissionDescription> context, CancellationToken cancellationToken = default)
-    {
-        var message = context.Message;
-
-        if (string.IsNullOrEmpty(message.Description))
-        {
-            return;
-        }
-
-        var requestResponse = new RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet>(message);
 
         await _mediator.SendAsync(requestResponse, cancellationToken);
 

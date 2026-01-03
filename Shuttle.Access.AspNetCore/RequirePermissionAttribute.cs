@@ -13,8 +13,8 @@ public class RequirePermissionAttribute : TypeFilterAttribute
 
     private class RequiresPermission : IAuthorizationFilter
     {
-        private readonly ISessionService _sessionService;
         private readonly string _permission;
+        private readonly ISessionService _sessionService;
 
         public RequiresPermission(ISessionService sessionService, string permission)
         {

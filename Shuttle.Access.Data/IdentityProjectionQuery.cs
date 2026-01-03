@@ -26,7 +26,7 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
 
     public async Task RoleAddedAsync(PrimitiveEvent primitiveEvent, RoleAdded domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = await _accessDbContext.IdentityRoles.FirstOrDefaultAsync(item => item.IdentityId == primitiveEvent.Id && item.RoleId == domainEvent.RoleId, cancellationToken: cancellationToken);
+        var model = await _accessDbContext.IdentityRoles.FirstOrDefaultAsync(item => item.IdentityId == primitiveEvent.Id && item.RoleId == domainEvent.RoleId, cancellationToken);
 
         if (model != null)
         {
@@ -45,7 +45,7 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
 
     public async Task RoleRemovedAsync(PrimitiveEvent primitiveEvent, RoleRemoved domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = await _accessDbContext.IdentityRoles.FirstOrDefaultAsync(item => item.IdentityId == primitiveEvent.Id && item.RoleId == domainEvent.RoleId, cancellationToken: cancellationToken);
+        var model = await _accessDbContext.IdentityRoles.FirstOrDefaultAsync(item => item.IdentityId == primitiveEvent.Id && item.RoleId == domainEvent.RoleId, cancellationToken);
 
         if (model == null)
         {
@@ -59,7 +59,7 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
 
     public async Task RemovedAsync(PrimitiveEvent primitiveEvent, CancellationToken cancellationToken = default)
     {
-        var model = await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken);
+        var model = await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken);
 
         if (model == null)
         {
@@ -73,7 +73,7 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
 
     public async Task ActivatedAsync(PrimitiveEvent primitiveEvent, Activated domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken))
+        var model = (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken))
             .GuardAgainstRecordNotFound(primitiveEvent.Id);
 
         model.DateActivated = domainEvent.DateActivated;
@@ -83,7 +83,7 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
 
     public async Task DescriptionSetAsync(PrimitiveEvent primitiveEvent, DescriptionSet domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken))
+        var model = (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken))
             .GuardAgainstRecordNotFound(primitiveEvent.Id);
 
         model.Description = domainEvent.Description;
@@ -93,7 +93,7 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
 
     public async Task NameSetAsync(PrimitiveEvent primitiveEvent, NameSet domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken))
+        var model = (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken))
             .GuardAgainstRecordNotFound(primitiveEvent.Id);
 
         model.Name = domainEvent.Name;

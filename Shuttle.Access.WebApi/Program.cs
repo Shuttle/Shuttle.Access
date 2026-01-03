@@ -2,7 +2,6 @@ using System.Data.Common;
 using System.Reflection;
 using Asp.Versioning;
 using Microsoft.Data.SqlClient;
-using Microsoft.OpenApi;
 using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Data;
@@ -50,7 +49,7 @@ public class Program
             .AddEnvironmentVariables();
 
         var accessConnectionString = webApplicationBuilder.Configuration.GetConnectionString("Access") ?? "Missing connection string 'Access'.";
-        
+
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(webApplicationBuilder.Configuration)
             .CreateLogger();
@@ -124,7 +123,6 @@ public class Program
                         builder.Options.ConnectionString = accessConnectionString;
                     });
             })
-            
             .AddHopper(hopperBuilder =>
             {
                 webApplicationBuilder.Configuration.GetSection(HopperOptions.SectionName).Bind(hopperBuilder.Options);
@@ -144,10 +142,11 @@ public class Program
                     .UseSqlServerSubscription(builder =>
                     {
                         builder.Options.ConnectionString = accessConnectionString;
+                        builder.Options.Schema = "access";
                     })
                     .AddSubscription<IdentityRoleSet>()
-                .AddSubscription<RolePermissionSet>()
-                .AddSubscription<PermissionStatusSet>();
+                    .AddSubscription<RolePermissionSet>()
+                    .AddSubscription<PermissionStatusSet>();
             })
             .AddRecall(recallBuilder =>
             {
@@ -155,13 +154,14 @@ public class Program
                     .UseSqlServerEventStorage(builder =>
                     {
                         builder.Options.ConnectionString = accessConnectionString;
+                        builder.Options.Schema = "access";
                     })
                     .UseSqlServerEventProcessing(builder =>
                     {
                         builder.Options.ConnectionString = accessConnectionString;
+                        builder.Options.Schema = "access";
                     });
             })
-            
             .AddMediator(builder =>
             {
                 builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));

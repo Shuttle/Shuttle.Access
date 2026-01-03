@@ -9,8 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Shuttle.Access.Data;
 using Shuttle.Access.Server.v1.EventHandlers;
-using Shuttle.Core.DependencyInjection;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
 using Shuttle.Hopper.AzureStorageQueues;
@@ -61,7 +61,13 @@ internal class Program
                 services
                     .AddSingleton<IConfiguration>(configuration)
                     .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
-                    .FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add()
+                    .AddAccess(accessBuilder =>
+                    {
+                        accessBuilder.UseSqlServer(builder =>
+                        {
+                            builder.Options.ConnectionString = accessConnectionString;
+                        });
+                    })
                     .AddHopper(hopperBuilder =>
                     {
                         configuration.GetSection(HopperOptions.SectionName).Bind(hopperBuilder.Options);
@@ -81,6 +87,7 @@ internal class Program
                             .UseSqlServerSubscription(builder =>
                             {
                                 builder.Options.ConnectionString = accessConnectionString;
+                                builder.Options.Schema = "access";
                             });
                     })
                     .AddRecall(recallBuilder =>
@@ -91,10 +98,12 @@ internal class Program
                             .UseSqlServerEventStorage(builder =>
                             {
                                 builder.Options.ConnectionString = accessConnectionString;
+                                builder.Options.Schema = "access";
                             })
                             .UseSqlServerEventProcessing(builder =>
                             {
                                 builder.Options.ConnectionString = accessConnectionString;
+                                builder.Options.Schema = "access";
                             });
 
                         recallBuilder.AddProjection(ProjectionNames.Identity).AddEventHandler<IdentityHandler>();

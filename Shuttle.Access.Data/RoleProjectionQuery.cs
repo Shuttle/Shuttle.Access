@@ -11,7 +11,7 @@ public class RoleProjectionQuery(AccessDbContext accessDbContext) : IRoleProject
 
     public async Task NameSetAsync(PrimitiveEvent primitiveEvent, NameSet domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = (await _accessDbContext.Roles.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken))
+        var model = (await _accessDbContext.Roles.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken))
             .GuardAgainstRecordNotFound(primitiveEvent.Id);
 
         model.Name = domainEvent.Name;
@@ -21,7 +21,7 @@ public class RoleProjectionQuery(AccessDbContext accessDbContext) : IRoleProject
 
     public async Task PermissionAddedAsync(PrimitiveEvent primitiveEvent, PermissionAdded domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = await _accessDbContext.RolePermissions.FirstOrDefaultAsync(item => item.RoleId == primitiveEvent.Id && item.PermissionId == domainEvent.PermissionId, cancellationToken: cancellationToken);
+        var model = await _accessDbContext.RolePermissions.FirstOrDefaultAsync(item => item.RoleId == primitiveEvent.Id && item.PermissionId == domainEvent.PermissionId, cancellationToken);
 
         if (model != null)
         {
@@ -40,7 +40,7 @@ public class RoleProjectionQuery(AccessDbContext accessDbContext) : IRoleProject
 
     public async Task PermissionRemovedAsync(PrimitiveEvent primitiveEvent, PermissionRemoved domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = await _accessDbContext.RolePermissions.FirstOrDefaultAsync(item => item.RoleId == primitiveEvent.Id && item.PermissionId == domainEvent.PermissionId, cancellationToken: cancellationToken);
+        var model = await _accessDbContext.RolePermissions.FirstOrDefaultAsync(item => item.RoleId == primitiveEvent.Id && item.PermissionId == domainEvent.PermissionId, cancellationToken);
 
         if (model == null)
         {
@@ -65,7 +65,7 @@ public class RoleProjectionQuery(AccessDbContext accessDbContext) : IRoleProject
 
     public async Task RemovedAsync(PrimitiveEvent primitiveEvent, CancellationToken cancellationToken = default)
     {
-        var model = await _accessDbContext.Roles.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken);
+        var model = await _accessDbContext.Roles.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken);
 
         if (model == null)
         {

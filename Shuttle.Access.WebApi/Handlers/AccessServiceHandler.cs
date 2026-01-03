@@ -16,10 +16,10 @@ public class AccessServiceHandler(IIdentityQuery identityQuery, IPrimitiveEventQ
         IMessageHandler<RolePermissionSet>,
         IMessageHandler<PermissionStatusSet>
 {
-    private readonly IPrimitiveEventQuery _primitiveEventQuery = Guard.AgainstNull(primitiveEventQuery);
-    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
+    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
     private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
+    private readonly IPrimitiveEventQuery _primitiveEventQuery = Guard.AgainstNull(primitiveEventQuery);
     private readonly IProjectionRepository _projectionRepository = Guard.AgainstNull(projectionRepository);
     private readonly ISessionQuery _sessionQuery = Guard.AgainstNull(sessionQuery);
 
@@ -98,7 +98,7 @@ public class AccessServiceHandler(IIdentityQuery identityQuery, IPrimitiveEventQ
             await RefreshAsync(new Data.Models.Identity.Specification().WithRoleId(message.RoleId));
         }
         else
-        { 
+        {
             await RefreshAsync(new Data.Models.Session.Specification().AddPermissions(
                 (await _permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddId(message.PermissionId), cancellationToken))
                 .Select(item => item.Name)));

@@ -12,6 +12,24 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
     private readonly IAccessClient _accessClient = Guard.AgainstNull(accessClient);
     private readonly SemaphoreSlim _lock = new(1, 1);
 
+    public async Task<Messages.v1.Session?> FindAsync(CancellationToken cancellationToken = default)
+    {
+        var sessionResponse = await _accessClient.Sessions.GetSelfAsync();
+
+        var result = sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? AddSession(null, sessionResponse.Content) : null;
+
+        if (result == null)
+        {
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"));
+        }
+        else
+        {
+            await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+        }
+
+        return result;
+    }
+
     public async Task<Messages.v1.Session?> FindAsync(string identityName, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
@@ -96,24 +114,6 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         {
             _lock.Release();
         }
-    }
-
-    public async Task<Messages.v1.Session?> FindAsync(CancellationToken cancellationToken = default)
-    {
-        var sessionResponse = await _accessClient.Sessions.GetSelfAsync();
-
-        var result = sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? AddSession(null, sessionResponse.Content) : null;
-
-        if (result == null)
-        {
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"));
-        }
-        else
-        {
-            await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
-        }
-
-        return result;
     }
 
     public async Task FlushAsync(CancellationToken cancellationToken = default)

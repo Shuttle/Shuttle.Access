@@ -2,7 +2,6 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
@@ -22,7 +21,7 @@ public static class ServerEndpoints
 
                 return new ServerConfiguration
                 {
-                    Version = $"{version.Major}.{version.Minor}.{version.Build}", 
+                    Version = $"{version.Major}.{version.Minor}.{version.Build}",
                     AllowPasswordAuthentication = options.AllowPasswordAuthentication
                 };
             })

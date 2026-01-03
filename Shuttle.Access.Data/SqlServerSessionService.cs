@@ -7,11 +7,11 @@ namespace Shuttle.Access.Data;
 public class SqlServerSessionService(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IDbContextFactory<AccessDbContext> dbContextFactory, IAuthorizationService authorizationService, IIdentityQuery identityQuery, ISessionRepository sessionRepository)
     : SessionCache, ISessionService
 {
-    private readonly IDbContextFactory<AccessDbContext> _dbContextFactory = Guard.AgainstNull(dbContextFactory);
-    private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
-    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly AccessOptions _accessOptions = Guard.AgainstNull(accessOptions).Value;
+    private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
+    private readonly IDbContextFactory<AccessDbContext> _dbContextFactory = Guard.AgainstNull(dbContextFactory);
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
+    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
@@ -106,7 +106,7 @@ public class SqlServerSessionService(IOptions<AccessOptions> accessOptions, IHas
             }
 
             await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-            
+
             var aggregate = await _sessionRepository.FindAsync(identityId, cancellationToken);
 
             if (aggregate == null)
@@ -146,7 +146,7 @@ public class SqlServerSessionService(IOptions<AccessOptions> accessOptions, IHas
             }
 
             await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-            
+
             var aggregate = await _sessionRepository.FindAsync(identityName, cancellationToken);
 
             if (aggregate == null && await _identityQuery.CountAsync(new Models.Identity.Specification().WithName(identityName), cancellationToken) > 0)
@@ -167,18 +167,6 @@ public class SqlServerSessionService(IOptions<AccessOptions> accessOptions, IHas
         }
     }
 
-    private async Task SaveAsync(Guid token, Session session, CancellationToken cancellationToken)
-    {
-        foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, cancellationToken))
-        {
-            session.AddPermission(new(permission.Id, permission.Name));
-        }
-
-        session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));
-
-        await _sessionRepository.SaveAsync(session, cancellationToken);
-    }
-
     private Messages.v1.Session? Add(Guid? token, Session? session)
     {
         if (session == null)
@@ -194,5 +182,17 @@ public class SqlServerSessionService(IOptions<AccessOptions> accessOptions, IHas
             ExpiryDate = session.ExpiryDate,
             Permissions = session.Permissions.Select(item => item.Name).ToList()
         });
+    }
+
+    private async Task SaveAsync(Guid token, Session session, CancellationToken cancellationToken)
+    {
+        foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, cancellationToken))
+        {
+            session.AddPermission(new(permission.Id, permission.Name));
+        }
+
+        session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));
+
+        await _sessionRepository.SaveAsync(session, cancellationToken);
     }
 }

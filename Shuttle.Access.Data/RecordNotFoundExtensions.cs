@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace Shuttle.Access.Data;
+﻿namespace Shuttle.Access.Data;
 
 public static class RecordNotFoundExtensions
 {

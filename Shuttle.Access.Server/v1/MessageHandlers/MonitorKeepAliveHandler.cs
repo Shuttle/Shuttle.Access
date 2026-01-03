@@ -1,4 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
@@ -6,10 +10,6 @@ using Shuttle.Hopper;
 using Shuttle.Recall;
 using Shuttle.Recall.SqlServer.EventProcessing;
 using Shuttle.Recall.SqlServer.Storage;
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
@@ -17,14 +17,14 @@ namespace Shuttle.Access.Server.v1.MessageHandlers;
 public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IOptions<ServerOptions> serverOptions, IOptions<SqlServerStorageOptions> sqlServerStorageOptions, IOptions<SqlServerEventProcessingOptions> sqlServerEventProcessingOptions, IDbContextFactory<SqlServerStorageDbContext> sqlServerStorageDbContextFactory, IDbContextFactory<SqlServerEventProcessingDbContext> sqlServerEventProcessingDbContext, IPrimitiveEventRepository primitiveEventRepository, KeepAliveObserver keepAliveObserver)
     : IMessageHandler<MonitorKeepAlive>
 {
-    private readonly IDbContextFactory<SqlServerStorageDbContext> _sqlServerStorageDbContextFactory = Guard.AgainstNull(sqlServerStorageDbContextFactory);
-    private readonly IDbContextFactory<SqlServerEventProcessingDbContext> _sqlServerEventProcessingDbContext = Guard.AgainstNull(sqlServerEventProcessingDbContext);
-    private readonly ILogger<MonitorKeepAliveHandler> _logger = Guard.AgainstNull(logger);
     private readonly KeepAliveObserver _keepAliveObserver = Guard.AgainstNull(keepAliveObserver);
+    private readonly ILogger<MonitorKeepAliveHandler> _logger = Guard.AgainstNull(logger);
     private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
-    private readonly SqlServerStorageOptions _sqlServerStorageOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerStorageOptions).Value);
-    private readonly SqlServerEventProcessingOptions _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerEventProcessingOptions).Value);
     private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
+    private readonly SqlServerEventProcessingOptions _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerEventProcessingOptions).Value);
+    private readonly IDbContextFactory<SqlServerEventProcessingDbContext> _sqlServerEventProcessingDbContext = Guard.AgainstNull(sqlServerEventProcessingDbContext);
+    private readonly IDbContextFactory<SqlServerStorageDbContext> _sqlServerStorageDbContextFactory = Guard.AgainstNull(sqlServerStorageDbContextFactory);
+    private readonly SqlServerStorageOptions _sqlServerStorageOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerStorageOptions).Value);
 
     public async Task ProcessMessageAsync(IHandlerContext<MonitorKeepAlive> context, CancellationToken cancellationToken = default)
     {

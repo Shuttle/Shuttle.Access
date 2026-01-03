@@ -38,15 +38,6 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, IPermissionPro
         _logger.LogDebug($"[Deactivated] : id = '{context.PrimitiveEvent.Id}'");
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
-    {
-        Guard.AgainstNull(context);
-
-        await _query.NameSetAsync(context.PrimitiveEvent, context.Event, cancellationToken);
-
-        _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}'");
-    }
-
     public async Task ProcessEventAsync(IEventHandlerContext<DescriptionSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
@@ -54,6 +45,15 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, IPermissionPro
         await _query.DescriptionSetAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 
         _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / description = '{context.Event.Description}'");
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        await _query.NameSetAsync(context.PrimitiveEvent, context.Event, cancellationToken);
+
+        _logger.LogDebug($"[NameSet] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}'");
     }
 
     public async Task ProcessEventAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)

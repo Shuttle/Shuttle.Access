@@ -22,7 +22,7 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AccessDbCo
             .Build();
 
         var optionsBuilder = new DbContextOptionsBuilder<AccessDbContext>();
-        
+
         optionsBuilder.UseSqlServer(configuration.GetConnectionString("Access"));
 
         return new(optionsBuilder.Options);

@@ -25,7 +25,7 @@ public class ChangePasswordParticipantFixture
         var passwordHash = hashingService.Sha256(changePassword.NewPassword);
 
         var session = new Session(sessionTokenHash, Guid.NewGuid(), "identity-name", now, now.AddSeconds(5));
-        
+
         sessionRepository.Setup(m => m.FindAsync(sessionTokenHash, CancellationToken.None)).Returns(Task.FromResult(session)!);
 
         var participant = new ChangePasswordParticipant(hashingService, sessionRepository.Object, eventStore);

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Globalization;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 
 namespace Shuttle.Access;
 
-public class AccessOptionsValidator: IValidateOptions<AccessOptions>
+public class AccessOptionsValidator : IValidateOptions<AccessOptions>
 {
     public ValidateOptionsResult Validate(string? name, AccessOptions options)
     {

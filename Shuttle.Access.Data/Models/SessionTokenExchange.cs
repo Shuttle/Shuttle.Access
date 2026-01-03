@@ -8,8 +8,8 @@ public class SessionTokenExchange
     public Guid ExchangeToken { get; set; }
 
     [Required]
-    public Guid SessionToken { get; set; }
+    public DateTimeOffset ExpiryDate { get; set; }
 
     [Required]
-    public DateTimeOffset ExpiryDate { get; set; }
+    public Guid SessionToken { get; set; }
 }

@@ -1,7 +1,7 @@
-﻿using Shuttle.Access.Events.Permission.v1;
+﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Access.Events.Permission.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
-using Microsoft.EntityFrameworkCore;
 
 namespace Shuttle.Access.Data;
 
@@ -21,7 +21,7 @@ public class PermissionProjectionQuery(AccessDbContext accessDbContext) : IPermi
 
     public async Task NameSetAsync(PrimitiveEvent primitiveEvent, NameSet domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = (await _accessDbContext.Permissions.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken))
+        var model = (await _accessDbContext.Permissions.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken))
             .GuardAgainstRecordNotFound(primitiveEvent.Id);
 
         model.Name = domainEvent.Name;
@@ -49,7 +49,7 @@ public class PermissionProjectionQuery(AccessDbContext accessDbContext) : IPermi
 
     public async Task DescriptionSetAsync(PrimitiveEvent primitiveEvent, DescriptionSet domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = (await _accessDbContext.Permissions.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken))
+        var model = (await _accessDbContext.Permissions.FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken))
             .GuardAgainstRecordNotFound(primitiveEvent.Id);
 
         model.Description = domainEvent.Description;
@@ -59,7 +59,7 @@ public class PermissionProjectionQuery(AccessDbContext accessDbContext) : IPermi
 
     private async Task SetStatusAsync(Guid id, int status, CancellationToken cancellationToken)
     {
-        var model = (await _accessDbContext.Permissions.FirstOrDefaultAsync(item => item.Id == id, cancellationToken: cancellationToken))
+        var model = (await _accessDbContext.Permissions.FirstOrDefaultAsync(item => item.Id == id, cancellationToken))
             .GuardAgainstRecordNotFound(id);
 
         model.Status = status;

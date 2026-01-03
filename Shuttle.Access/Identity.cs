@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Shuttle.Access.Events.Identity.v1;
+﻿using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
@@ -12,10 +9,10 @@ public class Identity
     private byte[]? _passwordHash;
     public bool Activated => DateActivated.HasValue;
     public DateTimeOffset? DateActivated { get; private set; }
+    public string Description { get; private set; } = string.Empty;
     public bool HasPasswordResetToken => PasswordResetToken.HasValue;
 
     public string Name { get; private set; } = string.Empty;
-    public string Description { get; private set; } = string.Empty;
     public Guid? PasswordResetToken { get; private set; }
     public bool Removed { get; private set; }
 
@@ -182,19 +179,6 @@ public class Identity
         return On(new RoleRemoved { RoleId = roleId });
     }
 
-    public NameSet SetName(string name)
-    {
-        if (name.Equals(Name))
-        {
-            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
-        }
-
-        return On(new NameSet
-        {
-            Name = name
-        });
-    }
-
     public DescriptionSet SetDescription(string description)
     {
         if (description.Equals(Description))
@@ -205,6 +189,19 @@ public class Identity
         return On(new DescriptionSet
         {
             Description = description
+        });
+    }
+
+    public NameSet SetName(string name)
+    {
+        if (name.Equals(Name))
+        {
+            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
+        }
+
+        return On(new NameSet
+        {
+            Name = name
         });
     }
 

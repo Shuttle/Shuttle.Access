@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shuttle.Access.Data.Models;
 
@@ -8,17 +8,17 @@ namespace Shuttle.Access.Data.Models;
 public class RolePermission
 {
     [Required]
-    public Guid RoleId { get; set; }
+    public DateTimeOffset DateRegistered { get; set; }
+
+    [ForeignKey(nameof(PermissionId))]
+    public Permission Permission { get; set; } = null!;
 
     [Required]
     public Guid PermissionId { get; set; }
 
-    [Required]
-    public DateTimeOffset DateRegistered { get; set; }
-
     [ForeignKey(nameof(RoleId))]
     public Role Role { get; set; } = null!;
 
-    [ForeignKey(nameof(PermissionId))]
-    public Permission Permission { get; set; } = null!;
+    [Required]
+    public Guid RoleId { get; set; }
 }

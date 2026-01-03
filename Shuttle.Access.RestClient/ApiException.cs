@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Shuttle.Access.RestClient;
+﻿namespace Shuttle.Access.RestClient;
 
 public class ApiException : Exception
 {

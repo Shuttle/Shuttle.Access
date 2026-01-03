@@ -1,25 +1,10 @@
-using Shuttle.Core.Contract;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
 
 public class Session
 {
-    public class Permission
-    {
-        public Guid Id { get; }
-        public string Name { get; }
-
-        public Permission(Guid id, string name)
-        {
-            Id = Guard.AgainstEmpty(id);
-            Name = Guard.AgainstEmpty(name);
-        }
-    }
-
     private readonly List<Permission> _permissions = [];
 
     public Session(byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
@@ -36,12 +21,12 @@ public class Session
     public DateTimeOffset ExpiryDate { get; private set; }
 
     public bool HasExpired => DateTimeOffset.UtcNow >= ExpiryDate;
+    public bool HasPermissions => _permissions.Any();
     public Guid IdentityId { get; }
     public string IdentityName { get; }
 
     public IEnumerable<Permission> Permissions => _permissions.AsReadOnly();
     public byte[] Token { get; private set; }
-    public bool HasPermissions => _permissions.Any();
 
     public Session AddPermission(Permission permission)
     {
@@ -73,5 +58,17 @@ public class Session
     {
         Token = Guard.AgainstNull(token);
         ExpiryDate = expiryDate;
+    }
+
+    public class Permission
+    {
+        public Permission(Guid id, string name)
+        {
+            Id = Guard.AgainstEmpty(id);
+            Name = Guard.AgainstEmpty(name);
+        }
+
+        public Guid Id { get; }
+        public string Name { get; }
     }
 }

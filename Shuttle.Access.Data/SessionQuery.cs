@@ -39,7 +39,7 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
             queryable = queryable.Where(e => e.IdentityId == specification.IdentityId);
         }
 
-        if (!string.IsNullOrWhiteSpace((specification.IdentityName)))
+        if (!string.IsNullOrWhiteSpace(specification.IdentityName))
         {
             queryable = queryable.Where(e => e.IdentityName == specification.IdentityName);
         }

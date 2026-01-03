@@ -5,8 +5,8 @@ namespace Shuttle.Access.AspNetCore;
 
 public class HttpContextSessionService : IHttpContextSessionService
 {
-    private readonly ISessionService _sessionService;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ISessionService _sessionService;
 
     public HttpContextSessionService(ISessionService sessionService, IHttpContextAccessor httpContextAccessor)
     {

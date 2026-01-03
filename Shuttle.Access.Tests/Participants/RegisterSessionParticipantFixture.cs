@@ -80,7 +80,7 @@ public class RegisterSessionParticipantFixture
 
         var now = DateTimeOffset.UtcNow;
         var session = new Session(sessionTokenHash, Guid.NewGuid(), IdentityName, now, now.AddMinutes(1))
-            .AddPermission(new (Guid.NewGuid(), AccessPermissions.Sessions.Register));
+            .AddPermission(new(Guid.NewGuid(), AccessPermissions.Sessions.Register));
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Data.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
 

@@ -1,12 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shuttle.Access.Data.Models;
 
 [Index(nameof(Name), IsUnique = true, Name = $"UX_{nameof(Permission)}_{nameof(Name)}")]
 public class Permission
 {
+    [StringLength(500)]
+    public string Description { get; set; } = string.Empty;
+
     [Key]
     public Guid Id { get; set; }
 
@@ -14,13 +16,10 @@ public class Permission
     [StringLength(200)]
     public string Name { get; set; } = string.Empty;
 
+    public ICollection<RolePermission> RolePermissions { get; set; } = [];
+
     [Required]
     public int Status { get; set; }
-
-    [StringLength(500)]
-    public string Description { get; set; } = string.Empty;
-
-    public ICollection<RolePermission> RolePermissions { get; set; } = [];
 
     public class Specification
     {
@@ -29,12 +28,12 @@ public class Permission
         private readonly List<Guid> _roleIds = new();
         private readonly List<int> _statuses = new();
         public IEnumerable<Guid> Ids => _ids.AsReadOnly();
+        public int MaximumRows { get; private set; }
 
         public string NameMatch { get; private set; } = string.Empty;
         public IEnumerable<string> Names => _names.AsReadOnly();
         public IEnumerable<Guid> RoleIds => _roleIds.AsReadOnly();
         public IEnumerable<int> Statuses => _statuses.AsReadOnly();
-        public int MaximumRows { get; private set; }
 
         public Specification AddId(Guid id)
         {
@@ -86,16 +85,16 @@ public class Permission
             return this;
         }
 
-        public Specification WithNameMatch(string nameMatch)
+        public Specification WithMaximumRows(int maximumRows)
         {
-            NameMatch = nameMatch;
+            MaximumRows = maximumRows;
 
             return this;
         }
 
-        public Specification WithMaximumRows(int maximumRows)
+        public Specification WithNameMatch(string nameMatch)
         {
-            MaximumRows = maximumRows;
+            NameMatch = nameMatch;
 
             return this;
         }

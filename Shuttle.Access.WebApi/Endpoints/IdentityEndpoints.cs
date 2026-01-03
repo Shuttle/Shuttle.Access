@@ -14,6 +14,25 @@ namespace Shuttle.Access.WebApi;
 
 public static class IdentityEndpoints
 {
+    private static Messages.v1.Identity Map(Data.Models.Identity identity)
+    {
+        return new()
+        {
+            Id = identity.Id,
+            Name = identity.Name,
+            Description = identity.Description,
+            DateRegistered = identity.DateRegistered,
+            DateActivated = identity.DateActivated,
+            GeneratedPassword = identity.GeneratedPassword ?? string.Empty,
+            RegisteredBy = identity.RegisteredBy,
+            Roles = identity.IdentityRoles.Select(item => new Messages.v1.Identity.Role
+            {
+                Id = item.RoleId,
+                Name = item.Role.Name
+            }).ToList()
+        };
+    }
+
     public static WebApplication MapIdentityEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
@@ -337,24 +356,5 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1);
 
         return app;
-    }
-
-    private static Messages.v1.Identity Map(Data.Models.Identity identity)
-    {
-        return new()
-        {
-            Id = identity.Id,
-            Name = identity.Name,
-            Description = identity.Description,
-            DateRegistered = identity.DateRegistered,
-            DateActivated = identity.DateActivated,
-            GeneratedPassword = identity.GeneratedPassword ?? string.Empty,
-            RegisteredBy = identity.RegisteredBy,
-            Roles = identity.IdentityRoles.Select(item=> new Messages.v1.Identity.Role
-            {
-                Id = item.RoleId,
-                Name = item.Role.Name
-            }).ToList()
-        };
     }
 }

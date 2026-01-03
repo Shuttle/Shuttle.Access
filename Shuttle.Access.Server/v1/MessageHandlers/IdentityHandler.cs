@@ -24,7 +24,7 @@ public class IdentityHandler(IMediator mediator) :
 
         var requestResponse = new RequestResponseMessage<ActivateIdentity, IdentityActivated>(context.Message);
 
-            await _mediator.SendAsync(requestResponse, cancellationToken);
+        await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
@@ -65,25 +65,6 @@ public class IdentityHandler(IMediator mediator) :
         }, cancellationToken: cancellationToken);
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context, CancellationToken cancellationToken = default)
-    {
-        var message = context.Message;
-
-        if (string.IsNullOrEmpty(message.Name))
-        {
-            return;
-        }
-
-        var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
-    }
-
     public async Task ProcessMessageAsync(IHandlerContext<SetIdentityDescription> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
@@ -94,6 +75,25 @@ public class IdentityHandler(IMediator mediator) :
         }
 
         var requestResponse = new RequestResponseMessage<SetIdentityDescription, IdentityDescriptionSet>(message);
+
+        await _mediator.SendAsync(requestResponse, cancellationToken);
+
+        if (requestResponse.Response != null)
+        {
+            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
+        }
+    }
+
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityName> context, CancellationToken cancellationToken = default)
+    {
+        var message = context.Message;
+
+        if (string.IsNullOrEmpty(message.Name))
+        {
+            return;
+        }
+
+        var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
 
         await _mediator.SendAsync(requestResponse, cancellationToken);
 

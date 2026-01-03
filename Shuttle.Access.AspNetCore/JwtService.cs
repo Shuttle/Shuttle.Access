@@ -11,9 +11,9 @@ public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorization
     : IJwtService
 {
     private static readonly MemoryCache Cache = new(new MemoryCacheOptions());
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptionsOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
     private readonly IHttpClientFactory _httpClientFactory = Guard.AgainstNull(httpClientFactory);
     private readonly JsonWebTokenHandler _jwtHandler = new();
-    private readonly AccessAuthorizationOptions _accessAuthorizationOptionsOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
 
     public async ValueTask<string> GetIdentityNameAsync(string token)
     {
@@ -22,7 +22,7 @@ public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorization
 
         if (issuerOptions == null)
         {
-            await _accessAuthorizationOptionsOptions.JwtIssuerOptionsUnavailable.InvokeAsync(new (jsonWebToken));
+            await _accessAuthorizationOptionsOptions.JwtIssuerOptionsUnavailable.InvokeAsync(new(jsonWebToken));
             return string.Empty;
         }
 

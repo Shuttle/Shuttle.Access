@@ -1,8 +1,4 @@
-﻿using System.Threading.Tasks;
-using System;
-using System.Net.Http;
-
-namespace Shuttle.Access.RestClient;
+﻿namespace Shuttle.Access.RestClient;
 
 public class BearerAuthenticationProviderOptions
 {

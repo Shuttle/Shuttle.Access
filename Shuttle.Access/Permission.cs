@@ -12,8 +12,8 @@ public enum PermissionStatus
 
 public class Permission
 {
-    public string Name { get; private set; } = string.Empty;
     public string Description { get; private set; } = string.Empty;
+    public string Name { get; private set; } = string.Empty;
     public PermissionStatus Status { get; private set; }
 
     public Activated Activate()
@@ -102,19 +102,6 @@ public class Permission
         return On(new Removed());
     }
 
-    public NameSet SetName(string name)
-    {
-        if (name.Equals(Name))
-        {
-            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
-        }
-
-        return On(new NameSet
-        {
-            Name = name
-        });
-    }
-
     public DescriptionSet SetDescription(string description)
     {
         if (description.Equals(Description))
@@ -125,6 +112,19 @@ public class Permission
         return On(new DescriptionSet
         {
             Description = description
+        });
+    }
+
+    public NameSet SetName(string name)
+    {
+        if (name.Equals(Name))
+        {
+            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
+        }
+
+        return On(new NameSet
+        {
+            Name = name
         });
     }
 }

@@ -18,7 +18,6 @@ namespace Shuttle.Access.Tests.Integration;
 
 public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilder = null) : WebApplicationFactory<Program>
 {
-    public Mock<ISessionService> SessionService { get; } = new();
     public Mock<IIdentityQuery> IdentityQuery { get; } = new();
     public Mock<IMediator> Mediator { get; } = new();
     public Mock<IOAuthGrantRepository> OAuthGrantRepository { get; } = new();
@@ -27,6 +26,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
     public Mock<IServiceBus> ServiceBus { get; } = new();
     public Mock<ISessionQuery> SessionQuery { get; } = new();
     public Mock<ISessionRepository> SessionRepository { get; } = new();
+    public Mock<ISessionService> SessionService { get; } = new();
 
     protected override void ConfigureClient(HttpClient client)
     {

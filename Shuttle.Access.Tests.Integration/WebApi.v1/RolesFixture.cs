@@ -19,20 +19,22 @@ public class RolesFixture
         {
             Id = Guid.NewGuid(),
             Name = "name",
-            RolePermissions = 
+            RolePermissions =
             [
                 new()
                 {
-                    PermissionId= Guid.NewGuid(),
-                    Permission = new(){
-                    Name = "system://permission-a"
+                    PermissionId = Guid.NewGuid(),
+                    Permission = new()
+                    {
+                        Name = "system://permission-a"
                     }
                 },
                 new()
                 {
-                    PermissionId= Guid.NewGuid(),
-                    Permission = new(){
-                    Name = "system://permission-b"
+                    PermissionId = Guid.NewGuid(),
+                    Permission = new()
+                    {
+                        Name = "system://permission-b"
                     }
                 }
             ]

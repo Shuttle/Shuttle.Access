@@ -18,8 +18,8 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, IIdentityProjectio
         IEventHandler<NameSet>,
         IEventHandler<DescriptionSet>
 {
-    private readonly ILogger<IdentityHandler> _logger = Guard.AgainstNull(logger);
     private readonly IIdentityProjectionQuery _identityProjectionQuery = Guard.AgainstNull(query);
+    private readonly ILogger<IdentityHandler> _logger = Guard.AgainstNull(logger);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
     public async Task ProcessEventAsync(IEventHandlerContext<Activated> context, CancellationToken cancellationToken = default)

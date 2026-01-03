@@ -8,6 +8,7 @@ using Shuttle.Access.Events.Role.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall.SqlServer.Storage;
+using RegisterRole = Shuttle.Access.Application.RegisterRole;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -25,10 +26,10 @@ public class RegisterRoleParticipantFixture
         var participant =
             new RegisterRoleParticipant(eventStore, idKeyRepository.Object, new Mock<IPermissionQuery>().Object);
 
-        var addRole = new Application.RegisterRole("role-name");
+        var addRole = new RegisterRole("role-name");
 
         var requestResponseMessage =
-            new RequestResponseMessage<Application.RegisterRole, RoleRegistered>(addRole);
+            new RequestResponseMessage<RegisterRole, RoleRegistered>(addRole);
 
         await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
 

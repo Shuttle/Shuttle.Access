@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
@@ -48,7 +47,13 @@ public static class ServiceCollectionExtensions
     {
         return accessClientBuilder.UseBearerAuthenticationProvider(builder);
     }
-    
+
+    [Obsolete("Replace with `UsePasswordAuthenticationProvider`.")]
+    public static AccessClientBuilder AddPasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
+    {
+        return accessClientBuilder.UsePasswordAuthenticationProvider(builder);
+    }
+
     public static AccessClientBuilder UseBearerAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<BearerAuthenticationProviderBuilder>? builder = null)
     {
         Guard.AgainstNull(accessClientBuilder);
@@ -62,9 +67,9 @@ public static class ServiceCollectionExtensions
 
         bearerAuthenticationProviderBuilder.Services
             .Configure<BearerAuthenticationProviderOptions>(options =>
-        {
-            options.GetTokenAsync = bearerAuthenticationProviderBuilder.Options.GetTokenAsync;
-        });
+            {
+                options.GetTokenAsync = bearerAuthenticationProviderBuilder.Options.GetTokenAsync;
+            });
 
         accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
         {
@@ -72,12 +77,6 @@ public static class ServiceCollectionExtensions
         };
 
         return accessClientBuilder;
-    }
-
-    [Obsolete("Replace with `UsePasswordAuthenticationProvider`.")]
-    public static AccessClientBuilder AddPasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
-    {
-        return accessClientBuilder.UsePasswordAuthenticationProvider(builder);
     }
 
     public static AccessClientBuilder UsePasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
@@ -91,10 +90,10 @@ public static class ServiceCollectionExtensions
 
         passwordAuthenticationProviderBuilder.Services
             .Configure<PasswordAuthenticationProviderOptions>(options =>
-        {
-            options.IdentityName = passwordAuthenticationProviderBuilder.Options.IdentityName;
-            options.Password = passwordAuthenticationProviderBuilder.Options.Password;
-        });
+            {
+                options.IdentityName = passwordAuthenticationProviderBuilder.Options.IdentityName;
+                options.Password = passwordAuthenticationProviderBuilder.Options.Password;
+            });
 
         passwordAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<PasswordAuthenticationProviderOptions>, PasswordAuthenticationProviderOptionsValidator>();
 

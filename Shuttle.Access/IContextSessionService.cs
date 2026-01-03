@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace Shuttle.Access;
+﻿namespace Shuttle.Access;
 
 public interface IContextSessionService
 {

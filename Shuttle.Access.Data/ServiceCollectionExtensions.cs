@@ -18,7 +18,10 @@ public static class ServiceCollectionExtensions
 
             services.AddDbContextFactory<AccessDbContext>(dbContextFactoryBuilder =>
             {
-                dbContextFactoryBuilder.UseSqlServer(accessDataBuilder.Options.ConnectionString, sqlServerOptions => { sqlServerOptions.CommandTimeout(300); });
+                dbContextFactoryBuilder.UseSqlServer(accessDataBuilder.Options.ConnectionString, sqlServerOptions =>
+                {
+                    sqlServerOptions.CommandTimeout(300);
+                });
             });
 
             return services;

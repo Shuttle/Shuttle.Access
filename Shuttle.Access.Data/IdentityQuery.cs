@@ -64,7 +64,6 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
         if (!string.IsNullOrEmpty(specification.RoleName))
         {
             queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.Name == specification.RoleName));
-
         }
 
         if (specification.RoleId != null)

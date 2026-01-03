@@ -1,22 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Net.Http.Headers;
+using System.Reflection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Core.Contract;
-using System;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Shuttle.Access.RestClient;
 
 public class AccessHttpMessageHandler : DelegatingHandler
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
     private readonly AccessClientOptions _accessClientOptions;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IServiceProvider _serviceProvider;
     private readonly string _userAgent;
 
@@ -42,7 +37,7 @@ public class AccessHttpMessageHandler : DelegatingHandler
         {
             var httpContext = _httpContextAccessor.HttpContext;
 
-            if (httpContext != null && 
+            if (httpContext != null &&
                 httpContext.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues) &&
                 AuthenticationHeaderValue.TryParse(authorizationHeaderValues, out var authorizationHeader))
             {

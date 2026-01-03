@@ -13,11 +13,11 @@ namespace Shuttle.Access.Server;
 public class KeepAliveObserver(ILogger<KeepAliveObserver> logger, IOptions<ServerOptions> serverOptions, IServiceBus serviceBus)
     : IPipelineObserver<MessageReceived>
 {
-    private readonly ILogger<KeepAliveObserver> _logger = Guard.AgainstNull(logger);
     private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly ILogger<KeepAliveObserver> _logger = Guard.AgainstNull(logger);
+    private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
     private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
     private bool _keepAliveSent;
-    private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
 
     public async Task ExecuteAsync(IPipelineContext<MessageReceived> pipelineContext, CancellationToken cancellationToken = default)
     {

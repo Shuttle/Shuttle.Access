@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Shuttle.Access.Data;
-using System.Threading.Tasks;
 
 namespace Shuttle.Access.Tests.Integration.DataAccess.Sql;
 

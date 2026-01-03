@@ -1,11 +1,7 @@
-﻿using System;
-using System.Net.Http;
-using System.Net.Http.Headers;
+﻿using System.Net.Http.Headers;
 using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -14,14 +10,14 @@ namespace Shuttle.Access.RestClient;
 
 public class PasswordAuthenticationProvider : IAuthenticationProvider
 {
-    private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly AccessClientOptions _accessClientOptions;
     private readonly string _baseAddress;
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
-    private string _token = string.Empty;
-    private DateTimeOffset _expiryDate = DateTimeOffset.MinValue;
+    private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly PasswordAuthenticationProviderOptions _passwordAuthenticationProviderOptions;
+    private DateTimeOffset _expiryDate = DateTimeOffset.MinValue;
+    private string _token = string.Empty;
 
     public PasswordAuthenticationProvider(IOptions<AccessClientOptions> accessClientOptions, IOptions<PasswordAuthenticationProviderOptions> passwordAuthenticationProviderOptions, HttpClient httpClient)
     {
@@ -36,7 +32,7 @@ public class PasswordAuthenticationProvider : IAuthenticationProvider
             _baseAddress = _baseAddress[..^1];
         }
     }
-    
+
     public async Task<AuthenticationHeaderValue> GetAuthenticationHeaderAsync(HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);

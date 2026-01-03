@@ -1,34 +1,29 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Net.Http.Headers;
+using System.Security.Authentication;
+using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
-using System;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Security.Authentication;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Shuttle.Access.RestClient;
 
 public class BearerAuthenticationProvider : IAuthenticationProvider
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
     private readonly AccessClientOptions _accessClientOptions;
     private readonly string _baseAddress;
     private readonly BearerAuthenticationProviderOptions _bearerAuthenticationProviderOptions;
     private readonly HttpClient _httpClient;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly IJwtService _jwtService;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly IServiceProvider _serviceProvider;
     private DateTimeOffset _expiryDate = DateTimeOffset.MinValue;
     private string _token = string.Empty;
-    private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
 
     public BearerAuthenticationProvider(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptions<AccessClientOptions> accessClientOptions, IOptions<BearerAuthenticationProviderOptions> bearerAuthenticationProviderOptions, IHttpContextAccessor httpContextAccessor, HttpClient httpClient, IJwtService jwtService, IServiceProvider serviceProvider)
     {

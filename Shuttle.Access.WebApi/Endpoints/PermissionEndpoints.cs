@@ -1,18 +1,29 @@
-﻿using Asp.Versioning;
+﻿using System.Text;
+using System.Text.Json;
+using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
+using Shuttle.Access.Data;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Hopper;
-using System.Text;
-using System.Text.Json;
-using Shuttle.Access.Data;
 
 namespace Shuttle.Access.WebApi;
 
 public static class PermissionEndpoints
 {
+    private static Messages.v1.Permission Map(Data.Models.Permission permission)
+    {
+        return new()
+        {
+            Id = permission.Id,
+            Name = permission.Name,
+            Description = permission.Description,
+            Status = permission.Status
+        };
+    }
+
     public static WebApplication MapPermissionEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
@@ -92,7 +103,7 @@ public static class PermissionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
-        
+
         app.MapPost("/v{version:apiVersion}/permissions/bulk-upload", async (IServiceBus serviceBus, List<RegisterPermission> registerPermissions) =>
             {
                 if (!registerPermissions.Any())
@@ -203,16 +214,5 @@ public static class PermissionEndpoints
             .RequirePermission(AccessPermissions.Permissions.Manage);
 
         return app;
-    }
-
-    private static Messages.v1.Permission Map(Data.Models.Permission permission)
-    {
-        return new()
-        {
-            Id = permission.Id,
-            Name = permission.Name,
-            Description = permission.Description,
-            Status = permission.Status
-        };
     }
 }

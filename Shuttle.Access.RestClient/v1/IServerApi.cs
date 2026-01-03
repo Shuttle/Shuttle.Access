@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Refit;
+﻿using Refit;
 using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access.RestClient.v1;
