@@ -1,7 +1,7 @@
 ﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.WebApi;

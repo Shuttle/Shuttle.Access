@@ -34,7 +34,7 @@ public class KeepAliveObserver(ILogger<KeepAliveObserver> logger, IOptions<Serve
 
             await _serviceBus.SendAsync(new MonitorKeepAlive(), builder =>
             {
-                builder.Local().Defer(ignoreTillDate);
+                builder.ToSelf().DeferUntil(ignoreTillDate);
             }, cancellationToken);
 
             _keepAliveSent = true;

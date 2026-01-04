@@ -1,5 +1,5 @@
 ﻿using Shuttle.Access.Application;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -34,19 +34,19 @@ public class AccessServiceHandler(IIdentityQuery identityQuery, IPrimitiveEventQ
         if (primitiveEvent?.SequenceNumber == null ||
             (await _projectionRepository.GetAsync(ProjectionNames.Identity, cancellationToken)).SequenceNumber < primitiveEvent.SequenceNumber.Value)
         {
-            await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local(), cancellationToken);
+            await context.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
             return;
         }
 
         if (message.Active)
         {
-            await RefreshAsync(new Data.Models.Identity.Specification().WithRoleId(message.RoleId));
+            await RefreshAsync(new SqlServer.Models.Identity.Specification().WithRoleId(message.RoleId));
         }
         else
         {
-            await RefreshAsync(new Data.Models.Session.Specification().AddPermissions(
-                (await _permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddRoleId(message.RoleId), cancellationToken))
+            await RefreshAsync(new SqlServer.Models.Session.Specification().AddPermissions(
+                (await _permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddRoleId(message.RoleId), cancellationToken))
                 .Select(item => item.Name)));
         }
     }
@@ -62,18 +62,18 @@ public class AccessServiceHandler(IIdentityQuery identityQuery, IPrimitiveEventQ
         if (primitiveEvent?.SequenceNumber == null ||
             (await _projectionRepository.GetAsync(ProjectionNames.Identity, cancellationToken)).SequenceNumber < primitiveEvent.SequenceNumber.Value)
         {
-            await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local(), cancellationToken);
+            await context.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
             return;
         }
 
         if (message.Status == (int)PermissionStatus.Removed)
         {
-            await RefreshAsync(new Data.Models.Session.Specification().AddPermission(message.Name));
+            await RefreshAsync(new SqlServer.Models.Session.Specification().AddPermission(message.Name));
         }
         else
         {
-            await RefreshAsync(new Data.Models.Identity.Specification().WithPermissionId(message.Id));
+            await RefreshAsync(new SqlServer.Models.Identity.Specification().WithPermissionId(message.Id));
         }
     }
 
@@ -88,24 +88,24 @@ public class AccessServiceHandler(IIdentityQuery identityQuery, IPrimitiveEventQ
         if (primitiveEvent?.SequenceNumber == null ||
             (await _projectionRepository.GetAsync(ProjectionNames.Identity, cancellationToken)).SequenceNumber < primitiveEvent.SequenceNumber.Value)
         {
-            await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local(), cancellationToken);
+            await context.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
             return;
         }
 
         if (message.Active)
         {
-            await RefreshAsync(new Data.Models.Identity.Specification().WithRoleId(message.RoleId));
+            await RefreshAsync(new SqlServer.Models.Identity.Specification().WithRoleId(message.RoleId));
         }
         else
         {
-            await RefreshAsync(new Data.Models.Session.Specification().AddPermissions(
-                (await _permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddId(message.PermissionId), cancellationToken))
+            await RefreshAsync(new SqlServer.Models.Session.Specification().AddPermissions(
+                (await _permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddId(message.PermissionId), cancellationToken))
                 .Select(item => item.Name)));
         }
     }
 
-    private async Task RefreshAsync(Data.Models.Session.Specification specification)
+    private async Task RefreshAsync(SqlServer.Models.Session.Specification specification)
     {
         foreach (var session in await _sessionQuery.SearchAsync(specification))
         {
@@ -113,7 +113,7 @@ public class AccessServiceHandler(IIdentityQuery identityQuery, IPrimitiveEventQ
         }
     }
 
-    private async Task RefreshAsync(Data.Models.Identity.Specification specification)
+    private async Task RefreshAsync(SqlServer.Models.Identity.Specification specification)
     {
         foreach (var identity in await _identityQuery.SearchAsync(specification))
         {

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 
 namespace Shuttle.Access.Tests.Integration.DataAccess.Sql;
 
@@ -16,7 +16,7 @@ public class RoleQueryFixture : DataAccessFixture
         using (TransactionScopeFactory.Create())
         {
             await Assert.ThatAsync(() => query.SearchAsync(new()), Throws.Nothing);
-            Assert.That((await query.SearchAsync(new Data.Models.Role.Specification().AddName("Access Administrator"))).Count(), Is.LessThan(2));
+            Assert.That((await query.SearchAsync(new SqlServer.Models.Role.Specification().AddName("Access Administrator"))).Count(), Is.LessThan(2));
         }
     }
 }

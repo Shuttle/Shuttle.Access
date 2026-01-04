@@ -4,7 +4,7 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Hopper;
@@ -13,7 +13,7 @@ namespace Shuttle.Access.WebApi;
 
 public static class PermissionEndpoints
 {
-    private static Messages.v1.Permission Map(Data.Models.Permission permission)
+    private static Messages.v1.Permission Map(SqlServer.Models.Permission permission)
     {
         return new()
         {
@@ -30,7 +30,7 @@ public static class PermissionEndpoints
 
         app.MapPost("/v{version:apiVersion}/permissions/search", async (IPermissionQuery permissionQuery, [FromBody] Messages.v1.Permission.Specification specification) =>
             {
-                var search = new Data.Models.Permission.Specification();
+                var search = new SqlServer.Models.Permission.Specification();
 
                 if (!string.IsNullOrWhiteSpace(specification.NameMatch))
                 {
@@ -48,7 +48,7 @@ public static class PermissionEndpoints
 
         app.MapGet("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, IPermissionQuery permissionQuery) =>
             {
-                var permission = (await permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddId(id))).SingleOrDefault();
+                var permission = (await permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddId(id))).SingleOrDefault();
                 return permission != null ? Results.Ok(Map(permission)) : Results.BadRequest();
             })
             .WithTags("Permissions")
@@ -132,7 +132,7 @@ public static class PermissionEndpoints
 
                 List<RegisterPermission> permissions;
 
-                permissions = (await permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddIds(ids)))
+                permissions = (await permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddIds(ids)))
                     .Select(item => new RegisterPermission
                     {
                         Name = item.Name,

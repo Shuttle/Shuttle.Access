@@ -1,4 +1,6 @@
-﻿namespace Shuttle.Access;
+﻿using Shuttle.Extensions.Options;
+
+namespace Shuttle.Access;
 
 public class AccessOptions
 {
@@ -14,6 +16,10 @@ public class AccessOptions
     public TimeSpan SessionDuration { get; set; } = TimeSpan.FromHours(8);
     public TimeSpan SessionRenewalTolerance { get; set; } = TimeSpan.FromMinutes(15);
     public TimeSpan SessionTokenExchangeValidityTimeSpan { get; set; } = TimeSpan.FromMinutes(1);
+
+    public AsyncEvent<AuthenticationEventArgs> AuthenticationUnknownIdentity { get; set; } = new();
+    public AsyncEvent<AuthenticationEventArgs> AuthenticationFailed { get; set; } = new();
+    public AsyncEvent<AuthenticationEventArgs> Authenticated { get; set; } = new();
 }
 
 public class ConfigurationOptions

@@ -1,17 +1,8 @@
+using Shuttle.Core.Contract;
+
 namespace Shuttle.Access;
 
-public class AuthenticationEventArgs : EventArgs
+public class AuthenticationEventArgs(string identityName)
 {
-    public AuthenticationEventArgs()
-    {
-    }
-
-    public AuthenticationEventArgs(bool authenticated, string message)
-    {
-        Authenticated = authenticated;
-        Message = message;
-    }
-
-    public bool Authenticated { get; }
-    public string Message { get; } = string.Empty;
+    public string IdentityName { get; private set; } = Guard.AgainstEmpty(identityName);
 }

@@ -3,22 +3,13 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
 
-public class AccessBuilder
+public class AccessBuilder(IServiceCollection services)
 {
-    private AccessOptions _accessOptions = new();
-
-    public AccessBuilder(IServiceCollection services)
-    {
-        Guard.AgainstNull(services);
-
-        Services = services;
-    }
-
     public AccessOptions Options
     {
-        get => _accessOptions;
-        set => _accessOptions = value ?? throw new ArgumentNullException(nameof(value));
-    }
+        get;
+        set => field = value ?? throw new ArgumentNullException(nameof(value));
+    } = new();
 
-    public IServiceCollection Services { get; }
+    public IServiceCollection Services { get; } = Guard.AgainstNull(services);
 }

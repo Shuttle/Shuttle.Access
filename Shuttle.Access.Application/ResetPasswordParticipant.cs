@@ -1,4 +1,4 @@
-﻿using Shuttle.Access.Data;
+﻿using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -17,7 +17,7 @@ public class ResetPasswordParticipant(IHashingService hashingService, IEventStor
     {
         Guard.AgainstNull(message);
 
-        var queryIdentity = (await _identityQuery.SearchAsync(new Data.Models.Identity.Specification().WithName(message.Request.Name), cancellationToken)).SingleOrDefault();
+        var queryIdentity = (await _identityQuery.SearchAsync(new SqlServer.Models.Identity.Specification().WithName(message.Request.Name), cancellationToken)).SingleOrDefault();
 
         if (queryIdentity == null)
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Messages.v1;
@@ -11,19 +12,22 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server;
 
-public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOptions<ServerOptions> serverOptions, IMediator mediator)
+public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOptions<ServerOptions> serverOptions, IServiceScopeFactory serviceScopeFactory)
     : BackgroundService
 {
     private readonly Type _inboxMessagePipeline = typeof(InboxMessagePipeline);
-    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
+    private IMediator? _mediator;
     private readonly PipelineOptions _pipelineOptions = Guard.AgainstNull(Guard.AgainstNull(pipelineOptions).Value);
     private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
+    private IServiceScope? _serviceScope;
 
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        await _mediator.SendAsync(new ConfigureApplication(), cancellationToken);
+        if (_mediator != null)
+        {
+            await _mediator.SendAsync(new ConfigureApplication(), cancellationToken);
+        }
     }
-
 
     private Task PipelineCreated(PipelineEventArgs eventArgs, CancellationToken cancellationToken)
     {
@@ -40,12 +44,18 @@ public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOpt
     {
         _pipelineOptions.PipelineCreated += PipelineCreated;
 
+        _serviceScope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
+
+        _mediator = _serviceScope.ServiceProvider.GetRequiredService<IMediator>();
+        
         return Task.CompletedTask;
     }
 
     public override Task StopAsync(CancellationToken cancellationToken)
     {
         _pipelineOptions.PipelineCreated -= PipelineCreated;
+
+        _serviceScope?.Dispose();
 
         return Task.CompletedTask;
     }

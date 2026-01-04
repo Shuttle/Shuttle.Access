@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -43,7 +43,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
 
         foreach (var permission in _permissions)
         {
-            if (await _permissionQuery.ContainsAsync(new Data.Models.Permission.Specification().AddName(permission), cancellationToken))
+            if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
             {
                 continue;
             }
@@ -62,7 +62,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
 
         var timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
 
-        var permissionSpecification = new Data.Models.Permission.Specification();
+        var permissionSpecification = new SqlServer.Models.Permission.Specification();
 
         foreach (var permission in _permissions)
         {
@@ -84,7 +84,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             return;
         }
 
-        var roleSpecification = new Data.Models.Role.Specification()
+        var roleSpecification = new SqlServer.Models.Role.Specification()
             .AddName("Access Administrator")
             .IncludePermissions();
 
@@ -122,7 +122,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             throw new ApplicationException(Resources.AdministratorRoleException);
         }
 
-        var administratorPermission = (await _permissionQuery.SearchAsync(new Data.Models.Permission.Specification().AddName("access://*"), cancellationToken)).SingleOrDefault();
+        var administratorPermission = (await _permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddName("access://*"), cancellationToken)).SingleOrDefault();
 
         if (administratorPermission == null)
         {
@@ -164,7 +164,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             throw new ApplicationException(Resources.AdministratorPermissionException);
         }
 
-        if (await _identityQuery.CountAsync(new Data.Models.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken) == 0)
+        if (await _identityQuery.CountAsync(new SqlServer.Models.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken) == 0)
         {
             var generateHash = new GenerateHash { Value = _accessOptions.Configuration.AdministratorPassword };
 

@@ -13,7 +13,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 [TestFixture]
 public class RolesFixture
 {
-    private static Data.Models.Role CreateRole()
+    private static SqlServer.Models.Role CreateRole()
     {
         return new()
         {
@@ -48,8 +48,8 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
-            Task.FromResult(new List<Data.Models.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<SqlServer.Models.Role>
             {
                 role
             }.AsEnumerable()));
@@ -78,8 +78,8 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
-            Task.FromResult(new List<Data.Models.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<SqlServer.Models.Role>
             {
                 role
             }.AsEnumerable()));
@@ -146,8 +146,8 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<Data.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
-            Task.FromResult(new List<Data.Models.Permission>
+        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<SqlServer.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<SqlServer.Models.Permission>
             {
                 new()
                 {

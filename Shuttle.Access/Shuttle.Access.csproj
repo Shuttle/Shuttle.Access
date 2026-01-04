@@ -11,6 +11,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.1" />
     <PackageReference Include="Shuttle.Access.Messages" Version="9.0.0" />
     <PackageReference Include="Shuttle.Core.Contract" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Extensions.Options" Version="21.0.0" />
   </ItemGroup>
 
   <ItemGroup>

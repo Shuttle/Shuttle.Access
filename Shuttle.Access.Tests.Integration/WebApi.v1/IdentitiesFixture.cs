@@ -14,7 +14,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
 public class IdentitiesFixture
 {
-    private static Data.Models.Identity CreateIdentity()
+    private static SqlServer.Models.Identity CreateIdentity()
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -47,9 +47,9 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
-                new List<Data.Models.Identity>
+                new List<SqlServer.Models.Identity>
                 {
                     identity
                 }.AsEnumerable()));
@@ -115,8 +115,8 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(
-            Task.FromResult(new List<Data.Models.Identity>
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(
+            Task.FromResult(new List<SqlServer.Models.Identity>
             {
                 identity
             }.AsEnumerable()));
@@ -167,7 +167,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
                 new List<Guid>
                 {
@@ -256,8 +256,8 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
-            new List<Data.Models.Identity>
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
+            new List<SqlServer.Models.Identity>
             {
                 identity
             }.AsEnumerable()));

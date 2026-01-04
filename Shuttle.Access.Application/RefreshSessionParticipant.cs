@@ -1,4 +1,4 @@
-﻿using Shuttle.Access.Data;
+﻿using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -19,7 +19,7 @@ public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService s
     {
         Guard.AgainstNull(message);
 
-        var specification = new Data.Models.Session.Specification().WithIdentityId(message.IdentityId);
+        var specification = new SqlServer.Models.Session.Specification().WithIdentityId(message.IdentityId);
 
         var identityName = (await _sessionQuery.SearchAsync(specification, cancellationToken)).FirstOrDefault()?.IdentityName;
 

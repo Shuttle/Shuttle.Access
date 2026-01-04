@@ -4,7 +4,7 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Hopper;
@@ -13,7 +13,7 @@ namespace Shuttle.Access.WebApi;
 
 public static class RoleEndpoints
 {
-    private static Messages.v1.Role Map(Data.Models.Role role)
+    private static Messages.v1.Role Map(SqlServer.Models.Role role)
     {
         return new()
         {
@@ -87,7 +87,7 @@ public static class RoleEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var permissions = (await roleQuery.PermissionsAsync(new Data.Models.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
+                var permissions = (await roleQuery.PermissionsAsync(new SqlServer.Models.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
 
                 var result = from permissionId in identifiers.Values
                     select new IdentifierAvailability<Guid>
@@ -105,7 +105,7 @@ public static class RoleEndpoints
 
         app.MapPost("/v{version:apiVersion}/roles/search", async ([FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification) =>
             {
-                var search = new Data.Models.Role.Specification();
+                var search = new SqlServer.Models.Role.Specification();
 
                 if (!string.IsNullOrWhiteSpace(specification.NameMatch))
                 {
@@ -126,7 +126,7 @@ public static class RoleEndpoints
 
         app.MapGet("/v{version:apiVersion}/roles/{value}", async (string value, [FromServices] IRoleQuery roleQuery) =>
             {
-                var specification = new Data.Models.Role.Specification();
+                var specification = new SqlServer.Models.Role.Specification();
 
                 if (Guid.TryParse(value, out var id))
                 {
@@ -245,7 +245,7 @@ public static class RoleEndpoints
                     return Results.BadRequest();
                 }
 
-                var roles = (await roleQuery.SearchAsync(new Data.Models.Role.Specification().IncludePermissions().AddRoleIds(ids))).ToList();
+                var roles = (await roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().IncludePermissions().AddRoleIds(ids))).ToList();
 
                 var result = roles.Select(item => new
                 {

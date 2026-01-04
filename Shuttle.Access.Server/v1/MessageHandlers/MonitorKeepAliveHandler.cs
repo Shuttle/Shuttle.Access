@@ -74,7 +74,7 @@ ELSE
 
         await context.SendAsync(new MonitorKeepAlive(), builder =>
         {
-            builder.Local().Defer(ignoreTillDate);
+            builder.ToSelf().DeferUntil(ignoreTillDate);
         }, cancellationToken);
 
         _logger.LogDebug($"[keep-alive] : ignore till date = '{ignoreTillDate:O}'");

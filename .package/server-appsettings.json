@@ -33,12 +33,12 @@
   "Shuttle": {
     "ServiceBus": {
       "Inbox": {
-        "WorkQueueUri": "azuresq://azure/access-server-inbox-work",
-        "DeferredQueueUri": "azuresq://azure/access-server-inbox-deferred",
-        "ErrorQueueUri": "azuresq://azure/access-error",
+        "WorkTransportUri": "azuresq://azure/access-server-inbox-work",
+        "DeferredTransportUri": "azuresq://azure/access-server-inbox-deferred",
+        "ErrorTransportUri": "azuresq://azure/access-error",
         "MaximumFailureCount": 8,
         "ThreadCount": 1,
-        "DurationToIgnoreOnFailure": [
+        "IgnoreOnFailureDurations": [
           "00:00:01",
           "00:00:01",
           "00:00:01",

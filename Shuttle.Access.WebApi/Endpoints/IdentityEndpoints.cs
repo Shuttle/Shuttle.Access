@@ -3,7 +3,7 @@ using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
@@ -14,7 +14,7 @@ namespace Shuttle.Access.WebApi;
 
 public static class IdentityEndpoints
 {
-    private static Messages.v1.Identity Map(Data.Models.Identity identity)
+    private static Messages.v1.Identity Map(SqlServer.Models.Identity identity)
     {
         return new()
         {
@@ -81,7 +81,7 @@ public static class IdentityEndpoints
 
         app.MapPost("/v{version:apiVersion}/identities/search", async (IIdentityQuery identityQuery, [FromBody] Messages.v1.Identity.Specification specification) =>
             {
-                var search = new Data.Models.Identity.Specification();
+                var search = new SqlServer.Models.Identity.Specification();
 
                 if (!string.IsNullOrWhiteSpace(specification.NameMatch))
                 {
@@ -102,7 +102,7 @@ public static class IdentityEndpoints
 
         app.MapGet("/v{version:apiVersion}/identities/{value}", async (IIdentityQuery identityQuery, string value) =>
             {
-                var specification = new Data.Models.Identity.Specification().IncludeRoles();
+                var specification = new SqlServer.Models.Identity.Specification().IncludeRoles();
 
                 if (Guid.TryParse(value, out var id))
                 {
@@ -248,7 +248,7 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var roles = (await identityQuery.RoleIdsAsync(new Data.Models.Identity.Specification().WithIdentityId(id))).ToList();
+                var roles = (await identityQuery.RoleIdsAsync(new SqlServer.Models.Identity.Specification().WithIdentityId(id))).ToList();
 
                 return Results.Ok(from roleId in identifiers.Values
                     select new IdentifierAvailability<Guid>
@@ -273,7 +273,7 @@ public static class IdentityEndpoints
                     return Results.BadRequest(ex.Message);
                 }
 
-                var specification = new Data.Models.Identity.Specification();
+                var specification = new SqlServer.Models.Identity.Specification();
 
                 if (message.Id.HasValue)
                 {

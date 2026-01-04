@@ -1,4 +1,4 @@
-﻿using Shuttle.Access.Data;
+﻿using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -52,11 +52,11 @@ public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepositor
 
         stream.Add(registered);
 
-        var count = await _identityQuery.CountAsync(new Data.Models.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken);
+        var count = await _identityQuery.CountAsync(new SqlServer.Models.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken);
 
         if (count == 0)
         {
-            var roles = (await _roleQuery.SearchAsync(new Data.Models.Role.Specification().AddName("Access Administrator"), cancellationToken)).ToList();
+            var roles = (await _roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().AddName("Access Administrator"), cancellationToken)).ToList();
 
             if (roles.Count != 1)
             {

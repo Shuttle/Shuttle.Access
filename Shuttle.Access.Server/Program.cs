@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Access.Server.v1.EventHandlers;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -23,7 +23,7 @@ namespace Shuttle.Access.Server;
 
 internal class Program
 {
-    private static async Task Main(string[] args)
+    private static async Task Main()
     {
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
@@ -43,12 +43,13 @@ internal class Program
             throw new ApplicationException($"File '{appsettingsPath}' cannot be accessed/found.");
         }
 
-        var host = Host.CreateDefaultBuilder()
+        await Host.CreateDefaultBuilder()
             .UseSerilog()
             .ConfigureServices(services =>
             {
                 var configuration = new ConfigurationBuilder()
                     .AddJsonFile(appsettingsPath)
+                    .AddUserSecrets<Program>()
                     .AddEnvironmentVariables()
                     .Build();
 
@@ -56,7 +57,7 @@ internal class Program
                     .ReadFrom.Configuration(configuration)
                     .CreateLogger();
 
-                var accessConnectionString = configuration.GetConnectionString("Access") ?? "Missing connection string 'Access'.";
+                var accessConnectionString = configuration.GetConnectionString("Access") ?? throw new ApplicationException("Missing connection string 'Access'.");
 
                 services
                     .AddSingleton<IConfiguration>(configuration)
@@ -79,7 +80,7 @@ internal class Program
 
                                 if (string.IsNullOrWhiteSpace(queueOptions.StorageAccount))
                                 {
-                                    queueOptions.ConnectionString = accessConnectionString;
+                                    queueOptions.ConnectionString = configuration.GetConnectionString("azure") ?? throw new ApplicationException("Missing connection string 'azure'.");
                                 }
 
                                 builder.AddOptions("azure", queueOptions);
@@ -117,7 +118,7 @@ internal class Program
                     .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
                     .AddSingleton<IHashingService, HashingService>()
                     .AddSingleton<IHostedService, ServerHostedService>()
-                    .AddSingleton<KeepAliveObserver>();
+                    .AddScoped<KeepAliveObserver>();
             })
             .Build()
             .RunAsync();

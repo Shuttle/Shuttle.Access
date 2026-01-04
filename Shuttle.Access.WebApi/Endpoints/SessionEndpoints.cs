@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -16,9 +16,9 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
-    private static Data.Models.Session.Specification GetSpecification(Messages.v1.Session.Specification model, IHashingService hashingService)
+    private static SqlServer.Models.Session.Specification GetSpecification(Messages.v1.Session.Specification model, IHashingService hashingService)
     {
-        var specification = new Data.Models.Session.Specification();
+        var specification = new SqlServer.Models.Session.Specification();
 
         if (model.Token != null)
         {
@@ -48,7 +48,7 @@ public static class SessionEndpoints
         return specification;
     }
 
-    private static Messages.v1.Session Map(Data.Models.Session session)
+    private static Messages.v1.Session Map(SqlServer.Models.Session session)
     {
         return new()
         {
@@ -61,7 +61,7 @@ public static class SessionEndpoints
         };
     }
 
-    private static SessionData MapData(Data.Models.Session session)
+    private static SessionData MapData(SqlServer.Models.Session session)
     {
         return new()
         {
@@ -272,7 +272,7 @@ public static class SessionEndpoints
                     return await AttemptRegistration();
                 }
 
-                var session = (await sessionQuery.SearchAsync(new Data.Models.Session.Specification().WithIdentityId(sessionIdentityId.Value).IncludePermissions())).FirstOrDefault();
+                var session = (await sessionQuery.SearchAsync(new SqlServer.Models.Session.Specification().WithIdentityId(sessionIdentityId.Value).IncludePermissions())).FirstOrDefault();
 
                 if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
                 {
@@ -356,7 +356,7 @@ public static class SessionEndpoints
                     return Results.BadRequest();
                 }
 
-                var session = (await sessionQuery.SearchAsync(new Data.Models.Session.Specification().WithToken(sessionTokenExchange.SessionToken.ToByteArray()).IncludePermissions())).FirstOrDefault();
+                var session = (await sessionQuery.SearchAsync(new SqlServer.Models.Session.Specification().WithToken(sessionTokenExchange.SessionToken.ToByteArray()).IncludePermissions())).FirstOrDefault();
 
                 return session == null
                     ? Results.BadRequest()

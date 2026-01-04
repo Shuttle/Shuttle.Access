@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
@@ -58,7 +58,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             }
         }
 
-        if ((await _identityQuery.SearchAsync(new Data.Models.Identity.Specification().WithName(message.IdentityName), cancellationToken)).SingleOrDefault() == null)
+        if ((await _identityQuery.SearchAsync(new SqlServer.Models.Identity.Specification().WithName(message.IdentityName), cancellationToken)).SingleOrDefault() == null)
         {
             message.UnknownIdentity();
 

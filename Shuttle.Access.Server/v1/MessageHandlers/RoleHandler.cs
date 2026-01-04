@@ -39,7 +39,7 @@ public class RoleHandler(IMediator mediator) :
             {
                 message.WaitCount++;
 
-                await context.SendAsync(message, builder => builder.Defer(DateTime.Now.AddSeconds(5)).Local(), cancellationToken);
+                await context.SendAsync(message, builder => builder.DeferUntil(DateTime.Now.AddSeconds(5)).ToSelf(), cancellationToken);
 
                 return;
             }

@@ -33,7 +33,7 @@ public class PermissionsFixture
     [Test]
     public async Task Should_be_able_to_search_permissions_async()
     {
-        var permission = new Data.Models.Permission
+        var permission = new SqlServer.Models.Permission
         {
             Id = Guid.NewGuid(),
             Name = "integration://available-permission",
@@ -42,7 +42,7 @@ public class PermissionsFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Data.Models.Permission.Specification>(), default)).Returns(Task.FromResult(new List<Data.Models.Permission> { permission }.AsEnumerable()));
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Permission.Specification>(), default)).Returns(Task.FromResult(new List<SqlServer.Models.Permission> { permission }.AsEnumerable()));
 
         var response = await factory.GetAccessClient().Permissions.SearchAsync(new());
 

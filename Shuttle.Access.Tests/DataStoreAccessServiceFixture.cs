@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
-using Shuttle.Access.Data;
+using Shuttle.Access.SqlServer;
 
 namespace Shuttle.Access.Tests;
 
@@ -19,7 +19,7 @@ public class DataStoreSessionServiceFixture
 
         repository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult<Session?>(null));
 
-        var service = new SqlServerSessionService(Options.Create(new AccessOptions
+        var service = new SessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
         }), new HashingService(), new Mock<IDbContextFactory<AccessDbContext>>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, repository.Object);
@@ -37,7 +37,7 @@ public class DataStoreSessionServiceFixture
 
         sessionRepository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
 
-        var service = new SqlServerSessionService(Options.Create(new AccessOptions
+        var service = new SessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
         }), new HashingService(), new Mock<IDbContextFactory<AccessDbContext>>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, sessionRepository.Object);
