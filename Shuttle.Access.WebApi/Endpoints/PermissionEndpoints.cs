@@ -28,191 +28,201 @@ public static class PermissionEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPost("/v{version:apiVersion}/permissions/search", async (IPermissionQuery permissionQuery, [FromBody] Messages.v1.Permission.Specification specification) =>
-            {
-                var search = new SqlServer.Models.Permission.Specification();
-
-                if (!string.IsNullOrWhiteSpace(specification.NameMatch))
-                {
-                    search.WithNameMatch(specification.NameMatch);
-                }
-
-                search.AddIds(specification.Ids);
-
-                return Results.Ok((await permissionQuery.SearchAsync(search)).Select(Map).ToList());
-            })
+        app.MapPost("/v{version:apiVersion}/permissions/search", PostSearch)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequireSession();
 
-        app.MapGet("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, IPermissionQuery permissionQuery) =>
-            {
-                var permission = (await permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddId(id))).SingleOrDefault();
-                return permission != null ? Results.Ok(Map(permission)) : Results.BadRequest();
-            })
+        app.MapGet("/v{version:apiVersion}/permissions/{id:guid}", Get)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequireSession();
 
-        app.MapPost("/v{version:apiVersion}/permissions", async (RegisterPermission message, IServiceBus serviceBus) =>
-            {
-                try
-                {
-                    message.ApplyInvariants();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
-                }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
-            })
+        app.MapPost("/v{version:apiVersion}/permissions", Post)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPost("/v{version:apiVersion}/permissions/file", async (HttpContext httpContext, IServiceBus serviceBus) =>
-            {
-                var form = httpContext.Request.Form;
-
-                if (form.Files.Count == 0)
-                {
-                    return Results.BadRequest();
-                }
-
-                var registerPermissions = JsonSerializer.Deserialize<List<RegisterPermission>>(form.Files[0].OpenReadStream());
-
-                if (registerPermissions == null || !registerPermissions.Any())
-                {
-                    return Results.BadRequest();
-                }
-
-                foreach (var registerPermission in registerPermissions)
-                {
-                    await serviceBus.SendAsync(registerPermission);
-                }
-
-                return Results.Accepted();
-            })
+        app.MapPost("/v{version:apiVersion}/permissions/file", PostFile)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPost("/v{version:apiVersion}/permissions/bulk-upload", async (IServiceBus serviceBus, List<RegisterPermission> registerPermissions) =>
-            {
-                if (!registerPermissions.Any())
-                {
-                    return Results.BadRequest();
-                }
-
-                foreach (var registerPermission in registerPermissions)
-                {
-                    await serviceBus.SendAsync(registerPermission);
-                }
-
-                return Results.Accepted();
-            })
+        app.MapPost("/v{version:apiVersion}/permissions/bulk-upload", PostBulkUpload)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPost("/v{version:apiVersion}/permissions/bulk-download", async (IPermissionQuery permissionQuery, List<Guid> ids) =>
-            {
-                if (!ids.Any())
-                {
-                    return Results.BadRequest();
-                }
-
-                List<RegisterPermission> permissions;
-
-                permissions = (await permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddIds(ids)))
-                    .Select(item => new RegisterPermission
-                    {
-                        Name = item.Name,
-                        Description = item.Description,
-                        Status = item.Status
-                    })
-                    .ToList();
-
-                return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(permissions)), "application/json", "permissions.json");
-            })
+        app.MapPost("/v{version:apiVersion}/permissions/bulk-download", PostBulkDownload)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/name", async (Guid id, SetPermissionName message, IServiceBus serviceBus) =>
-            {
-                try
-                {
-                    message.Id = id;
-                    message.ApplyInvariants();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
-                }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
-            })
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/name", PatchName)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/description", async (IServiceBus serviceBus, Guid id, [FromBody] SetPermissionDescription message) =>
-            {
-                try
-                {
-                    message.Id = id;
-                    message.ApplyInvariants();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
-                }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
-            })
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/description", PatchDescription)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}", async (Guid id, SetPermissionStatus message, IServiceBus serviceBus) =>
-            {
-                try
-                {
-                    message.Id = id;
-                    message.ApplyInvariants();
-
-                    Guard.AgainstUndefinedEnum<PermissionStatus>(message.Status);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
-                }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
-            })
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}", PatchStatus)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Manage);
 
         return app;
+    }
+
+    private static async Task<IResult> PatchStatus(Guid id, SetPermissionStatus message, IServiceBus serviceBus)
+    {
+        try
+        {
+            message.Id = id;
+            message.ApplyInvariants();
+
+            Guard.AgainstUndefinedEnum<PermissionStatus>(message.Status);
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        await serviceBus.SendAsync(message);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchDescription(IServiceBus serviceBus, Guid id, [FromBody] SetPermissionDescription message)
+    {
+        try
+        {
+            message.Id = id;
+            message.ApplyInvariants();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        await serviceBus.SendAsync(message);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchName(Guid id, SetPermissionName message, IServiceBus serviceBus)
+    {
+        try
+        {
+            message.Id = id;
+            message.ApplyInvariants();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        await serviceBus.SendAsync(message);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PostBulkDownload(IPermissionQuery permissionQuery, List<Guid> ids)
+    {
+        if (!ids.Any())
+        {
+            return Results.BadRequest();
+        }
+
+        var permissions = (await permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddIds(ids))).Select(item => new RegisterPermission { Name = item.Name, Description = item.Description, Status = item.Status })
+            .ToList();
+
+        return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(permissions)), "application/json", "permissions.json");
+    }
+
+    private static async Task<IResult> PostBulkUpload(IServiceBus serviceBus, List<RegisterPermission> registerPermissions)
+    {
+        if (!registerPermissions.Any())
+        {
+            return Results.BadRequest();
+        }
+
+        foreach (var registerPermission in registerPermissions)
+        {
+            await serviceBus.SendAsync(registerPermission);
+        }
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PostFile(HttpContext httpContext, IServiceBus serviceBus)
+    {
+        var form = httpContext.Request.Form;
+
+        if (form.Files.Count == 0)
+        {
+            return Results.BadRequest();
+        }
+
+        var registerPermissions = JsonSerializer.Deserialize<List<RegisterPermission>>(form.Files[0].OpenReadStream());
+
+        if (registerPermissions == null || !registerPermissions.Any())
+        {
+            return Results.BadRequest();
+        }
+
+        foreach (var registerPermission in registerPermissions)
+        {
+            await serviceBus.SendAsync(registerPermission);
+        }
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> Post(RegisterPermission message, IServiceBus serviceBus)
+    {
+        try
+        {
+            message.ApplyInvariants();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        await serviceBus.SendAsync(message);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> Get(Guid id, IPermissionQuery permissionQuery)
+    {
+        var permission = (await permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddId(id))).SingleOrDefault();
+        return permission != null ? Results.Ok(Map(permission)) : Results.BadRequest();
+    }
+
+    private static async Task<IResult> PostSearch(IPermissionQuery permissionQuery, [FromBody] Messages.v1.Permission.Specification specification)
+    {
+        var search = new SqlServer.Models.Permission.Specification();
+
+        if (!string.IsNullOrWhiteSpace(specification.NameMatch))
+        {
+            search.WithNameMatch(specification.NameMatch);
+        }
+
+        search.AddIds(specification.Ids);
+
+        return Results.Ok((await permissionQuery.SearchAsync(search)).Select(Map).ToList());
     }
 }

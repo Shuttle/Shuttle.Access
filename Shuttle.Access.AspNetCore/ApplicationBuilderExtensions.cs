@@ -4,8 +4,11 @@ namespace Shuttle.Access.AspNetCore;
 
 public static class ApplicationBuilderExtensions
 {
-    public static IApplicationBuilder UseAccessAuthorization(this IApplicationBuilder builder)
+    extension(IApplicationBuilder builder)
     {
-        return builder.UseMiddleware<AccessAuthorizationMiddleware>();
+        public IApplicationBuilder UseAccessAuthorization()
+        {
+            return builder.UseMiddleware<AccessAuthorizationMiddleware>();
+        }
     }
 }

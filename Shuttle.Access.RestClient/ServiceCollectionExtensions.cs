@@ -9,37 +9,40 @@ namespace Shuttle.Access.RestClient;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAccessClient(this IServiceCollection services, Action<AccessClientBuilder>? builder = null)
+    extension(IServiceCollection services)
     {
-        Guard.AgainstNull(services);
-
-        var accessClientBuilder = new AccessClientBuilder(services);
-
-        builder?.Invoke(accessClientBuilder);
-
-        services.Configure<AccessClientOptions>(options =>
+        public IServiceCollection AddAccessClient(Action<AccessClientBuilder>? builder = null)
         {
-            options.BaseAddress = accessClientBuilder.Options.BaseAddress;
-            options.RenewToleranceTimeSpan = accessClientBuilder.Options.RenewToleranceTimeSpan;
-            options.ConfigureHttpRequestAsync = accessClientBuilder.Options.ConfigureHttpRequestAsync;
-        });
+            Guard.AgainstNull(services);
 
-        services.AddSingleton<IValidateOptions<AccessClientOptions>, AccessClientOptionsValidator>();
+            var accessClientBuilder = new AccessClientBuilder(services);
 
-        services.AddTransient<AccessHttpMessageHandler>();
-        services.AddHttpClient<IAccessClient, AccessClient>("AccessClient", (serviceProvider, client) =>
+            builder?.Invoke(accessClientBuilder);
+
+            services.Configure<AccessClientOptions>(options =>
             {
-                client.BaseAddress = new(serviceProvider.GetRequiredService<IOptions<AccessClientOptions>>().Value.BaseAddress);
-            })
-            .AddHttpMessageHandler<AccessHttpMessageHandler>();
+                options.BaseAddress = accessClientBuilder.Options.BaseAddress;
+                options.RenewToleranceTimeSpan = accessClientBuilder.Options.RenewToleranceTimeSpan;
+                options.ConfigureHttpRequestAsync = accessClientBuilder.Options.ConfigureHttpRequestAsync;
+            });
 
-        services.AddSingleton<RestSessionService>();
-        services.AddSingleton<ISessionService>(sp => sp.GetRequiredService<RestSessionService>());
-        services.AddSingleton<IContextSessionService>(sp => sp.GetRequiredService<RestSessionService>());
+            services.AddSingleton<IValidateOptions<AccessClientOptions>, AccessClientOptionsValidator>();
 
-        services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<AccessHttpMessageHandler>();
+            services.AddHttpClient<IAccessClient, AccessClient>("AccessClient", (serviceProvider, client) =>
+                {
+                    client.BaseAddress = new(serviceProvider.GetRequiredService<IOptions<AccessClientOptions>>().Value.BaseAddress);
+                })
+                .AddHttpMessageHandler<AccessHttpMessageHandler>();
 
-        return services;
+            services.AddSingleton<RestSessionService>();
+            services.AddSingleton<ISessionService>(sp => sp.GetRequiredService<RestSessionService>());
+            services.AddSingleton<IContextSessionService>(sp => sp.GetRequiredService<RestSessionService>());
+
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            return services;
+        }
     }
 
     [Obsolete("Replace with `UseBearerAuthenticationProvider`.")]

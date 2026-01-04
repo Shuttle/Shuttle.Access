@@ -3,30 +3,21 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
 
-public class Session
+public class Session(byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
 {
     private readonly List<Permission> _permissions = [];
 
-    public Session(byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
-    {
-        Token = Guard.AgainstNull(token);
-        IdentityId = Guard.AgainstEmpty(identityId);
-        IdentityName = Guard.AgainstEmpty(identityName);
-        DateRegistered = dateRegistered;
-        ExpiryDate = expiryDate;
-    }
+    public DateTimeOffset DateRegistered { get; set; } = dateRegistered;
 
-    public DateTimeOffset DateRegistered { get; set; }
-
-    public DateTimeOffset ExpiryDate { get; private set; }
+    public DateTimeOffset ExpiryDate { get; private set; } = expiryDate;
 
     public bool HasExpired => DateTimeOffset.UtcNow >= ExpiryDate;
     public bool HasPermissions => _permissions.Any();
-    public Guid IdentityId { get; }
-    public string IdentityName { get; }
+    public Guid IdentityId { get; } = Guard.AgainstEmpty(identityId);
+    public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
     public IEnumerable<Permission> Permissions => _permissions.AsReadOnly();
-    public byte[] Token { get; private set; }
+    public byte[] Token { get; private set; } = Guard.AgainstNull(token);
 
     public Session AddPermission(Permission permission)
     {
@@ -60,15 +51,9 @@ public class Session
         ExpiryDate = expiryDate;
     }
 
-    public class Permission
+    public class Permission(Guid id, string name)
     {
-        public Permission(Guid id, string name)
-        {
-            Id = Guard.AgainstEmpty(id);
-            Name = Guard.AgainstEmpty(name);
-        }
-
-        public Guid Id { get; }
-        public string Name { get; }
+        public Guid Id { get; } = Guard.AgainstEmpty(id);
+        public string Name { get; } = Guard.AgainstEmpty(name);
     }
 }

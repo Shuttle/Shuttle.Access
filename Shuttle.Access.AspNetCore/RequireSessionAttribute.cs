@@ -11,14 +11,9 @@ public class RequireSessionAttribute : TypeFilterAttribute
         Arguments = [];
     }
 
-    private class RequiresSession : IAuthorizationFilter
+    private class RequiresSession(ISessionService sessionService) : IAuthorizationFilter
     {
-        private readonly ISessionService _sessionService;
-
-        public RequiresSession(ISessionService sessionService)
-        {
-            _sessionService = Guard.AgainstNull(sessionService);
-        }
+        private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {

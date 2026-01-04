@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting; // Added for environment checks
+using Scalar.AspNetCore; // Required NuGet: Scalar.AspNetCore
 using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.SqlServer;
@@ -86,37 +88,23 @@ public class Program
             });
         });
 
+        // --- SCALAR / OPENAPI CONFIGURATION START ---
+        webApplicationBuilder.Services.AddEndpointsApiExplorer();
+
+        // .NET 10 Native OpenAPI Generation
+        webApplicationBuilder.Services.AddOpenApi(options =>
+        {
+            // Replaces SwaggerGen CustomSchemaIds
+            options.AddSchemaTransformer((schema, context, cancellationToken) =>
+            {
+                schema.Title = schema.Title?.Replace("+", "_");
+                return Task.CompletedTask;
+            });
+        });
+        // --- SCALAR / OPENAPI CONFIGURATION END ---
+
         webApplicationBuilder.Services
             .AddSingleton<IContextSessionService, NullContextSessionService>()
-            .AddEndpointsApiExplorer()
-            //.AddSwaggerGen(options =>
-            //{
-            //    options.CustomSchemaIds(type => (type.FullName ?? string.Empty).Replace("+", "_"));
-
-            //    options.AddSecurityDefinition("Bearer", new()
-            //    {
-            //        Name = "Authorization",
-            //        Type = SecuritySchemeType.ApiKey,
-            //        Scheme = "Custom",
-            //        In = ParameterLocation.Header,
-            //        Description = "Enter 'Bearer TOKEN', where 'TOKEN' is a JWT; else 'Shuttle.Access token=TOKEN', where 'TOKEN' is the Shuttle.Access GUID session token."
-            //    });
-
-            //    options.AddSecurityRequirement(new()
-            //    {
-            //        {
-            //            new()
-            //            {
-            //                Reference = new()
-            //                {
-            //                    Type = ReferenceType.SecurityScheme,
-            //                    Id = "Bearer"
-            //                }
-            //            },
-            //            []
-            //        }
-            //    });
-            //})
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
             .AddAccess(accessBuilder =>
@@ -193,8 +181,20 @@ public class Program
             .Build();
 
         app.UseCors();
-        app.UseSwagger();
-        app.UseSwaggerUI();
+
+        // --- SCALAR ROUTING ---
+        if (app.Environment.IsDevelopment())
+        {
+            app.MapOpenApi(); // Serves the openapi.json
+            app.MapScalarApiReference(options =>
+            {
+                // Customizes the Scalar UI
+                options.WithTitle("Shuttle Access API")
+                       .WithTheme(ScalarTheme.DeepSpace)
+                       .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+            });
+        }
+
         app.UseAccessAuthorization();
 
         app

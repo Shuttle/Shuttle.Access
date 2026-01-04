@@ -3,20 +3,13 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class PasswordAuthenticationProviderBuilder
+public class PasswordAuthenticationProviderBuilder(IServiceCollection services)
 {
-    private PasswordAuthenticationProviderOptions _options = new();
-
-    public PasswordAuthenticationProviderBuilder(IServiceCollection services)
-    {
-        Services = Guard.AgainstNull(services);
-    }
-
     public PasswordAuthenticationProviderOptions Options
     {
-        get => _options;
-        set => _options = value ?? throw new ArgumentNullException(nameof(value));
-    }
+        get;
+        set => field = value ?? throw new ArgumentNullException(nameof(value));
+    } = new();
 
-    public IServiceCollection Services { get; }
+    public IServiceCollection Services { get; } = Guard.AgainstNull(services);
 }

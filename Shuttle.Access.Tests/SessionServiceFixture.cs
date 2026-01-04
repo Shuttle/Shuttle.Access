@@ -1,8 +1,4 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.SqlServer;
@@ -10,7 +6,7 @@ using Shuttle.Access.SqlServer;
 namespace Shuttle.Access.Tests;
 
 [TestFixture]
-public class DataStoreSessionServiceFixture
+public class SessionServiceFixture
 {
     [Test]
     public async Task Should_be_able_check_for_non_existent_session_async()
@@ -22,7 +18,7 @@ public class DataStoreSessionServiceFixture
         var service = new SessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new HashingService(), new Mock<IDbContextFactory<AccessDbContext>>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, repository.Object);
+        }), new HashingService(), new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, repository.Object);
 
         Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
     }
@@ -40,7 +36,7 @@ public class DataStoreSessionServiceFixture
         var service = new SessionService(Options.Create(new AccessOptions
         {
             SessionDuration = TimeSpan.FromHours(1)
-        }), new HashingService(), new Mock<IDbContextFactory<AccessDbContext>>().Object, new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, sessionRepository.Object);
+        }), new HashingService(), new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, sessionRepository.Object);
 
         Assert.That(await service.FindByTokenAsync(sessionToken), Is.Not.Null);
 

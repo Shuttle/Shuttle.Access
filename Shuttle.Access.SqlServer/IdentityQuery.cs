@@ -25,8 +25,10 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
     public async Task<IEnumerable<Models.Permission>> PermissionsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return (await _accessDbContext.Identities.AsNoTracking()
-                .Include(item => item.IdentityRoles)
-                .ThenInclude(item => item.Role)
+                .Include(e => e.IdentityRoles)
+                .ThenInclude(e => e.Role)
+                .ThenInclude(e => e.RolePermissions)
+                .ThenInclude(e => e.Permission)
                 .FirstOrDefaultAsync(item => item.Id == id, cancellationToken))
             .GuardAgainstRecordNotFound(id)
             .IdentityRoles.SelectMany(role => role.Role.RolePermissions.Select(permission => permission.Permission))

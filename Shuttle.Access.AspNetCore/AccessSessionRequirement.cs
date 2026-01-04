@@ -1,5 +1,3 @@
 ﻿namespace Shuttle.Access.AspNetCore;
 
-public class AccessSessionRequirement
-{
-}
+public class AccessSessionRequirement;

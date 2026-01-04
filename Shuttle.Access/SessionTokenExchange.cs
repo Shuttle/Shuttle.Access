@@ -1,17 +1,10 @@
 ﻿namespace Shuttle.Access;
 
-public class SessionTokenExchange
+public class SessionTokenExchange(Guid exchangeToken, Guid sessionToken, DateTimeOffset expiryDate)
 {
-    public SessionTokenExchange(Guid exchangeToken, Guid sessionToken, DateTimeOffset expiryDate)
-    {
-        SessionToken = sessionToken;
-        ExchangeToken = exchangeToken;
-        ExpiryDate = expiryDate;
-    }
-
-    public Guid ExchangeToken { get; }
-    public DateTimeOffset ExpiryDate { get; }
+    public Guid ExchangeToken { get; } = exchangeToken;
+    public DateTimeOffset ExpiryDate { get; } = expiryDate;
 
     public bool HasExpired => DateTimeOffset.UtcNow > ExpiryDate;
-    public Guid SessionToken { get; }
+    public Guid SessionToken { get; } = sessionToken;
 }

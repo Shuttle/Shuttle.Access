@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Shuttle.Access.Server;
+﻿namespace Shuttle.Access.Server;
 
 public class ServerOptions
 {

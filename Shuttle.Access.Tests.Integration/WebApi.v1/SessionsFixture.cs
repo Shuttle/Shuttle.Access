@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 
@@ -20,10 +15,25 @@ public class SessionsFixture
 
         var session = new SqlServer.Models.Session
         {
-            IdentityId = Guid.NewGuid()
+            IdentityId = Guid.NewGuid(),
+            Identity = new()
+            {
+                Name = "identity",
+                Description = "identity-description"
+            },
+            SessionPermissions =
+            [
+                new()
+                {
+                    Permission = new()
+                    {
+                        Name = "permission"
+                    }
+                }
+            ]
         };
 
-        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<SqlServer.Models.Session> { session }.AsEnumerable()));
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<SqlServer.Models.Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 

@@ -5,13 +5,11 @@ namespace Shuttle.Access.AspNetCore;
 
 public class AccessAuthorizationBuilder(IServiceCollection services)
 {
-    private AccessAuthorizationOptions _options = new();
-
     public AccessAuthorizationOptions Options
     {
-        get => _options;
-        set => _options = value ?? throw new ArgumentNullException(nameof(value));
-    }
+        get;
+        set => field = value ?? throw new ArgumentNullException(nameof(value));
+    } = new();
 
     public IServiceCollection Services { get; } = Guard.AgainstNull(services);
 }

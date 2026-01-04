@@ -5,7 +5,7 @@ namespace Shuttle.Access;
 
 public class Role
 {
-    private readonly List<Guid> _permissionIds = new();
+    private readonly List<Guid> _permissionIds = [];
     public string Name { get; private set; } = string.Empty;
 
     public PermissionAdded AddPermission(Guid permissionId)

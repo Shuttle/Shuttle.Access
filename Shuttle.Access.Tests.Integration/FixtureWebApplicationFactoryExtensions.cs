@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net.Http;
-using Shuttle.Access.RestClient;
+﻿using Shuttle.Access.RestClient;
 
 namespace Shuttle.Access.Tests.Integration;
 

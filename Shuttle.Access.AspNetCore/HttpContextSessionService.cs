@@ -3,16 +3,11 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class HttpContextSessionService : IHttpContextSessionService
+public class HttpContextSessionService(ISessionService sessionService, IHttpContextAccessor httpContextAccessor)
+    : IHttpContextSessionService
 {
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly ISessionService _sessionService;
-
-    public HttpContextSessionService(ISessionService sessionService, IHttpContextAccessor httpContextAccessor)
-    {
-        _sessionService = Guard.AgainstNull(sessionService);
-        _httpContextAccessor = Guard.AgainstNull(httpContextAccessor);
-    }
+    private readonly IHttpContextAccessor _httpContextAccessor = Guard.AgainstNull(httpContextAccessor);
+    private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
     public async ValueTask<bool> HasPermissionAsync(string permission, CancellationToken cancellationToken = default)
     {

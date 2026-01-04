@@ -11,16 +11,10 @@ public class RequirePermissionAttribute : TypeFilterAttribute
         Arguments = [permission];
     }
 
-    private class RequiresPermission : IAuthorizationFilter
+    private class RequiresPermission(ISessionService sessionService, string permission) : IAuthorizationFilter
     {
-        private readonly string _permission;
-        private readonly ISessionService _sessionService;
-
-        public RequiresPermission(ISessionService sessionService, string permission)
-        {
-            _sessionService = Guard.AgainstNull(sessionService);
-            _permission = Guard.AgainstEmpty(permission);
-        }
+        private readonly string _permission = Guard.AgainstEmpty(permission);
+        private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {

@@ -2,21 +2,16 @@
 
 namespace Shuttle.Access.Application;
 
-public class RegisterSession
+public class RegisterSession(string identityName)
 {
     private Guid? _authenticationToken;
     private string _password = string.Empty;
-
-    public RegisterSession(string identityName)
-    {
-        IdentityName = Guard.AgainstEmpty(identityName);
-    }
 
     public bool HasKnownApplicationOptions => KnownApplicationOptions != null;
 
     public bool HasSession => Session != null && SessionToken.HasValue;
 
-    public string IdentityName { get; }
+    public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
     public KnownApplicationOptions? KnownApplicationOptions { get; private set; }
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;

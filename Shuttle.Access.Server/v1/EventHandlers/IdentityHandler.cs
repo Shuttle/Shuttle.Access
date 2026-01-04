@@ -1,6 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Core.Contract;

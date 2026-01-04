@@ -34,237 +34,246 @@ public static class RoleEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPatch("/v{version:apiVersion}/roles/{id}/name", async (Guid id, [FromBody] SetRoleName message, [FromServices] IServiceBus serviceBus) =>
-            {
-                try
-                {
-                    message.Id = id;
-                    message.ApplyInvariants();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
-                }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
-            })
+        app.MapPatch("/v{version:apiVersion}/roles/{id}/name", PatchName)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPatch("/v{version:apiVersion}/roles/{id}/permissions", async (Guid id, [FromBody] SetRolePermission message, [FromServices] IServiceBus serviceBus) =>
-            {
-                try
-                {
-                    message.RoleId = id;
-                    message.ApplyInvariants();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
-                }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
-            })
+        app.MapPatch("/v{version:apiVersion}/roles/{id}/permissions", PatchPermissions)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/{id}/permissions/availability", async (Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IRoleQuery roleQuery) =>
-            {
-                try
-                {
-                    identifiers.ApplyInvariants();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
-                }
-
-                var permissions = (await roleQuery.PermissionsAsync(new SqlServer.Models.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
-
-                var result = from permissionId in identifiers.Values
-                    select new IdentifierAvailability<Guid>
-                    {
-                        Id = permissionId,
-                        Active = permissions.Any(item => item.Id.Equals(permissionId))
-                    };
-
-                return Results.Ok(result);
-            })
+        app.MapPost("/v{version:apiVersion}/roles/{id}/permissions/availability", PostPermissionsAvailability)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/search", async ([FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification) =>
-            {
-                var search = new SqlServer.Models.Role.Specification();
-
-                if (!string.IsNullOrWhiteSpace(specification.NameMatch))
-                {
-                    search.WithNameMatch(specification.NameMatch);
-                }
-
-                if (specification.ShouldIncludePermissions)
-                {
-                    search.IncludePermissions();
-                }
-
-                return Results.Ok((await roleQuery.SearchAsync(search)).Select(Map).ToList());
-            })
+        app.MapPost("/v{version:apiVersion}/roles/search", PostSearch)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.View);
 
-        app.MapGet("/v{version:apiVersion}/roles/{value}", async (string value, [FromServices] IRoleQuery roleQuery) =>
-            {
-                var specification = new SqlServer.Models.Role.Specification();
-
-                if (Guid.TryParse(value, out var id))
-                {
-                    specification.AddRoleId(id);
-                }
-                else
-                {
-                    specification.AddName(value);
-                }
-
-                var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
-
-                return role != null
-                    ? Results.Ok(Map(role))
-                    : Results.BadRequest();
-            })
+        app.MapGet("/v{version:apiVersion}/roles/{value}", Get)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.View);
 
-        app.MapDelete("/v{version:apiVersion}/roles/{id}", async (Guid id, [FromServices] IServiceBus serviceBus) =>
-            {
-                await serviceBus.SendAsync(new RemoveRole
-                {
-                    Id = id
-                });
-
-                return Results.Accepted();
-            })
+        app.MapDelete("/v{version:apiVersion}/roles/{id}", Delete)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Remove);
 
-        app.MapPost("/v{version:apiVersion}/roles", async ([FromBody] RegisterRole message, [FromServices] IServiceBus serviceBus) =>
-            {
-                try
-                {
-                    message.ApplyInvariants();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(ex.Message);
-                }
-
-                await serviceBus.SendAsync(message);
-
-                return Results.Accepted();
-            })
+        app.MapPost("/v{version:apiVersion}/roles", Post)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/file", async (HttpContext httpContext, IServiceBus serviceBus) =>
-            {
-                var form = httpContext.Request.Form;
-
-                if (form.Files.Count == 0)
-                {
-                    return Results.BadRequest();
-                }
-
-                var messages = JsonSerializer.Deserialize<List<RegisterRole>>(form.Files[0].OpenReadStream());
-
-                if (messages == null || !messages.Any())
-                {
-                    return Results.BadRequest();
-                }
-
-                foreach (var message in messages)
-                {
-                    foreach (var registerPermission in message.Permissions)
-                    {
-                        await serviceBus.SendAsync(registerPermission);
-                    }
-
-                    await serviceBus.SendAsync(message);
-                }
-
-                return Results.Accepted();
-            })
+        app.MapPost("/v{version:apiVersion}/roles/file", PostFile)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
-        app.MapPost("/v{version:apiVersion}/roles/bulk-upload", async ([FromServices] IServiceBus serviceBus, List<RegisterRole> messages) =>
-            {
-                if (!messages.Any())
-                {
-                    return Results.BadRequest();
-                }
 
-                foreach (var message in messages)
-                {
-                    foreach (var registerPermission in message.Permissions)
-                    {
-                        await serviceBus.SendAsync(registerPermission);
-                    }
-
-                    await serviceBus.SendAsync(message);
-                }
-
-                return Results.Accepted();
-            })
+        app.MapPost("/v{version:apiVersion}/roles/bulk-upload", PostBulkUpload)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/bulk-download", async (IRoleQuery roleQuery, List<Guid> ids) =>
-            {
-                if (!ids.Any())
-                {
-                    return Results.BadRequest();
-                }
-
-                var roles = (await roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().IncludePermissions().AddRoleIds(ids))).ToList();
-
-                var result = roles.Select(item => new
-                {
-                    item.Name,
-                    Permissions = item.RolePermissions.Select(permission => new RegisterPermission
-                    {
-                        Name = permission.Permission.Name,
-                        Description = permission.Permission.Description,
-                        Status = permission.Permission.Status
-                    }).ToList()
-                });
-
-                return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(result)), "application/json", "roles.json");
-            })
+        app.MapPost("/v{version:apiVersion}/roles/bulk-download", PostBulkDownload)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
         return app;
+    }
+
+    private static async Task<IResult> PostBulkDownload(IRoleQuery roleQuery, List<Guid> ids)
+    {
+        if (!ids.Any())
+        {
+            return Results.BadRequest();
+        }
+
+        var roles = (await roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().IncludePermissions().AddRoleIds(ids))).ToList();
+
+        var result = roles.Select(item => new { item.Name, Permissions = item.RolePermissions.Select(permission => new RegisterPermission { Name = permission.Permission.Name, Description = permission.Permission.Description, Status = permission.Permission.Status }).ToList() });
+
+        return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(result)), "application/json", "roles.json");
+    }
+
+    private static async Task<IResult> PostBulkUpload([FromServices] IServiceBus serviceBus, List<RegisterRole> messages)
+    {
+        if (!messages.Any())
+        {
+            return Results.BadRequest();
+        }
+
+        foreach (var message in messages)
+        {
+            foreach (var registerPermission in message.Permissions)
+            {
+                await serviceBus.SendAsync(registerPermission);
+            }
+
+            await serviceBus.SendAsync(message);
+        }
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PostFile(HttpContext httpContext, IServiceBus serviceBus)
+    {
+        var form = httpContext.Request.Form;
+
+        if (form.Files.Count == 0)
+        {
+            return Results.BadRequest();
+        }
+
+        var messages = JsonSerializer.Deserialize<List<RegisterRole>>(form.Files[0].OpenReadStream());
+
+        if (messages == null || !messages.Any())
+        {
+            return Results.BadRequest();
+        }
+
+        foreach (var message in messages)
+        {
+            foreach (var registerPermission in message.Permissions)
+            {
+                await serviceBus.SendAsync(registerPermission);
+            }
+
+            await serviceBus.SendAsync(message);
+        }
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> Post([FromBody] RegisterRole message, [FromServices] IServiceBus serviceBus)
+    {
+        try
+        {
+            message.ApplyInvariants();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        await serviceBus.SendAsync(message);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> Delete(Guid id, [FromServices] IServiceBus serviceBus)
+    {
+        await serviceBus.SendAsync(new RemoveRole { Id = id });
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> Get(string value, [FromServices] IRoleQuery roleQuery)
+    {
+        var specification = new SqlServer.Models.Role.Specification();
+
+        if (Guid.TryParse(value, out var id))
+        {
+            specification.AddRoleId(id);
+        }
+        else
+        {
+            specification.AddName(value);
+        }
+
+        var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
+
+        return role != null
+            ? Results.Ok(Map(role))
+            : Results.BadRequest();
+    }
+
+    private static async Task<IResult> PostSearch([FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification)
+    {
+        var search = new SqlServer.Models.Role.Specification();
+
+        if (!string.IsNullOrWhiteSpace(specification.NameMatch))
+        {
+            search.WithNameMatch(specification.NameMatch);
+        }
+
+        if (specification.ShouldIncludePermissions)
+        {
+            search.IncludePermissions();
+        }
+
+        return Results.Ok((await roleQuery.SearchAsync(search)).Select(Map).ToList());
+    }
+
+    private static async Task<IResult> PostPermissionsAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IRoleQuery roleQuery)
+        {
+            try
+            {
+                identifiers.ApplyInvariants();
+            }
+            catch (Exception ex)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+
+            var permissions = (await roleQuery.PermissionsAsync(new SqlServer.Models.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
+
+            var result = from permissionId in identifiers.Values
+                select new IdentifierAvailability<Guid>
+                {
+                    Id = permissionId,
+                    Active = permissions.Any(item => item.Id.Equals(permissionId))
+                };
+
+            return Results.Ok(result);
+        }
+
+    private static async Task<IResult> PatchPermissions(Guid id, [FromBody] SetRolePermission message, [FromServices] IServiceBus serviceBus)
+    {
+        try
+        {
+            message.RoleId = id;
+            message.ApplyInvariants();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        await serviceBus.SendAsync(message);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetRoleName message, [FromServices] IServiceBus serviceBus)
+    {
+        try
+        {
+            message.Id = id;
+            message.ApplyInvariants();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        await serviceBus.SendAsync(message);
+
+        return Results.Accepted();
     }
 }

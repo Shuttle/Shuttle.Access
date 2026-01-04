@@ -1,7 +1,4 @@
-﻿using System;
-using System.Transactions;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using System.Transactions;
 using NUnit.Framework;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.TransactionScope;
@@ -25,7 +22,7 @@ public class DataAccessFixture
                 accessBuilder
                     .UseSqlServer(builder =>
                     {
-                        builder.Options.ConnectionString = configuration.GetConnectionString("Access") ?? "Missing connection string 'Access'.";
+                        builder.Options.ConnectionString = configuration.GetConnectionString("Access") ?? throw new ApplicationException("Missing connection string 'Access'.");
                     });
             })
             .AddTransactionScope(builder =>

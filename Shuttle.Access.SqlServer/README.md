@@ -1,6 +1,4 @@
-﻿# Shuttle.Access.Data
-
-Currently this project is used only to provide database migrations.
+﻿# Shuttle.Access.SqlServer
 
 ## Development
 

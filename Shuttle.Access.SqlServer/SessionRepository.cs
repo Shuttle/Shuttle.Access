@@ -40,6 +40,9 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             model.IdentityId = session.IdentityId;
             model.Token = session.Token;
             model.ExpiryDate = session.ExpiryDate;
+
+            model.SessionPermissions.Clear();
+
             model.SessionPermissions = session.Permissions.Select(p => new SessionPermission
             {
                 IdentityId = session.IdentityId,

@@ -3,20 +3,15 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
 
-public class RequestIdentityRegistration
+public class RequestIdentityRegistration(RegisterIdentity registerIdentityMessage)
 {
-    public RequestIdentityRegistration(RegisterIdentity registerIdentityMessage)
-    {
-        RegisterIdentityMessage = Guard.AgainstNull(registerIdentityMessage);
-    }
-
     public Guid? IdentityId { get; private set; }
 
     public bool IsActivationAllowed { get; private set; }
     public bool IsAllowed { get; private set; }
 
     public string RegisteredBy { get; private set; } = string.Empty;
-    public RegisterIdentity RegisterIdentityMessage { get; }
+    public RegisterIdentity RegisterIdentityMessage { get; } = Guard.AgainstNull(registerIdentityMessage);
 
     public RequestIdentityRegistration Allowed(string registeredBy, bool activationAllowed)
     {

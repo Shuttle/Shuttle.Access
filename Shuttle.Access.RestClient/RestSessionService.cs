@@ -14,17 +14,17 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
     public async Task<Messages.v1.Session?> FindAsync(CancellationToken cancellationToken = default)
     {
-        var sessionResponse = await _accessClient.Sessions.GetSelfAsync();
+        var sessionResponse = await _accessClient.Sessions.GetSelfAsync(cancellationToken);
 
         var result = sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? AddSession(null, sessionResponse.Content) : null;
 
         if (result == null)
         {
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"));
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"), cancellationToken);
         }
         else
         {
-            await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+            await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
         }
 
         return result;
@@ -40,7 +40,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
             if (session != null)
             {
-                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session));
+                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
 
                 return session;
             }
@@ -54,7 +54,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             {
                 IdentityName = identityName,
                 ShouldIncludePermissions = true
-            });
+            }, cancellationToken);
 
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
@@ -64,7 +64,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                     {
                         var result = AddSession(null, sessionResponse.Content.Single());
 
-                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
                         return result;
                     }
@@ -79,7 +79,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 var registrationResponse = await _accessClient.Sessions.PostAsync(new RegisterSession
                 {
                     IdentityName = identityName
-                });
+                }, cancellationToken);
 
                 var content = registrationResponse.Content;
 
@@ -87,7 +87,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                     content == null ||
                     content.RegistrationRequested)
                 {
-                    await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identityName));
+                    await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identityName), cancellationToken);
 
                     return null;
                 }
@@ -101,12 +101,12 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                     Permissions = content.Permissions.ToList()
                 };
 
-                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
                 return Add(content.Token, result);
             }
 
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identityName));
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identityName), cancellationToken);
 
             return null;
         }
@@ -180,7 +180,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
             if (session != null)
             {
-                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session));
+                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
 
                 return session;
             }
@@ -189,7 +189,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             {
                 Token = token,
                 ShouldIncludePermissions = true
-            });
+            }, cancellationToken);
 
             var tokenValue = token.ToString();
 
@@ -201,7 +201,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                     {
                         var result = AddSession(token, sessionResponse.Content.Single());
 
-                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
                         return result;
                     }
@@ -212,7 +212,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 }
             }
 
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Token", tokenValue));
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Token", tokenValue), cancellationToken);
 
             return null;
         }
@@ -232,7 +232,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
             if (session != null)
             {
-                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session));
+                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
 
                 return session;
             }
@@ -241,7 +241,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             {
                 IdentityId = identityId,
                 ShouldIncludePermissions = true
-            });
+            }, cancellationToken);
 
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
@@ -251,7 +251,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                     {
                         var result = AddSession(null, sessionResponse.Content.Single());
 
-                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result));
+                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
                         return result;
                     }
@@ -262,7 +262,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 }
             }
 
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityId", identityId.ToString()));
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityId", identityId.ToString()), cancellationToken);
 
             return null;
         }

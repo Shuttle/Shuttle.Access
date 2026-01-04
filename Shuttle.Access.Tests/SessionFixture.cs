@@ -1,5 +1,4 @@
-﻿using System;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access.Tests;

@@ -1,8 +1,3 @@
 ﻿namespace Shuttle.Access.RestClient;
 
-public class ApiException : Exception
-{
-    public ApiException(string message) : base(message)
-    {
-    }
-}
+public class ApiException(string message) : Exception(message);

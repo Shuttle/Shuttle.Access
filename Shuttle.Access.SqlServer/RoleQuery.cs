@@ -14,7 +14,9 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
 
     public async Task<IEnumerable<Models.Permission>> PermissionsAsync(Models.Role.Specification specification, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        var model = await GetQueryable(specification).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+
+        return model == null ? [] : model.RolePermissions.Select(e => e.Permission).ToList();
     }
 
     public async Task<IEnumerable<Models.Role>> SearchAsync(Models.Role.Specification specification, CancellationToken cancellationToken = default)

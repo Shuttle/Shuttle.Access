@@ -14,13 +14,13 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.1" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.15.0" />
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.15.0" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.11.10" />
     <PackageReference Include="Shuttle.Access.Messages" Version="9.0.0" />
     <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.0" />
     <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.0" />
     <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.0" />
     <PackageReference Include="Shuttle.OAuth" Version="20.3.1" />
     <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />

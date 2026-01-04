@@ -1,15 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
 
-public class SessionService(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IDbContextFactory<AccessDbContext> dbContextFactory, IAuthorizationService authorizationService, IIdentityQuery identityQuery, ISessionRepository sessionRepository)
+public class SessionService(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IAuthorizationService authorizationService, IIdentityQuery identityQuery, ISessionRepository sessionRepository)
     : SessionCache, ISessionService
 {
     private readonly AccessOptions _accessOptions = Guard.AgainstNull(accessOptions).Value;
     private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
-    private readonly IDbContextFactory<AccessDbContext> _dbContextFactory = Guard.AgainstNull(dbContextFactory);
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly SemaphoreSlim _lock = new(1, 1);
@@ -82,8 +80,6 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
                 return session;
             }
 
-            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-
             return Add(token, await _sessionRepository.FindAsync(_hashingService.Sha256(token.ToString("D")), cancellationToken));
         }
         finally
@@ -104,8 +100,6 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
             {
                 return session;
             }
-
-            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
             var aggregate = await _sessionRepository.FindAsync(identityId, cancellationToken);
 
@@ -144,8 +138,6 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
             {
                 return session;
             }
-
-            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
             var aggregate = await _sessionRepository.FindAsync(identityName, cancellationToken);
 
