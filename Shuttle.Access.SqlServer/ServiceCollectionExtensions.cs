@@ -32,6 +32,7 @@ public static class ServiceCollectionExtensions
                 dbContextFactoryBuilder.UseSqlServer(accessDataBuilder.Options.ConnectionString, sqlServerOptions =>
                 {
                     sqlServerOptions.CommandTimeout(300);
+                    sqlServerOptions.MigrationsHistoryTable("__EFMigrationsHistory", "access");
                 });
             });
 

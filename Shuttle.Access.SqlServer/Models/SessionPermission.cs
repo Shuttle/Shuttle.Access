@@ -4,19 +4,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Shuttle.Access.SqlServer.Models;
 
-[PrimaryKey(nameof(IdentityId), nameof(PermissionId))]
+[PrimaryKey(nameof(SessionId), nameof(PermissionId))]
 public class SessionPermission
 {
     [Required]
-    public Guid IdentityId { get; set; }
-
-
-    [ForeignKey(nameof(PermissionId))]
-    public Permission Permission { get; set; } = null!;
-
+    public Guid SessionId { get; set; }
     [Required]
     public Guid PermissionId { get; set; }
 
-    [ForeignKey(nameof(IdentityId))]
+    public Permission Permission { get; set; } = null!;
     public Session Session { get; set; } = null!;
 }

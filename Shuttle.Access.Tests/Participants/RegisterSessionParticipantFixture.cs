@@ -75,7 +75,7 @@ public class RegisterSessionParticipantFixture
         var sessionQuery = new Mock<ISessionQuery>();
 
         var now = DateTimeOffset.UtcNow;
-        var session = new Session(sessionTokenHash, Guid.NewGuid(), IdentityName, now, now.AddMinutes(1))
+        var session = new Session(Guid.NewGuid(), sessionTokenHash, Guid.NewGuid(), IdentityName, now, now.AddMinutes(1))
             .AddPermission(new(Guid.NewGuid(), AccessPermissions.Sessions.Register));
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
@@ -110,7 +110,7 @@ public class RegisterSessionParticipantFixture
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
 
-        sessionRepository.Setup(m => m.FindAsync(sessionTokenHash, CancellationToken.None)).Returns(Task.FromResult(new Session(sessionTokenHash, Guid.NewGuid(), IdentityName, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(1)))!);
+        sessionRepository.Setup(m => m.FindAsync(sessionTokenHash, CancellationToken.None)).Returns(Task.FromResult(new Session(Guid.NewGuid(), sessionTokenHash, Guid.NewGuid(), IdentityName, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(1)))!);
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, hashingService, sessionRepository.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 
@@ -164,7 +164,7 @@ public class RegisterSessionParticipantFixture
 
         var now = DateTimeOffset.UtcNow;
         var sessionToken = Guid.NewGuid();
-        var session = new Session(sessionToken.ToByteArray(), Guid.NewGuid(), IdentityName, now, now.AddMinutes(-5));
+        var session = new Session(Guid.NewGuid(), sessionToken.ToByteArray(), Guid.NewGuid(), IdentityName, now, now.AddMinutes(-5));
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
 

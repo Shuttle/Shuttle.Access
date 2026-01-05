@@ -23,6 +23,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         {
             _accessDbContext.Sessions.Add(new()
             {
+                Id = session.Id,
                 IdentityName = session.IdentityName,
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
@@ -30,14 +31,13 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
                 Token = session.Token,
                 SessionPermissions = session.Permissions.Select(p => new SessionPermission
                 {
-                    IdentityId = session.IdentityId,
+                    SessionId = session.Id,
                     PermissionId = p.Id
                 }).ToList()
             });
         }
         else
         {
-            model.IdentityId = session.IdentityId;
             model.Token = session.Token;
             model.ExpiryDate = session.ExpiryDate;
 
@@ -45,7 +45,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
 
             model.SessionPermissions = session.Permissions.Select(p => new SessionPermission
             {
-                IdentityId = session.IdentityId,
+                SessionId = session.Id,
                 PermissionId = p.Id
             }).ToList();
         }
@@ -98,7 +98,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             return null;
         }
 
-        var result = new Session(model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
+        var result = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
 
         foreach (var sessionPermission in model.SessionPermissions)
         {

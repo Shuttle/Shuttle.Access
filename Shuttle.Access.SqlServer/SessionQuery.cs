@@ -20,6 +20,9 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
     public async Task<IEnumerable<Models.Session>> SearchAsync(Models.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification)
+            .Include(e => e.Identity)
+            .Include(e => e.SessionPermissions)
+            .ThenInclude(e => e.Permission)
             .OrderBy(e => e.IdentityName)
             .Distinct()
             .ToListAsync(cancellationToken);

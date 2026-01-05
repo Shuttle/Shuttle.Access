@@ -29,7 +29,7 @@ public class SessionServiceFixture
         var sessionRepository = new Mock<ISessionRepository>();
 
         var sessionToken = Guid.NewGuid();
-        Session session = new(sessionToken.ToByteArray(), sessionToken, "test-user", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
+        Session session = new(Guid.NewGuid(), sessionToken.ToByteArray(), sessionToken, "test-user", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
 
         sessionRepository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
 

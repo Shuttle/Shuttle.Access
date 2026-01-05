@@ -155,6 +155,9 @@ public class Program
                         builder.Options.ConnectionString = accessConnectionString;
                         builder.Options.Schema = "access";
                     });
+
+                recallBuilder.SuppressEventProcessorHostedService();
+                recallBuilder.SuppressPrimitiveEventSequencerHostedService();
             })
             .AddMediator(builder =>
             {

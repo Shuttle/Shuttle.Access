@@ -108,7 +108,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             var now = DateTimeOffset.UtcNow;
             var token = Guid.NewGuid();
 
-            session = new(_hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(message.IdentityName, cancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
+            session = new(Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(message.IdentityName, cancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
 
             await SaveAsync(token);
 

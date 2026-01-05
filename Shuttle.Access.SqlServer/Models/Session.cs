@@ -1,24 +1,26 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer.Models;
 
 [Index(nameof(Token), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(Token)}")]
+[Index(nameof(IdentityId), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(IdentityId)}")]
 [Index(nameof(IdentityName), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(IdentityName)}")]
 public class Session
 {
+    [Key]
+    public Guid Id { get; set; }
+    
+
     [Required]
     public DateTimeOffset DateRegistered { get; set; }
 
     [Required]
     public DateTimeOffset ExpiryDate { get; set; }
 
-    [ForeignKey(nameof(IdentityId))]
     public Identity Identity { get; set; } = null!;
 
-    [Key]
     public Guid IdentityId { get; set; }
 
     [Required]

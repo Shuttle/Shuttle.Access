@@ -112,7 +112,7 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
                     var now = DateTimeOffset.UtcNow;
                     var token = Guid.NewGuid();
 
-                    aggregate = new(_hashingService.Sha256(token.ToString("D")), identityId, identity.Name, now, now.Add(_accessOptions.SessionDuration));
+                    aggregate = new(Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), identityId, identity.Name, now, now.Add(_accessOptions.SessionDuration));
 
                     await SaveAsync(token, aggregate, cancellationToken);
                 }
@@ -146,7 +146,7 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
                 var now = DateTimeOffset.UtcNow;
                 var token = Guid.NewGuid();
 
-                aggregate = new(_hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
+                aggregate = new(Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
 
                 await SaveAsync(token, aggregate, cancellationToken);
             }

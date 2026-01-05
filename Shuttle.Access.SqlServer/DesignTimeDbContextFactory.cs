@@ -23,7 +23,11 @@ public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<AccessDbCo
 
         var optionsBuilder = new DbContextOptionsBuilder<AccessDbContext>();
 
-        optionsBuilder.UseSqlServer(configuration.GetConnectionString("Access"));
+        optionsBuilder.UseSqlServer(configuration.GetConnectionString("Access"), sqlServerOptions =>
+        {
+            sqlServerOptions.CommandTimeout(300);
+            sqlServerOptions.MigrationsHistoryTable("__EFMigrationsHistory", "access");
+        });
 
         return new(optionsBuilder.Options);
     }

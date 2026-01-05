@@ -3,7 +3,7 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
 
-public class Session(byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
+public class Session(Guid id, byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
 {
     private readonly List<Permission> _permissions = [];
 
@@ -13,6 +13,7 @@ public class Session(byte[] token, Guid identityId, string identityName, DateTim
 
     public bool HasExpired => DateTimeOffset.UtcNow >= ExpiryDate;
     public bool HasPermissions => _permissions.Any();
+    public Guid Id { get; } = Guard.AgainstEmpty(id);
     public Guid IdentityId { get; } = Guard.AgainstEmpty(identityId);
     public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
