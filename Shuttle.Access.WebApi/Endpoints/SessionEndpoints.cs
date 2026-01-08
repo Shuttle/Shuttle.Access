@@ -265,7 +265,7 @@ public static class SessionEndpoints
                     await RegisterSession(databaseContextFactory, mediator, registerSession);
 
                     return registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession
-                        ? Results.BadRequest()
+                        ? Results.NotFound()
                         : Results.Ok(new Messages.v1.Session
                         {
                             DateRegistered = registerSession.Session!.DateRegistered,

@@ -27,6 +27,11 @@ public class KeepAliveObserver : IPipelineObserver<OnAfterGetMessage>
 
     public async Task ExecuteAsync(IPipelineContext<OnAfterGetMessage> pipelineContext)
     {
+        if (_keepAliveSent)
+        {
+            return;
+        }
+
         await _lock.WaitAsync();
 
         try
