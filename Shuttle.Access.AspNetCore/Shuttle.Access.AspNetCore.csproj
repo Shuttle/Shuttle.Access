@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.7.0" />
-    <PackageReference Include="Shuttle.Access" Version="8.1.5" />
+    <PackageReference Include="Shuttle.Access" Version="8.1.6" />
     <PackageReference Include="Shuttle.Core.Contract" Version="20.0.1" />
     <PackageReference Include="Shuttle.Extensions.Options" Version="1.0.0" />
   </ItemGroup>
@@ -34,7 +34,7 @@
 
   <PropertyGroup>
     <Description>Authorization middleware for web API endpoints using Shuttle.Access.</Description>
-    <Version>8.1.6</Version>
+    <Version>8.1.7</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>
