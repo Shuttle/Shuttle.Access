@@ -51,7 +51,11 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
 
     private IQueryable<Models.Identity> GetQueryable(Models.Identity.Specification specification)
     {
-        var queryable = _accessDbContext.Identities.AsQueryable();
+        var queryable = _accessDbContext.Identities
+            .Include(item => item.IdentityRoles)
+            .ThenInclude(item => item.Role)
+            .AsNoTracking()
+            .AsQueryable();
 
         if (!string.IsNullOrEmpty(specification.NameMatch))
         {

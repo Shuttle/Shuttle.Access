@@ -14,7 +14,8 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
 
     public async Task<IEnumerable<Models.Permission>> PermissionsAsync(Models.Role.Specification specification, CancellationToken cancellationToken = default)
     {
-        var model = await GetQueryable(specification).FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        var model = await GetQueryable(specification)
+            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
         return model == null ? [] : model.RolePermissions.Select(e => e.Permission).ToList();
     }
@@ -29,7 +30,11 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
 
     private IQueryable<Models.Role> GetQueryable(Models.Role.Specification specification)
     {
-        var queryable = _accessDbContext.Roles.AsQueryable();
+        var queryable = _accessDbContext.Roles
+            .Include(item => item.RolePermissions)
+            .ThenInclude(item => item.Permission)
+            .AsNoTracking()
+            .AsQueryable();
 
         if (!string.IsNullOrEmpty(specification.NameMatch))
         {

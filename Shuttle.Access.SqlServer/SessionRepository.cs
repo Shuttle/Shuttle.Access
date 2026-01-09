@@ -17,7 +17,9 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
     {
         Guard.AgainstNull(session);
 
-        var model = await _accessDbContext.Sessions.SingleOrDefaultAsync(e => e.IdentityName == session.IdentityName, cancellationToken: cancellationToken);
+        var model = await _accessDbContext.Sessions
+            .Include(item => item.SessionPermissions)
+            .SingleOrDefaultAsync(e => e.IdentityName == session.IdentityName, cancellationToken: cancellationToken);
 
         if (model == null)
         {
@@ -41,7 +43,11 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             model.Token = session.Token;
             model.ExpiryDate = session.ExpiryDate;
 
+            _accessDbContext.SessionPermissions.RemoveRange(model.SessionPermissions);
+
             model.SessionPermissions.Clear();
+
+            await _accessDbContext.SaveChangesAsync(cancellationToken);
 
             model.SessionPermissions = session.Permissions.Select(p => new SessionPermission
             {
@@ -74,7 +80,8 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         var queryable = _accessDbContext.Sessions
             .Include(e => e.SessionPermissions)
             .ThenInclude(e => e.Permission)
-            .AsNoTracking().AsQueryable();
+            .AsNoTracking()
+            .AsQueryable();
 
         if (specification.Token != null)
         {

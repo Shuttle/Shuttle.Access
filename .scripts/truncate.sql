@@ -1,9 +1,9 @@
-delete from [recall].[PrimitiveEvent]
-delete from [recall].[EventType]
-delete from [recall].[IdKey]
+delete from [access].[PrimitiveEvent]
+delete from [access].[EventType]
+delete from [access].[IdKey]
 
-delete from [recall].[Projection]
-delete from [recall].[ProjectionJournal]
+delete from [access].[Projection]
+delete from [access].[ProjectionJournal]
 
 delete from [access].[Session]
 delete from [access].[SessionPermission]

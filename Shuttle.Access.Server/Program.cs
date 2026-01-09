@@ -95,11 +95,15 @@ internal class Program
                         recallBuilder
                             .UseSqlServerEventStorage(builder =>
                             {
+                                configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(builder.Options);
+
                                 builder.Options.ConnectionString = accessConnectionString;
                                 builder.Options.Schema = "access";
                             })
                             .UseSqlServerEventProcessing(builder =>
                             {
+                                configuration.GetSection(SqlServerEventProcessingOptions.SectionName).Bind(builder.Options);
+
                                 builder.Options.ConnectionString = accessConnectionString;
                                 builder.Options.Schema = "access";
                             });

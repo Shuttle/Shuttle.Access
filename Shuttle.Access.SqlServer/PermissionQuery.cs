@@ -27,7 +27,7 @@ public class PermissionQuery(AccessDbContext accessDbContext) : IPermissionQuery
 
     private IQueryable<Models.Permission> GetQueryable(Models.Permission.Specification specification)
     {
-        var queryable = _accessDbContext.Permissions.AsQueryable();
+        var queryable = _accessDbContext.Permissions.AsNoTracking().AsQueryable();
 
         if (specification.Names.Any())
         {
