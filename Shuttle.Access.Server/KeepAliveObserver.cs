@@ -18,6 +18,11 @@ public class KeepAliveObserver(ILogger<KeepAliveObserver> logger, IOptions<Serve
 
     public async Task ExecuteAsync(IPipelineContext<MessageReceived> pipelineContext, CancellationToken cancellationToken = default)
     {
+        if (_keepAliveSent)
+        {
+            return;
+        }
+
         await _lock.WaitAsync(cancellationToken);
 
         try

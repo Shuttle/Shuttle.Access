@@ -7,13 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shuttle.Access" Version="9.0.0" />
-    <PackageReference Include="Shuttle.Access.SqlServer" Version="9.0.0" />
-    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.0" />
-    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.0" />
-    <PackageReference Include="Shuttle.Hopper" Version="21.0.0" />
-    <PackageReference Include="Shuttle.Recall" Version="21.0.0" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Access" Version="9.0.0-alpha" />
+    <PackageReference Include="Shuttle.Access.SqlServer" Version="9.0.0-alpha" />
+    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Hopper" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Recall" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.0-alpha" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +33,7 @@
 
   <PropertyGroup>
     <Description>Application concern implementations such as Shuttle.Core.Mediator participants.</Description>
-    <Version>9.0.0</Version>
+    <Version>9.0.0-alpha</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

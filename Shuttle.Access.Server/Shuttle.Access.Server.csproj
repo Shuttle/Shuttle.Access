@@ -12,16 +12,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
     <PackageReference Include="Shuttle.Core.DependencyInjection" Version="20.0.0" />
-    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.0-alpha" />
     <PackageReference Include="Shuttle.Core.Mediator.OpenTelemetry" Version="14.0.0" />
-    <PackageReference Include="Shuttle.Core.Pipelines" Version="21.0.0" />
-    <PackageReference Include="Shuttle.Hopper" Version="21.0.0" />
-    <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.0" />
-    <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Core.Pipelines" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Hopper" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.0-alpha" />
     <PackageReference Include="Shuttle.Recall.Logging" Version="20.0.0" />
     <PackageReference Include="Shuttle.Recall.OpenTelemetry" Version="18.0.0" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.0" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.0" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.0-alpha" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
