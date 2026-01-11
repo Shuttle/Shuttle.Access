@@ -2,7 +2,7 @@
 
 namespace Shuttle.Access.SqlServer;
 
-public class AccessDataOptionsValidator : IValidateOptions<AccessSqlServerOptions>
+public class AccessSqlServerOptionsValidator : IValidateOptions<AccessSqlServerOptions>
 {
     public ValidateOptionsResult Validate(string? name, AccessSqlServerOptions options)
     {

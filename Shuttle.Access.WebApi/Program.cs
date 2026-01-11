@@ -1,19 +1,12 @@
-using System;
 using System.Data.Common;
-using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using Asp.Versioning;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting; // Added for environment checks
-using Scalar.AspNetCore; // Required NuGet: Scalar.AspNetCore
+using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.SqlServer;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
 using Shuttle.Hopper.AzureStorageQueues;
@@ -77,7 +70,8 @@ public class Program
                 options.SubstituteApiVersionInUrl = true;
             });
 
-        webApplicationBuilder.Services.AddCors(options =>
+        webApplicationBuilder.Services
+            .AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
             {
@@ -86,22 +80,16 @@ public class Program
                     .AllowAnyMethod()
                     .AllowAnyHeader();
             });
-        });
-
-        // --- SCALAR / OPENAPI CONFIGURATION START ---
-        webApplicationBuilder.Services.AddEndpointsApiExplorer();
-
-        // .NET 10 Native OpenAPI Generation
-        webApplicationBuilder.Services.AddOpenApi(options =>
+        })
+            .AddEndpointsApiExplorer()
+            .AddOpenApi(options =>
         {
-            // Replaces SwaggerGen CustomSchemaIds
-            options.AddSchemaTransformer((schema, context, cancellationToken) =>
+            options.AddSchemaTransformer((schema, _, _) =>
             {
                 schema.Title = schema.Title?.Replace("+", "_");
                 return Task.CompletedTask;
             });
         });
-        // --- SCALAR / OPENAPI CONFIGURATION END ---
 
         webApplicationBuilder.Services
             .AddSingleton<IContextSessionService, NullContextSessionService>()
@@ -185,16 +173,15 @@ public class Program
 
         app.UseCors();
 
-        // --- SCALAR ROUTING ---
         if (app.Environment.IsDevelopment())
         {
-            app.MapOpenApi(); // Serves the openapi.json
+            app.MapOpenApi();
             app.MapScalarApiReference(options =>
             {
-                // Customizes the Scalar UI
-                options.WithTitle("Shuttle Access API")
-                       .WithTheme(ScalarTheme.DeepSpace)
-                       .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+                options
+                    .WithTitle("Shuttle Access API")
+                    .WithTheme(ScalarTheme.DeepSpace)
+                    .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
             });
         }
 
