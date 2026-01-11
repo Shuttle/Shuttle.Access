@@ -11,7 +11,7 @@ using Shuttle.Recall.SqlServer.Storage;
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
 [SuppressMessage("Security", "EF1002:Risk of vulnerability to SQL injection", Justification = "Schema and table names are from trusted configuration sources")]
-public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IOptions<ServerOptions> serverOptions, IOptions<SqlServerStorageOptions> sqlServerStorageOptions, IOptions<SqlServerEventProcessingOptions> sqlServerEventProcessingOptions, IDbContextFactory<SqlServerStorageDbContext> sqlServerStorageDbContextFactory, IDbContextFactory<SqlServerEventProcessingDbContext> sqlServerEventProcessingDbContext, IPrimitiveEventRepository primitiveEventRepository, KeepAliveObserver keepAliveObserver)
+public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IOptions<ServerOptions> serverOptions, IOptions<SqlServerStorageOptions> sqlServerStorageOptions, IOptions<SqlServerEventProcessingOptions> sqlServerEventProcessingOptions, SqlServerStorageDbContext sqlServerStorageDbContext, SqlServerEventProcessingDbContext sqlServerEventProcessingDbContext, IPrimitiveEventRepository primitiveEventRepository, KeepAliveObserver keepAliveObserver)
     : IMessageHandler<MonitorKeepAlive>
 {
     private readonly KeepAliveObserver _keepAliveObserver = Guard.AgainstNull(keepAliveObserver);
@@ -19,31 +19,23 @@ public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IO
     private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
     private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
     private readonly SqlServerEventProcessingOptions _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerEventProcessingOptions).Value);
-    private readonly IDbContextFactory<SqlServerEventProcessingDbContext> _sqlServerEventProcessingDbContext = Guard.AgainstNull(sqlServerEventProcessingDbContext);
-    private readonly IDbContextFactory<SqlServerStorageDbContext> _sqlServerStorageDbContextFactory = Guard.AgainstNull(sqlServerStorageDbContextFactory);
+    private readonly SqlServerEventProcessingDbContext _sqlServerEventProcessingDbContext = Guard.AgainstNull(sqlServerEventProcessingDbContext);
+    private readonly SqlServerStorageDbContext _sqlServerStorageDbContext = Guard.AgainstNull(sqlServerStorageDbContext);
     private readonly SqlServerStorageOptions _sqlServerStorageOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerStorageOptions).Value);
 
     public async Task ProcessMessageAsync(IHandlerContext<MonitorKeepAlive> context, CancellationToken cancellationToken = default)
     {
-        long maxSequenceNumber;
-        int nullSequenceNumberCount;
+        var maxSequenceNumber = await _sqlServerStorageDbContext.Database
+            .SqlQueryRaw<long?>($@"SELECT MAX(SequenceNumber) [Value] FROM [{_sqlServerStorageOptions.Schema}].[PrimitiveEvent]")
+            .SingleAsync(cancellationToken) ?? 0;
 
-        await using (var dbContext = await _sqlServerStorageDbContextFactory.CreateDbContextAsync(cancellationToken))
-        {
-            maxSequenceNumber = await dbContext.Database
-                .SqlQueryRaw<long?>($@"SELECT MAX(SequenceNumber) [Value] FROM [{_sqlServerStorageOptions.Schema}].[PrimitiveEvent]")
-                .SingleAsync(cancellationToken) ?? 0;
-
-            nullSequenceNumberCount = await dbContext.Database
-                .SqlQueryRaw<int>($@"SELECT COUNT(*) [Value] FROM [{_sqlServerStorageOptions.Schema}].[PrimitiveEvent] WHERE SequenceNumber IS NULL")
-                .SingleAsync(cancellationToken);
-        }
+        var nullSequenceNumberCount = await _sqlServerStorageDbContext.Database
+            .SqlQueryRaw<int>($@"SELECT COUNT(*) [Value] FROM [{_sqlServerStorageOptions.Schema}].[PrimitiveEvent] WHERE SequenceNumber IS NULL")
+            .SingleAsync(cancellationToken);
 
         if (nullSequenceNumberCount == 0)
         {
-            await using (var dbContext = await _sqlServerEventProcessingDbContext.CreateDbContextAsync(cancellationToken))
-            {
-                if (await dbContext.Database.SqlQueryRaw<int>($@"
+            if (await _sqlServerEventProcessingDbContext.Database.SqlQueryRaw<int>($@"
 IF EXISTS
 (
     SELECT
@@ -57,13 +49,12 @@ IF EXISTS
 ELSE 
     SELECT 0
 ").SingleAsync(cancellationToken) == 0)
-                {
-                    _logger.LogDebug("[keep-alive] : reset");
+            {
+                _logger.LogDebug("[keep-alive] : reset");
 
-                    await _keepAliveObserver.ResetAsync();
+                await _keepAliveObserver.ResetAsync();
 
-                    return;
-                }
+                return;
             }
         }
 
