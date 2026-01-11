@@ -8,7 +8,6 @@ public class AccessOptions
     public bool AllowPasswordAuthentication { get; set; } = true;
     public ConfigurationOptions Configuration { get; set; } = new();
 
-    public string ConnectionStringName { get; set; } = "Access";
     public string ExtensionFolder { get; set; } = "./.extension";
     public List<KnownApplicationOptions> KnownApplications { get; set; } = [];
     public bool OAuthRegisterUnknownIdentities { get; set; } = true;
