@@ -1,6 +1,8 @@
+/*
 delete from [access].[PrimitiveEvent]
 delete from [access].[EventType]
 delete from [access].[IdKey]
+*/
 
 delete from [access].[Projection]
 delete from [access].[ProjectionJournal]
