@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
@@ -21,7 +20,6 @@ public static class ServiceCollectionExtensions
 
             services.AddOptions<AccessOptions>().Configure(options =>
             {
-                options.ConnectionStringName = accessBuilder.Options.ConnectionStringName;
                 options.SessionDuration = accessBuilder.Options.SessionDuration;
                 options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
                 options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;

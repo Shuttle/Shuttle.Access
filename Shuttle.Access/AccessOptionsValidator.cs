@@ -6,11 +6,6 @@ public class AccessOptionsValidator : IValidateOptions<AccessOptions>
 {
     public ValidateOptionsResult Validate(string? name, AccessOptions options)
     {
-        if (string.IsNullOrWhiteSpace(options.ConnectionStringName))
-        {
-            return ValidateOptionsResult.Fail(string.Format(Resources.RequiredOptionMissing, nameof(options.ConnectionStringName)));
-        }
-
         foreach (var knownApplication in options.KnownApplications)
         {
             if (string.IsNullOrWhiteSpace(knownApplication.Name))
