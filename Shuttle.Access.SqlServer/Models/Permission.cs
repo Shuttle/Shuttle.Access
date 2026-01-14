@@ -1,32 +1,39 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shuttle.Access.SqlServer.Models;
 
+[Table(nameof(Permission), Schema = "access")]
+[PrimaryKey(nameof(Id))]
 [Index(nameof(Name), IsUnique = true, Name = $"UX_{nameof(Permission)}_{nameof(Name)}")]
 public class Permission
 {
     [StringLength(500)]
     public string Description { get; set; } = string.Empty;
 
-    [Key]
     public Guid Id { get; set; }
 
     [Required]
     [StringLength(200)]
     public string Name { get; set; } = string.Empty;
 
+    [Required]
+    [StringLength(200)]
+    public string Scope { get; set; } = "scope://access/system";
+
     public ICollection<RolePermission> RolePermissions { get; set; } = [];
+    public ICollection<PermissionTenant> PermissionTenants { get; set; } = [];
 
     [Required]
     public int Status { get; set; }
 
     public class Specification
     {
-        private readonly List<Guid> _ids = new();
-        private readonly List<string> _names = new();
-        private readonly List<Guid> _roleIds = new();
-        private readonly List<int> _statuses = new();
+        private readonly List<Guid> _ids = [];
+        private readonly List<string> _names = [];
+        private readonly List<Guid> _roleIds = [];
+        private readonly List<int> _statuses = [];
         public IEnumerable<Guid> Ids => _ids.AsReadOnly();
         public int MaximumRows { get; private set; }
 

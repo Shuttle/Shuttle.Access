@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Shuttle.Access.SqlServer.Models;
 
-[PrimaryKey(nameof(RoleId), nameof(PermissionId))]
+[Table(nameof(RolePermission), Schema = "access")]
+[PrimaryKey(nameof(TenantId), nameof(RoleId), nameof(PermissionId))]
 public class RolePermission
 {
     [Required]
@@ -19,4 +20,7 @@ public class RolePermission
 
     [Required]
     public Guid RoleId { get; set; }
+
+    [Required]
+    public Guid TenantId { get; set; }
 }

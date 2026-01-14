@@ -8,6 +8,8 @@ public class AccessOptions
     public bool AllowPasswordAuthentication { get; set; } = true;
     public ConfigurationOptions Configuration { get; set; } = new();
 
+    public Guid SystemTenantId { get; set; } = new("c3ee3908-716b-48df-abda-33b49e09be97");
+
     public string ExtensionFolder { get; set; } = "./.extension";
     public List<KnownApplicationOptions> KnownApplications { get; set; } = [];
     public bool OAuthRegisterUnknownIdentities { get; set; } = true;

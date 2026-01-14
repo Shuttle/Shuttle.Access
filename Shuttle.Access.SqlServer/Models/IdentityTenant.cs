@@ -4,13 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shuttle.Access.SqlServer.Models;
 
-[Table(nameof(IdentityRole), Schema = "access")]
-[PrimaryKey(nameof(TenantId), nameof(IdentityId), nameof(RoleId))]
-public class IdentityRole
+[Table(nameof(IdentityTenant), Schema = "access")]
+[PrimaryKey(nameof(IdentityId), nameof(TenantId))]
+public class IdentityTenant
 {
     public Identity Identity { get; set; } = null!;
-
-    [Required]
     public Guid IdentityId { get; set; }
 
     [Required]
@@ -20,11 +18,9 @@ public class IdentityRole
     [StringLength(320)]
     public string RegisteredBy { get; set; } = string.Empty;
 
-    public Role Role { get; set; } = null!;
-
-    [Required]
-    public Guid RoleId { get; set; }
-
-    [Required]
+    public Tenant Tenant { get; set; } = null!;
     public Guid TenantId { get; set; }
+
+    [Required]
+    public int Status { get; set; }
 }

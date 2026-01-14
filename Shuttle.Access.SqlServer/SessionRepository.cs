@@ -27,8 +27,8 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             {
                 Id = session.Id,
                 IdentityName = session.IdentityName,
-                DateRegistered = session.DateRegistered,
-                ExpiryDate = session.ExpiryDate,
+                RegisteredAt = session.DateRegistered,
+                ExpiresAt = session.ExpiryDate,
                 IdentityId = session.IdentityId,
                 Token = session.Token,
                 SessionPermissions = session.Permissions.Select(p => new SessionPermission
@@ -41,7 +41,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         else
         {
             model.Token = session.Token;
-            model.ExpiryDate = session.ExpiryDate;
+            model.ExpiresAt = session.ExpiryDate;
 
             _accessDbContext.SessionPermissions.RemoveRange(model.SessionPermissions);
 
@@ -105,7 +105,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             return null;
         }
 
-        var result = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
+        var result = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.RegisteredAt, model.ExpiresAt);
 
         foreach (var sessionPermission in model.SessionPermissions)
         {

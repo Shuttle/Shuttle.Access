@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Shuttle.Core.Contract;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shuttle.Access.SqlServer.Models;
 
+[Table(nameof(Session), Schema = "access")]
 [Index(nameof(Token), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(Token)}")]
 [Index(nameof(IdentityId), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(IdentityId)}")]
 [Index(nameof(IdentityName), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(IdentityName)}")]
@@ -12,17 +14,20 @@ public class Session
     [Key]
     public Guid Id { get; set; }
     
+    [Required]
+    public DateTimeOffset RegisteredAt { get; set; }
 
     [Required]
-    public DateTimeOffset DateRegistered { get; set; }
-
-    [Required]
-    public DateTimeOffset ExpiryDate { get; set; }
+    public DateTimeOffset ExpiresAt { get; set; }
 
     public Identity Identity { get; set; } = null!;
 
+    [Required]
     public Guid IdentityId { get; set; }
 
+    [Required]
+    public Guid TenantId { get; set; }
+    
     [Required]
     [StringLength(320)]
     public string IdentityName { get; set; } = string.Empty;

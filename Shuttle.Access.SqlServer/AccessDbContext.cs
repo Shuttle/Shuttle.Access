@@ -16,29 +16,7 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Models.Identity>()
-            .ToTable(nameof(Models.Identity), "access");
-
-        modelBuilder.Entity<Models.IdentityRole>()
-            .ToTable(nameof(Models.IdentityRole), "access");
-
-        modelBuilder.Entity<Models.Permission>()
-            .ToTable(nameof(Models.Permission), "access");
-
-        modelBuilder.Entity<Models.Role>()
-            .ToTable(nameof(Models.Role), "access");
-
-        modelBuilder.Entity<Models.RolePermission>()
-            .ToTable(nameof(Models.RolePermission), "access");
-
         modelBuilder.Entity<Models.Session>()
-            .ToTable(nameof(Models.Session), "access")
             .Property(p => p.Id).HasDefaultValueSql("NEWID()");
-
-        modelBuilder.Entity<Models.SessionPermission>()
-            .ToTable(nameof(Models.SessionPermission), "access");
-
-        modelBuilder.Entity<Models.SessionTokenExchange>()
-            .ToTable(nameof(Models.SessionTokenExchange), "access");
     }
 }

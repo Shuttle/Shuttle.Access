@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer.Models;
 
+[Table(nameof(Identity), Schema = "access")]
 [Index(nameof(Name), IsUnique = true, Name = $"UX_{nameof(Identity)}_{nameof(Name)}")]
 public class Identity
 {

@@ -21,9 +21,9 @@
 
     <Target Name="EfBundle">
         <Exec
-            Command="dotnet ef migrations bundle -p ../Shuttle.Access.Data/Shuttle.Access.Data.csproj -r $(LinuxRuntimeIdentifier) --self-contained --output $(MSBuildProjectDirectory)/deployment/shuttle-access-efbundle-linux-x64 --force -- -c Release -f net8.0" />
+            Command="dotnet ef migrations bundle -p ../Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj -r $(LinuxRuntimeIdentifier) --self-contained --output $(MSBuildProjectDirectory)/deployment/shuttle-access-efbundle-linux-x64 --force -- -c Release -f net10.0" />
         <Exec
-            Command="dotnet ef migrations bundle -p ../Shuttle.Access.Data/Shuttle.Access.Data.csproj -r $(WindowsRuntimeIdentifier) --self-contained --output $(MSBuildProjectDirectory)/deployment/shuttle-access-efbundle-win-x64.exe --force -- -c Release -f net8.0" />
+            Command="dotnet ef migrations bundle -p ../Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj -r $(WindowsRuntimeIdentifier) --self-contained --output $(MSBuildProjectDirectory)/deployment/shuttle-access-efbundle-win-x64.exe --force -- -c Release -f ne108.0" />
     </Target>
 
     <Target Name="Package" DependsOnTargets="EfBundle">
