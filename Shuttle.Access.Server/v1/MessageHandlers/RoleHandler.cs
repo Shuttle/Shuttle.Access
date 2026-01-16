@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -8,7 +9,7 @@ namespace Shuttle.Access.Server.v1.MessageHandlers;
 public class RoleHandler(IMediator mediator) :
     IMessageHandler<RegisterRole>,
     IMessageHandler<RemoveRole>,
-    IMessageHandler<SetRolePermission>,
+    IMessageHandler<SetRolePermissionStatus>,
     IMessageHandler<SetRoleName>
 {
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
@@ -22,7 +23,7 @@ public class RoleHandler(IMediator mediator) :
             return;
         }
 
-        var registerRole = new Application.RegisterRole(message.Name);
+        var registerRole = new Application.RegisterRole(message.TenantId, message.Name, message.AuditIdentityName);
 
         registerRole.AddPermissions(message.Permissions);
 
@@ -32,16 +33,17 @@ public class RoleHandler(IMediator mediator) :
 
         if (registerRole.HasMissingPermissions)
         {
-            if (message.WaitCount < 5)
+            if (message.WaitCount >= 5)
             {
-                message.WaitCount++;
-
-                await context.SendAsync(message, builder => builder.DeferUntil(DateTime.Now.AddSeconds(5)).ToSelf(), cancellationToken);
-
-                return;
+                throw new UnrecoverableHandlerException("Maximum permission wait count reached.");
             }
 
-            throw new UnrecoverableHandlerException("Maximum permission wait count reached.");
+            message.WaitCount++;
+
+            await context.SendAsync(message, builder => builder.DeferUntil(DateTime.Now.AddSeconds(5)).ToSelf(), cancellationToken);
+
+            return;
+
         }
 
         if (requestResponse.Response != null)
@@ -83,11 +85,11 @@ public class RoleHandler(IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetRolePermission> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(IHandlerContext<SetRolePermissionStatus> context, CancellationToken cancellationToken = default)
     {
         var message = context.Message;
 
-        var requestResponse = new RequestResponseMessage<SetRolePermission, RolePermissionSet>(message);
+        var requestResponse = new RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet>(message);
 
         await _mediator.SendAsync(requestResponse, cancellationToken);
 

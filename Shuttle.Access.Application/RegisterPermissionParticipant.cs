@@ -27,7 +27,7 @@ public class RegisterPermissionParticipant(IEventStore eventStore, IIdKeyReposit
         await _idKeyRepository.AddAsync(id, key, cancellationToken);
 
         var aggregate = new Permission();
-        var stream = await _eventStore.GetAsync(id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(id, cancellationToken);
         var status = request.Status;
 
         if (!Enum.IsDefined(typeof(PermissionStatus), status))
@@ -37,7 +37,7 @@ public class RegisterPermissionParticipant(IEventStore eventStore, IIdKeyReposit
 
         stream.Add(aggregate.Register(request.Name, request.Description, (PermissionStatus)status));
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
 
         message.WithResponse(new()
         {

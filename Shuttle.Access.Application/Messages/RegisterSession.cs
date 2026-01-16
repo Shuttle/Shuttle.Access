@@ -2,7 +2,7 @@
 
 namespace Shuttle.Access.Application;
 
-public class RegisterSession(string identityName)
+public class RegisterSession(Guid tenantId, string identityName)
 {
     private Guid? _authenticationToken;
     private string _password = string.Empty;
@@ -19,6 +19,7 @@ public class RegisterSession(string identityName)
     public Session? Session { get; private set; }
     public Guid? SessionToken { get; private set; }
     public string SessionTokenExchangeUrl { get; private set; } = string.Empty;
+    public Guid TenantId { get; } = Guard.AgainstEmpty(tenantId);
 
     public RegisterSession DelegationSessionInvalid()
     {

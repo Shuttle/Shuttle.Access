@@ -13,13 +13,6 @@ public class IdentityRole
     [Required]
     public Guid IdentityId { get; set; }
 
-    [Required]
-    public DateTimeOffset RegisteredAt { get; set; } = DateTimeOffset.UtcNow;
-
-    [Required]
-    [StringLength(320)]
-    public string RegisteredBy { get; set; } = string.Empty;
-
     public Role Role { get; set; } = null!;
 
     [Required]

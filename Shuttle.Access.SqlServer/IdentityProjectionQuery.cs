@@ -37,7 +37,6 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
         {
             IdentityId = primitiveEvent.Id,
             RoleId = domainEvent.RoleId,
-            RegisteredAt = primitiveEvent.RecordedAt
         });
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);

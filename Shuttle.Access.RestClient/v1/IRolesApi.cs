@@ -22,5 +22,5 @@ public interface IRolesApi
     Task<IApiResponse<List<Messages.v1.Role>>> SearchAsync(Messages.v1.Role.Specification specification, CancellationToken cancellationToken = default);
 
     [Patch("/v1/roles/{id}/permissions")]
-    Task<IApiResponse> SetPermissionAsync(Guid id, SetRolePermission message, CancellationToken cancellationToken = default);
+    Task<IApiResponse> SetPermissionAsync(Guid id, SetRolePermissionStatus message, CancellationToken cancellationToken = default);
 }

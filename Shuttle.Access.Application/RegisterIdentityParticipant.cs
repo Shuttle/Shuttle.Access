@@ -48,7 +48,7 @@ public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepositor
             stream = await _eventStore.GetAsync(id.Value, cancellationToken: cancellationToken);
         }
 
-        var registered = identity.Register(request.Name, request.Description, request.PasswordHash, request.RegisteredBy, request.GeneratedPassword, request.Activated);
+        var registered = identity.Register(request.Name, request.Description, request.PasswordHash, request.AuditIdentityName, request.GeneratedPassword, request.Activated);
 
         stream.Add(registered);
 
@@ -82,7 +82,7 @@ public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepositor
         {
             Id = id.Value,
             Name = request.Name,
-            RegisteredBy = request.RegisteredBy,
+            RegisteredBy = request.AuditIdentityName,
             GeneratedPassword = request.GeneratedPassword,
             System = request.System
         });

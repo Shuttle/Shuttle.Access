@@ -104,7 +104,7 @@ public static class RoleEndpoints
             return Results.BadRequest();
         }
 
-        var roles = (await roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().IncludePermissions().AddRoleIds(ids))).ToList();
+        var roles = (await roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().IncludePermissions().AddIds(ids))).ToList();
 
         var result = roles.Select(item => new { item.Name, Permissions = item.RolePermissions.Select(permission => new RegisterPermission { Name = permission.Permission.Name, Description = permission.Permission.Description, Status = permission.Permission.Status }).ToList() });
 
@@ -189,7 +189,7 @@ public static class RoleEndpoints
 
         if (Guid.TryParse(value, out var id))
         {
-            specification.AddRoleId(id);
+            specification.AddId(id);
         }
         else
         {
@@ -231,7 +231,7 @@ public static class RoleEndpoints
                 return Results.BadRequest(ex.Message);
             }
 
-            var permissions = (await roleQuery.PermissionsAsync(new SqlServer.Models.Role.Specification().AddRoleId(id).AddPermissionIds(identifiers.Values))).ToList();
+            var permissions = (await roleQuery.PermissionsAsync(new SqlServer.Models.Role.Specification().AddId(id).AddPermissionIds(identifiers.Values))).ToList();
 
             var result = from permissionId in identifiers.Values
                 select new IdentifierAvailability<Guid>
@@ -243,7 +243,7 @@ public static class RoleEndpoints
             return Results.Ok(result);
         }
 
-    private static async Task<IResult> PatchPermissions(Guid id, [FromBody] SetRolePermission message, [FromServices] IServiceBus serviceBus)
+    private static async Task<IResult> PatchPermissions(Guid id, [FromBody] SetRolePermissionStatus message, [FromServices] IServiceBus serviceBus)
     {
         try
         {

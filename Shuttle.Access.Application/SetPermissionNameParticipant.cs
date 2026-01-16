@@ -16,7 +16,7 @@ public class SetPermissionNameParticipant(IEventStore eventStore, IIdKeyReposito
         var request = Guard.AgainstNull(message).Request;
 
         var permission = new Permission();
-        var stream = await _eventStore.GetAsync(request.Id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
 
         stream.Apply(permission);
 
@@ -37,7 +37,7 @@ public class SetPermissionNameParticipant(IEventStore eventStore, IIdKeyReposito
 
         stream.Add(permission.SetName(request.Name));
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
 
         message.WithResponse(new()
         {

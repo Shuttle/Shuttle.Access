@@ -13,13 +13,14 @@ public class HttpContextSessionService(ISessionService sessionService, IHttpCont
     {
         var httpContext = Guard.AgainstNull(_httpContextAccessor.HttpContext);
 
-        var identityId = httpContext.GetIdentityId();
+        var tenantId = httpContext.FindTenantId();
+        var identityId = httpContext.FindIdentityId();
 
-        if (identityId == null)
+        if (tenantId == null || identityId == null)
         {
             throw new ApplicationException(Resources.HttpContextIdentityIdNotFoundException);
         }
 
-        return await _sessionService.HasPermissionAsync(identityId.Value, permission, cancellationToken);
+        return await _sessionService.HasPermissionAsync(tenantId.Value, identityId.Value, permission, cancellationToken);
     }
 }

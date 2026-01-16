@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using Azure.Core;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
@@ -14,7 +15,7 @@ public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipa
         Guard.AgainstNull(message);
         Guard.AgainstUndefinedEnum<PermissionStatus>(message.Request.Status, nameof(message.Request.Status));
 
-        var stream = await _eventStore.GetAsync(message.Request.Id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(message.Request.Id, cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -46,7 +47,7 @@ public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipa
             }
         }
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(message.Request.AuditIdentityName), cancellationToken);
 
         message.WithResponse(new()
         {

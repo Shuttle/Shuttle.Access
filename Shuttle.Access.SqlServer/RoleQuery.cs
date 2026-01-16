@@ -46,14 +46,24 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
             queryable = queryable.Where(e => specification.Names.Contains(e.Name));
         }
 
-        if (specification.RoleIds.Any())
-        {
-            queryable = queryable.Where(e => specification.RoleIds.Contains(e.Id));
-        }
-
         if (specification.PermissionIds.Any())
         {
             queryable = queryable.Where(e => e.RolePermissions.Any(rp => specification.PermissionIds.Contains(rp.PermissionId)));
+        }
+
+        if (specification.HasIds)
+        {
+            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
+        }
+
+        if (specification.HasExcludedIds)
+        {
+            queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
+        }
+
+        if (specification.MaximumRows > 0)
+        {
+            queryable = queryable.Take(specification.MaximumRows);
         }
 
         return queryable;

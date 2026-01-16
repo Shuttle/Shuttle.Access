@@ -5,17 +5,17 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetIdentityRoleParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetIdentityRole, IdentityRoleSet>>
+public class SetIdentityRoleStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet>>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityRole, IdentityRoleSet> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet> message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
         var identity = new Identity();
         var request = message.Request;
-        var stream = await _eventStore.GetAsync(request.IdentityId, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(request.IdentityId, cancellationToken);
 
         stream.Apply(identity);
 
@@ -29,7 +29,7 @@ public class SetIdentityRoleParticipant(IEventStore eventStore) : IParticipant<R
             stream.Add(identity.RemoveRole(request.RoleId));
         }
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(message.Request.AuditIdentityName), cancellationToken);
 
         if (stream.ShouldSave())
         {

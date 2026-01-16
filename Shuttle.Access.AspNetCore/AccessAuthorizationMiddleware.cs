@@ -39,9 +39,10 @@ public class AccessAuthorizationMiddleware : IMiddleware
             return;
         }
 
-        var sessionIdentityId = context.GetIdentityId();
+        var tenantId = context.FindTenantId();
+        var identityId = context.FindIdentityId();
 
-        if (sessionIdentityId == null)
+        if (tenantId == null || identityId == null)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.Headers.Append("WWW-Authenticate", _wwwAuthenticate);
@@ -49,7 +50,7 @@ public class AccessAuthorizationMiddleware : IMiddleware
         }
 
         if (permissionRequirement != null &&
-            !await _sessionService.HasPermissionAsync(sessionIdentityId.Value, permissionRequirement.Permission))
+            !await _sessionService.HasPermissionAsync(tenantId.Value, identityId.Value, permissionRequirement.Permission))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;

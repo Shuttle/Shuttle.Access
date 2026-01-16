@@ -2,5 +2,5 @@
 
 public class RefreshSession(Guid identityId)
 {
-    public Guid IdentityId { get; } = identityId;
+    public Guid SessionId { get; } = identityId;
 }

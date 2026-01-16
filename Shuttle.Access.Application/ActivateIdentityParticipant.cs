@@ -20,7 +20,7 @@ public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventSto
 
         if (request.Id.HasValue)
         {
-            specification.WithIdentityId(request.Id.Value);
+            specification.AddId(request.Id.Value);
         }
         else
         {
@@ -41,7 +41,7 @@ public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventSto
         stream.Apply(identity);
         stream.Add(identity.Activate(now));
 
-        await _eventStore.SaveAsync(stream, cancellationToken).ConfigureAwait(false);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(message.Request.AuditIdentityName), cancellationToken).ConfigureAwait(false);
 
         message.WithResponse(new()
         {

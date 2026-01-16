@@ -32,7 +32,6 @@ public class RoleProjectionQuery(AccessDbContext accessDbContext) : IRoleProject
         {
             RoleId = primitiveEvent.Id,
             PermissionId = domainEvent.PermissionId,
-            DateRegistered = primitiveEvent.RecordedAt
         });
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);

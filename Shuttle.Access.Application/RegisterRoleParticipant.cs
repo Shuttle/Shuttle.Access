@@ -47,9 +47,9 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
         await _idKeyRepository.AddAsync(id, key, cancellationToken);
 
         var role = new Role();
-        var stream = await _eventStore.GetAsync(id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(id, cancellationToken);
 
-        stream.Add(role.Register(request.Name));
+        stream.Add(role.Register(request.TenantId, request.Name));
 
         foreach (var permissionId in permissionIds)
         {
@@ -59,7 +59,7 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
             }
         }
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
 
         message.WithResponse(new()
         {

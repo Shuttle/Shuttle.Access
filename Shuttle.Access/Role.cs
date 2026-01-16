@@ -1,5 +1,6 @@
 ﻿using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Contract;
+using Registered = Shuttle.Access.Events.Role.v2.Registered;
 
 namespace Shuttle.Access;
 
@@ -7,6 +8,8 @@ public class Role
 {
     private readonly List<Guid> _permissionIds = [];
     public string Name { get; private set; } = string.Empty;
+
+    public Guid TenantId { get; private set; }
 
     public PermissionAdded AddPermission(Guid permissionId)
     {
@@ -33,6 +36,7 @@ public class Role
     {
         Guard.AgainstNull(registered);
 
+        TenantId = registered.TenantId;
         Name = registered.Name;
 
         return registered;
@@ -72,10 +76,11 @@ public class Role
         return removed;
     }
 
-    public Registered Register(string name)
+    public Registered Register(Guid tenantId, string name)
     {
         return On(new Registered
         {
+            TenantId = tenantId,
             Name = name
         });
     }

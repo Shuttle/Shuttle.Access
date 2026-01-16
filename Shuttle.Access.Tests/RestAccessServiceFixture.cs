@@ -23,7 +23,7 @@ public class RestAccessServiceFixture
 
         var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), accessClient.Object);
 
-        Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
+        Assert.That(await service.FindAsync(Guid.NewGuid(), Guid.NewGuid()), Is.Null);
     }
 
     [Test]
@@ -38,7 +38,7 @@ public class RestAccessServiceFixture
 
         var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), accessClient.Object);
 
-        Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Not.Null);
+        Assert.That(await service.FindAsync(Guid.NewGuid(), Guid.NewGuid()), Is.Not.Null);
 
         accessClient.Verify(m => m.Sessions.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result, Times.Exactly(1));
     }

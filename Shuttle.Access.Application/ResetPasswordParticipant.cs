@@ -27,7 +27,7 @@ public class ResetPasswordParticipant(IHashingService hashingService, IEventStor
         }
 
         var identity = new Identity();
-        var stream = await _eventStore.GetAsync(queryIdentity.Id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(queryIdentity.Id, cancellationToken);
 
         stream.Apply(identity);
 

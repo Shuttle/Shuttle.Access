@@ -11,13 +11,6 @@ public class IdentityTenant
     public Identity Identity { get; set; } = null!;
     public Guid IdentityId { get; set; }
 
-    [Required]
-    public DateTimeOffset RegisteredAt { get; set; } = DateTimeOffset.UtcNow;
-
-    [Required]
-    [StringLength(320)]
-    public string RegisteredBy { get; set; } = string.Empty;
-
     public Tenant Tenant { get; set; } = null!;
     public Guid TenantId { get; set; }
 

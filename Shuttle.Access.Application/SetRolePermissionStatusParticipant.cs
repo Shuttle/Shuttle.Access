@@ -5,11 +5,11 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetRolePermissionParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetRolePermission, RolePermissionSet>>
+public class SetRolePermissionStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet>>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetRolePermission, RolePermissionSet> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet> message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
@@ -30,7 +30,7 @@ public class SetRolePermissionParticipant(IEventStore eventStore) : IParticipant
             stream.Add(role.RemovePermission(request.PermissionId));
         }
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
 
         message.WithResponse(new()
         {

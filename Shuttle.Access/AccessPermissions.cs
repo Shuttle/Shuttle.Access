@@ -33,4 +33,11 @@ public static class AccessPermissions
         public const string Register = "access://sessions/register";
         public const string View = "access://sessions/view";
     }
+
+    public static class Tenants
+    {
+        public const string Manage = "access://tenants/manage";
+        public const string Register = "access://tenants/register";
+        public const string View = "access://tenants/view";
+    }
 }

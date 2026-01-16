@@ -12,7 +12,7 @@ public class IdentityQueryFixture : DataAccessFixture
 
         using (TransactionScopeFactory.Create())
         {
-            await Assert.ThatAsync(async () => await query.SearchAsync(new SqlServer.Models.Identity.Specification().WithIdentityId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED")).IncludeRoles()), Throws.Nothing);
+            await Assert.ThatAsync(async () => await query.SearchAsync(new SqlServer.Models.Identity.Specification().AddId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED")).IncludeRoles()), Throws.Nothing);
         }
     }
 }

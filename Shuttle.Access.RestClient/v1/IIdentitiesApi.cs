@@ -34,5 +34,5 @@ public interface IIdentitiesApi
     Task<IApiResponse<List<Messages.v1.Identity>>> SearchAsync(Messages.v1.Identity.Specification specification, CancellationToken cancellationToken = default);
 
     [Patch("/v1/identities/{id}/roles/{roleId}")]
-    Task<IApiResponse> SetRoleAsync(Guid id, Guid roleId, SetIdentityRole message, CancellationToken cancellationToken = default);
+    Task<IApiResponse> SetRoleAsync(Guid id, Guid roleId, SetIdentityRoleStatus message, CancellationToken cancellationToken = default);
 }

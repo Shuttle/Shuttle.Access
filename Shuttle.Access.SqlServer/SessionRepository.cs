@@ -27,8 +27,8 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             {
                 Id = session.Id,
                 IdentityName = session.IdentityName,
-                RegisteredAt = session.DateRegistered,
-                ExpiresAt = session.ExpiryDate,
+                DateRegistered = session.DateRegistered,
+                ExpiryDate = session.ExpiryDate,
                 IdentityId = session.IdentityId,
                 Token = session.Token,
                 SessionPermissions = session.Permissions.Select(p => new SessionPermission
@@ -41,7 +41,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         else
         {
             model.Token = session.Token;
-            model.ExpiresAt = session.ExpiryDate;
+            model.ExpiryDate = session.ExpiryDate;
 
             _accessDbContext.SessionPermissions.RemoveRange(model.SessionPermissions);
 
@@ -59,18 +59,22 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         await _accessDbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task<Session?> FindAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await FindAsync(new SqlServer.Models.Session.Specification().AddId(id), cancellationToken);
+    }
+
     public async Task<Session?> FindAsync(byte[] token, CancellationToken cancellationToken = default)
     {
-
         return await FindAsync(new SqlServer.Models.Session.Specification().WithToken(token), cancellationToken);
     }
 
-    public async Task<Session?> FindAsync(string identityName, CancellationToken cancellationToken = default)
+    public async Task<Session?> FindAsync(Guid tenantId, string identityName, CancellationToken cancellationToken = default)
     {
         return await FindAsync(new SqlServer.Models.Session.Specification().WithIdentityName(identityName), cancellationToken);
     }
 
-    public async Task<Session?> FindAsync(Guid identityId, CancellationToken cancellationToken = default)
+    public async Task<Session?> FindAsync(Guid tenantId, Guid identityId, CancellationToken cancellationToken = default)
     {
         return await FindAsync(new SqlServer.Models.Session.Specification().WithIdentityId(identityId), cancellationToken);
     }
@@ -98,6 +102,11 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             queryable = queryable.Where(e => e.IdentityId == specification.IdentityId.Value);
         }
 
+        if (specification.HasIds)
+        {
+            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
+        }
+
         var model = await queryable.SingleOrDefaultAsync(cancellationToken: cancellationToken);
 
         if (model == null)
@@ -105,7 +114,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             return null;
         }
 
-        var result = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.RegisteredAt, model.ExpiresAt);
+        var result = new Session(model.TenantId, model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
 
         foreach (var sessionPermission in model.SessionPermissions)
         {

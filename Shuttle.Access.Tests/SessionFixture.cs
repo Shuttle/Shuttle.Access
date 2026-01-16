@@ -9,7 +9,7 @@ public class SessionFixture
     [Test]
     public void Should_be_able_to_determine_whether_a_domain_session_has_a_permission()
     {
-        var session = new Session(Guid.NewGuid(), [], Guid.NewGuid(), "identity", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(30));
+        var session = new Session(Guid.NewGuid(), Guid.NewGuid(), [], Guid.NewGuid(), "identity", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(30));
 
         session.AddPermission(new(Guid.NewGuid(), "system-a://component-a/function-a"));
 

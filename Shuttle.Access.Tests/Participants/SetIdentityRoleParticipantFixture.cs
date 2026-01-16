@@ -14,11 +14,11 @@ public class SetIdentityRoleParticipantFixture
     public async Task Should_be_able_to_review_with_no_administrator_role_async()
     {
         var eventStore = new FixtureEventStore();
-        var participant = new SetIdentityRoleParticipant(eventStore);
+        var participant = new SetIdentityRoleStatusParticipant(eventStore);
 
         var identityId = Guid.NewGuid();
 
-        var setIdentityRole = new RequestResponseMessage<SetIdentityRole, IdentityRoleSet>(new()
+        var setIdentityRole = new RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet>(new()
         {
             RoleId = Guid.NewGuid(),
             Active = true,

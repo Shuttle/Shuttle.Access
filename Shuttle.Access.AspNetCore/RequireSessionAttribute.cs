@@ -17,15 +17,16 @@ public class RequireSessionAttribute : TypeFilterAttribute
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var sessionIdentityId = context.HttpContext.GetIdentityId();
+            var tenantId = context.HttpContext.FindTenantId();
+            var identityId = context.HttpContext.FindIdentityId();
 
-            if (sessionIdentityId == null)
+            if (tenantId == null || identityId == null)
             {
                 SetUnauthorized(context);
                 return;
             }
 
-            if (_sessionService.FindAsync(sessionIdentityId.Value).GetAwaiter().GetResult() == null)
+            if (_sessionService.FindAsync(tenantId.Value, identityId.Value).GetAwaiter().GetResult() == null)
             {
                 SetUnauthorized(context);
             }

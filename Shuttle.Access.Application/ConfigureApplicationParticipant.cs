@@ -18,7 +18,6 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
 
     private readonly List<string> _permissions =
     [
-        AccessPermissions.Administrator,
         AccessPermissions.Identities.Activate,
         AccessPermissions.Identities.Manage,
         AccessPermissions.Identities.Register,
@@ -33,6 +32,14 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
         AccessPermissions.Sessions.Manage,
         AccessPermissions.Sessions.Register,
         AccessPermissions.Sessions.View
+    ];
+
+    private readonly List<string> _systemPermissions =
+    [
+        AccessPermissions.Administrator,
+        AccessPermissions.Tenants.View,
+        AccessPermissions.Tenants.Register,
+        AccessPermissions.Tenants.Manage
     ];
 
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
@@ -54,7 +61,29 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
                 new()
                 {
                     Name = permission,
-                    Status = (int)PermissionStatus.Active
+                    Status = (int)PermissionStatus.Active,
+                    AuditIdentityName = "system"
+                });
+
+            await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
+        }
+
+        foreach (var permission in _systemPermissions)
+        {
+            if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
+            {
+                continue;
+            }
+
+            _logger.LogDebug($"[system-permission/registration] : name = '{permission}'");
+
+            var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
+                new()
+                {
+                    Name = permission,
+                    Status = (int)PermissionStatus.Active,
+                    AuditIdentityName = "system",
+                    TenantIds = [_accessOptions.SystemTenantId]
                 });
 
             await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
@@ -96,7 +125,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
         {
             _logger.LogDebug("[role/registration] : name = 'Access Administrator'");
 
-            var registerRole = new RegisterRole("Access Administrator");
+            var registerRole = new RegisterRole(_accessOptions.SystemTenantId, "Access Administrator", "system");
 
             var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(registerRole);
 
@@ -129,11 +158,12 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             throw new ApplicationException(Resources.AdministratorPermissionException);
         }
 
-        await _mediator.SendAsync(new RequestResponseMessage<SetRolePermission, RolePermissionSet>(new()
+        await _mediator.SendAsync(new RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet>(new()
         {
             Active = true,
             RoleId = role.Id,
-            PermissionId = administratorPermission.Id
+            PermissionId = administratorPermission.Id,
+            AuditIdentityName = "system"
         }), cancellationToken);
 
         timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
@@ -175,7 +205,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
                 Name = _accessOptions.Configuration.AdministratorIdentityName,
                 System = "system://access",
                 PasswordHash = generateHash.Hash,
-                RegisteredBy = "system",
+                AuditIdentityName = "system",
                 Activated = true
             });
 

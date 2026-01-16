@@ -7,7 +7,7 @@ namespace Shuttle.Access.Server.v1.MessageHandlers;
 
 public class IdentityHandler(IMediator mediator) :
     IMessageHandler<RegisterIdentity>,
-    IMessageHandler<SetIdentityRole>,
+    IMessageHandler<SetIdentityRoleStatus>,
     IMessageHandler<RemoveIdentity>,
     IMessageHandler<SetPassword>,
     IMessageHandler<ActivateIdentity>,
@@ -37,7 +37,7 @@ public class IdentityHandler(IMediator mediator) :
         var message = context.Message;
 
         if (string.IsNullOrEmpty(message.Name) ||
-            string.IsNullOrEmpty(message.RegisteredBy) ||
+            string.IsNullOrEmpty(message.AuditIdentityName) ||
             message.PasswordHash.Length == 0)
         {
             return;
@@ -101,13 +101,13 @@ public class IdentityHandler(IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityRole> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(IHandlerContext<SetIdentityRoleStatus> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
         var message = context.Message;
-        var reviewRequest = new RequestMessage<SetIdentityRole>(message);
-        var requestResponse = new RequestResponseMessage<SetIdentityRole, IdentityRoleSet>(message);
+        var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(message);
+        var requestResponse = new RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet>(message);
 
         await _mediator.SendAsync(reviewRequest, cancellationToken);
 

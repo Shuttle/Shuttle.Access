@@ -15,10 +15,10 @@ public class Session
     public Guid Id { get; set; }
     
     [Required]
-    public DateTimeOffset RegisteredAt { get; set; }
+    public DateTimeOffset DateRegistered { get; set; }
 
     [Required]
-    public DateTimeOffset ExpiresAt { get; set; }
+    public DateTimeOffset ExpiryDate { get; set; }
 
     public Identity Identity { get; set; } = null!;
 
@@ -37,14 +37,13 @@ public class Session
     [Required]
     public byte[] Token { get; set; } = new byte[32];
 
-    public class Specification
+    public class Specification : Specification<Specification>
     {
         private readonly List<string> _permissions = [];
 
         public Guid? IdentityId { get; private set; }
         public string? IdentityName { get; private set; }
         public string? IdentityNameMatch { get; private set; }
-        public int MaximumRows { get; private set; }
         public IEnumerable<string> Permissions => _permissions.AsReadOnly();
 
         public bool ShouldIncludePermissions { get; private set; }
@@ -84,15 +83,14 @@ public class Session
         public Specification WithIdentityId(Guid identityId)
         {
             IdentityId = identityId;
-            MaximumRows = 1;
+            WithMaximumRows(1);
             return this;
         }
 
         public Specification WithIdentityName(string identityName)
         {
             IdentityName = Guard.AgainstEmpty(identityName);
-            MaximumRows = 1;
-
+            WithMaximumRows(1);
             return this;
         }
 
@@ -103,18 +101,10 @@ public class Session
             return this;
         }
 
-        public Specification WithMaximumRows(int maximumRows)
-        {
-            MaximumRows = maximumRows;
-
-            return this;
-        }
-
         public Specification WithToken(byte[] token)
         {
             Token = Guard.AgainstNull(token);
-            MaximumRows = 1;
-
+            WithMaximumRows(1);
             return this;
         }
     }

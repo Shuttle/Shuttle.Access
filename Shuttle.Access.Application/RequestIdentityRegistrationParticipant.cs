@@ -5,10 +5,9 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
-public class RequestIdentityRegistrationParticipant(IServiceBus serviceBus, IHashingService hashingService, ISessionRepository sessionRepository, IMediator mediator)
+public class RequestIdentityRegistrationParticipant(IServiceBus serviceBus, ISessionRepository sessionRepository, IMediator mediator)
     : IParticipant<RequestIdentityRegistration>
 {
-    private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
     private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
@@ -17,9 +16,9 @@ public class RequestIdentityRegistrationParticipant(IServiceBus serviceBus, IHas
     {
         Guard.AgainstNull(message);
 
-        if (message.IdentityId.HasValue)
+        if (message is { TenantId: not null, IdentityId: not null })
         {
-            var session = await _sessionRepository.FindAsync(message.IdentityId.Value, cancellationToken);
+            var session = await _sessionRepository.FindAsync(message.TenantId.Value, message.IdentityId.Value, cancellationToken);
 
             if (session != null && session.HasPermission(AccessPermissions.Identities.Register))
             {
@@ -47,10 +46,10 @@ public class RequestIdentityRegistrationParticipant(IServiceBus serviceBus, IHas
 
         message.RegisterIdentityMessage.Password = string.Empty;
         message.RegisterIdentityMessage.PasswordHash = generateHash.Hash;
-        message.RegisterIdentityMessage.RegisteredBy = message.RegisteredBy;
+        message.RegisterIdentityMessage.AuditIdentityName = message.RegisteredBy;
         message.RegisterIdentityMessage.Activated = message.RegisterIdentityMessage.Activated && message.IsActivationAllowed;
         message.RegisterIdentityMessage.System = message.RegisterIdentityMessage.System;
 
-        await _serviceBus.SendAsync(message.RegisterIdentityMessage, cancellationToken: cancellationToken);
+        await _serviceBus.SendAsync(message.RegisterIdentityMessage, cancellationToken);
     }
 }

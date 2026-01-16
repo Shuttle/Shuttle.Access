@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Core.Contract;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -17,4 +18,15 @@ public class Tenant
 
     [Required]
     public int Status { get; set; }
+
+    public class Specification : Specification<Specification>
+    {
+        public string NameMatch { get; private set; } = string.Empty;
+
+        public Specification WithNameMatch(string nameMatch)
+        {
+            NameMatch = Guard.AgainstEmpty(nameMatch);
+            return this;
+        }
+    }
 }

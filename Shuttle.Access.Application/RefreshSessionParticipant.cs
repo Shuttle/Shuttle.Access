@@ -1,17 +1,15 @@
-﻿using Shuttle.Access.SqlServer;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
-public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService sessionService, IAuthorizationService authorizationService, ISessionRepository sessionRepository, ISessionQuery sessionQuery)
+public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService sessionService, IAuthorizationService authorizationService, ISessionRepository sessionRepository)
     : IParticipant<RefreshSession>
 {
     private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
     private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
-    private readonly ISessionQuery _sessionQuery = Guard.AgainstNull(sessionQuery);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
     private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
@@ -19,16 +17,7 @@ public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService s
     {
         Guard.AgainstNull(message);
 
-        var specification = new SqlServer.Models.Session.Specification().WithIdentityId(message.IdentityId);
-
-        var identityName = (await _sessionQuery.SearchAsync(specification, cancellationToken)).FirstOrDefault()?.IdentityName;
-
-        if (string.IsNullOrWhiteSpace(identityName))
-        {
-            return;
-        }
-
-        var session = await _sessionRepository.FindAsync(identityName, cancellationToken);
+        var session = await _sessionRepository.FindAsync(message.SessionId, cancellationToken);
 
         if (session == null)
         {
@@ -44,12 +33,14 @@ public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService s
 
         await _sessionRepository.SaveAsync(session, cancellationToken);
 
-        await _sessionService.FlushAsync(message.IdentityId, cancellationToken);
+        await _sessionService.FlushAsync(session.IdentityId, cancellationToken);
 
         await _serviceBus.PublishAsync(new SessionRefreshed
         {
-            IdentityId = message.IdentityId,
-            IdentityName = identityName
+            Id = session.Id,
+            TenantId = session.TenantId,
+            IdentityId = session.IdentityId,
+            IdentityName = session.IdentityName
         }, cancellationToken: cancellationToken);
     }
 }

@@ -7,6 +7,7 @@ public static class MessageExtensions
     public static void ApplyInvariants(this RegisterRole message)
     {
         Guard.AgainstNull(message);
+        Guard.AgainstEmpty(message.TenantId);
         Guard.AgainstEmpty(message.Name);
     }
 
@@ -21,7 +22,7 @@ public static class MessageExtensions
         Guard.AgainstNull(message);
     }
 
-    public static void ApplyInvariants(this SetIdentityRole message)
+    public static void ApplyInvariants(this SetIdentityRoleStatus message)
     {
         Guard.AgainstNull(message);
     }
@@ -72,7 +73,7 @@ public static class MessageExtensions
         Guard.AgainstNull(message.Name);
     }
 
-    public static void ApplyInvariants(this SetRolePermission message)
+    public static void ApplyInvariants(this SetRolePermissionStatus message)
     {
         Guard.AgainstNull(message);
         Guard.AgainstEmpty(message.RoleId);

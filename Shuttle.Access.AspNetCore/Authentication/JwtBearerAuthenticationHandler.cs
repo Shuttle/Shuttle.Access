@@ -1,7 +1,3 @@
-using System.Security.Authentication;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +5,10 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
+using System.Security.Authentication;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 
 namespace Shuttle.Access.AspNetCore.Authentication;
 
@@ -22,7 +22,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
     private readonly IJwtService _jwtService = Guard.AgainstNull(jwtService);
     private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
-    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync()
+    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync(string tenantId)
     {
         var session = await _contextSessionService.FindAsync();
 
@@ -35,7 +35,8 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
-            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
+            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
+            new(HttpContextExtensions.SessionTenantIdClaimType, tenantId)
         ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
@@ -43,25 +44,26 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var header = Request.Headers["Authorization"].FirstOrDefault();
+        var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
+        var tenantIdHeader = Request.Headers["Shuttle-Access-Tenant-Id"].FirstOrDefault();
 
-        if (header == null)
+        if (authorizationHeader == null || tenantIdHeader == null || !Guid.TryParse(tenantIdHeader, out var tenantId))
         {
             return AuthenticateResult.NoResult();
         }
 
         if (_accessAuthorizationOptions.PassThrough)
         {
-            return await GetContextAuthenticateResultAsync();
+            return await GetContextAuthenticateResultAsync(tenantIdHeader);
         }
 
-        if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
-            header.Length < 8)
+        if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
+            authorizationHeader.Length < 8)
         {
             return AuthenticateResult.NoResult();
         }
 
-        var token = header[7..];
+        var token = authorizationHeader[7..];
         var identityName = await _jwtService.GetIdentityNameAsync(token);
 
         if (string.IsNullOrWhiteSpace(identityName))
@@ -94,7 +96,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
             new(ClaimTypes.Name, identityName)
         ];
 
-        var session = await _sessionService.FindAsync(identityName);
+        var session = await _sessionService.FindAsync(tenantId, identityName);
 
         if (session != null)
         {

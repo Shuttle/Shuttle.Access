@@ -72,14 +72,6 @@ namespace Shuttle.Access.Data.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("RegisteredAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("RegisteredBy")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("nvarchar(320)");
-
                     b.Property<Guid?>("RoleTenantId")
                         .HasColumnType("uniqueidentifier");
 
@@ -90,6 +82,24 @@ namespace Shuttle.Access.Data.Migrations
                     b.HasIndex("RoleTenantId", "RoleId");
 
                     b.ToTable("IdentityRole", "access");
+                });
+
+            modelBuilder.Entity("Shuttle.Access.SqlServer.Models.IdentityTenant", b =>
+                {
+                    b.Property<Guid>("IdentityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("IdentityId", "TenantId");
+
+                    b.HasIndex("TenantId");
+
+                    b.ToTable("IdentityTenant", "access");
                 });
 
             modelBuilder.Entity("Shuttle.Access.SqlServer.Models.Permission", b =>
@@ -171,9 +181,6 @@ namespace Shuttle.Access.Data.Migrations
                     b.Property<Guid>("PermissionId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTimeOffset>("DateRegistered")
-                        .HasColumnType("datetimeoffset");
-
                     b.Property<Guid?>("RoleTenantId")
                         .HasColumnType("uniqueidentifier");
 
@@ -193,7 +200,10 @@ namespace Shuttle.Access.Data.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasDefaultValueSql("NEWID()");
 
-                    b.Property<DateTimeOffset>("ExpiresAt")
+                    b.Property<DateTimeOffset>("DateRegistered")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiryDate")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<Guid>("IdentityId")
@@ -203,9 +213,6 @@ namespace Shuttle.Access.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(320)
                         .HasColumnType("nvarchar(320)");
-
-                    b.Property<DateTimeOffset>("RegisteredAt")
-                        .HasColumnType("datetimeoffset");
 
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uniqueidentifier");
@@ -302,6 +309,25 @@ namespace Shuttle.Access.Data.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("Shuttle.Access.SqlServer.Models.IdentityTenant", b =>
+                {
+                    b.HasOne("Shuttle.Access.SqlServer.Models.Identity", "Identity")
+                        .WithMany("IdentityTenants")
+                        .HasForeignKey("IdentityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Shuttle.Access.SqlServer.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Identity");
+
+                    b.Navigation("Tenant");
+                });
+
             modelBuilder.Entity("Shuttle.Access.SqlServer.Models.PermissionTenant", b =>
                 {
                     b.HasOne("Shuttle.Access.SqlServer.Models.Permission", "Permission")
@@ -371,6 +397,8 @@ namespace Shuttle.Access.Data.Migrations
             modelBuilder.Entity("Shuttle.Access.SqlServer.Models.Identity", b =>
                 {
                     b.Navigation("IdentityRoles");
+
+                    b.Navigation("IdentityTenants");
                 });
 
             modelBuilder.Entity("Shuttle.Access.SqlServer.Models.Permission", b =>

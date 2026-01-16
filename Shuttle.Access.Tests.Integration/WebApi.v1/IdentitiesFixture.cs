@@ -283,8 +283,8 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetIdentityRole>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<SetIdentityRole>>(), CancellationToken.None)).Verifiable();
+        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None)).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
         {
@@ -445,10 +445,10 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<SetIdentityRole>>(), CancellationToken.None))
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None))
             .Callback<object, CancellationToken>((message, _) =>
             {
-                ((RequestMessage<SetIdentityRole>)message).Failed("reason");
+                ((RequestMessage<SetIdentityRoleStatus>)message).Failed("reason");
             });
 
         var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()

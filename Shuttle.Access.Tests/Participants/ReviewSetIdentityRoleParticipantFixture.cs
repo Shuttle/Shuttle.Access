@@ -18,7 +18,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         roleQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(Enumerable.Empty<SqlServer.Models.Role>()));
 
         var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
-        var reviewRequest = new RequestMessage<SetIdentityRole>(new());
+        var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new());
 
         await participant.ProcessMessageAsync(reviewRequest);
 
@@ -45,7 +45,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         identityQuery.Setup(m => m.AdministratorCountAsync(CancellationToken.None)).Returns(ValueTask.FromResult(1));
 
         var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, identityQuery.Object);
-        var reviewRequest = new RequestMessage<SetIdentityRole>(new() { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
+        var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new() { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
 
         await participant.ProcessMessageAsync(reviewRequest);
 

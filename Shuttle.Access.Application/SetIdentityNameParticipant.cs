@@ -16,7 +16,7 @@ public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository
         var request = Guard.AgainstNull(message).Request;
 
         var identity = new Identity();
-        var stream = await _eventStore.GetAsync(request.Id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
 
         stream.Apply(identity);
 
@@ -37,7 +37,7 @@ public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository
 
         stream.Add(identity.SetName(request.Name));
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
 
         message.WithResponse(new()
         {

@@ -14,7 +14,7 @@ public class SetPermissionDescriptionParticipant(IEventStore eventStore) : IPart
         var request = Guard.AgainstNull(message).Request;
 
         var permission = new Permission();
-        var stream = await _eventStore.GetAsync(request.Id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
 
         stream.Apply(permission);
 
@@ -25,7 +25,7 @@ public class SetPermissionDescriptionParticipant(IEventStore eventStore) : IPart
 
         stream.Add(permission.SetDescription(request.Description));
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
 
         message.WithResponse(new()
         {

@@ -162,15 +162,15 @@ public static class SessionEndpoints
             : Results.Ok(Map(session));
     }
 
-    private static async Task<IResult> Delete(Guid identityId, IServiceBus serviceBus, ISessionRepository sessionRepository)
+    private static async Task<IResult> Delete(Guid sessionId, IServiceBus serviceBus, ISessionRepository sessionRepository, ISessionContext sessionContext)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = await sessionRepository.FindAsync(identityId);
+            var session = await sessionRepository.FindAsync(sessionId);
 
             if (session != null)
             {
-                if (await sessionRepository.RemoveAsync(identityId))
+                if (await sessionRepository.RemoveAsync(sessionId))
                 {
                     await serviceBus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
                 }
@@ -200,14 +200,15 @@ public static class SessionEndpoints
     {
         async Task<IResult> AttemptRegistration()
         {
-            var identityName = httpContext.GetIdentityName();
+            var identityName = httpContext.FindIdentityName();
+            var tenantId = httpContext.FindTenantId();
 
-            if (string.IsNullOrWhiteSpace(identityName))
+            if (tenantId == null || string.IsNullOrWhiteSpace(identityName))
             {
                 return Results.BadRequest();
             }
 
-            var registerSession = new RegisterSession(identityName).UseDirect();
+            var registerSession = new RegisterSession(tenantId.Value, identityName).UseDirect();
 
             await RegisterSession(mediator, registerSession);
 
@@ -223,7 +224,7 @@ public static class SessionEndpoints
                 });
         }
 
-        var sessionIdentityId = httpContext.GetIdentityId();
+        var sessionIdentityId = httpContext.FindIdentityId();
 
         if (sessionIdentityId == null)
         {
@@ -251,16 +252,17 @@ public static class SessionEndpoints
 
     private static async Task<IResult> DeleteSelf(HttpContext httpContext, IServiceBus serviceBus, ISessionRepository sessionRepository)
     {
-        var identityId = httpContext.GetIdentityId();
+        var identityId = httpContext.FindIdentityId();
+        var tenantId = httpContext.FindTenantId();
 
-        if (identityId == null)
+        if (tenantId == null || identityId == null)
         {
-            return Results.Ok();
+            return Results.BadRequest();
         }
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = await sessionRepository.FindAsync(identityId.Value);
+            var session = await sessionRepository.FindAsync(tenantId.Value, identityId.Value);
 
             if (session != null)
             {
@@ -283,19 +285,19 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        var sessionIdentityId = httpContext.GetIdentityId();
+        var sessionIdentityId = httpContext.FindIdentityId();
 
         if (sessionIdentityId == null)
         {
             return Results.Unauthorized();
         }
 
-        var registerSession = new RegisterSession(message.IdentityName).UseDelegation(sessionIdentityId.Value);
+        var registerSession = new RegisterSession(message.TenantId, message.IdentityName).UseDelegation(sessionIdentityId.Value);
 
         return await RegisterSession(mediator, registerSession);
     }
 
-    private static async Task<IResult> Post(ILogger<RegisterSession> logger, HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionService sessionService, IMediator mediator, [FromBody] Messages.v1.RegisterSession message)
+    private static async Task<IResult> Post(ILogger<RegisterSession> logger, HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, IMediator mediator, [FromBody] Messages.v1.RegisterSession message)
     {
         var options = Guard.AgainstNull(accessOptions.Value);
 
@@ -309,7 +311,7 @@ public static class SessionEndpoints
             return Results.BadRequest(Resources.SessionIdentityNameRequired);
         }
 
-        var registerSession = new RegisterSession(message.IdentityName);
+        var registerSession = new RegisterSession(message.TenantId, message.IdentityName);
 
         if (!string.IsNullOrWhiteSpace(message.Password))
         {
@@ -321,15 +323,14 @@ public static class SessionEndpoints
         }
         else
         {
-            var identityName = httpContext.GetIdentityName();
+            var tenantId = httpContext.FindTenantId();
+            var identityName = httpContext.FindIdentityName();
 
             if (string.IsNullOrWhiteSpace(identityName) || !identityName.Equals(message.IdentityName, StringComparison.InvariantCultureIgnoreCase))
             {
-                var identityId = httpContext.GetIdentityId();
-
-                if (!identityId.HasValue)
+                if (sessionContext.Session == null)
                 {
-                    if (string.IsNullOrWhiteSpace(identityName))
+                    if (tenantId == null || string.IsNullOrWhiteSpace(identityName))
                     {
                         return Results.BadRequest(Resources.HttpContextIdentityNotFound);
                     }
@@ -339,9 +340,9 @@ public static class SessionEndpoints
                     return Results.BadRequest();
                 }
 
-                if (!await sessionService.HasPermissionAsync(identityId.Value, AccessPermissions.Sessions.Register))
+                if (!sessionContext.Session.HasPermission(AccessPermissions.Sessions.Register))
                 {
-                    logger.LogDebug($"[UNAUTHORIZED] : identity id = '{identityId.Value}' / permission = '{AccessPermissions.Sessions.Register}'");
+                    logger.LogDebug($"[UNAUTHORIZED] : identity id = '{sessionContext.Session.IdentityId}' / permission = '{AccessPermissions.Sessions.Register}'");
 
                     return Results.Unauthorized();
                 }

@@ -121,12 +121,12 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var roles = (await identityQuery.RoleIdsAsync(new SqlServer.Models.Identity.Specification().WithIdentityId(id))).ToList();
+        var roles = (await identityQuery.RoleIdsAsync(new SqlServer.Models.Identity.Specification().AddId(id))).ToList();
 
         return Results.Ok(from roleId in identifiers.Values select new IdentifierAvailability<Guid> { Id = roleId, Active = roles.Any(item => item.Equals(roleId)) });
     }
 
-    private static async Task<IResult> Post(HttpContext httpContext, IMediator mediator, [FromBody] RegisterIdentity message)
+    private static async Task<IResult> Post(ISessionContext sessionContext, IMediator mediator, [FromBody] RegisterIdentity message)
     {
         Guard.AgainstNull(message);
 
@@ -139,12 +139,11 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var identityId = httpContext.GetIdentityId();
         var requestIdentityRegistration = new RequestIdentityRegistration(message);
 
-        if (identityId != null)
+        if (sessionContext.Session != null)
         {
-            requestIdentityRegistration.WithIdentityId(identityId.Value);
+            requestIdentityRegistration.Authorized(sessionContext.Session.TenantId, sessionContext.Session.IdentityId);
         }
 
         await mediator.SendAsync(requestIdentityRegistration);
@@ -186,7 +185,7 @@ public static class IdentityEndpoints
 
         if (message.Id.HasValue)
         {
-            specification.WithIdentityId(message.Id.Value);
+            specification.AddId(message.Id.Value);
         }
         else
         {
@@ -216,7 +215,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var identityId = httpContext.GetIdentityId();
+        var identityId = httpContext.FindIdentityId();
 
         if (identityId == null)
         {
@@ -232,7 +231,7 @@ public static class IdentityEndpoints
             : Results.Ok();
     }
 
-    private static async Task<IResult> PutPassword(HttpContext httpContext, IMediator mediator, ISessionRepository sessionRepository, [FromBody] ChangePassword message)
+    private static async Task<IResult> PutPassword(ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository, [FromBody] ChangePassword message)
     {
         try
         {
@@ -243,14 +242,12 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var identityId = httpContext.GetIdentityId();
-
-        if (identityId == null)
+        if (sessionContext.Session == null)
         {
             return Results.Unauthorized();
         }
 
-        var session = await sessionRepository.FindAsync(identityId.Value);
+        var session = await sessionRepository.FindAsync(sessionContext.Session.TenantId, sessionContext.Session.IdentityId);
 
         if (message.Id.HasValue && !(session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
         {
@@ -266,7 +263,7 @@ public static class IdentityEndpoints
             : Results.Accepted();
     }
 
-    private static async Task<IResult> PatchRole(IMediator mediator, IServiceBus serviceBus, Guid id, Guid roleId, [FromBody] SetIdentityRole message)
+    private static async Task<IResult> PatchRole(IMediator mediator, IServiceBus serviceBus, Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message)
     {
         try
         {
@@ -279,7 +276,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var reviewRequest = new RequestMessage<SetIdentityRole>(message);
+        var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(message);
 
         await mediator.SendAsync(reviewRequest);
 
@@ -306,7 +303,7 @@ public static class IdentityEndpoints
 
         if (Guid.TryParse(value, out var id))
         {
-            specification.WithIdentityId(id);
+            specification.AddId(id);
         }
         else
         {

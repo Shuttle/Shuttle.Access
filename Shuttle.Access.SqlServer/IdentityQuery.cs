@@ -52,6 +52,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
     private IQueryable<Models.Identity> GetQueryable(Models.Identity.Specification specification)
     {
         var queryable = _accessDbContext.Identities
+            .Include(item => item.IdentityTenants)
             .Include(item => item.IdentityRoles)
             .ThenInclude(item => item.Role)
             .AsNoTracking()
@@ -82,9 +83,19 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.RolePermissions.Any(rp => rp.PermissionId == specification.PermissionId)));
         }
 
-        if (specification.Id != null)
+        if (specification.HasIds)
         {
-            queryable = queryable.Where(i => i.Id == specification.Id);
+            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
+        }
+
+        if (specification.HasExcludedIds)
+        {
+            queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
+        }
+
+        if (specification.MaximumRows > 0)
+        {
+            queryable = queryable.Take(specification.MaximumRows);
         }
 
         return queryable;

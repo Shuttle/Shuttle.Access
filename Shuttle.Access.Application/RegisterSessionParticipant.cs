@@ -73,7 +73,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
         }
         else
         {
-            session = await _sessionRepository.FindAsync(message.IdentityName, cancellationToken);
+            session = await _sessionRepository.FindAsync(message.TenantId, message.IdentityName, cancellationToken);
         }
 
         if (session != null)
@@ -108,7 +108,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             var now = DateTimeOffset.UtcNow;
             var token = Guid.NewGuid();
 
-            session = new(Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(message.IdentityName, cancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
+            session = new(message.TenantId, Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(message.IdentityName, cancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
 
             await SaveAsync(token);
 

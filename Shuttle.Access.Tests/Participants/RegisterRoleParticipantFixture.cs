@@ -24,7 +24,7 @@ public class RegisterRoleParticipantFixture
         var participant =
             new RegisterRoleParticipant(eventStore, idKeyRepository.Object, new Mock<IPermissionQuery>().Object);
 
-        var addRole = new RegisterRole("role-name");
+        var addRole = new RegisterRole(Guid.NewGuid(), "role-name", "test");
 
         var requestResponseMessage =
             new RequestResponseMessage<RegisterRole, RoleRegistered>(addRole);

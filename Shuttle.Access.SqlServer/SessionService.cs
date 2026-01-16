@@ -27,9 +27,9 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
         }
     }
 
-    public async ValueTask<bool> HasPermissionAsync(Guid identityId, string permission, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> HasPermissionAsync(Guid tenantId, Guid identityId, string permission, CancellationToken cancellationToken = default)
     {
-        var session = await FindAsync(identityId, cancellationToken);
+        var session = await FindAsync(tenantId, identityId, cancellationToken);
 
         return session != null && HasPermission(session.IdentityId, permission);
     }
@@ -67,7 +67,7 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
         }
     }
 
-    public async Task<Messages.v1.Session?> FindByTokenAsync(Guid token, CancellationToken cancellationToken = default)
+    public async Task<Messages.v1.Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 
@@ -88,7 +88,7 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
         }
     }
 
-    public async Task<Messages.v1.Session?> FindAsync(Guid identityId, CancellationToken cancellationToken = default)
+    public async Task<Messages.v1.Session?> FindAsync(Guid tenantId, Guid identityId, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 
@@ -101,18 +101,18 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
                 return session;
             }
 
-            var aggregate = await _sessionRepository.FindAsync(identityId, cancellationToken);
+            var aggregate = await _sessionRepository.FindAsync(tenantId, identityId, cancellationToken);
 
             if (aggregate == null)
             {
-                var identity = (await _identityQuery.SearchAsync(new Models.Identity.Specification().WithIdentityId(identityId), cancellationToken)).FirstOrDefault();
+                var identity = (await _identityQuery.SearchAsync(new Models.Identity.Specification().AddId(identityId), cancellationToken)).FirstOrDefault();
 
                 if (identity != null)
                 {
                     var now = DateTimeOffset.UtcNow;
                     var token = Guid.NewGuid();
 
-                    aggregate = new(Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), identityId, identity.Name, now, now.Add(_accessOptions.SessionDuration));
+                    aggregate = new(tenantId, Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), identityId, identity.Name, now, now.Add(_accessOptions.SessionDuration));
 
                     await SaveAsync(token, aggregate, cancellationToken);
                 }
@@ -126,7 +126,7 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
         }
     }
 
-    public async Task<Messages.v1.Session?> FindAsync(string identityName, CancellationToken cancellationToken = default)
+    public async Task<Messages.v1.Session?> FindAsync(Guid tenantId, string identityName, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 
@@ -139,14 +139,14 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
                 return session;
             }
 
-            var aggregate = await _sessionRepository.FindAsync(identityName, cancellationToken);
+            var aggregate = await _sessionRepository.FindAsync(tenantId, identityName, cancellationToken);
 
             if (aggregate == null && await _identityQuery.CountAsync(new Models.Identity.Specification().WithName(identityName), cancellationToken) > 0)
             {
                 var now = DateTimeOffset.UtcNow;
                 var token = Guid.NewGuid();
 
-                aggregate = new(Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
+                aggregate = new(tenantId, Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
 
                 await SaveAsync(token, aggregate, cancellationToken);
             }

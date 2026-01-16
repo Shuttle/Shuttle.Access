@@ -8,9 +8,6 @@ namespace Shuttle.Access.SqlServer.Models;
 [PrimaryKey(nameof(TenantId), nameof(RoleId), nameof(PermissionId))]
 public class RolePermission
 {
-    [Required]
-    public DateTimeOffset DateRegistered { get; set; }
-
     public Permission Permission { get; set; } = null!;
 
     [Required]

@@ -12,28 +12,19 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore.Authentication;
 
-public class SessionTokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionService sessionService)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Shuttle.Access";
     public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
-    private readonly ISessionService _sessionService;
-
-    public SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionService sessionService) : base(options, logger, encoder)
-    {
-        _sessionService = Guard.AgainstNull(sessionService);
-    }
+    private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         var header = Request.Headers["Authorization"].FirstOrDefault();
 
-        if (header == null)
-        {
-            return AuthenticateResult.NoResult();
-        }
-
-        if (!header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
+        if (header == null || !header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
         {
             return AuthenticateResult.NoResult();
         }
@@ -46,7 +37,7 @@ public class SessionTokenAuthenticationHandler : AuthenticationHandler<Authentic
             return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
         }
 
-        var session = await _sessionService.FindByTokenAsync(sessionToken);
+        var session = await _sessionService.FindAsync(sessionToken);
 
         if (session == null)
         {

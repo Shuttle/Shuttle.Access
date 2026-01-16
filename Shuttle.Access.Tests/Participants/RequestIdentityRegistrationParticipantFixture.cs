@@ -10,22 +10,24 @@ namespace Shuttle.Access.Tests.Participants;
 [TestFixture]
 public class RequestIdentityRegistrationParticipantFixture
 {
+    private readonly Guid _tenantId = Guid.NewGuid();
+
     [Test]
     public async Task Should_be_able_to_request_identity_registration_using_a_session_async()
     {
         var now = DateTimeOffset.UtcNow;
         var identityId = Guid.NewGuid();
-        var session = new Session(Guid.NewGuid(), Guid.NewGuid().ToByteArray(), identityId, "identity-name", now, now.AddSeconds(5))
+        var session = new Session(_tenantId, Guid.NewGuid(), Guid.NewGuid().ToByteArray(), identityId, "identity-name", now, now.AddSeconds(5))
             .AddPermission(new(Guid.NewGuid(), AccessPermissions.Identities.Register))
             .AddPermission(new(Guid.NewGuid(), AccessPermissions.Identities.Activate));
         var sessionRepository = new Mock<ISessionRepository>();
 
-        sessionRepository.Setup(m => m.FindAsync(session.IdentityId, CancellationToken.None)).Returns(Task.FromResult(session)!);
+        sessionRepository.Setup(m => m.FindAsync(_tenantId, session.IdentityId, CancellationToken.None)).Returns(Task.FromResult(session)!);
 
         var serviceBus = new Mock<IServiceBus>();
-        var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, new HashingService(), sessionRepository.Object, new Mock<IMediator>().Object);
+        var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, sessionRepository.Object, new Mock<IMediator>().Object);
 
-        var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).WithIdentityId(identityId);
+        var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).Authorized(Guid.NewGuid(), identityId);
 
         await participant.ProcessMessageAsync(identityRegistrationRequested, CancellationToken.None);
 

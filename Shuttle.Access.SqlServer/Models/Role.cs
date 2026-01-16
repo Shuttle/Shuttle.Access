@@ -17,21 +17,17 @@ public class Role
     [Required]
     [StringLength(200)]
     public string Name { get; set; } = string.Empty;
-
+    
     public ICollection<RolePermission> RolePermissions { get; set; } = [];
 
-    public class Specification
+    public class Specification : Specification<Specification>
     {
         private readonly List<string> _names = [];
         private readonly List<Guid> _permissionIds = [];
-        private readonly List<Guid> _rolesIds = [];
-        public int MaximumRows { get; private set; }
-
         public string NameMatch { get; private set; } = string.Empty;
         public IEnumerable<string> Names => _names.AsReadOnly();
         public IEnumerable<Guid> PermissionIds => _permissionIds.AsReadOnly();
         public bool PermissionsIncluded { get; private set; }
-        public IEnumerable<Guid> RoleIds => _rolesIds.AsReadOnly();
 
         public Specification AddName(string name)
         {
@@ -63,36 +59,9 @@ public class Role
             return this;
         }
 
-        public Specification AddRoleId(Guid id)
-        {
-            if (!_rolesIds.Contains(id))
-            {
-                _rolesIds.Add(id);
-            }
-
-            return this;
-        }
-
-        public Specification AddRoleIds(IEnumerable<Guid> ids)
-        {
-            foreach (var id in ids)
-            {
-                AddRoleId(id);
-            }
-
-            return this;
-        }
-
         public Specification IncludePermissions()
         {
             PermissionsIncluded = true;
-
-            return this;
-        }
-
-        public Specification WithMaximumRows(int maximumRows)
-        {
-            MaximumRows = maximumRows;
 
             return this;
         }

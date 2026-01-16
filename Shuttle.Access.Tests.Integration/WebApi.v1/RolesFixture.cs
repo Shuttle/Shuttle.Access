@@ -117,7 +117,7 @@ public class RolesFixture
         var factory = new FixtureWebApplicationFactory();
 
         factory.ServiceBus.Setup(m =>
-                m.SendAsync(It.Is<SetRolePermission>(message => message.PermissionId.Equals(permissionId)), null))
+                m.SendAsync(It.Is<SetRolePermissionStatus>(message => message.PermissionId.Equals(permissionId)), null))
             .Verifiable();
 
         var response = await factory.GetAccessClient().Roles.SetPermissionAsync(Guid.NewGuid(), new()

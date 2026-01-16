@@ -16,7 +16,7 @@ public class SetRoleNameParticipant(IEventStore eventStore, IIdKeyRepository idK
         var request = Guard.AgainstNull(message).Request;
 
         var role = new Role();
-        var stream = await _eventStore.GetAsync(request.Id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
 
         stream.Apply(role);
 
@@ -37,7 +37,7 @@ public class SetRoleNameParticipant(IEventStore eventStore, IIdKeyRepository idK
 
         stream.Add(role.SetName(request.Name));
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
 
         message.WithResponse(new()
         {

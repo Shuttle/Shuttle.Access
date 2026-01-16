@@ -30,7 +30,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         return result;
     }
 
-    public async Task<Messages.v1.Session?> FindAsync(string identityName, CancellationToken cancellationToken = default)
+    public async Task<Messages.v1.Session?> FindAsync(Guid tenantId, string identityName, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 
@@ -130,7 +130,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         }
     }
 
-    public async Task FlushAsync(Guid identityGuid, CancellationToken cancellationToken = default)
+    public async Task FlushAsync(Guid identityId, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 
@@ -144,9 +144,9 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         }
     }
 
-    public async ValueTask<bool> HasPermissionAsync(Guid identityId, string permission, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> HasPermissionAsync(Guid tenantId, Guid identityId, string permission, CancellationToken cancellationToken = default)
     {
-        var session = await FindAsync(identityId, cancellationToken);
+        var session = await FindAsync(tenantId, identityId, cancellationToken);
 
         return session != null && HasPermission(session.IdentityId, permission);
     }
@@ -170,7 +170,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         }
     }
 
-    public async Task<Messages.v1.Session?> FindByTokenAsync(Guid token, CancellationToken cancellationToken = default)
+    public async Task<Messages.v1.Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 
@@ -222,7 +222,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         }
     }
 
-    public async Task<Messages.v1.Session?> FindAsync(Guid identityId, CancellationToken cancellationToken = default)
+    public async Task<Messages.v1.Session?> FindAsync(Guid tenantId, Guid identityId, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 

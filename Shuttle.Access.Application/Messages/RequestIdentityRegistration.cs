@@ -5,6 +5,7 @@ namespace Shuttle.Access.Application;
 
 public class RequestIdentityRegistration(RegisterIdentity registerIdentityMessage)
 {
+    public Guid? TenantId { get; private set; }
     public Guid? IdentityId { get; private set; }
 
     public bool IsActivationAllowed { get; private set; }
@@ -33,9 +34,10 @@ public class RequestIdentityRegistration(RegisterIdentity registerIdentityMessag
         return this;
     }
 
-    public RequestIdentityRegistration WithIdentityId(Guid identityId)
+    public RequestIdentityRegistration Authorized(Guid tenantId, Guid identityId)
     {
-        IdentityId = identityId;
+        TenantId = Guard.AgainstEmpty(tenantId);
+        IdentityId = Guard.AgainstEmpty(identityId);
 
         return this;
     }
