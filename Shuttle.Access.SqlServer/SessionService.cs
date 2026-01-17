@@ -168,6 +168,7 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
 
         return Add(token, new Messages.v1.Session
         {
+            TenantId = session.TenantId,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName,
             DateRegistered = session.DateRegistered,

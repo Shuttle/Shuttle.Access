@@ -7,4 +7,5 @@ public class RegisterTenant
     public string LogoSvg { get; set; } = string.Empty;
     public string LogoUrl { get; set; } = string.Empty;
     public string AuditIdentityName { get; set; } = string.Empty;
+    public int Status { get; set; } = 1;
 }

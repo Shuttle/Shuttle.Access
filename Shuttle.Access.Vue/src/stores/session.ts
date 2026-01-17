@@ -10,6 +10,7 @@ export const useSessionStore = defineStore("session", () => {
   const initialized = ref(false);
   const identityName = ref<string | undefined>("");
   const token = ref<string | undefined>("");
+  const tenantId = ref<string | undefined>("");
   const permissions = ref<string[]>([]);
 
   const status = computed(() => (!token.value ? "not-signed-in" : "signed-in"));
@@ -19,12 +20,14 @@ export const useSessionStore = defineStore("session", () => {
 
     const storedIdentity = localStorage.getItem("shuttle-access.identityName");
     const storedToken = localStorage.getItem("shuttle-access.token");
+    const storedTenantId = localStorage.getItem("shuttle-access.tenantId");
 
-    if (storedIdentity && storedToken) {
+    if (storedIdentity && storedToken && storedTenantId) {
       try {
         return await signIn({
           identityName: storedIdentity,
           token: storedToken,
+          tenantId: storedTenantId,
         });
       } finally {
         initialized.value = true;
@@ -49,16 +52,19 @@ export const useSessionStore = defineStore("session", () => {
       !session.identityId ||
       !session.identityName ||
       !session.token ||
-      !session.permissions
+      !session.permissions ||
+      !session.tenantId
     ) {
       throw Error(i18n.global.t("messages.invalid-session"));
     }
 
     localStorage.setItem("shuttle-access.identityName", session.identityName);
     localStorage.setItem("shuttle-access.token", session.token);
+    localStorage.setItem("shuttle-access.tenantId", session.tenantId);
 
     identityName.value = session.identityName;
     token.value = session.token;
+    tenantId.value = session.tenantId;
 
     removePermissions();
 
@@ -83,6 +89,7 @@ export const useSessionStore = defineStore("session", () => {
         password: credentials.password,
         token: credentials.token,
         applicationName: credentials.applicationName,
+        tenantId: credentials.tenantId,
       },
     );
 
@@ -142,9 +149,11 @@ export const useSessionStore = defineStore("session", () => {
   function signOut() {
     identityName.value = undefined;
     token.value = undefined;
+    tenantId.value = undefined;
 
     localStorage.removeItem("shuttle-access.identityName");
     localStorage.removeItem("shuttle-access.token");
+    localStorage.removeItem("shuttle-access.tenantId");
 
     removePermissions();
 
@@ -187,6 +196,7 @@ export const useSessionStore = defineStore("session", () => {
     initialized,
     identityName,
     token,
+    tenantId,
     permissions,
     status,
     initialize,

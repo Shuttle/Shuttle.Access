@@ -52,6 +52,8 @@ public static class SessionEndpoints
     {
         return new()
         {
+            TenantId = session.TenantId,
+            TenantName = session.Tenant?.Name ?? string.Empty,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName,
             IdentityDescription = session.Identity.Description,
@@ -65,6 +67,8 @@ public static class SessionEndpoints
     {
         return new()
         {
+            TenantId = session.TenantId,
+            TenantName = session.Tenant?.Name ?? string.Empty,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName,
             IdentityDescription = session.Identity.Description,
@@ -214,7 +218,7 @@ public static class SessionEndpoints
 
             if (registerSession.Result == SessionRegistrationResult.TenantSelectionRequired)
             {
-                return Results.Ok(new Messages.v1.SessionTenants
+                return Results.Ok(new SessionTenants
                 {
                     SessionId = registerSession.Session!.Id,
                     Tenants = registerSession.Tenants.Select(item => new SessionTenants.Tenant
@@ -422,6 +426,7 @@ public static class SessionEndpoints
             sessionResponse.Permissions = registerSession.Session.Permissions.Select(item => item.Name).ToList();
             sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
             sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
+            sessionResponse.TenantId = registerSession.Session.TenantId!.Value;
         }
 
         return Results.Ok(sessionResponse);

@@ -58,13 +58,20 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             }
         }
 
-        if ((await _identityQuery.SearchAsync(new SqlServer.Models.Identity.Specification().WithName(message.IdentityName), cancellationToken)).SingleOrDefault() == null)
+        var identity = (await _identityQuery.SearchAsync(new SqlServer.Models.Identity.Specification().WithName(message.IdentityName), cancellationToken)).SingleOrDefault();
+
+        if (identity == null)
         {
             message.UnknownIdentity();
-
             return;
         }
 
+        if (identity.IdentityTenants.Count == 0)
+        {
+            message.Forbidden();
+            return;
+        }
+        
         Session? session = null;
 
         if (message.RegistrationType == SessionRegistrationType.Token)
@@ -113,9 +120,24 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
             session = new( Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(message.IdentityName, cancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
 
-            await SaveAsync(token);
+            if (identity.IdentityTenants.Count == 1)
+            {
+                session.WithTenantId(identity.IdentityTenants.First().TenantId);
+                message.Registered(token, session);
+            }
+            else
+            {
+                message.RequiresTenantSelection(identity.IdentityTenants.Select(item => new Messages.v1.Tenant
+                {
+                    Id = item.TenantId,
+                    Name = item.Tenant.Name,
+                    LogoSvg = item.Tenant.LogoSvg,
+                    LogoUrl = item.Tenant.LogoUrl,
+                    Status = item.Tenant.Status
+                }));
+            }
 
-            message.Registered(token, session);
+            await SaveAsync(token);
         }
 
         return;

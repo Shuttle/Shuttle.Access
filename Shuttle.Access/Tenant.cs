@@ -8,14 +8,16 @@ public class Tenant
     public string Name { get; private set; } = string.Empty;
     public string LogoSvg { get; private set; } = string.Empty;
     public string LogoUrl { get; private set; } = string.Empty;
+    public int Status { get; private set; }
 
-    public Registered Register(string name, string logoSvg, string logoUrl)
+    public Registered Register(string name, int status, string logoSvg, string logoUrl)
     {
-        return On(new Registered
+        return On(new()
         {
             Name = Guard.AgainstEmpty(name),
             LogoSvg = logoSvg,
-            LogoUrl = logoUrl
+            LogoUrl = logoUrl,
+            Status = status
         });
     }
 

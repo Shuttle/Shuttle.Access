@@ -19,7 +19,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
 
         var model = await _accessDbContext.Sessions
             .Include(item => item.SessionPermissions)
-            .SingleOrDefaultAsync(e => e.IdentityName == session.IdentityName, cancellationToken: cancellationToken);
+            .SingleOrDefaultAsync(item => item.IdentityName == session.IdentityName, cancellationToken: cancellationToken);
 
         if (model == null)
         {
@@ -30,6 +30,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
                 IdentityId = session.IdentityId,
+                TenantId = session.TenantId,
                 Token = session.Token,
                 SessionPermissions = session.Permissions.Select(p => new SessionPermission
                 {
@@ -82,6 +83,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
     private async Task<Session?> FindAsync(SqlServer.Models.Session.Specification specification, CancellationToken cancellationToken)
     {
         var queryable = _accessDbContext.Sessions
+            .Include(item => item.Tenant)
             .Include(e => e.SessionPermissions)
             .ThenInclude(e => e.Permission)
             .AsNoTracking()

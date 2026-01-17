@@ -12,13 +12,12 @@ namespace Shuttle.Access.Application;
 public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptions, ILogger<ConfigureApplicationParticipant> logger, ITransactionScopeFactory transactionScopeFactory, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, AccessDbContext accessDbContext)
     : IParticipant<ConfigureApplication>
 {
-    private readonly ILogger<ConfigureApplicationParticipant> _logger = Guard.AgainstNull(logger);
+    private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
     private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
-    private readonly ITransactionScopeFactory _transactionScopeFactory = Guard.AgainstNull(transactionScopeFactory);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
+    private readonly ILogger<ConfigureApplicationParticipant> _logger = Guard.AgainstNull(logger);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
     private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
-    private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
     private readonly List<string> _permissions =
     [
@@ -52,14 +51,15 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
     ];
 
     private readonly ITenantQuery _tenantQuery = Guard.AgainstNull(tenantQuery);
+    private readonly ITransactionScopeFactory _transactionScopeFactory = Guard.AgainstNull(transactionScopeFactory);
 
     public async Task ProcessMessageAsync(ConfigureApplication message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
-        using (var scope = _transactionScopeFactory.Create())
+        foreach (var permission in _permissions)
         {
-            foreach (var permission in _permissions)
+            using (var scope = _transactionScopeFactory.Create())
             {
                 if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
                 {
@@ -77,9 +77,13 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
                     });
 
                 await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
+                scope.Complete();
             }
+        }
 
-            foreach (var permission in _systemPermissions)
+        foreach (var permission in _systemPermissions)
+        {
+            using (var scope = _transactionScopeFactory.Create())
             {
                 if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
                 {
@@ -98,9 +102,8 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
                     });
 
                 await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
+                scope.Complete();
             }
-
-            scope.Complete();
         }
 
         var timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
@@ -148,19 +151,21 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
                 {
                     Id = _accessOptions.SystemTenantId,
                     Name = _accessOptions.SystemTenantName,
+                    Status = 1,
                     AuditIdentityName = "system"
                 });
 
                 await _mediator.SendAsync(registerTenant, cancellationToken);
 
-                var tenantModel = await _accessDbContext.Tenants.FirstOrDefaultAsync(item => item.Id == _accessOptions.SystemTenantId, cancellationToken: cancellationToken);
+                var tenantModel = await _accessDbContext.Tenants.FirstOrDefaultAsync(item => item.Id == _accessOptions.SystemTenantId, cancellationToken);
 
                 if (tenantModel == null)
                 {
                     _accessDbContext.Tenants.Add(new()
                     {
                         Id = _accessOptions.SystemTenantId,
-                        Name = _accessOptions.SystemTenantName
+                        Name = _accessOptions.SystemTenantName,
+                        Status = 1
                     });
 
                     await _accessDbContext.SaveChangesAsync(cancellationToken);

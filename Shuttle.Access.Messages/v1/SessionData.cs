@@ -7,5 +7,7 @@ public class SessionData
     public string IdentityDescription { get; set; } = string.Empty;
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
+    public Guid? TenantId { get; set; }
+    public string TenantName { get; set; } = string.Empty;
     public List<Permission> Permissions { get; set; } = [];
 }

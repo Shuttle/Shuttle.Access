@@ -35,6 +35,18 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
 
         var roleModel = await _accessDbContext.Roles.FirstAsync(item => item.Id == domainEvent.RoleId, cancellationToken: cancellationToken);
 
+        var identityTenantModel = await _accessDbContext.IdentityTenants.FirstOrDefaultAsync(item => item.IdentityId == primitiveEvent.Id && item.TenantId == roleModel.TenantId, cancellationToken: cancellationToken);
+
+        if (identityTenantModel == null)
+        {
+            _accessDbContext.IdentityTenants.Add(new()
+            {
+                IdentityId = primitiveEvent.Id,
+                TenantId = roleModel.TenantId,
+                Status = 1
+            });
+        }
+
         _accessDbContext.IdentityRoles.Add(new()
         {
             IdentityId = primitiveEvent.Id,

@@ -11,6 +11,7 @@ api.interceptors.request.use(function (config) {
 
   config.headers["Authorization"] =
     `Shuttle.Access token=${sessionStore.token}`;
+  config.headers["Shuttle-Access-Tenant-Id"] = `${sessionStore.tenantId}`;
 
   return config;
 });

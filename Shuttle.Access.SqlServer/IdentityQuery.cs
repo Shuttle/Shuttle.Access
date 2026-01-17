@@ -53,6 +53,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
     {
         var queryable = _accessDbContext.Identities
             .Include(item => item.IdentityTenants)
+            .ThenInclude(item => item.Tenant)
             .Include(item => item.IdentityRoles)
             .ThenInclude(item => item.Role)
             .AsNoTracking()

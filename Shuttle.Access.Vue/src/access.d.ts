@@ -156,4 +156,5 @@ export type SessionResponse = {
   token: string;
   tokenExpiryDate: string;
   sessionTokenExchangeUrl?: string;
+  tenantId: string;
 };

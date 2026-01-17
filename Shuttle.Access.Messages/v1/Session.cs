@@ -8,6 +8,8 @@ public class Session
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
     public List<string> Permissions { get; set; } = [];
+    public Guid? TenantId { get; set; }
+    public string TenantName { get; set; } = string.Empty;
 
     public class Specification
     {

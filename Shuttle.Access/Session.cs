@@ -6,8 +6,6 @@ namespace Shuttle.Access;
 public class Session(Guid id, byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
 {
     private readonly List<Permission> _permissions = [];
-
-    public Guid? TenantId { get; private set; }
     public DateTimeOffset DateRegistered { get; set; } = dateRegistered;
 
     public DateTimeOffset ExpiryDate { get; private set; } = expiryDate;
@@ -19,6 +17,9 @@ public class Session(Guid id, byte[] token, Guid identityId, string identityName
     public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
     public IEnumerable<Permission> Permissions => _permissions.AsReadOnly();
+
+    public Guid? TenantId { get; private set; }
+
     public byte[] Token { get; private set; } = Guard.AgainstNull(token);
 
     public Session AddPermission(Permission permission)

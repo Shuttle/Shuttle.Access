@@ -29,7 +29,7 @@ public class RegisterTenantParticipant(IEventStore eventStore, IIdKeyRepository 
         var aggregate = new Tenant();
         var stream = await _eventStore.GetAsync(id, cancellationToken);
 
-        stream.Add(aggregate.Register(request.Name, request.LogoSvg, request.LogoUrl));
+        stream.Add(aggregate.Register(request.Name, request.Status, request.LogoSvg, request.LogoUrl));
 
         await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
 
