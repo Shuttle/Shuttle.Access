@@ -13,6 +13,13 @@ public static class AccessPermissions
         public const string View = "access://identities/view";
     }
 
+    public static class IdentityTenants
+    {
+        public const string Manage = "access://identities/manage";
+        public const string Remove = "access://identities/remove";
+        public const string View = "access://identities/view";
+    }
+
     public static class Permissions
     {
         public const string Manage = "access://permissions/manage";

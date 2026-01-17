@@ -8,6 +8,7 @@ namespace Shuttle.Access.Server.v1.EventHandlers;
 
 public class RoleHandler(ILogger<RoleHandler> logger, IRoleProjectionQuery query) :
     IEventHandler<Registered>,
+    IEventHandler<Shuttle.Access.Events.Role.v2.Registered>,
     IEventHandler<Removed>,
     IEventHandler<PermissionAdded>,
     IEventHandler<PermissionRemoved>,
@@ -59,5 +60,14 @@ public class RoleHandler(ILogger<RoleHandler> logger, IRoleProjectionQuery query
         await _query.RemovedAsync(context.PrimitiveEvent, cancellationToken);
 
         _logger.LogDebug($"[Removed] : id = '{context.PrimitiveEvent.Id}'");
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<Events.Role.v2.Registered> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        await _query.RegisteredAsync(context.PrimitiveEvent, context.Event, cancellationToken);
+
+        _logger.LogDebug($"[Registered] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}'");
     }
 }

@@ -111,6 +111,7 @@ internal class Program
                         recallBuilder.AddProjection(ProjectionNames.Identity).AddEventHandler<IdentityHandler>();
                         recallBuilder.AddProjection(ProjectionNames.Permission).AddEventHandler<PermissionHandler>();
                         recallBuilder.AddProjection(ProjectionNames.Role).AddEventHandler<RoleHandler>();
+                        recallBuilder.AddProjection(ProjectionNames.Tenant).AddEventHandler<TenantHandler>();
                     })
                     .AddMediator(builder =>
                     {

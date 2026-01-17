@@ -5,5 +5,6 @@ public enum SessionRegistrationResult
     Forbidden,
     Registered,
     DelegationSessionInvalid,
-    UnknownIdentity
+    UnknownIdentity,
+    TenantSelectionRequired
 }

@@ -114,7 +114,12 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             return null;
         }
 
-        var result = new Session(model.TenantId, model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
+        var result = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
+
+        if (model.TenantId.HasValue)
+        {
+            result.WithTenantId(model.TenantId.Value);
+        }
 
         foreach (var sessionPermission in model.SessionPermissions)
         {

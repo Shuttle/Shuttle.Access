@@ -12,7 +12,7 @@ using Shuttle.Access.SqlServer;
 namespace Shuttle.Access.Data.Migrations
 {
     [DbContext(typeof(AccessDbContext))]
-    [Migration("20260116121222_Tenant_Migration")]
+    [Migration("20260117154311_Tenant_Migration")]
     partial class Tenant_Migration
     {
         /// <inheritdoc />
@@ -75,14 +75,11 @@ namespace Shuttle.Access.Data.Migrations
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("RoleTenantId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("TenantId", "IdentityId", "RoleId");
 
                     b.HasIndex("IdentityId");
 
-                    b.HasIndex("RoleTenantId", "RoleId");
+                    b.HasIndex("TenantId", "RoleId");
 
                     b.ToTable("IdentityRole", "access");
                 });
@@ -117,11 +114,6 @@ namespace Shuttle.Access.Data.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Scope")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -184,14 +176,9 @@ namespace Shuttle.Access.Data.Migrations
                     b.Property<Guid>("PermissionId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("RoleTenantId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("TenantId", "RoleId", "PermissionId");
 
                     b.HasIndex("PermissionId");
-
-                    b.HasIndex("RoleTenantId", "RoleId");
 
                     b.ToTable("RolePermission", "access");
                 });
@@ -217,7 +204,7 @@ namespace Shuttle.Access.Data.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("nvarchar(320)");
 
-                    b.Property<Guid>("TenantId")
+                    b.Property<Guid?>("TenantId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Token")
@@ -225,6 +212,8 @@ namespace Shuttle.Access.Data.Migrations
                         .HasColumnType("varbinary(900)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId");
 
                     b.HasIndex(new[] { "IdentityId" }, "UX_Session_IdentityId")
                         .IsUnique();
@@ -244,9 +233,6 @@ namespace Shuttle.Access.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PermissionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("TenantId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("SessionId", "PermissionId");
@@ -279,6 +265,16 @@ namespace Shuttle.Access.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("LogoSvg")
+                        .IsRequired()
+                        .HasMaxLength(2147483647)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LogoUrl")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(320)
@@ -305,7 +301,9 @@ namespace Shuttle.Access.Data.Migrations
 
                     b.HasOne("Shuttle.Access.SqlServer.Models.Role", "Role")
                         .WithMany()
-                        .HasForeignKey("RoleTenantId", "RoleId");
+                        .HasForeignKey("TenantId", "RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Identity");
 
@@ -360,7 +358,9 @@ namespace Shuttle.Access.Data.Migrations
 
                     b.HasOne("Shuttle.Access.SqlServer.Models.Role", "Role")
                         .WithMany("RolePermissions")
-                        .HasForeignKey("RoleTenantId", "RoleId");
+                        .HasForeignKey("TenantId", "RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Permission");
 
@@ -375,7 +375,13 @@ namespace Shuttle.Access.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Shuttle.Access.SqlServer.Models.Tenant", "Tenant")
+                        .WithMany()
+                        .HasForeignKey("TenantId");
+
                     b.Navigation("Identity");
+
+                    b.Navigation("Tenant");
                 });
 
             modelBuilder.Entity("Shuttle.Access.SqlServer.Models.SessionPermission", b =>

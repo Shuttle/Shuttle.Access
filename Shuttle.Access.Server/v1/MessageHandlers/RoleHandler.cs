@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Shuttle.Access.Messages.v1;
+﻿using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;

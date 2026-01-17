@@ -208,13 +208,31 @@ public static class SessionEndpoints
                 return Results.BadRequest();
             }
 
-            var registerSession = new RegisterSession(tenantId.Value, identityName).UseDirect();
+            var registerSession = new RegisterSession(identityName).WithTenantId(tenantId.Value).UseDirect();
 
             await RegisterSession(mediator, registerSession);
 
-            return registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession
-                ? Results.NotFound()
-                : Results.Ok(new Messages.v1.Session
+            if (registerSession.Result == SessionRegistrationResult.TenantSelectionRequired)
+            {
+                return Results.Ok(new Messages.v1.SessionTenants
+                {
+                    SessionId = registerSession.Session!.Id,
+                    Tenants = registerSession.Tenants.Select(item => new SessionTenants.Tenant
+                    {
+                        Id = item.Id,
+                        Name = item.Name,
+                        LogoSvg = item.LogoSvg,
+                        LogoUrl = item.LogoUrl
+                    }).ToList()
+                });
+            }
+            else if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession)
+            {
+                return Results.NotFound();
+            }
+            else
+            {
+                return Results.Ok(new Messages.v1.Session
                 {
                     DateRegistered = registerSession.Session!.DateRegistered,
                     ExpiryDate = registerSession.Session.ExpiryDate,
@@ -222,6 +240,7 @@ public static class SessionEndpoints
                     IdentityName = identityName,
                     Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList()
                 });
+            }
         }
 
         var sessionIdentityId = httpContext.FindIdentityId();
@@ -292,7 +311,7 @@ public static class SessionEndpoints
             return Results.Unauthorized();
         }
 
-        var registerSession = new RegisterSession(message.TenantId, message.IdentityName).UseDelegation(sessionIdentityId.Value);
+        var registerSession = new RegisterSession(message.IdentityName).UseDelegation(message.TenantId, sessionIdentityId.Value);
 
         return await RegisterSession(mediator, registerSession);
     }
@@ -311,7 +330,12 @@ public static class SessionEndpoints
             return Results.BadRequest(Resources.SessionIdentityNameRequired);
         }
 
-        var registerSession = new RegisterSession(message.TenantId, message.IdentityName);
+        var registerSession = new RegisterSession(message.IdentityName);
+
+        if (message.TenantId.HasValue)
+        {
+            registerSession.WithTenantId(message.TenantId.Value);
+        }
 
         if (!string.IsNullOrWhiteSpace(message.Password))
         {

@@ -54,6 +54,10 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Events\Tenant.v1\" />
+  </ItemGroup>
+
   <Target Name="CopyNuGetPackage" AfterTargets="Pack" Condition="'$(NUGET_PACKAGE_FOLDER)' != ''">
     <Message Text="Removing cached NuGet package '$(USERPROFILE)\.nuget\packages\$(AssemblyName)\$(Version)'..." Importance="high" />
     <RemoveDir Directories="$(USERPROFILE)\.nuget\packages\$(AssemblyName)\$(Version)" />

@@ -20,6 +20,8 @@ public static class ServiceCollectionExtensions
 
             services.AddOptions<AccessOptions>().Configure(options =>
             {
+                options.SystemTenantId = accessBuilder.Options.SystemTenantId;
+                options.SystemTenantName = accessBuilder.Options.SystemTenantName;
                 options.SessionDuration = accessBuilder.Options.SessionDuration;
                 options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
                 options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;

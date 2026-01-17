@@ -10,20 +10,26 @@ using Shuttle.Hopper;
 namespace Shuttle.Access.Server;
 
 public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOptions<ServerOptions> serverOptions, IServiceScopeFactory serviceScopeFactory)
-    : BackgroundService
+    : IHostedService
 {
     private readonly Type _inboxMessagePipeline = typeof(InboxMessagePipeline);
-    private IMediator? _mediator;
     private readonly PipelineOptions _pipelineOptions = Guard.AgainstNull(Guard.AgainstNull(pipelineOptions).Value);
     private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
-    private IServiceScope? _serviceScope;
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_mediator != null)
-        {
-            await _mediator.SendAsync(new ConfigureApplication(), cancellationToken);
-        }
+        _pipelineOptions.PipelineCreated += PipelineCreated;
+
+        using var scope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
+
+        await scope.ServiceProvider.GetRequiredService<IMediator>().SendAsync(new ConfigureApplication(), cancellationToken);
+    }
+
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _pipelineOptions.PipelineCreated -= PipelineCreated;
+
+        return Task.CompletedTask;
     }
 
     private Task PipelineCreated(PipelineEventArgs eventArgs, CancellationToken cancellationToken)
@@ -33,26 +39,6 @@ public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOpt
         {
             eventArgs.Pipeline.AddObserver<KeepAliveObserver>();
         }
-
-        return Task.CompletedTask;
-    }
-
-    public override Task StartAsync(CancellationToken cancellationToken)
-    {
-        _pipelineOptions.PipelineCreated += PipelineCreated;
-
-        _serviceScope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
-
-        _mediator = _serviceScope.ServiceProvider.GetRequiredService<IMediator>();
-        
-        return Task.CompletedTask;
-    }
-
-    public override Task StopAsync(CancellationToken cancellationToken)
-    {
-        _pipelineOptions.PipelineCreated -= PipelineCreated;
-
-        _serviceScope?.Dispose();
 
         return Task.CompletedTask;
     }

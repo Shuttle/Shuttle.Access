@@ -17,9 +17,9 @@ public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService s
     {
         Guard.AgainstNull(message);
 
-        var session = await _sessionRepository.FindAsync(message.SessionId, cancellationToken);
+        var session = await _sessionRepository.FindAsync(message.Id, cancellationToken);
 
-        if (session == null)
+        if (session is not { TenantId: not null })
         {
             return;
         }
@@ -38,7 +38,7 @@ public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService s
         await _serviceBus.PublishAsync(new SessionRefreshed
         {
             Id = session.Id,
-            TenantId = session.TenantId,
+            TenantId = session.TenantId.Value,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName
         }, cancellationToken: cancellationToken);

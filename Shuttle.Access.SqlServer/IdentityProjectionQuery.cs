@@ -33,10 +33,13 @@ public class IdentityProjectionQuery(AccessDbContext accessDbContext) : IIdentit
             return;
         }
 
+        var roleModel = await _accessDbContext.Roles.FirstAsync(item => item.Id == domainEvent.RoleId, cancellationToken: cancellationToken);
+
         _accessDbContext.IdentityRoles.Add(new()
         {
             IdentityId = primitiveEvent.Id,
             RoleId = domainEvent.RoleId,
+            TenantId = roleModel.TenantId
         });
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);

@@ -18,10 +18,6 @@ public class Permission
     [StringLength(200)]
     public string Name { get; set; } = string.Empty;
 
-    [Required]
-    [StringLength(200)]
-    public string Scope { get; set; } = "scope://access/system";
-
     public ICollection<RolePermission> RolePermissions { get; set; } = [];
     public ICollection<PermissionTenant> PermissionTenants { get; set; } = [];
 

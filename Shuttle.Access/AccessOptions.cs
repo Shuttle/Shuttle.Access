@@ -21,6 +21,7 @@ public class AccessOptions
     public AsyncEvent<AuthenticationEventArgs> AuthenticationUnknownIdentity { get; set; } = new();
     public AsyncEvent<AuthenticationEventArgs> AuthenticationFailed { get; set; } = new();
     public AsyncEvent<AuthenticationEventArgs> Authenticated { get; set; } = new();
+    public string SystemTenantName { get; set; } = "System";
 }
 
 public class ConfigurationOptions
@@ -28,7 +29,7 @@ public class ConfigurationOptions
     public string AdministratorIdentityName { get; set; } = "shuttle-admin";
     public string AdministratorPassword { get; set; } = "shuttle-admin";
     public bool ShouldConfigure { get; set; } = true;
-    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(2);
 }
 
 public class KnownApplicationOptions

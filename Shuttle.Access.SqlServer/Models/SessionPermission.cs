@@ -17,7 +17,4 @@ public class SessionPermission
 
     [Required]
     public Guid SessionId { get; set; }
-
-    [Required]
-    public Guid TenantId { get; set; }
 }

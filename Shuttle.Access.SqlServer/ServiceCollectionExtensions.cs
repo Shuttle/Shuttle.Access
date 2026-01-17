@@ -38,14 +38,13 @@ public static class ServiceCollectionExtensions
             services.AddScoped<ISessionRepository, SessionRepository>();
             services.AddScoped<ISessionService, SessionService>();
             services.AddScoped<ISessionTokenExchangeRepository, SessionTokenExchangeRepository>();
+            services.AddScoped<ITenantQuery, TenantQuery>();
+            services.AddScoped<ITenantProjectionQuery, TenantProjectionQuery>();
 
             services.AddScoped<DbConnection>(sp =>
             {
                 var options = sp.GetRequiredService<IOptions<AccessSqlServerOptions>>().Value;
-
-                var dbConnection = new SqlConnection(options.ConnectionString);
-                dbConnection.Open();
-                return dbConnection;
+                return new SqlConnection(options.ConnectionString);
             });
             
             services.AddDbContext<AccessDbContext>((sp, options) =>

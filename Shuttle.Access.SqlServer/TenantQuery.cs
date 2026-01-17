@@ -7,6 +7,11 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
+    public async ValueTask<int> CountAsync(Models.Tenant.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return await GetQueryable(specification).CountAsync(cancellationToken);
+    }
+
     public async Task<IEnumerable<Models.Tenant>> SearchAsync(Models.Tenant.Specification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification)

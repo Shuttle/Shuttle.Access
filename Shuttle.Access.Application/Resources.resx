@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AdministratorRoleException" xml:space="preserve">
-    <value>Could not find the 'Access Administrator' role.  It appears as though the projection has not been built as the `RegisterRole` event should be in the event store.</value>
+    <value>Timed out waiting for the administrator role to be registered.</value>
   </data>
   <data name="SessionRegistrationTypeException" xml:space="preserve">
     <value>Registration type already set to '{0}'.</value>
@@ -138,5 +138,8 @@
   </data>
   <data name="AdministratorPermissionException" xml:space="preserve">
     <value>The 'Access Administrator' role does not have the required 'access://*' permission.</value>
+  </data>
+  <data name="SystemTenantException" xml:space="preserve">
+    <value>Timed out waiting for the system tenant to be registered.</value>
   </data>
 </root>

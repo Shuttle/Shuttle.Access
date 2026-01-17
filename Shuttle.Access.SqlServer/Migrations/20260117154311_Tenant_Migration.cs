@@ -65,16 +65,9 @@ delete from [access].[Permission]
             migrationBuilder.AddColumn<Guid>(
                 name: "TenantId",
                 schema: "access",
-                table: "SessionPermission",
-                type: "uniqueidentifier",
-                nullable: false);
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "TenantId",
-                schema: "access",
                 table: "Session",
                 type: "uniqueidentifier",
-                nullable: false);
+                nullable: true);
 
             migrationBuilder.AddColumn<Guid>(
                 name: "TenantId",
@@ -82,13 +75,6 @@ delete from [access].[Permission]
                 table: "RolePermission",
                 type: "uniqueidentifier",
                 nullable: false);
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "RoleTenantId",
-                schema: "access",
-                table: "RolePermission",
-                type: "uniqueidentifier",
-                nullable: true);
 
             migrationBuilder.AddColumn<Guid>(
                 name: "TenantId",
@@ -97,28 +83,12 @@ delete from [access].[Permission]
                 type: "uniqueidentifier",
                 nullable: false);
 
-            migrationBuilder.AddColumn<string>(
-                name: "Scope",
-                schema: "access",
-                table: "Permission",
-                type: "nvarchar(200)",
-                maxLength: 200,
-                nullable: false,
-                defaultValue: "");
-
             migrationBuilder.AddColumn<Guid>(
                 name: "TenantId",
                 schema: "access",
                 table: "IdentityRole",
                 type: "uniqueidentifier",
                 nullable: false);
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "RoleTenantId",
-                schema: "access",
-                table: "IdentityRole",
-                type: "uniqueidentifier",
-                nullable: true);
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_RolePermission",
@@ -145,7 +115,9 @@ delete from [access].[Permission]
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(320)", maxLength: 320, nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    LogoSvg = table.Column<string>(type: "nvarchar(max)", maxLength: 2147483647, nullable: false),
+                    LogoUrl = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -208,10 +180,10 @@ delete from [access].[Permission]
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_RolePermission_RoleTenantId_RoleId",
+                name: "IX_Session_TenantId",
                 schema: "access",
-                table: "RolePermission",
-                columns: new[] { "RoleTenantId", "RoleId" });
+                table: "Session",
+                column: "TenantId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdentityRole_IdentityId",
@@ -220,10 +192,10 @@ delete from [access].[Permission]
                 column: "IdentityId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_IdentityRole_RoleTenantId_RoleId",
+                name: "IX_IdentityRole_TenantId_RoleId",
                 schema: "access",
                 table: "IdentityRole",
-                columns: new[] { "RoleTenantId", "RoleId" });
+                columns: new[] { "TenantId", "RoleId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_IdentityTenant_TenantId",
@@ -245,36 +217,52 @@ delete from [access].[Permission]
                 unique: true);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_IdentityRole_Role_RoleTenantId_RoleId",
+                name: "FK_IdentityRole_Role_TenantId_RoleId",
                 schema: "access",
                 table: "IdentityRole",
-                columns: new[] { "RoleTenantId", "RoleId" },
+                columns: new[] { "TenantId", "RoleId" },
                 principalSchema: "access",
                 principalTable: "Role",
-                principalColumns: new[] { "TenantId", "Id" });
+                principalColumns: new[] { "TenantId", "Id" },
+                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_RolePermission_Role_RoleTenantId_RoleId",
+                name: "FK_RolePermission_Role_TenantId_RoleId",
                 schema: "access",
                 table: "RolePermission",
-                columns: new[] { "RoleTenantId", "RoleId" },
+                columns: new[] { "TenantId", "RoleId" },
                 principalSchema: "access",
                 principalTable: "Role",
-                principalColumns: new[] { "TenantId", "Id" });
+                principalColumns: new[] { "TenantId", "Id" },
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Session_Tenant_TenantId",
+                schema: "access",
+                table: "Session",
+                column: "TenantId",
+                principalSchema: "access",
+                principalTable: "Tenant",
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_IdentityRole_Role_RoleTenantId_RoleId",
+                name: "FK_IdentityRole_Role_TenantId_RoleId",
                 schema: "access",
                 table: "IdentityRole");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_RolePermission_Role_RoleTenantId_RoleId",
+                name: "FK_RolePermission_Role_TenantId_RoleId",
                 schema: "access",
                 table: "RolePermission");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Session_Tenant_TenantId",
+                schema: "access",
+                table: "Session");
 
             migrationBuilder.DropTable(
                 name: "IdentityTenant",
@@ -288,13 +276,13 @@ delete from [access].[Permission]
                 name: "Tenant",
                 schema: "access");
 
+            migrationBuilder.DropIndex(
+                name: "IX_Session_TenantId",
+                schema: "access",
+                table: "Session");
+
             migrationBuilder.DropPrimaryKey(
                 name: "PK_RolePermission",
-                schema: "access",
-                table: "RolePermission");
-
-            migrationBuilder.DropIndex(
-                name: "IX_RolePermission_RoleTenantId_RoleId",
                 schema: "access",
                 table: "RolePermission");
 
@@ -314,14 +302,9 @@ delete from [access].[Permission]
                 table: "IdentityRole");
 
             migrationBuilder.DropIndex(
-                name: "IX_IdentityRole_RoleTenantId_RoleId",
+                name: "IX_IdentityRole_TenantId_RoleId",
                 schema: "access",
                 table: "IdentityRole");
-
-            migrationBuilder.DropColumn(
-                name: "TenantId",
-                schema: "access",
-                table: "SessionPermission");
 
             migrationBuilder.DropColumn(
                 name: "TenantId",
@@ -334,27 +317,12 @@ delete from [access].[Permission]
                 table: "RolePermission");
 
             migrationBuilder.DropColumn(
-                name: "RoleTenantId",
-                schema: "access",
-                table: "RolePermission");
-
-            migrationBuilder.DropColumn(
                 name: "TenantId",
                 schema: "access",
                 table: "Role");
 
             migrationBuilder.DropColumn(
-                name: "Scope",
-                schema: "access",
-                table: "Permission");
-
-            migrationBuilder.DropColumn(
                 name: "TenantId",
-                schema: "access",
-                table: "IdentityRole");
-
-            migrationBuilder.DropColumn(
-                name: "RoleTenantId",
                 schema: "access",
                 table: "IdentityRole");
 

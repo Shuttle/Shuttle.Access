@@ -25,14 +25,15 @@ public class Session
     [Required]
     public Guid IdentityId { get; set; }
 
-    [Required]
-    public Guid TenantId { get; set; }
+    public Guid? TenantId { get; set; }
     
     [Required]
     [StringLength(320)]
     public string IdentityName { get; set; } = string.Empty;
 
     public ICollection<SessionPermission> SessionPermissions { get; set; } = [];
+
+    public Tenant? Tenant { get; set; }
 
     [Required]
     public byte[] Token { get; set; } = new byte[32];

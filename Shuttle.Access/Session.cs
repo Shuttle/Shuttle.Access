@@ -3,11 +3,11 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
 
-public class Session(Guid tenantId, Guid id, byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
+public class Session(Guid id, byte[] token, Guid identityId, string identityName, DateTimeOffset dateRegistered, DateTimeOffset expiryDate)
 {
     private readonly List<Permission> _permissions = [];
 
-    public Guid TenantId { get; } = Guard.AgainstEmpty(tenantId);
+    public Guid? TenantId { get; private set; }
     public DateTimeOffset DateRegistered { get; set; } = dateRegistered;
 
     public DateTimeOffset ExpiryDate { get; private set; } = expiryDate;
@@ -51,6 +51,12 @@ public class Session(Guid tenantId, Guid id, byte[] token, Guid identityId, stri
     {
         Token = Guard.AgainstNull(token);
         ExpiryDate = expiryDate;
+    }
+
+    public Session WithTenantId(Guid tenantId)
+    {
+        TenantId = Guard.AgainstEmpty(tenantId);
+        return this;
     }
 
     public class Permission(Guid id, string name)

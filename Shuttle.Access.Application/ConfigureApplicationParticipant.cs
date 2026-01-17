@@ -1,20 +1,24 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
+using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Access.Application;
 
-public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptions, ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
+public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptions, ILogger<ConfigureApplicationParticipant> logger, ITransactionScopeFactory transactionScopeFactory, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, AccessDbContext accessDbContext)
     : IParticipant<ConfigureApplication>
 {
-    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
-    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly ILogger<ConfigureApplicationParticipant> _logger = Guard.AgainstNull(logger);
+    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+    private readonly ITransactionScopeFactory _transactionScopeFactory = Guard.AgainstNull(transactionScopeFactory);
+    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
     private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
+    private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
     private readonly List<string> _permissions =
     [
@@ -34,59 +38,69 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
         AccessPermissions.Sessions.View
     ];
 
+    private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
+
     private readonly List<string> _systemPermissions =
     [
         AccessPermissions.Administrator,
+        AccessPermissions.IdentityTenants.View,
+        AccessPermissions.IdentityTenants.Remove,
+        AccessPermissions.IdentityTenants.Manage,
         AccessPermissions.Tenants.View,
         AccessPermissions.Tenants.Register,
         AccessPermissions.Tenants.Manage
     ];
 
-    private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
+    private readonly ITenantQuery _tenantQuery = Guard.AgainstNull(tenantQuery);
 
     public async Task ProcessMessageAsync(ConfigureApplication message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
-        foreach (var permission in _permissions)
+        using (var scope = _transactionScopeFactory.Create())
         {
-            if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
+            foreach (var permission in _permissions)
             {
-                continue;
+                if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
+                {
+                    continue;
+                }
+
+                _logger.LogDebug($"[permission/registration] : name = '{permission}'");
+
+                var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
+                    new()
+                    {
+                        Name = permission,
+                        Status = (int)PermissionStatus.Active,
+                        AuditIdentityName = "system"
+                    });
+
+                await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
             }
 
-            _logger.LogDebug($"[permission/registration] : name = '{permission}'");
-
-            var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
-                new()
-                {
-                    Name = permission,
-                    Status = (int)PermissionStatus.Active,
-                    AuditIdentityName = "system"
-                });
-
-            await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
-        }
-
-        foreach (var permission in _systemPermissions)
-        {
-            if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
+            foreach (var permission in _systemPermissions)
             {
-                continue;
+                if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
+                {
+                    continue;
+                }
+
+                _logger.LogDebug($"[system-permission/registration] : name = '{permission}'");
+
+                var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
+                    new()
+                    {
+                        Name = permission,
+                        Status = (int)PermissionStatus.Active,
+                        AuditIdentityName = "system",
+                        TenantIds = [_accessOptions.SystemTenantId]
+                    });
+
+                await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
             }
 
-            _logger.LogDebug($"[system-permission/registration] : name = '{permission}'");
-
-            var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
-                new()
-                {
-                    Name = permission,
-                    Status = (int)PermissionStatus.Active,
-                    AuditIdentityName = "system",
-                    TenantIds = [_accessOptions.SystemTenantId]
-                });
-
-            await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
+            scope.Complete();
         }
 
         var timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
@@ -113,6 +127,59 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             return;
         }
 
+        /*
+         * System Tenant
+         */
+
+        var tenantSpecification = new SqlServer.Models.Tenant.Specification()
+            .AddId(_accessOptions.SystemTenantId);
+
+        var systemTenantExists = await _tenantQuery.CountAsync(tenantSpecification, cancellationToken) > 0;
+
+        _logger.LogInformation("[system-tenant] : id = '{SystemTenantId}' / exists = {SystemTenantExists}", _accessOptions.SystemTenantId, systemTenantExists);
+
+        if (!systemTenantExists)
+        {
+            _logger.LogInformation("[RegisterTenant] : name = '{SystemTenantName}' / id = '{SystemTenantId}'", _accessOptions.SystemTenantName, _accessOptions.SystemTenantId);
+
+            using (var scope = _transactionScopeFactory.Create())
+            {
+                var registerTenant = new RequestResponseMessage<RegisterTenant, TenantRegistered>(new()
+                {
+                    Id = _accessOptions.SystemTenantId,
+                    Name = _accessOptions.SystemTenantName,
+                    AuditIdentityName = "system"
+                });
+
+                await _mediator.SendAsync(registerTenant, cancellationToken);
+
+                var tenantModel = await _accessDbContext.Tenants.FirstOrDefaultAsync(item => item.Id == _accessOptions.SystemTenantId, cancellationToken: cancellationToken);
+
+                if (tenantModel == null)
+                {
+                    _accessDbContext.Tenants.Add(new()
+                    {
+                        Id = _accessOptions.SystemTenantId,
+                        Name = _accessOptions.SystemTenantName
+                    });
+
+                    await _accessDbContext.SaveChangesAsync(cancellationToken);
+                }
+
+                scope.Complete();
+            }
+
+            if (await _tenantQuery.CountAsync(tenantSpecification, cancellationToken) == 0)
+            {
+                throw new ApplicationException(Resources.SystemTenantException);
+            }
+        }
+
+        /*
+         * Administrator Role
+         *
+         */
+
         var roleSpecification = new SqlServer.Models.Role.Specification()
             .AddName("Access Administrator")
             .IncludePermissions();
@@ -125,11 +192,15 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
         {
             _logger.LogDebug("[role/registration] : name = 'Access Administrator'");
 
-            var registerRole = new RegisterRole(_accessOptions.SystemTenantId, "Access Administrator", "system");
+            using (var scope = _transactionScopeFactory.Create())
+            {
+                var registerRole = new RegisterRole(_accessOptions.SystemTenantId, "Access Administrator", "system");
+                var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(registerRole);
 
-            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(registerRole);
+                await _mediator.SendAsync(registerRoleMessage, cancellationToken);
 
-            await _mediator.SendAsync(registerRoleMessage, cancellationToken);
+                scope.Complete();
+            }
 
             timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
 
@@ -179,7 +250,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
                 throw new ApplicationException(Resources.AdministratorRoleException);
             }
 
-            administratorPermissionsRegistered = role.RolePermissions.FirstOrDefault(item => item.Role.Name.Equals(AccessPermissions.Administrator, StringComparison.InvariantCultureIgnoreCase)) != null;
+            administratorPermissionsRegistered = role.RolePermissions.FirstOrDefault(item => item.Permission.Name.Equals(AccessPermissions.Administrator, StringComparison.InvariantCultureIgnoreCase)) != null;
 
             if (administratorPermissionsRegistered)
             {

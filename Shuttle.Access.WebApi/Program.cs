@@ -72,29 +72,30 @@ public class Program
 
         webApplicationBuilder.Services
             .AddCors(options =>
-        {
-            options.AddDefaultPolicy(builder =>
             {
-                builder
-                    .AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
-        })
+                options.AddDefaultPolicy(builder =>
+                {
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            })
             .AddEndpointsApiExplorer()
             .AddOpenApi(options =>
-        {
-            options.AddSchemaTransformer((schema, _, _) =>
             {
-                schema.Title = schema.Title?.Replace("+", "_");
-                return Task.CompletedTask;
+                options.AddSchemaTransformer((schema, _, _) =>
+                {
+                    schema.Title = schema.Title?.Replace("+", "_");
+                    return Task.CompletedTask;
+                });
             });
-        });
 
         webApplicationBuilder.Services
             .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
+            .AddScoped<ISessionContext, SessionContext>()
             .AddAccess(accessBuilder =>
             {
                 webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Bind(accessBuilder.Options);
@@ -186,6 +187,27 @@ public class Program
         }
 
         app.UseAccessAuthorization();
+
+        app.Use(async (context, next) =>
+        {
+            var sessionContext = context.RequestServices.GetRequiredService<ISessionContext>();
+
+            var identityId = context.FindIdentityId();
+            var tenantId = context.FindTenantId();
+
+            if (tenantId != null && identityId != null)
+            {
+                var sessionRepository = context.RequestServices.GetRequiredService<ISessionRepository>();
+
+                sessionContext.Session = await sessionRepository.FindAsync(tenantId.Value, identityId.Value);
+            }
+            else
+            {
+                sessionContext.Session = null;
+            }
+
+            await next();
+        });
 
         app
             .MapApplicationEndpoints(versionSet)

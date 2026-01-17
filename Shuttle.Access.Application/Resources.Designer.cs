@@ -19,7 +19,7 @@ namespace Shuttle.Access.Application {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -70,7 +70,7 @@ namespace Shuttle.Access.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find the &apos;Access Administrator&apos; role.  It appears as though the projection has not been built as the `RegisterRole` event should be in the event store..
+        ///   Looks up a localized string similar to Timed out waiting for the administrator role to be registered..
         /// </summary>
         public static string AdministratorRoleException {
             get {
@@ -120,6 +120,15 @@ namespace Shuttle.Access.Application {
         public static string SessionRegistrationTypeNoneException {
             get {
                 return ResourceManager.GetString("SessionRegistrationTypeNoneException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Timed out waiting for the system tenant to be registered..
+        /// </summary>
+        public static string SystemTenantException {
+            get {
+                return ResourceManager.GetString("SystemTenantException", resourceCulture);
             }
         }
     }

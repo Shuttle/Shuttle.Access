@@ -9,5 +9,6 @@ public interface IRoleProjectionQuery
     Task PermissionAddedAsync(PrimitiveEvent primitiveEvent, PermissionAdded domainEvent, CancellationToken cancellationToken = default);
     Task PermissionRemovedAsync(PrimitiveEvent primitiveEvent, PermissionRemoved domainEvent, CancellationToken cancellationToken = default);
     Task RegisteredAsync(PrimitiveEvent primitiveEvent, Registered domainEvent, CancellationToken cancellationToken = default);
+    Task RegisteredAsync(PrimitiveEvent primitiveEvent, Shuttle.Access.Events.Role.v2.Registered domainEvent, CancellationToken cancellationToken = default);
     Task RemovedAsync(PrimitiveEvent primitiveEvent, CancellationToken cancellationToken = default);
 }

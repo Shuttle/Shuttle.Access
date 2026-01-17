@@ -19,6 +19,12 @@ public class Tenant
     [Required]
     public int Status { get; set; }
 
+    [StringLength(int.MaxValue)]
+    public string LogoSvg { get; set; } = string.Empty;
+
+    [StringLength(2048)]
+    public string LogoUrl { get; set; } = string.Empty;
+
     public class Specification : Specification<Specification>
     {
         public string NameMatch { get; private set; } = string.Empty;

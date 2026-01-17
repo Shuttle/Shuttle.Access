@@ -141,9 +141,9 @@ public static class IdentityEndpoints
 
         var requestIdentityRegistration = new RequestIdentityRegistration(message);
 
-        if (sessionContext.Session != null)
+        if (sessionContext.Session is { TenantId: not null })
         {
-            requestIdentityRegistration.Authorized(sessionContext.Session.TenantId, sessionContext.Session.IdentityId);
+            requestIdentityRegistration.Authorized(sessionContext.Session.TenantId.Value, sessionContext.Session.IdentityId);
         }
 
         await mediator.SendAsync(requestIdentityRegistration);
@@ -242,12 +242,12 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        if (sessionContext.Session == null)
+        if (sessionContext.Session is not { TenantId: not null })
         {
             return Results.Unauthorized();
         }
 
-        var session = await sessionRepository.FindAsync(sessionContext.Session.TenantId, sessionContext.Session.IdentityId);
+        var session = await sessionRepository.FindAsync(sessionContext.Session.TenantId.Value, sessionContext.Session.IdentityId);
 
         if (message.Id.HasValue && !(session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
         {

@@ -1,6 +1,5 @@
 ﻿using Shuttle.Access.Events.Role.v1;
 using Shuttle.Core.Contract;
-using Registered = Shuttle.Access.Events.Role.v2.Registered;
 
 namespace Shuttle.Access;
 
@@ -33,6 +32,15 @@ public class Role
     }
 
     private Registered On(Registered registered)
+    {
+        Guard.AgainstNull(registered);
+
+        Name = registered.Name;
+
+        return registered;
+    }
+
+    private Shuttle.Access.Events.Role.v2.Registered On(Shuttle.Access.Events.Role.v2.Registered registered)
     {
         Guard.AgainstNull(registered);
 
@@ -76,9 +84,9 @@ public class Role
         return removed;
     }
 
-    public Registered Register(Guid tenantId, string name)
+    public Shuttle.Access.Events.Role.v2.Registered Register(Guid tenantId, string name)
     {
-        return On(new Registered
+        return On(new Shuttle.Access.Events.Role.v2.Registered
         {
             TenantId = tenantId,
             Name = name

@@ -18,7 +18,35 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Models.Identity>()
+            .HasMany(p => p.IdentityRoles)
+            .WithOne(f => f.Identity);
+
+        modelBuilder.Entity<Models.Identity>()
+            .HasMany(p => p.IdentityTenants)
+            .WithOne(f => f.Identity);
+
+        modelBuilder.Entity<Models.IdentityRole>()
+            .HasOne(f => f.Role)
+            .WithMany()
+            .HasForeignKey(f => new { f.TenantId, f.RoleId })
+            .HasPrincipalKey(p => new { p.TenantId, p.Id });
+
+        modelBuilder.Entity<Models.Permission>()
+            .HasMany(p => p.PermissionTenants)
+            .WithOne(f => f.Permission);
+
+        modelBuilder.Entity<Models.Role>()
+            .HasMany(p => p.RolePermissions)
+            .WithOne(f => f.Role)
+            .HasForeignKey(f => new { f.TenantId, f.RoleId })
+            .HasPrincipalKey(p => new { p.TenantId, p.Id });
+
         modelBuilder.Entity<Models.Session>()
             .Property(p => p.Id).HasDefaultValueSql("NEWID()");
+
+        modelBuilder.Entity<Models.Session>()
+            .HasMany(p => p.SessionPermissions)
+            .WithOne(f => f.Session);
     }
 }

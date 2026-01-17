@@ -35,7 +35,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
 
         webHostBuilder?.Invoke(builder);
 
-        SessionService.Setup(m => m.HasPermissionAsync(TODO, It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(ValueTask.FromResult(true));
+        SessionService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(ValueTask.FromResult(true));
         SessionService.Setup(m => m.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Messages.v1.Session
         {
             IdentityId = Guid.NewGuid(),
