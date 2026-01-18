@@ -194,6 +194,14 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
+    path: "/tenants",
+    name: "tenants",
+    component: () => import("../views/Tenants.vue"),
+    meta: {
+      permission: Permissions.Tenants.View,
+    },
+  },
+  {
     path: "/signin/:applicationName?",
     name: "sign-in",
     props: true,

@@ -38,6 +38,7 @@ export type Credentials = {
   token?: string;
   password?: string;
   applicationName?: string;
+  tenantId?: string;
 };
 
 export type DashboardItem = {
