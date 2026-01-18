@@ -27,7 +27,14 @@ public class Tenant
 
     public class Specification : Specification<Specification>
     {
+        public string Name { get; private set; } = string.Empty;
         public string NameMatch { get; private set; } = string.Empty;
+
+        public Specification WithName(string name)
+        {
+            Name = Guard.AgainstEmpty(name);
+            return WithMaximumRows(1);
+        }
 
         public Specification WithNameMatch(string nameMatch)
         {

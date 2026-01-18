@@ -7,4 +7,10 @@ public class Tenant
     public int Status { get; set; }
     public string LogoSvg { get; set; } = string.Empty;
     public string LogoUrl { get; set; } = string.Empty;
+
+    public class Specification
+    {
+        public string Name { get; set; } = string.Empty;
+        public string NameMatch { get; set; } = string.Empty;
+    }
 }

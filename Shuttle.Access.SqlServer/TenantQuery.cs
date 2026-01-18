@@ -26,6 +26,11 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
             .AsNoTracking()
             .AsQueryable();
 
+        if (!string.IsNullOrEmpty(specification.Name))
+        {
+            queryable = queryable.Where(e => e.Name == specification.Name);
+        }
+
         if (!string.IsNullOrEmpty(specification.NameMatch))
         {
             queryable = queryable.Where(e => EF.Functions.Like(e.Name, $"%{specification.NameMatch}%"));
