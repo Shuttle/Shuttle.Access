@@ -159,3 +159,9 @@ export type SessionResponse = {
   sessionTokenExchangeUrl?: string;
   tenantId: string;
 };
+
+export type Tenant = {
+  id: string;
+  name: string;
+  status: number;
+};

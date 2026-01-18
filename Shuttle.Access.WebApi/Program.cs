@@ -217,7 +217,8 @@ public class Program
             .MapRoleEndpoints(versionSet)
             .MapServerEndpoints(versionSet)
             .MapSessionEndpoints(versionSet)
-            .MapStatisticEndpoints(versionSet);
+            .MapStatisticEndpoints(versionSet)
+            .MapTenantEndpoints(versionSet);
 
         await app.RunAsync();
     }

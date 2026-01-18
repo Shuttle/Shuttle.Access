@@ -200,6 +200,16 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       permission: Permissions.Tenants.View,
     },
+    children: [
+      {
+        path: "tenant",
+        name: "tenant",
+        component: () => import("../views/Tenant.vue"),
+        meta: {
+          permission: Permissions.Tenants.Manage,
+        },
+      },
+    ],
   },
   {
     path: "/signin/:applicationName?",
