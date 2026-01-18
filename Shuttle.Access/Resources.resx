@@ -197,4 +197,8 @@
     <value>Could not find an identity with name '{0}'.</value>
     <comment>0 = identity name</comment>
   </data>
+  <data name="ValueAlreadySetException" xml:space="preserve">
+    <value>The '{0}' is already set to '{1}'.</value>
+    <comment>0 = name of the value, 1 = the value</comment>
+  </data>
 </root>

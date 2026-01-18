@@ -12,7 +12,7 @@ public class Tenant
 
     public Registered Register(string name, int status, string logoSvg, string logoUrl)
     {
-        return On(new()
+        return On(new Registered
         {
             Name = Guard.AgainstEmpty(name),
             LogoSvg = logoSvg,
@@ -30,6 +30,28 @@ public class Tenant
         LogoUrl = registered.LogoUrl;
 
         return registered;
+    }
+
+    public StatusSet SetStatus(int status)
+    {
+        if (Status == status)
+        {
+            throw new InvalidOperationException(string.Format(Resources.ValueAlreadySetException, nameof(status), status));
+        }
+
+        return On(new StatusSet
+        {
+            Status = status
+        });
+    }
+
+    private StatusSet On(StatusSet statusSet)
+    {
+        Guard.AgainstNull(statusSet);
+
+        Status = statusSet.Status;
+
+        return statusSet;
     }
 
     public static string Key(string name)

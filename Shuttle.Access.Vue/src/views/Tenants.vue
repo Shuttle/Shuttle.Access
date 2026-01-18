@@ -16,11 +16,9 @@
           <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
         </div>
       </template>
-      <template v-slot:item.action="{ item }">
-        <div class="sv-strip">
-          <v-btn :icon="mdiDeleteOutline" size="x-small"
-            @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
-        </div>
+      <template v-slot:item.status="{ item }">
+        <v-switch :model-value="item.status === 1" color="primary" density="compact" hide-details
+          @update:model-value="setStatus(item)"></v-switch>
       </template>
     </v-data-table>
   </v-card>
@@ -73,11 +71,9 @@ const headers = useSecureTableHeaders([
     value: "logoUrl",
   },
   {
+    permission: Permissions.Tenants.Manage,
     title: t("status"),
     key: "status",
-    value: (item: Permission) => {
-      return t("enums.tenant-status." + item.status);
-    }
   },
 ]);
 
@@ -92,19 +88,13 @@ const refresh = async () => {
   }
 }
 
-const remove = async (item: Tenant) => {
-  confirmationStore.close();
-
-  busy.value = true;
-
+const setStatus = async (item: Tenant) => {
   try {
-    await api.delete(`v1/tenants/${item.id}`)
-
-    useSnackbarStore().requestSent();
-
-    refresh();
-  } finally {
-    busy.value = false;
+    item.status = item.status === 1 ? 0 : 1;
+    await api.patch(`v1/tenants/${item.id}/status`, { status: item.status });
+  } catch (error) {
+    useSnackbarStore().add({ message: error.toString(), type: "error" });
+    item.status = item.status === 1 ? 0 : 1; // Revert on failure
   }
 }
 

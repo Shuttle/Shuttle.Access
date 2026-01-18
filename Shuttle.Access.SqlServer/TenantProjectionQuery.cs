@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Shuttle.Access.Events.Tenant.v1;
+﻿using Shuttle.Access.Events.Tenant.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
 
@@ -11,7 +10,7 @@ public class TenantProjectionQuery(AccessDbContext accessDbContext) : ITenantPro
 
     public async Task RegisteredAsync(PrimitiveEvent primitiveEvent, Registered domainEvent, CancellationToken cancellationToken = default)
     {
-        var model = await _accessDbContext.Tenants.AsNoTracking().FirstOrDefaultAsync(item => item.Id == primitiveEvent.Id, cancellationToken: cancellationToken);
+        var model = await _accessDbContext.Tenants.FindAsync([primitiveEvent.Id], cancellationToken: cancellationToken);
 
         if (model != null)
         {
@@ -21,8 +20,25 @@ public class TenantProjectionQuery(AccessDbContext accessDbContext) : ITenantPro
         _accessDbContext.Tenants.Add(new()
         {
             Id = primitiveEvent.Id,
-            Name = domainEvent.Name
+            Name = domainEvent.Name,
+            Status = domainEvent.Status,
+            LogoSvg = domainEvent.LogoSvg,
+            LogoUrl = domainEvent.LogoUrl
         });
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task StatusSetAsync(PrimitiveEvent primitiveEvent, StatusSet domainEvent, CancellationToken cancellationToken = default)
+    {
+        var model = await _accessDbContext.Tenants.FindAsync([primitiveEvent.Id], cancellationToken: cancellationToken);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        model.Status = domainEvent.Status;
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);
     }

@@ -45,7 +45,31 @@ public static class TenantEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Tenants.Register);
 
+        app.MapPatch("/v{version:apiVersion}/tenants/{id:Guid}/status", PatchStatus)
+            .WithTags("Tenants")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Tenants.Manage);
+
         return app;
+    }
+
+    private static async Task<IResult> PatchStatus(IMediator mediator, Guid id, [FromBody] SetTenantStatus message)
+    {
+        try
+        {
+            message.Id = id;
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        var requestResponseMessage = new RequestResponseMessage<SetTenantStatus, TenantStatusSet>(message);
+
+        await mediator.SendAsync(requestResponseMessage);
+
+        return !requestResponseMessage.Ok ? Results.BadRequest(requestResponseMessage.Message) : Results.Accepted();
     }
 
     private static async Task<IResult> Post(IMediator mediator, [FromBody] RegisterTenant message)

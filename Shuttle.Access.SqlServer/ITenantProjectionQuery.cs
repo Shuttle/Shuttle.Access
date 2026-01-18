@@ -6,4 +6,5 @@ namespace Shuttle.Access.SqlServer;
 public interface ITenantProjectionQuery
 {
     Task RegisteredAsync(PrimitiveEvent primitiveEvent, Registered domainEvent, CancellationToken cancellationToken = default);
+    Task StatusSetAsync(PrimitiveEvent primitiveEvent, StatusSet domainEvent, CancellationToken cancellationToken = default);
 }
