@@ -32,6 +32,8 @@
     "identity": "Identity",
     "identity-name": "Identity name",
     "last-administrator": "You cannot remove the administrator role as this identity is the last administrator.",
+    "logo-svg": "Logo SVG",
+    "logo-url": "Logo URL",
     "messages": {
         "file-required": "File is required",
         "invalid-credentials": "Invalid credentials.",
