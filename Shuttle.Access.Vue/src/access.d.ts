@@ -163,5 +163,7 @@ export type SessionResponse = {
 export type Tenant = {
   id: string;
   name: string;
+  logoSvg?: string;
+  logoUrl?: string;
   status: number;
 };

@@ -66,7 +66,10 @@ const headers = useSecureTableHeaders([
   },
   {
     title: t("status"),
-    value: "status",
+    key: "status",
+    value: (item: Permission) => {
+      return t("enums.tenant-status." + item.status);
+    }
   },
 ]);
 
