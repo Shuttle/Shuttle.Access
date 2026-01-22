@@ -25,6 +25,6 @@ public class RemoveIdentityParticipant(IEventStore eventStore, IIdKeyRepository 
 
         await _idKeyRepository.RemoveAsync(id, cancellationToken);
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(message.AuditIdentityName), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
     }
 }

@@ -9,6 +9,8 @@ using Serilog;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Server.v1.EventHandlers;
 using Shuttle.Core.Mediator;
+using Shuttle.Core.Pipelines;
+using Shuttle.Core.Reflection;
 using Shuttle.Hopper;
 using Shuttle.Hopper.AzureStorageQueues;
 using Shuttle.Hopper.SqlServer.Subscription;
@@ -64,6 +66,23 @@ internal class Program
                         accessBuilder.UseSqlServer(builder =>
                         {
                             builder.Options.ConnectionString = accessConnectionString;
+                        });
+                    })
+                    .AddPipelines(pipelineBuilder =>
+                    {
+                        pipelineBuilder.Configure(options =>
+                        {
+                            options.PipelineFailed += (eventArgs, _) =>
+                            {
+                                Log.Error(eventArgs.Pipeline.Exception?.AllMessages() ?? string.Empty);
+                                return Task.CompletedTask;
+                            };
+
+                            options.PipelineRecursiveException += (eventArgs, _) =>
+                            {
+                                Log.Error(eventArgs.Pipeline.Exception?.AllMessages() ?? string.Empty);
+                                return Task.CompletedTask;
+                            };
                         });
                     })
                     .AddHopper(hopperBuilder =>

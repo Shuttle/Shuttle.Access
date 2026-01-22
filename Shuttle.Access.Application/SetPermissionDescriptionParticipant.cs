@@ -25,7 +25,7 @@ public class SetPermissionDescriptionParticipant(IEventStore eventStore) : IPart
 
         stream.Add(permission.SetDescription(request.Description));
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
 
         message.WithResponse(new()
         {

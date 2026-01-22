@@ -9,9 +9,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.1" />
-    <PackageReference Include="Shuttle.Access.Messages" Version="9.0.0-alpha" />
-    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.0-alpha" />
-    <PackageReference Include="Shuttle.Extensions.Options" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.1-beta" />
+    <PackageReference Include="Shuttle.Extensions.Options" Version="21.0.1-beta" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +55,10 @@
 
   <ItemGroup>
     <Folder Include="Events\Tenant.v1\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
   </ItemGroup>
 
   <Target Name="CopyNuGetPackage" AfterTargets="Pack" Condition="'$(NUGET_PACKAGE_FOLDER)' != ''">

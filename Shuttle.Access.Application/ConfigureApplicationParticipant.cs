@@ -199,7 +199,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
 
             using (var scope = _transactionScopeFactory.Create())
             {
-                var registerRole = new RegisterRole(_accessOptions.SystemTenantId, "Access Administrator", "system");
+                var registerRole = new RegisterRole("Access Administrator", new AuditInformation(_accessOptions.SystemTenantId, "system"));
                 var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(registerRole);
 
                 await _mediator.SendAsync(registerRoleMessage, cancellationToken);

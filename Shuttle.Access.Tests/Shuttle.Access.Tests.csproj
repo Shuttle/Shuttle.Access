@@ -11,12 +11,13 @@
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="NUnit" Version="4.4.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="6.0.1" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.0-alpha" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.1-beta" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
     <ProjectReference Include="..\Shuttle.Access.RestClient\Shuttle.Access.RestClient.csproj" />
+    <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
   </ItemGroup>
 
 </Project>

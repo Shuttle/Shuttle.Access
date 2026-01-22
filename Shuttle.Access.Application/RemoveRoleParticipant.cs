@@ -30,7 +30,7 @@ public class RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKe
 
         await _idKeyRepository.RemoveAsync(message.Request.Id, cancellationToken);
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(message.Request.AuditIdentityName), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
 
         message.WithResponse(new()
         {

@@ -15,7 +15,7 @@
 		<PackageReference Include="Refit.HttpClientFactory" Version="9.0.2" />
 		<PackageReference Include="Shuttle.Access" Version="9.0.0-alpha" />
 		<PackageReference Include="Shuttle.Access.AspNetCore" Version="8.1.6" />
-		<PackageReference Include="Shuttle.Core.Contract" Version="21.0.0-alpha" />
+		<PackageReference Include="Shuttle.Core.Contract" Version="21.0.1-beta" />
 	</ItemGroup>
 
 	<ItemGroup>

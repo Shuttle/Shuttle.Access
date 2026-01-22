@@ -334,7 +334,7 @@ public static class IdentityEndpoints
         return Results.Ok((await identityQuery.SearchAsync(search)).Select(Map).ToList());
     }
 
-    private static async Task<IResult> PatchDescription(IServiceBus serviceBus, Guid id, [FromBody] SetIdentityDescription message)
+    private static async Task<IResult> PatchDescription(IServiceBus serviceBus, ISessionContext sessionContext, Guid id, [FromBody] SetIdentityDescription message)
     {
         try
         {
@@ -346,12 +346,12 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(message);
+        await serviceBus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(IServiceBus serviceBus, Guid id, [FromBody] SetIdentityName message)
+    private static async Task<IResult> PatchName(IServiceBus serviceBus, ISessionContext sessionContext, Guid id, [FromBody] SetIdentityName message)
     {
         try
         {
@@ -363,7 +363,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(message);
+        await serviceBus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }

@@ -37,7 +37,7 @@ public class SetPermissionNameParticipant(IEventStore eventStore, IIdKeyReposito
 
         stream.Add(permission.SetName(request.Name));
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
 
         message.WithResponse(new()
         {

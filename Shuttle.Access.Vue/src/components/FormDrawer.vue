@@ -2,7 +2,7 @@
   <div v-if="drawerStore.isOpen" class="sv-form-drawer">
     <div class="sv-form-drawer__overlay" @click.self="drawerStore.close(false)"></div>
     <div
-      class="v-navigation-drawer v-navigation-drawer--right fixed right-0 bottom-0 top-0 border-t-1 p-2 overflow-y-scroll opacity-100"
+      class="v-navigation-drawer v-navigation-drawer--right right-0 top-0 border-t-1 p-2"
       :class="getClasses()" @click.stop>
       <router-view></router-view>
     </div>

@@ -6,7 +6,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Server.v1.EventHandlers;
 
-public class RoleHandler(ILogger<RoleHandler> logger, IRoleProjectionQuery query) :
+public class RoleHandler(ILogger<RoleHandler> logger, IRoleProjectionQuery query, IPermissionQuery permissionQuery) :
     IEventHandler<Registered>,
     IEventHandler<Shuttle.Access.Events.Role.v2.Registered>,
     IEventHandler<Removed>,
@@ -16,6 +16,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IRoleProjectionQuery query
 {
     private readonly ILogger<RoleHandler> _logger = Guard.AgainstNull(logger);
     private readonly IRoleProjectionQuery _query = Guard.AgainstNull(query);
+    private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
 
     public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
     {
@@ -29,6 +30,12 @@ public class RoleHandler(ILogger<RoleHandler> logger, IRoleProjectionQuery query
     public async Task ProcessEventAsync(IEventHandlerContext<PermissionAdded> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
+
+        if (!await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddId(context.Event.PermissionId), cancellationToken: cancellationToken))
+        {
+            context.Defer();
+            return;
+        }
 
         await _query.PermissionAddedAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 

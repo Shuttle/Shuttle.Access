@@ -29,7 +29,7 @@ public class SetIdentityRoleStatusParticipant(IEventStore eventStore) : IPartici
             stream.Add(identity.RemoveRole(request.RoleId));
         }
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(message.Request.AuditIdentityName), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
 
         if (stream.ShouldSave())
         {

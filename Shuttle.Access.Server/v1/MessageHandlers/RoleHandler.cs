@@ -22,7 +22,7 @@ public class RoleHandler(IMediator mediator) :
             return;
         }
 
-        var registerRole = new Application.RegisterRole(message.TenantId, message.Name, message.AuditIdentityName);
+        var registerRole = new Application.RegisterRole( message.Name, new AuditInformation(message.TenantId, message.AuditIdentityName));
 
         registerRole.AddPermissions(message.Permissions);
 

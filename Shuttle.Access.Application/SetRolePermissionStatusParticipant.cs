@@ -30,7 +30,7 @@ public class SetRolePermissionStatusParticipant(IEventStore eventStore) : IParti
             stream.Add(role.RemovePermission(request.PermissionId));
         }
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
 
         message.WithResponse(new()
         {

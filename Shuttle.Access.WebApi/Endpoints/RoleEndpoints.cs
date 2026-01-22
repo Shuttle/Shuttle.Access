@@ -64,7 +64,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.View);
 
-        app.MapDelete("/v{version:apiVersion}/roles/{id}", Delete)
+        app.MapDelete("/v{version:apiVersion}/roles/{id:Guid}", Delete)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -160,7 +160,7 @@ public static class RoleEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post([FromBody] RegisterRole message, [FromServices] IServiceBus serviceBus)
+    private static async Task<IResult> Post([FromBody] RegisterRole message, [FromServices] IServiceBus serviceBus, ISessionContext sessionContext)
     {
         try
         {
@@ -170,6 +170,8 @@ public static class RoleEndpoints
         {
             return Results.BadRequest(ex.Message);
         }
+
+        sessionContext.Audit(message);
 
         await serviceBus.SendAsync(message);
 

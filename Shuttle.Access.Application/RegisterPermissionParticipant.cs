@@ -37,7 +37,7 @@ public class RegisterPermissionParticipant(IEventStore eventStore, IIdKeyReposit
 
         stream.Add(aggregate.Register(request.Name, request.Description, (PermissionStatus)status));
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(request.AuditIdentityName), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
 
         message.WithResponse(new()
         {

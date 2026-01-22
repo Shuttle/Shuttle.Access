@@ -6,7 +6,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Server.v1.EventHandlers;
 
-public class IdentityHandler(ILogger<IdentityHandler> logger, IIdentityProjectionQuery query, ISessionRepository sessionRepository)
+public class IdentityHandler(ILogger<IdentityHandler> logger, IIdentityProjectionQuery query, IRoleQuery roleQuery, ITenantQuery tenantQuery, ISessionRepository sessionRepository)
     :
         IEventHandler<Registered>,
         IEventHandler<RoleAdded>,
@@ -16,6 +16,8 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, IIdentityProjectio
         IEventHandler<NameSet>,
         IEventHandler<DescriptionSet>
 {
+    private readonly ITenantQuery _tenantQuery = Guard.AgainstNull(tenantQuery);
+    private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
     private readonly IIdentityProjectionQuery _identityProjectionQuery = Guard.AgainstNull(query);
     private readonly ILogger<IdentityHandler> _logger = Guard.AgainstNull(logger);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
@@ -69,6 +71,15 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, IIdentityProjectio
     public async Task ProcessEventAsync(IEventHandlerContext<RoleAdded> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
+
+        var roleModel = (await _roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().AddId(context.Event.RoleId), cancellationToken: cancellationToken)).FirstOrDefault();
+
+        if (roleModel == null ||
+            !await _tenantQuery.ContainsAsync(new SqlServer.Models.Tenant.Specification().AddId(roleModel.TenantId), cancellationToken: cancellationToken))
+        {
+            context.Defer();
+            return;
+        }
 
         await _identityProjectionQuery.RoleAddedAsync(context.PrimitiveEvent, context.Event, cancellationToken);
 

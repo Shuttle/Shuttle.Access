@@ -41,7 +41,7 @@ public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventSto
         stream.Apply(identity);
         stream.Add(identity.Activate(now));
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(message.Request.AuditIdentityName), cancellationToken).ConfigureAwait(false);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken).ConfigureAwait(false);
 
         message.WithResponse(new()
         {

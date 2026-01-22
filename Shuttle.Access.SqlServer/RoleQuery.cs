@@ -7,6 +7,11 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
+    public async ValueTask<bool> ContainsAsync(Models.Role.Specification specification, CancellationToken cancellationToken = default)
+    {
+        return await CountAsync(specification, cancellationToken) > 0;
+    }
+
     public async ValueTask<int> CountAsync(Models.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification).CountAsync(cancellationToken);

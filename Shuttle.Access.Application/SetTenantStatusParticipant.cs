@@ -30,7 +30,7 @@ public class SetTenantStatusParticipant(IEventStore eventStore) : IParticipant<R
 
         stream.Add(tenant.SetStatus(request.Status));
 
-        await _eventStore.SaveAsync(stream, builder => builder.AddAuditIdentityName(message.Request.AuditIdentityName), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
 
         message.WithResponse(new()
         {
