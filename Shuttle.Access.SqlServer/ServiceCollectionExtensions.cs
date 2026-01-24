@@ -28,11 +28,8 @@ public static class ServiceCollectionExtensions
 
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IAuthorizationService, AuthorizationService>();
-            services.AddScoped<IIdentityProjectionQuery, IdentityProjectionQuery>();
             services.AddScoped<IIdentityQuery, IdentityQuery>();
-            services.AddScoped<IPermissionProjectionQuery, PermissionProjectionQuery>();
             services.AddScoped<IPermissionQuery, PermissionQuery>();
-            services.AddScoped<IRoleProjectionQuery, RoleProjectionQuery>();
             services.AddScoped<IRoleQuery, RoleQuery>();
             services.AddScoped<ISessionQuery, SessionQuery>();
             services.AddScoped<ISessionRepository, SessionRepository>();
