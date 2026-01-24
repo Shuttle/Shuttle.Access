@@ -8,10 +8,18 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AccessDataTable: typeof import('./src/components/AccessDataTable.vue')['default']
+    AccessDrawer: typeof import('./src/components/AccessDrawer.vue')['default']
+    AccessNavbar: typeof import('./src/components/AccessNavbar.vue')['default']
+    AccessTitle: typeof import('./src/components/AccessTitle.vue')['default']
+    BroadsheetDataTable: typeof import('./src/components/BroadsheetDataTable.vue')['default']
     FormDrawer: typeof import('./src/components/FormDrawer.vue')['default']
     FormTitle: typeof import('./src/components/FormTitle.vue')['default']
     Navbar: typeof import('./src/components/Navbar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ShuttleDrawer: typeof import('./src/components/ShuttleDrawer.vue')['default']
+    ShuttleNavbar: typeof import('./src/components/ShuttleNavbar.vue')['default']
+    ShuttleTitle: typeof import('./src/components/ShuttleTitle.vue')['default']
   }
 }

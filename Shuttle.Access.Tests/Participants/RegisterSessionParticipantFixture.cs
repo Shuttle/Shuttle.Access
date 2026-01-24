@@ -4,6 +4,7 @@ using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.SqlServer;
+using Shuttle.Access.SqlServer.Models;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -30,9 +31,8 @@ public class RegisterSessionParticipantFixture
 
         authenticationService.Setup(m => m.AuthenticateAsync(IdentityName, "some_password", CancellationToken.None)).ReturnsAsync(new AuthenticationResult(true, IdentityName));
 
-        var identityQuery = new Mock<IIdentityQuery>();
+        var identityQuery = MockIdentitySearchAsync();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity() }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), authenticationService.Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
@@ -49,9 +49,8 @@ public class RegisterSessionParticipantFixture
 
         authenticationService.Setup(m => m.AuthenticateAsync(IdentityName, "some_password", CancellationToken.None)).ReturnsAsync(new AuthenticationResult(true, IdentityName));
 
-        var identityQuery = new Mock<IIdentityQuery>();
+        var identityQuery = MockIdentitySearchAsync();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity() }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var sessionTokenExchangeRepository = new Mock<ISessionTokenExchangeRepository>();
@@ -83,9 +82,8 @@ public class RegisterSessionParticipantFixture
 
         sessionRepository.Setup(m => m.FindAsync(sessionTokenHash, CancellationToken.None)).Returns(Task.FromResult(session)!);
 
-        var identityQuery = new Mock<IIdentityQuery>();
+        var identityQuery = MockIdentitySearchAsync();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity() }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
@@ -102,9 +100,7 @@ public class RegisterSessionParticipantFixture
         var sessionTokenHash = hashingService.Sha256(sessionToken.ToString("D"));
         var message = new RegisterSession(IdentityName).UseAuthenticationToken(sessionToken);
 
-        var identityQuery = new Mock<IIdentityQuery>();
-
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity() }.AsEnumerable()));
+        var identityQuery = MockIdentitySearchAsync();
 
         var sessionRepository = new Mock<ISessionRepository>();
         var sessionQuery = new Mock<ISessionQuery>();
@@ -119,14 +115,28 @@ public class RegisterSessionParticipantFixture
         Assert.That(message.HasSession, Is.True);
     }
 
+    private Mock<IIdentityQuery> MockIdentitySearchAsync()
+    {
+        var result = new Mock<IIdentityQuery>();
+
+        result.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity()
+        {
+            IdentityTenants = [new IdentityTenant
+            {
+                TenantId = _tenantId
+            }]
+        } }.AsEnumerable()));
+
+        return result;
+    }
+
     [Test]
     public void Should_be_able_to_register_a_session_using_direct_registration()
     {
         var message = new RegisterSession(IdentityName).UseDirect();
 
-        var identityQuery = new Mock<IIdentityQuery>();
+        var identityQuery = MockIdentitySearchAsync();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity() }.AsEnumerable()));
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
@@ -140,10 +150,10 @@ public class RegisterSessionParticipantFixture
     {
         var message = new RegisterSession(IdentityName).UseDirect();
 
-        var identityQuery = new Mock<IIdentityQuery>();
         var sessionRepository = new Mock<ISessionRepository>();
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity { Id = Guid.NewGuid() } }.AsEnumerable()));
+        var identityQuery = MockIdentitySearchAsync();
+
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
@@ -157,9 +167,11 @@ public class RegisterSessionParticipantFixture
     [Test]
     public void Should_be_able_to_renew_a_session()
     {
-        var message = new RegisterSession(IdentityName).UseDirect();
+        var message = new RegisterSession(IdentityName)
+            .UseDirect()
+            .WithTenantId(_tenantId);
 
-        var identityQuery = new Mock<IIdentityQuery>();
+        var identityQuery = MockIdentitySearchAsync();
         var sessionRepository = new Mock<ISessionRepository>();
         var sessionQuery = new Mock<ISessionQuery>();
 
@@ -170,8 +182,6 @@ public class RegisterSessionParticipantFixture
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
 
         sessionRepository.Setup(m => m.FindAsync(_tenantId, IdentityName, CancellationToken.None)).Returns(Task.FromResult(session)!);
-
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity() }.AsEnumerable()));
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object, new Mock<ISessionTokenExchangeRepository>().Object);
 

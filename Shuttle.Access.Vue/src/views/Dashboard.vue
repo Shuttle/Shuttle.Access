@@ -32,14 +32,14 @@ const addItem = (title: string, value: number, route: string) => {
   items.value.push({ title: title, value: value, route: route });
 }
 
-const refresh = () => {
-  api.get("v1/statistics/dashboard")
-    .then(response => {
-      addItem(t("permissions"), response.data.permissionCount, "permissions");
-      addItem(t("identities"), response.data.identityCount, "identities");
-      addItem(t("roles"), response.data.roleCount, "roles");
-      addItem(t("sessions"), response.data.sessionCount, "sessions");
-    })
+const refresh = async () => {
+  const response = await api.get("v1/statistics/dashboard");
+
+  addItem(t("permissions"), response.data.permissionCount, "permissions");
+  addItem(t("identities"), response.data.identityCount, "identities");
+  addItem(t("roles"), response.data.roleCount, "roles");
+  addItem(t("sessions"), response.data.sessionCount, "sessions");
+  addItem(t("tenants"), response.data.tenantCount, "tenants");
 }
 
 onMounted(() => {

@@ -184,6 +184,7 @@ public class RolesFixture
 
         var response = await factory.GetAccessClient().Roles.RegisterAsync(new()
         {
+            TenantId = Guid.NewGuid(),
             Name = "role"
         });
 

@@ -9,7 +9,7 @@
       <v-divider></v-divider>
       <div>{{ application.description }}</div>
     </div>
-    <sv-title :title="$t('sign-in')"></sv-title>
+    <a-title :title="$t('sign-in')"></a-title>
     <div v-if="configuration.isPasswordAuthenticationAllowed()">
       <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
         class="mb-2" :error-messages="validation.message('identityName')">

@@ -1,28 +1,28 @@
 <template>
-  <v-card flat>
-    <v-card-title class="sv-card-title">
-      <sv-title :title="$t('tenants')" />
-      <div class="sv-strip">
-        <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
-        <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
-          variant="solo-filled" flat hide-details single-line></v-text-field>
-      </div>
-    </v-card-title>
-    <v-divider></v-divider>
-    <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
-      :loading="busy">
-      <template v-slot:header.action="">
-        <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Tenants.Manage)">
-          <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
-        </div>
-      </template>
-      <template v-slot:item.status="{ item }">
-        <v-switch :model-value="item.status === 1" color="primary" density="compact" hide-details
-          @update:model-value="setStatus(item)"></v-switch>
-      </template>
-    </v-data-table>
-  </v-card>
-  <sv-form-drawer></sv-form-drawer>
+    <v-card flat>
+        <v-card-title class="sv-card-title">
+            <a-title :title="$t('tenants')" />
+            <div class="sv-strip">
+                <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
+                <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
+                    variant="solo-filled" flat hide-details single-line></v-text-field>
+            </div>
+        </v-card-title>
+        <v-divider></v-divider>
+        <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
+            :loading="busy">
+            <template v-slot:header.action="">
+                <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Tenants.Manage)">
+                    <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
+                </div>
+            </template>
+            <template v-slot:item.status="{ item }">
+                <v-switch :model-value="item.status === 1" color="primary" density="compact" hide-details
+                    @update:model-value="setStatus(item)"></v-switch>
+            </template>
+        </a-data-table>
+    </v-card>
+    <a-drawer></a-drawer>
 </template>
 
 <script setup lang="ts">
@@ -50,64 +50,64 @@ const items: Ref<Tenant[]> = ref([]);
 const search: Ref<string> = ref('')
 
 const headers = useSecureTableHeaders([
-  {
-    value: "action",
-    headerProps: {
-      class: "w-1",
+    {
+        value: "action",
+        headerProps: {
+            class: "w-1",
+        },
+        permission: Permissions.Tenants.Manage,
+        filterable: false
     },
-    permission: Permissions.Tenants.Manage,
-    filterable: false
-  },
-  {
-    title: t("name"),
-    value: "name",
-  },
-  {
-    title: t("logo-svg"),
-    value: "logoSvg",
-  },
-  {
-    title: t("logo-url"),
-    value: "logoUrl",
-  },
-  {
-    permission: Permissions.Tenants.Manage,
-    title: t("status"),
-    key: "status",
-  },
+    {
+        title: t("name"),
+        value: "name",
+    },
+    {
+        title: t("logo-svg"),
+        value: "logoSvg",
+    },
+    {
+        title: t("logo-url"),
+        value: "logoUrl",
+    },
+    {
+        permission: Permissions.Tenants.Manage,
+        title: t("status"),
+        key: "status",
+    },
 ]);
 
 const refresh = async () => {
-  busy.value = true;
+    busy.value = true;
 
-  try {
-    const response = await api.post("v1/tenants/search", {});
-    items.value = response.data;
-  } finally {
-    busy.value = false;
-  }
+    try {
+        const response = await api.post("v1/tenants/search", {});
+        items.value = response.data;
+    } finally {
+        busy.value = false;
+    }
 }
 
 const setStatus = async (item: Tenant) => {
-  try {
-    item.status = item.status === 1 ? 0 : 1;
-    await api.patch(`v1/tenants/${item.id}/status`, { status: item.status });
-  } catch (error) {
-    useSnackbarStore().add({ message: error.toString(), type: "error" });
-    item.status = item.status === 1 ? 0 : 1; // Revert on failure
-  }
+    try {
+        item.status = item.status === 1 ? 0 : 1;
+        await api.patch(`v1/tenants/${item.id}/status`, { status: item.status });
+    } catch (error) {
+        useSnackbarStore().add({ message: error.toString(), type: "error" });
+        item.status = item.status === 1 ? 0 : 1; // Revert on failure
+    }
 }
 
 const add = () => {
-  router.push({ name: "tenant" })
+    router.push({ name: "tenant" })
 }
 
 onMounted(() => {
-  refresh();
+    refresh();
 
-  drawerStore.initialize({
-    refresh: refresh,
-    parentPath: '/tenants',
-  })
+    drawerStore.initialize({
+        refresh: refresh,
+        parentPath: '/tenants',
+    })
 })
 </script>

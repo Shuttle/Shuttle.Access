@@ -15,14 +15,16 @@ import "@/styles/base.css";
 import type { App } from "vue";
 
 // Components
-import FormTitle from "@/components/FormTitle.vue";
-import FormDrawer from "@/components/FormDrawer.vue";
+import AccessDataTable from "@/components/AccessDataTable.vue";
+import AccessDrawer from "@/components/AccessDrawer.vue";
+import AccessTitle from "@/components/AccessTitle.vue";
 
 document.querySelector("html")?.setAttribute("lang", i18n.global.locale.value);
 
 export function registerPlugins(app: App) {
   app.use(vuetify).use(router).use(pinia).use(i18n);
 
-  app.component("sv-title", FormTitle);
-  app.component("sv-form-drawer", FormDrawer);
+  app.component("a-data-table", AccessDataTable);
+  app.component("a-drawer", AccessDrawer);
+  app.component("a-title", AccessTitle);
 }

@@ -77,7 +77,8 @@ public static class IdentityEndpoints
         app.MapPut("/v{version:apiVersion}/identities/password", PutPassword)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1);
+            .MapToApiVersion(apiVersion1)
+            .RequireSession();
 
         app.MapPut("/v{version:apiVersion}/identities/password/reset", PutPasswordReset)
             .WithTags("Identities")
@@ -337,7 +338,7 @@ public static class IdentityEndpoints
         return Results.Ok((await identityQuery.SearchAsync(search)).Select(Map).ToList());
     }
 
-    private static async Task<IResult> PatchDescription(IServiceBus serviceBus, ISessionContext sessionContext, Guid id, [FromBody] SetIdentityDescription message)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetIdentityDescription message, ISessionContext sessionContext, IServiceBus serviceBus)
     {
         try
         {
@@ -354,7 +355,7 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(IServiceBus serviceBus, ISessionContext sessionContext, Guid id, [FromBody] SetIdentityName message)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetIdentityName message, ISessionContext sessionContext, IServiceBus serviceBus)
     {
         try
         {

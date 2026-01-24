@@ -214,7 +214,7 @@ public static class SessionEndpoints
 
             var registerSession = new RegisterSession(identityName).WithTenantId(tenantId.Value).UseDirect();
 
-            await RegisterSession(mediator, registerSession);
+            await RegisterSession(registerSession, mediator);
 
             if (registerSession.Result == SessionRegistrationResult.TenantSelectionRequired)
             {
@@ -317,7 +317,7 @@ public static class SessionEndpoints
 
         var registerSession = new RegisterSession(message.IdentityName).UseDelegation(message.TenantId, sessionIdentityId.Value);
 
-        return await RegisterSession(mediator, registerSession);
+        return await RegisterSession(registerSession, mediator);
     }
 
     private static async Task<IResult> Post([FromBody] Messages.v1.RegisterSession message, ILogger<RegisterSession> logger, IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
@@ -391,7 +391,7 @@ public static class SessionEndpoints
             registerSession.WithKnownApplicationOptions(knownApplicationOptions);
         }
 
-        return await RegisterSession(mediator, registerSession);
+        return await RegisterSession(registerSession, mediator);
     }
 
     private static async Task<IResult> PostSearchData([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)

@@ -16,7 +16,7 @@
           </v-alert>
         </div>
       </div>
-      <Navbar />
+      <AccessNavbar />
       <v-main>
         <div class="p-2">
           <RouterView />
@@ -48,7 +48,7 @@
 </template>
 
 <script lang="ts" setup>
-import Navbar from "@/components/Navbar.vue";
+import AccessNavbar from "@/components/AccessNavbar.vue";
 import { mdiCloseCircleOutline } from '@mdi/js';
 import { useAlertStore } from "@/stores/alert";
 import { RouterView } from "vue-router";

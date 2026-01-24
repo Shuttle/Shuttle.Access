@@ -16,7 +16,7 @@ public interface IRolesApi
     Task<IApiResponse<List<IdentifierAvailability<Guid>>>> PermissionAvailabilityAsync(Guid id, Identifiers<Guid> identifiers, CancellationToken cancellationToken = default);
 
     [Post("/v1/roles")]
-    Task<IApiResponse<Guid>> RegisterAsync(RegisterRole message, CancellationToken cancellationToken = default);
+    Task<IApiResponse> RegisterAsync(RegisterRole message, CancellationToken cancellationToken = default);
 
     [Post("/v1/roles/search")]
     Task<IApiResponse<List<Messages.v1.Role>>> SearchAsync(Messages.v1.Role.Specification specification, CancellationToken cancellationToken = default);

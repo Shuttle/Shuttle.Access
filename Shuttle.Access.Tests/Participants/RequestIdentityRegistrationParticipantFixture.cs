@@ -28,7 +28,7 @@ public class RequestIdentityRegistrationParticipantFixture
         var serviceBus = new Mock<IServiceBus>();
         var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, sessionRepository.Object, new Mock<IMediator>().Object);
 
-        var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).Authorized(Guid.NewGuid(), identityId);
+        var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).Authorized(_tenantId, identityId);
 
         await participant.ProcessMessageAsync(identityRegistrationRequested, CancellationToken.None);
 

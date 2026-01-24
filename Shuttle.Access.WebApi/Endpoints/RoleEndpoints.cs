@@ -160,7 +160,7 @@ public static class RoleEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post([FromBody] RegisterRole message, ISessionContext sessionContext, [FromServices] IServiceBus serviceBus)
+    private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, IServiceBus serviceBus)
     {
         try
         {

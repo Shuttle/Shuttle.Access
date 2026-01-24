@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <sv-title :title="$t('identities')" />
+      <a-title :title="$t('identities')" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -9,7 +9,7 @@
       </div>
     </v-card-title>
     <v-divider></v-divider>
-    <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
+    <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
       <template v-slot:header.action="">
         <v-btn v-if="sessionStore.hasPermission(Permissions.Identities.Manage)" :icon="mdiPlus" size="x-small"
@@ -39,15 +39,15 @@
         <tr>
           <td :colspan="columns.length">
             <div class="sv-table-container">
-              <v-data-table :items="item.roles" :headers="roleHeaders" :mobile="null" mobile-breakpoint="md">
-              </v-data-table>
+              <a-data-table :items="item.roles" :headers="roleHeaders" :mobile="null" mobile-breakpoint="md">
+              </a-data-table>
             </div>
           </td>
         </tr>
       </template>
-    </v-data-table>
+    </a-data-table>
   </v-card>
-  <sv-form-drawer></sv-form-drawer>
+  <a-drawer></a-drawer>
 </template>
 
 <script setup lang="ts">

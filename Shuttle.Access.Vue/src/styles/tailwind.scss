@@ -24,11 +24,11 @@
   }
 
   /* Form Drawer */
-  .sv-form-drawer {
+  .a-drawer {
     @apply fixed top-0 right-0 bottom-0 w-full z-[1000];
   }
 
-  .sv-form-drawer__overlay {
+  .a-drawer__overlay {
     @apply h-full w-full bg-black opacity-25;
   }
 
@@ -47,15 +47,15 @@
   }
 
   /* Title */
-  .sv-title {
+  .a-title {
     @apply flex flex-row items-center font-semibold text-xl pb-2 mb-4 w-full cursor-default border-0;
   }
 
-  .sv-title--normal {
+  .a-title--normal {
     @apply border-b-1 border-solid;
   }
 
-  .sv-title--borderless {
+  .a-title--borderless {
     @apply border-0;
   }
 }

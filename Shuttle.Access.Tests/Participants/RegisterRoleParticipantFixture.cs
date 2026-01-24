@@ -1,7 +1,6 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.Events.Role.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Mediator;
@@ -33,7 +32,7 @@ public class RegisterRoleParticipantFixture
 
         Assert.That(requestResponseMessage.Response, Is.Not.Null);
 
-        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response!.Id);
+        var @event = eventStore.FindEvent<Events.Role.v2.Registered>(requestResponseMessage.Response!.Id);
 
         Assert.That(@event, Is.Not.Null);
         Assert.That(@event!.Name, Is.EqualTo(addRole.Name));

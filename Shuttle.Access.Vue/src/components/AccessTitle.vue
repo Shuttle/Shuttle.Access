@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-row align-middle sv-title items-start" :class="getClasses()">
+  <div class="flex flex-row align-middle a-title items-start" :class="getClasses()">
     <div class="flex-grow">{{ props.title }}</div>
     <v-btn v-if="canClose" :icon="mdiClose" @click.stop="click" size="x-small" flat></v-btn>
   </div>
@@ -19,10 +19,10 @@ const canClose = props.closeDrawer || props.closePath || props.closeClick
 const getClasses = () => {
   switch (props.type) {
     case "borderless": {
-      return "sv-title--borderless"
+      return "a-title--borderless"
     }
     default: {
-      return "sv-title--normal"
+      return "a-title--normal"
     }
   }
 }

@@ -21,6 +21,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
     public Mock<ISessionQuery> SessionQuery { get; } = new();
     public Mock<ISessionRepository> SessionRepository { get; } = new();
     public Mock<ISessionService> SessionService { get; } = new();
+    public Mock<ISessionContext> SessionContext { get; } = new();
 
     protected override void ConfigureClient(HttpClient client)
     {
@@ -33,17 +34,24 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
     {
         base.ConfigureWebHost(builder);
 
+        builder.UseSetting(WebHostDefaults.HostingStartupAssembliesKey, string.Empty); 
+        
         webHostBuilder?.Invoke(builder);
 
-        SessionService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(ValueTask.FromResult(true));
-        SessionService.Setup(m => m.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new Messages.v1.Session
+        var session = new Messages.v1.Session
         {
             IdentityId = Guid.NewGuid(),
             IdentityName = "identity-name",
             Permissions = ["*"],
             DateRegistered = DateTimeOffset.UtcNow,
-            ExpiryDate = DateTimeOffset.UtcNow.Add(TimeSpan.FromHours(1))
-        })!);
+            ExpiryDate = DateTimeOffset.UtcNow.Add(TimeSpan.FromHours(1)),
+            TenantId = Guid.NewGuid()
+        };
+
+        SessionService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(ValueTask.FromResult(true));
+        SessionService.Setup(m => m.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(session)!);
+
+        SessionContext.Setup(m => m.Session).Returns(new Session(Guid.NewGuid(), Array.Empty<byte>(), session.IdentityId, session.IdentityName, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(5)).WithTenantId(Guid.NewGuid()));
 
         builder.ConfigureServices(services =>
         {
@@ -67,6 +75,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
             services.AddSingleton(SessionQuery.Object);
             services.AddSingleton(ServiceBus.Object);
             services.AddSingleton(SessionRepository.Object);
+            services.AddSingleton(SessionContext.Object);
         });
     }
 }
