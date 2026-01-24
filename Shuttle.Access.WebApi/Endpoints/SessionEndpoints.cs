@@ -166,7 +166,7 @@ public static class SessionEndpoints
             : Results.Ok(Map(session));
     }
 
-    private static async Task<IResult> Delete(Guid sessionId, IServiceBus serviceBus, ISessionRepository sessionRepository, ISessionContext sessionContext)
+    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IServiceBus serviceBus, ISessionRepository sessionRepository)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
@@ -200,7 +200,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, HttpContext httpContext, ISessionService sessionService, ISessionQuery sessionQuery, IMediator mediator)
+    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionService sessionService, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
     {
         async Task<IResult> AttemptRegistration()
         {
@@ -273,7 +273,7 @@ public static class SessionEndpoints
         return await AttemptRegistration();
     }
 
-    private static async Task<IResult> DeleteSelf(HttpContext httpContext, IServiceBus serviceBus, ISessionRepository sessionRepository)
+    private static async Task<IResult> DeleteSelf(IServiceBus serviceBus, ISessionRepository sessionRepository, HttpContext httpContext)
     {
         var identityId = httpContext.FindIdentityId();
         var tenantId = httpContext.FindTenantId();
@@ -301,7 +301,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> PostDelegated(HttpContext httpContext, IMediator mediator, RegisterDelegatedSession message)
+    private static async Task<IResult> PostDelegated(IMediator mediator, RegisterDelegatedSession message, HttpContext httpContext)
     {
         if (string.IsNullOrEmpty(message.IdentityName))
         {
@@ -320,7 +320,7 @@ public static class SessionEndpoints
         return await RegisterSession(mediator, registerSession);
     }
 
-    private static async Task<IResult> Post(ILogger<RegisterSession> logger, HttpContext httpContext, IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, IMediator mediator, [FromBody] Messages.v1.RegisterSession message)
+    private static async Task<IResult> Post([FromBody] Messages.v1.RegisterSession message, ILogger<RegisterSession> logger, IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
     {
         var options = Guard.AgainstNull(accessOptions.Value);
 
@@ -394,21 +394,21 @@ public static class SessionEndpoints
         return await RegisterSession(mediator, registerSession);
     }
 
-    private static async Task<IResult> PostSearchData(ISessionQuery sessionQuery, IHashingService hashingService, [FromBody] Messages.v1.Session.Specification model)
+    private static async Task<IResult> PostSearchData([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
     {
         var specification = GetSpecification(model, hashingService);
 
         return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(MapData).ToList());
     }
 
-    private static async Task<IResult> PostSearch(ISessionQuery sessionQuery, IHashingService hashingService, [FromBody] Messages.v1.Session.Specification model)
+    private static async Task<IResult> PostSearch([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
     {
         var specification = GetSpecification(model, hashingService);
 
         return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(Map).ToList());
     }
 
-    private static async Task<IResult> RegisterSession(IMediator mediator, RegisterSession registerSession)
+    private static async Task<IResult> RegisterSession(RegisterSession registerSession, IMediator mediator)
     {
         await mediator.SendAsync(registerSession);
 

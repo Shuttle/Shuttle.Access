@@ -6,6 +6,7 @@ using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
+using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Access.WebApi;
 
@@ -54,7 +55,7 @@ public static class TenantEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchStatus(IMediator mediator, Guid id, [FromBody] SetTenantStatus message)
+    private static async Task<IResult> PatchStatus(Guid id, [FromBody] SetTenantStatus message, ISessionContext sessionContext, IMediator mediator)
     {
         try
         {
@@ -65,25 +66,27 @@ public static class TenantEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var requestResponseMessage = new RequestResponseMessage<SetTenantStatus, TenantStatusSet>(message);
+        var requestResponseMessage = new RequestResponseMessage<SetTenantStatus, TenantStatusSet>(sessionContext.Audit(message));
 
         await mediator.SendAsync(requestResponseMessage);
 
         return !requestResponseMessage.Ok ? Results.BadRequest(requestResponseMessage.Message) : Results.Accepted();
     }
 
-    private static async Task<IResult> Post(IMediator mediator, [FromBody] RegisterTenant message)
+    private static async Task<IResult> Post([FromBody] RegisterTenant message, ISessionContext sessionContext, IMediator mediator, ITransactionScopeFactory transactionScopeFactory)
     {
         Guard.AgainstNull(message);
 
-        var requestResponseMessage = new RequestResponseMessage<RegisterTenant, TenantRegistered>(message);
+        var requestResponseMessage = new RequestResponseMessage<RegisterTenant, TenantRegistered>(sessionContext.Audit(message));
 
+        using var scope = transactionScopeFactory.Create();
         await mediator.SendAsync(requestResponseMessage);
+        scope.Complete();
 
         return !requestResponseMessage.Ok ? Results.BadRequest(requestResponseMessage.Message) : Results.Ok(requestResponseMessage.Response);
     }
 
-    private static async Task<IResult> Get(ITenantQuery tenantQuery, string value)
+    private static async Task<IResult> Get(string value, ITenantQuery tenantQuery)
     {
         var specification = new SqlServer.Models.Tenant.Specification();
 
@@ -103,7 +106,7 @@ public static class TenantEndpoints
             : Results.BadRequest();
     }
 
-    private static async Task<IResult> Search(ITenantQuery tenantQuery, [FromBody] Messages.v1.Tenant.Specification specification)
+    private static async Task<IResult> Search([FromBody] Messages.v1.Tenant.Specification specification, ITenantQuery tenantQuery)
     {
         var search = new SqlServer.Models.Tenant.Specification();
 

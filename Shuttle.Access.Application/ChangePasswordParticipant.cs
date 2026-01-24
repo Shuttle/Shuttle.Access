@@ -30,7 +30,7 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
 
         if (request.Token.HasValue)
         {
-            var session = await _sessionRepository.FindAsync(_hashingService.Sha256(request.Token.Value.ToString("D")));
+            var session = await _sessionRepository.FindAsync(_hashingService.Sha256(request.Token.Value.ToString("D")), cancellationToken);
 
             if (session == null)
             {
@@ -48,7 +48,7 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
         }
 
         var user = new Identity();
-        var stream = await _eventStore.GetAsync(id);
+        var stream = await _eventStore.GetAsync(id, cancellationToken: cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -58,6 +58,6 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
         stream.Apply(user);
         stream.Add(user.SetPassword(_hashingService.Sha256(request.NewPassword)));
 
-        await _eventStore.SaveAsync(stream);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken).ConfigureAwait(false);
     }
 }

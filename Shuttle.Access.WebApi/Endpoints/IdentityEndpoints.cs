@@ -8,6 +8,7 @@ using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
+using Shuttle.Core.TransactionScope;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
@@ -110,7 +111,7 @@ public static class IdentityEndpoints
         return app;
     }
 
-    private static async Task<IResult> PostRoleAvailability(IIdentityQuery identityQuery, Guid id, [FromBody] Identifiers<Guid> identifiers)
+    private static async Task<IResult> PostRoleAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
     {
         try
         {
@@ -126,7 +127,7 @@ public static class IdentityEndpoints
         return Results.Ok(from roleId in identifiers.Values select new IdentifierAvailability<Guid> { Id = roleId, Active = roles.Any(item => item.Equals(roleId)) });
     }
 
-    private static async Task<IResult> Post(ISessionContext sessionContext, IMediator mediator, [FromBody] RegisterIdentity message)
+    private static async Task<IResult> Post([FromBody] RegisterIdentity message, ISessionContext sessionContext, IMediator mediator, ITransactionScopeFactory transactionScopeFactory)
     {
         Guard.AgainstNull(message);
 
@@ -146,12 +147,14 @@ public static class IdentityEndpoints
             requestIdentityRegistration.Authorized(sessionContext.Session.TenantId.Value, sessionContext.Session.IdentityId);
         }
 
+        using var scope = transactionScopeFactory.Create();
         await mediator.SendAsync(requestIdentityRegistration);
+        scope.Complete();
 
         return !requestIdentityRegistration.IsAllowed ? Results.Unauthorized() : Results.Accepted();
     }
 
-    private static async Task<IResult> GetPasswordResetToken(IMediator mediator, string name)
+    private static async Task<IResult> GetPasswordResetToken(string name, IMediator mediator)
     {
         var message = new GetPasswordResetToken { Name = name };
 
@@ -170,7 +173,7 @@ public static class IdentityEndpoints
         return !requestResponse.Ok ? Results.BadRequest(requestResponse.Message) : Results.Ok(requestResponse.Response);
     }
 
-    private static async Task<IResult> PutActivate(IServiceBus serviceBus, IIdentityQuery identityQuery, [FromBody] ActivateIdentity message)
+    private static async Task<IResult> PutActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IServiceBus serviceBus, IIdentityQuery identityQuery)
     {
         try
         {
@@ -199,12 +202,12 @@ public static class IdentityEndpoints
             return Results.BadRequest();
         }
 
-        await serviceBus.SendAsync(message);
+        await serviceBus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PutPasswordReset(HttpContext httpContext, IMediator mediator, [FromBody] ResetPassword message)
+    private static async Task<IResult> PutPasswordReset([FromBody] ResetPassword message, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
     {
         try
         {
@@ -222,7 +225,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(Resources.SessionTokenException);
         }
 
-        var requestMessage = new RequestMessage<ResetPassword>(message);
+        var requestMessage = new RequestMessage<ResetPassword>(sessionContext.Audit(message));
 
         await mediator.SendAsync(requestMessage);
 
@@ -231,7 +234,7 @@ public static class IdentityEndpoints
             : Results.Ok();
     }
 
-    private static async Task<IResult> PutPassword(ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository, [FromBody] ChangePassword message)
+    private static async Task<IResult> PutPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository)
     {
         try
         {
@@ -254,7 +257,7 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
-        var changePassword = new RequestMessage<ChangePassword>(message);
+        var changePassword = new RequestMessage<ChangePassword>(sessionContext.Audit(message));
 
         await mediator.SendAsync(changePassword);
 
@@ -263,7 +266,7 @@ public static class IdentityEndpoints
             : Results.Accepted();
     }
 
-    private static async Task<IResult> PatchRole(IMediator mediator, IServiceBus serviceBus, Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message)
+    private static async Task<IResult> PatchRole(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message, ISessionContext sessionContext, IMediator mediator, IServiceBus serviceBus)
     {
         try
         {
@@ -285,14 +288,14 @@ public static class IdentityEndpoints
             return Results.BadRequest(reviewRequest.Message);
         }
 
-        await serviceBus.SendAsync(message);
+        await serviceBus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Delete(IServiceBus serviceBus, Guid id)
+    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, IServiceBus serviceBus)
     {
-        await serviceBus.SendAsync(new RemoveIdentity { Id = id });
+        await serviceBus.SendAsync(sessionContext.Audit(new RemoveIdentity { Id = id }));
 
         return Results.Accepted();
     }

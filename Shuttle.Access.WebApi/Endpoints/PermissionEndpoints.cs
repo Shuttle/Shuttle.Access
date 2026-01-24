@@ -85,7 +85,7 @@ public static class PermissionEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchStatus(Guid id, SetPermissionStatus message, IServiceBus serviceBus)
+    private static async Task<IResult> PatchStatus(Guid id, SetPermissionStatus message, ISessionContext sessionContext, IServiceBus serviceBus)
     {
         try
         {
@@ -99,12 +99,12 @@ public static class PermissionEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(message);
+        await serviceBus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchDescription(IServiceBus serviceBus, Guid id, [FromBody] SetPermissionDescription message)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetPermissionDescription message, ISessionContext sessionContext, IServiceBus serviceBus)
     {
         try
         {
@@ -116,12 +116,12 @@ public static class PermissionEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(message);
+        await serviceBus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, SetPermissionName message, IServiceBus serviceBus)
+    private static async Task<IResult> PatchName(Guid id, SetPermissionName message, ISessionContext sessionContext, IServiceBus serviceBus)
     {
         try
         {
@@ -133,12 +133,12 @@ public static class PermissionEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(message);
+        await serviceBus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PostBulkDownload(IPermissionQuery permissionQuery, List<Guid> ids)
+    private static async Task<IResult> PostBulkDownload(List<Guid> ids, IPermissionQuery permissionQuery)
     {
         if (!ids.Any())
         {
@@ -151,7 +151,7 @@ public static class PermissionEndpoints
         return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(permissions)), "application/json", "permissions.json");
     }
 
-    private static async Task<IResult> PostBulkUpload(IServiceBus serviceBus, List<RegisterPermission> registerPermissions)
+    private static async Task<IResult> PostBulkUpload(List<RegisterPermission> registerPermissions, ISessionContext sessionContext, IServiceBus serviceBus)
     {
         if (!registerPermissions.Any())
         {
@@ -160,13 +160,13 @@ public static class PermissionEndpoints
 
         foreach (var registerPermission in registerPermissions)
         {
-            await serviceBus.SendAsync(registerPermission);
+            await serviceBus.SendAsync(sessionContext.Audit(registerPermission));
         }
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PostFile(HttpContext httpContext, IServiceBus serviceBus)
+    private static async Task<IResult> PostFile(ISessionContext sessionContext, IServiceBus serviceBus, HttpContext httpContext)
     {
         var form = httpContext.Request.Form;
 
@@ -184,13 +184,13 @@ public static class PermissionEndpoints
 
         foreach (var registerPermission in registerPermissions)
         {
-            await serviceBus.SendAsync(registerPermission);
+            await serviceBus.SendAsync(sessionContext.Audit(registerPermission));
         }
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(RegisterPermission message, IServiceBus serviceBus)
+    private static async Task<IResult> Post(RegisterPermission message, ISessionContext sessionContext, IServiceBus serviceBus)
     {
         try
         {
@@ -201,7 +201,7 @@ public static class PermissionEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(message);
+        await serviceBus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }

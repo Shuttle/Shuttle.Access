@@ -7,7 +7,7 @@ public static class SessionContextExtensions
 {
     extension(ISessionContext sessionContext)
     {
-        public object Audit(AuditMessage message)
+        public T Audit<T>(T message) where T : AuditMessage
         {
             Guard.AgainstNull(sessionContext).AuthenticationInvariants();
 

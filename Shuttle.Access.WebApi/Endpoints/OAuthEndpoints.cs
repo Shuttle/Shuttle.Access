@@ -104,6 +104,7 @@ public static class OAuthEndpoints
             sessionResponse.Permissions = registerSession.Session.Permissions.Select(item => item.Name).ToList();
             sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
             sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
+            sessionResponse.TenantId = registerSession.Session.TenantId!.Value;
         }
 
         return Results.Ok(sessionResponse);

@@ -1,6 +1,6 @@
 ﻿namespace Shuttle.Access.Messages.v1;
 
-public class ChangePassword
+public class ChangePassword : AuditMessage
 {
     public Guid? Id { get; set; }
     public string NewPassword { get; set; } = string.Empty;

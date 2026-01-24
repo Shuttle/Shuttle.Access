@@ -40,6 +40,6 @@ public class ResetPasswordParticipant(IHashingService hashingService, IEventStor
 
         stream.Add(identity.SetPassword(_hashingService.Sha256(message.Request.Password)));
 
-        await _eventStore.SaveAsync(stream, cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
     }
 }
