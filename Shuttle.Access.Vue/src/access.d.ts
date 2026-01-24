@@ -45,6 +45,7 @@ export type DashboardItem = {
   route: string;
   title: string;
   value: number;
+  svg: string;
 };
 
 export type DrawerOptions = {
@@ -88,6 +89,7 @@ export type NavigationItem = {
   permission?: string;
   title: string;
   to: string;
+  icon?: string;
 };
 
 export type OAuthData = {

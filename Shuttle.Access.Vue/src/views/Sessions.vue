@@ -16,7 +16,7 @@
                     size="x-small" @click="confirmRemoveAll"></v-btn>
             </template>
             <template v-slot:item.action="{ item }">
-                <v-btn :icon="mdiDeleteOutline" size="x-small"
+                <v-btn :icon="mdiDelete" size="x-small"
                     @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
             </template>
             <template #expanded-row="{ columns, item }">
@@ -38,7 +38,7 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from '@mdi/js';
+import { mdiDelete, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from '@mdi/js';
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";

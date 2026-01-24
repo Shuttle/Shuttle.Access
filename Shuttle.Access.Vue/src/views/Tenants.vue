@@ -29,7 +29,7 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiMagnify, mdiPlus, mdiRefresh } from '@mdi/js';
+import { mdiDelete, mdiMagnify, mdiPlus, mdiRefresh } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";

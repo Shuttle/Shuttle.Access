@@ -18,8 +18,8 @@
       <template v-slot:item.action="{ item }">
         <div class="sv-strip">
           <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click.stop="roles(item)" />
-          <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="password(item)" />
-          <v-btn :icon="mdiDeleteOutline" size="x-small"
+          <v-btn :icon="mdiKey" size="x-small" @click.stop="password(item)" />
+          <v-btn :icon="mdiDelete" size="x-small"
             @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
         </div>
       </template>
@@ -54,7 +54,7 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiMagnify, mdiDeleteOutline, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline, mdiAccountGroupOutline } from '@mdi/js';
+import { mdiMagnify, mdiDelete, mdiPlus, mdiRefresh, mdiPencil, mdiAccountGroupOutline, mdiKey } from '@mdi/js';
 import { useDateFormatter } from "@/composables/DateFormatter";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import { useRouter } from "vue-router";

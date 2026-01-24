@@ -1,10 +1,10 @@
 <template>
   <form @submit.prevent="change" class="sv-form px-5 pt-20" :class="getClasses()">
-    <sv-title :title="$t('change-password')" :close-path="getClosePath()" :type="getTitleType()" />
+    <a-title :title="$t('change-password')" :close-path="getClosePath()" :type="getTitleType()" />
     <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
       class="mb-2" :error-messages="validation.message('identityName')" readonly>
     </v-text-field>
-    <v-text-field :prepend-icon="`svg:${mdiShieldOutline}`" v-model="state.password" :label="$t('password')"
+    <v-text-field :prepend-icon="`svg:${mdiKey}`" v-model="state.password" :label="$t('password')"
       :icon-end="getPasswordIcon()" icon-end-clickable :append-icon="`svg:${getPasswordIcon()}`"
       @click:append="togglePasswordIcon" :type="getPasswordType()" autocomplete="current-password"
       :error-messages="validation.message('password')">
@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { mdiAccountOutline, mdiEyeOutline, mdiEyeOffOutline, mdiShieldOutline } from '@mdi/js';
+import { mdiAccountOutline, mdiEyeOutline, mdiEyeOffOutline, mdiKey } from '@mdi/js';
 import { computed, onMounted, reactive, ref, type Reactive } from "vue";
 import { required } from '@vuelidate/validators';
 import { useValidation } from "@/composables/Validation"

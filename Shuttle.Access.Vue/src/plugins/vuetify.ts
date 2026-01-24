@@ -49,6 +49,11 @@ export default createVuetify({
     VDateInput,
     VFileUpload,
   },
+  defaults: {
+    VBtn: {
+      variant: "flat",
+    },
+  },
   locale: {
     adapter: createVueI18nAdapter({ i18n, useI18n }),
   },

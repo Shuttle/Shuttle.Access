@@ -3,13 +3,22 @@
     <div class="flex justify-end">
       <v-btn :icon="mdiArrowCollapseLeft" @click.stop="showMainDrawer = !showMainDrawer" class="mr-4" flat></v-btn>
     </div>
-    <v-list :items="items"></v-list>
+    <v-list>
+      <v-list-item v-for="(item, i) in items" :key="i" :value="item" color="primary" :to="item.to">
+        <template v-slot:prepend>
+          <v-icon :icon="item.icon"></v-icon>
+        </template>
+
+        <v-list-item-title>{{ item.title }}</v-list-item-title>
+      </v-list-item>
+    </v-list>
   </v-navigation-drawer>
   <v-app-bar class="shadow-sm">
     <template v-slot:prepend v-if="sessionStore.authenticated">
       <v-app-bar-nav-icon variant="text" @click.stop="showMainDrawer = !showMainDrawer"></v-app-bar-nav-icon>
     </template>
-    <v-app-bar-title class="cursor-pointer" @click="$router.push('/dashboard')">Shuttle.Access</v-app-bar-title>
+    <v-app-bar-title class="cursor-pointer font-bold"
+      @click="$router.push('/dashboard')">Shuttle.Access</v-app-bar-title>
     <template v-slot:append>
       <div class="flex items-center">
         <v-switch class="mr-2" v-model="isDarkTheme" :false-icon="mdiWhiteBalanceSunny" :true-icon="mdiWeatherNight"
@@ -71,10 +80,9 @@ const items = computed(() => {
   map.forEach((item: NavigationItem) => {
     if (!item.permission || sessionStore.hasPermission(item.permission)) {
       result.push({
+        icon: item.icon,
         title: t(item.title),
-        props: {
-          to: item.to || ""
-        }
+        to: item.to || ""
       });
     }
 

@@ -1,13 +1,13 @@
 <template>
-  <form @submit.prevent="submit" class="sv-form">
-    <sv-title :title="$t('role-json')" close-drawer type="borderless" />
-    <v-textarea v-model="state.json" :label="$t('json')" class="mb-2" :error-messages="validation.message('json')"
-      rows="10">
-    </v-textarea>
-    <div class="sv-strip sv-strip--reverse">
-      <v-btn type="submit" :disabled="busy">{{ $t("submit") }}</v-btn>
-    </div>
-  </form>
+    <form @submit.prevent="submit" class="sv-form">
+        <a-title :title="$t('role-json')" close-drawer type="borderless" />
+        <v-textarea v-model="state.json" :label="$t('json')" class="mb-2" :error-messages="validation.message('json')"
+            rows="10">
+        </v-textarea>
+        <div class="sv-strip sv-strip--reverse">
+            <v-btn type="submit" :disabled="busy">{{ $t("submit") }}</v-btn>
+        </div>
+    </form>
 </template>
 
 <script setup lang="ts">
@@ -27,57 +27,57 @@ const { t } = useI18n({ useScope: 'global' });
 const busy: Ref<boolean> = ref(false);
 
 type State = {
-  json: string;
+    json: string;
 }
 
 const state: Reactive<State> = reactive({
-  json: "",
+    json: "",
 });
 
 const rules = computed(() => {
-  return {
-    json: {
-      required
-    },
-  }
+    return {
+        json: {
+            required
+        },
+    }
 });
 
 const validation = useValidation(rules, state);
 
 const submit = async () => {
-  const errors = await validation.errors();
+    const errors = await validation.errors();
 
-  if (errors.length) {
-    return;
-  }
+    if (errors.length) {
+        return;
+    }
 
-  busy.value = true;
-
-  try {
-    let json;
+    busy.value = true;
 
     try {
-      json = JSON.parse(state.json);
-    } catch {
-      // ignore
+        let json;
+
+        try {
+            json = JSON.parse(state.json);
+        } catch {
+            // ignore
+        }
+
+        if (json === null || !Array.isArray(json)) {
+            alertStore.add({
+                message: t("messages.invalid-json"),
+                variant: "error",
+                name: "invalid-json"
+            })
+
+            return;
+        }
+        await api.post("v1/roles/bulk", json)
+
+        useSnackbarStore().requestSent();
+
+        drawerStore.close();
+    } finally {
+        busy.value = false;
     }
-
-    if (json === null || !Array.isArray(json)) {
-      alertStore.add({
-        message: t("messages.invalid-json"),
-        variant: "error",
-        name: "invalid-json"
-      })
-
-      return;
-    }
-    await api.post("v1/roles/bulk", json)
-
-    useSnackbarStore().requestSent();
-
-    drawerStore.close();
-  } finally {
-    busy.value = false;
-  }
 }
 </script>
