@@ -1,6 +1,7 @@
 <template>
-  <div class="flex flex-row align-middle a-title items-start" :class="getClasses()">
-    <div class="flex-grow">{{ props.title }}</div>
+  <div class="flex flex-row align-middle items-start font-semibold text-xl pb-2 mb-4 w-full cursor-default"
+    :class="getClasses()">
+    <div class="grow">{{ props.title }}</div>
     <v-btn v-if="canClose" :icon="mdiClose" @click.stop="click" size="x-small" flat></v-btn>
   </div>
 </template>
@@ -19,10 +20,10 @@ const canClose = props.closeDrawer || props.closePath || props.closeClick
 const getClasses = () => {
   switch (props.type) {
     case "borderless": {
-      return "a-title--borderless"
+      return "border-0"
     }
     default: {
-      return "a-title--normal"
+      return "border-b-1 border-b-solid border-b-neutral-200 dark:border-b-neutral-500"
     }
   }
 }

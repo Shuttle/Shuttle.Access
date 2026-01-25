@@ -30,11 +30,11 @@
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
-            <div class="sv-table-container">
+            <a-container show-border>
               <a-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
                 mobile-breakpoint="md">
               </a-data-table>
-            </div>
+            </a-container>
           </td>
         </tr>
       </template>

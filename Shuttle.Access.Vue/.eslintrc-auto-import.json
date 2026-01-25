@@ -13,6 +13,8 @@
     "MaybeRefOrGetter": true,
     "PropType": true,
     "Ref": true,
+    "Slot": true,
+    "Slots": true,
     "VNode": true,
     "WritableComputedRef": true,
     "computed": true,
@@ -71,8 +73,6 @@
     "watch": true,
     "watchEffect": true,
     "watchPostEffect": true,
-    "watchSyncEffect": true,
-    "Slot": true,
-    "Slots": true
+    "watchSyncEffect": true
   }
 }

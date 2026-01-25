@@ -1,4 +1,4 @@
-import type { DrawerOptions } from "@/access";
+import type { DrawerOptions, DrawerSize } from "@/access";
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -11,6 +11,14 @@ export const useDrawerStore = defineStore("drawer", () => {
 
   const route = useRoute();
   const router = useRouter();
+
+  const size = ref<DrawerSize>("compact");
+  const sizeToggleVisible = ref(false);
+  const showNavigationDrawer = ref(false);
+
+  const setSize = (drawerSize: DrawerSize) => {
+    size.value = drawerSize;
+  };
 
   const isOpen = computed(() => {
     // `matched` should include the parent route and the current route in order to open the drawer.
@@ -37,8 +45,12 @@ export const useDrawerStore = defineStore("drawer", () => {
   }
 
   return {
+    showNavigationDrawer,
     options: drawerOptions,
-    isOpen: isOpen,
+    sizeToggleVisible,
+    size,
+    setSize,
+    isOpen,
     close,
     initialize,
   };

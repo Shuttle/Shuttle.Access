@@ -3,6 +3,8 @@
 @import "tailwindcss/utilities.css" layer(utilities) important;
 @import "./tailwind.scss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* route transitions */
 .route-enter-from,
 .route-leave-to {

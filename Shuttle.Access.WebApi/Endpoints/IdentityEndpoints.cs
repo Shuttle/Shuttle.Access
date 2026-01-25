@@ -30,6 +30,11 @@ public static class IdentityEndpoints
             {
                 Id = item.RoleId,
                 Name = item.Role.Name
+            }).ToList(),
+            Tenants = identity.IdentityTenants.Select(item => new Messages.v1.Identity.Tenant
+            {
+                Id = item.TenantId,
+                Name = item.Tenant.Name
             }).ToList()
         };
     }

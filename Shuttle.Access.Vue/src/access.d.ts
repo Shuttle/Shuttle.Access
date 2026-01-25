@@ -53,6 +53,8 @@ export type DrawerOptions = {
   refresh: () => Promise<void>;
 };
 
+export type DrawerSize = "compact" | "expanded" | "full" | undefined;
+
 export type Env = {
   VITE_API_URL: string;
 };
@@ -82,7 +84,18 @@ export type Identity = {
   id: string;
   name: string;
   registeredBy: string;
-  roles: Role[] | undefined;
+  roles: IdentityRole[] | undefined;
+  roles: IdentityTenant[] | undefined;
+};
+
+export type IdentityRole = {
+  id: string;
+  name: string;
+};
+
+export type IdentityTenant = {
+  id: string;
+  name: string;
 };
 
 export type NavigationItem = {

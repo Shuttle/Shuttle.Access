@@ -64,15 +64,25 @@ const theme = useTheme();
 const alertStore = useAlertStore();
 
 const storedTheme = localStorage.getItem('app-theme') || theme.global.name.value;
-const isDarkTheme: Ref<boolean> = ref(storedTheme === 'shuttleDark');
+const isDarkTheme: Ref<boolean> = ref(storedTheme === 'dark');
 
-theme.global.name.value = isDarkTheme.value ? 'shuttleDark' : 'shuttleLight';
+const applyTheme = (selectedTheme: string) => {
+  if (selectedTheme === "dark") {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+
+  theme.change(selectedTheme)
+}
+
+applyTheme(isDarkTheme.value ? 'dark' : 'light');
 
 watch(isDarkTheme, (newValue) => {
-  const selectedTheme = newValue ? 'shuttleDark' : 'shuttleLight';
-  theme.global.name.value = selectedTheme;
-  localStorage.setItem('app-theme', selectedTheme);
-});
+  const selectedTheme = newValue ? 'dark' : 'light'
+  applyTheme(selectedTheme);
+  localStorage.setItem('app-theme', selectedTheme)
+})
 
 const items = computed(() => {
   const result: any[] = [];

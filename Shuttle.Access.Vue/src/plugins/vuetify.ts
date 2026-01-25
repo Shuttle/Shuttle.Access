@@ -17,6 +17,7 @@ import { VFileUpload } from "vuetify/labs/components";
 
 // Composables
 import { createVuetify, type ThemeDefinition } from "vuetify";
+import { VBtn } from "vuetify/components/VBtn";
 import { useI18n } from "vue-i18n";
 
 const colors = {
@@ -49,19 +50,26 @@ export default createVuetify({
     VDateInput,
     VFileUpload,
   },
+  aliases: {
+    VBtnPrimary: VBtn,
+  },
   defaults: {
     VBtn: {
       variant: "flat",
+    },
+    VBtnPrimary: {
+      variant: "tonal",
+      color: "primary",
     },
   },
   locale: {
     adapter: createVueI18nAdapter({ i18n, useI18n }),
   },
   theme: {
-    defaultTheme: "shuttleDark",
+    defaultTheme: "dark",
     themes: {
-      shuttleDark: darkTheme,
-      shuttleLight: lightTheme,
+      dark: darkTheme,
+      light: lightTheme,
     },
   },
   icons: {

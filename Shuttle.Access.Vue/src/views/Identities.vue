@@ -2,18 +2,18 @@
   <v-card flat>
     <v-card-title class="sv-card-title">
       <a-title :title="$t('identities')" />
-      <div class="sv-strip">
+      <a-strip>
         <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
           variant="solo-filled" flat hide-details single-line></v-text-field>
-      </div>
+      </a-strip>
     </v-card-title>
     <v-divider></v-divider>
     <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="name" expand-on-click>
       <template v-slot:header.action="">
-        <v-btn v-if="sessionStore.hasPermission(Permissions.Identities.Manage)" :icon="mdiPlus" size="x-small"
-          @click="add"></v-btn>
+        <v-btn-primary v-if="sessionStore.hasPermission(Permissions.Identities.Manage)" :icon="mdiPlus" size="x-small"
+          @click="add"></v-btn-primary>
       </template>
       <template v-slot:item.action="{ item }">
         <div class="sv-strip">
@@ -25,23 +25,40 @@
       </template>
       <template v-slot:item.name="{ item }">
         <div class="flex items-center">
-          <div class="flex-grow">{{ item.name }}</div>
+          <div class="grow">{{ item.name }}</div>
           <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" class="flex-none" />
         </div>
       </template>
       <template v-slot:item.description="{ item }">
         <div class="flex items-center">
-          <div class="flex-grow">{{ item.description }}</div>
+          <div class="grow">{{ item.description }}</div>
           <v-btn :icon="mdiPencil" size="x-small" @click.stop="description(item)" class="flex-none" />
         </div>
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
-            <div class="sv-table-container">
-              <a-data-table :items="item.roles" :headers="roleHeaders" :mobile="null" mobile-breakpoint="md">
-              </a-data-table>
-            </div>
+            <a-container show-border>
+              <v-tabs v-model="item.tab">
+                <v-tab value="roles">
+                  {{ $t('roles') }}
+                </v-tab>
+                <v-tab value="tenants" v-if="sessionStore.hasPermission(Permissions.Tenants.Manage)">
+                  {{ $t('tenants') }}
+                </v-tab>
+              </v-tabs>
+              <v-divider></v-divider>
+              <v-tabs-window v-model="item.tab">
+                <v-tabs-window-item value="roles">
+                  <a-data-table :items="item.roles" :headers="roleHeaders" hide-default-header>
+                  </a-data-table>
+                </v-tabs-window-item>
+                <v-tabs-window-item value="tenants">
+                  <a-data-table :items="item.tenants" :headers="tenantHeaders" hide-default-header>
+                  </a-data-table>
+                </v-tabs-window-item>
+              </v-tabs-window>
+            </a-container>
           </td>
         </tr>
       </template>
@@ -128,6 +145,12 @@ const roleHeaders = useSecureTableHeaders([
   },
 ]);
 
+const tenantHeaders = useSecureTableHeaders([
+  {
+    title: t("tenant"),
+    value: "name"
+  },
+]);
 
 const items: Ref<Identity[]> = ref([]);
 
