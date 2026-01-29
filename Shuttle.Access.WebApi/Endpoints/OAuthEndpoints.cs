@@ -23,7 +23,7 @@ public static class OAuthEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}/{applicationName?}", GetAuthenticateProvider)
+        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}", GetAuthenticateProvider)
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
@@ -68,20 +68,6 @@ public static class OAuthEndpoints
 
         var registerSession = new RegisterSession(identity).UseDirect();
 
-        if (grant.HasData("ApplicationName"))
-        {
-            var applicationName = grant.GetData("ApplicationName");
-
-            var knownApplicationOptions = Guard.AgainstNull(accessOptions.Value).KnownApplications.FirstOrDefault(item => item.Name.Equals(applicationName, StringComparison.InvariantCultureIgnoreCase));
-
-            if (knownApplicationOptions == null)
-            {
-                return Results.BadRequest($"Unknown application name '{applicationName}'.");
-            }
-
-            registerSession.WithKnownApplicationOptions(knownApplicationOptions);
-        }
-
         await mediator.SendAsync(registerSession);
 
         var requestRegistration = registerSession.Result == SessionRegistrationResult.UnknownIdentity && accessOptions.Value.OAuthRegisterUnknownIdentities;
@@ -110,7 +96,7 @@ public static class OAuthEndpoints
         return Results.Ok(sessionResponse);
     }
 
-    private static async Task<IResult> GetAuthenticateProvider(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName, string? applicationName, [FromQuery] string? redirectUri)
+    private static async Task<IResult> GetAuthenticateProvider(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName, [FromQuery] string? redirectUri)
     {
         if (string.IsNullOrWhiteSpace(providerName))
         {
@@ -121,16 +107,6 @@ public static class OAuthEndpoints
 
         var data = new Dictionary<string, string>();
 
-        if (!string.IsNullOrWhiteSpace(applicationName))
-        {
-            if (Guard.AgainstNull(accessOptions.Value).KnownApplications.FirstOrDefault(item => item.Name.Equals(applicationName, StringComparison.InvariantCultureIgnoreCase)) == null)
-            {
-                return Results.BadRequest($"Unknown application name '{applicationName}'.");
-            }
-
-            data.Add("ApplicationName", applicationName);
-        }
-
         var hasRedirectUri = !string.IsNullOrWhiteSpace(redirectUri);
 
         if (hasRedirectUri)
@@ -140,7 +116,7 @@ public static class OAuthEndpoints
 
         var grant = await oauthService.RegisterAsync(providerName, data);
 
-        logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{providerName}' / application name = '{(string.IsNullOrWhiteSpace(applicationName) ? string.Empty : applicationName)}'");
+        logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{providerName}'");
 
         var oauthOptionsValue = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
         var oauthProviderOptions = oauthOptionsValue.GetProviderOptions(providerName);

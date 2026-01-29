@@ -152,15 +152,6 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));
 
             await _sessionRepository.SaveAsync(session, cancellationToken);
-
-            if (message.HasKnownApplicationOptions)
-            {
-                var sessionTokenExchange = new SessionTokenExchange(Guid.NewGuid(), token, DateTimeOffset.UtcNow.Add(_accessOptions.SessionTokenExchangeValidityTimeSpan));
-
-                await _sessionTokenExchangeRepository.SaveAsync(sessionTokenExchange, cancellationToken);
-
-                message.WithSessionTokenExchangeUrl($"{message.KnownApplicationOptions!.SessionTokenExchangeUrl.TrimEnd('/')}/{sessionTokenExchange.ExchangeToken}");
-            }
         }
     }
 }

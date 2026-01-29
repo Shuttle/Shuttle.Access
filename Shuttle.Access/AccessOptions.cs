@@ -11,7 +11,6 @@ public class AccessOptions
     public Guid SystemTenantId { get; set; } = new("c3ee3908-716b-48df-abda-33b49e09be97");
 
     public string ExtensionFolder { get; set; } = "./.extension";
-    public List<KnownApplicationOptions> KnownApplications { get; set; } = [];
     public bool OAuthRegisterUnknownIdentities { get; set; } = true;
     public string Realm { get; set; } = "API";
     public TimeSpan SessionDuration { get; set; } = TimeSpan.FromHours(8);
@@ -30,12 +29,4 @@ public class ConfigurationOptions
     public string AdministratorPassword { get; set; } = "shuttle-admin";
     public bool ShouldConfigure { get; set; } = true;
     public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(2);
-}
-
-public class KnownApplicationOptions
-{
-    public string Description { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string SessionTokenExchangeUrl { get; set; } = string.Empty;
-    public string Title { get; set; } = string.Empty;
 }

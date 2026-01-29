@@ -4,19 +4,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 using Shuttle.Hopper;
-using Shuttle.Recall;
 using Shuttle.Recall.SqlServer.EventProcessing;
 using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
 [SuppressMessage("Security", "EF1002:Risk of vulnerability to SQL injection", Justification = "Schema and table names are from trusted configuration sources")]
-public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IOptions<ServerOptions> serverOptions, IOptions<SqlServerStorageOptions> sqlServerStorageOptions, IOptions<SqlServerEventProcessingOptions> sqlServerEventProcessingOptions, SqlServerStorageDbContext sqlServerStorageDbContext, SqlServerEventProcessingDbContext sqlServerEventProcessingDbContext, IPrimitiveEventRepository primitiveEventRepository, KeepAliveObserver keepAliveObserver)
+public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IOptions<ServerOptions> serverOptions, IOptions<SqlServerStorageOptions> sqlServerStorageOptions, IOptions<SqlServerEventProcessingOptions> sqlServerEventProcessingOptions, SqlServerStorageDbContext sqlServerStorageDbContext, SqlServerEventProcessingDbContext sqlServerEventProcessingDbContext, IKeepAliveContext keepAliveContext)
     : IMessageHandler<MonitorKeepAlive>
 {
-    private readonly KeepAliveObserver _keepAliveObserver = Guard.AgainstNull(keepAliveObserver);
+    private readonly IKeepAliveContext _keepAliveContext = Guard.AgainstNull(keepAliveContext);
     private readonly ILogger<MonitorKeepAliveHandler> _logger = Guard.AgainstNull(logger);
-    private readonly IPrimitiveEventRepository _primitiveEventRepository = Guard.AgainstNull(primitiveEventRepository);
     private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
     private readonly SqlServerEventProcessingOptions _sqlEventProcessingOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerEventProcessingOptions).Value);
     private readonly SqlServerEventProcessingDbContext _sqlServerEventProcessingDbContext = Guard.AgainstNull(sqlServerEventProcessingDbContext);
@@ -36,23 +34,27 @@ public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IO
         if (nullSequenceNumberCount == 0)
         {
             if (await _sqlServerEventProcessingDbContext.Database.SqlQueryRaw<int>($@"
-IF EXISTS
-(
-    SELECT
-        NULL
-    FROM
-        [{_sqlEventProcessingOptions.Schema}].[Projection]
-    WHERE
-        [SequenceNumber] < {maxSequenceNumber}
-) 
-    SELECT 1 
-ELSE 
-    SELECT 0
+SELECT
+    CASE
+        WHEN EXISTS
+        (
+            SELECT
+                NULL
+            FROM 
+                [{_sqlEventProcessingOptions.Schema}].[Projection]
+            WHERE 
+                [SequenceNumber] < {maxSequenceNumber}
+        )
+        THEN 
+            1
+        ELSE 
+            0
+    END [VALUE]
 ").SingleAsync(cancellationToken) == 0)
             {
                 _logger.LogDebug("[keep-alive] : reset");
 
-                await _keepAliveObserver.ResetAsync();
+                await _keepAliveContext.ResetAsync();
 
                 return;
             }
@@ -65,6 +67,6 @@ ELSE
             builder.ToSelf().DeferUntil(ignoreTillDate);
         }, cancellationToken);
 
-        _logger.LogDebug($"[keep-alive] : ignore till date = '{ignoreTillDate:O}'");
+        _logger.LogDebug("[keep-alive] : ignore till date = '{IgnoreTillDate:O}'", ignoreTillDate);
     }
 }

@@ -26,7 +26,9 @@ if (
   window.location.pathname === "/" ||
   window.location.pathname === "/signin"
 ) {
-  router.push({ path: sessionStore.authenticated ? "/dashboard" : "/signin" });
+  router.push({
+    path: sessionStore.isAuthenticated ? "/dashboard" : "/signin",
+  });
 }
 
 app.mount("#app");

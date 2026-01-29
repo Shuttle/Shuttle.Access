@@ -379,18 +379,6 @@ public static class SessionEndpoints
             registerSession.UseDirect();
         }
 
-        if (!string.IsNullOrWhiteSpace(message.ApplicationName))
-        {
-            var knownApplicationOptions = options.KnownApplications.FirstOrDefault(item => item.Name.Equals(message.ApplicationName, StringComparison.InvariantCultureIgnoreCase));
-
-            if (knownApplicationOptions == null)
-            {
-                return Results.BadRequest($"Unknown application name '{message.ApplicationName}'.");
-            }
-
-            registerSession.WithKnownApplicationOptions(knownApplicationOptions);
-        }
-
         return await RegisterSession(registerSession, mediator);
     }
 

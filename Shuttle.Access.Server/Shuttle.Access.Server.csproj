@@ -19,7 +19,6 @@
     <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.1-beta" />
     <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.1-beta" />
     <PackageReference Include="Shuttle.Recall.Logging" Version="20.0.0" />
-    <PackageReference Include="Shuttle.Recall.OpenTelemetry" Version="18.0.0" />
     <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.1-beta" />
     <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.1-beta" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />

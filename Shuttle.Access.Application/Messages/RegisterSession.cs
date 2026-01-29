@@ -8,13 +8,10 @@ public class RegisterSession(string identityName)
     private Guid? _authenticationToken;
     private string _password = string.Empty;
 
-    public bool HasKnownApplicationOptions => KnownApplicationOptions != null;
-
     public bool HasSession => Session != null && SessionToken.HasValue;
 
     public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
-    public KnownApplicationOptions? KnownApplicationOptions { get; private set; }
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
     public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;
     public Session? Session { get; private set; }
@@ -107,12 +104,6 @@ public class RegisterSession(string identityName)
 
         _password = Guard.AgainstEmpty(password);
 
-        return this;
-    }
-
-    public RegisterSession WithKnownApplicationOptions(KnownApplicationOptions knownApplicationOptions)
-    {
-        KnownApplicationOptions = Guard.AgainstNull(knownApplicationOptions);
         return this;
     }
 

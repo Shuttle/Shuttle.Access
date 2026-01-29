@@ -174,17 +174,14 @@ public class Program
 
         app.UseCors();
 
-        if (app.Environment.IsDevelopment())
+        app.MapOpenApi();
+        app.MapScalarApiReference(options =>
         {
-            app.MapOpenApi();
-            app.MapScalarApiReference(options =>
-            {
-                options
-                    .WithTitle("Shuttle Access API")
-                    .WithTheme(ScalarTheme.DeepSpace)
-                    .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
-            });
-        }
+            options
+                .WithTitle("Shuttle Access API")
+                .WithTheme(ScalarTheme.DeepSpace)
+                .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        });
 
         app.UseAccessAuthorization();
 
@@ -210,7 +207,6 @@ public class Program
         });
 
         app
-            .MapApplicationEndpoints(versionSet)
             .MapIdentityEndpoints(versionSet)
             .MapOAuthEndpoints(versionSet)
             .MapPermissionEndpoints(versionSet)

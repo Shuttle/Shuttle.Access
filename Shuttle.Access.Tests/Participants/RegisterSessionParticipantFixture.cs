@@ -1,5 +1,4 @@
-﻿using System.Text.RegularExpressions;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
@@ -39,29 +38,6 @@ public class RegisterSessionParticipantFixture
 
         Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
-    }
-
-    [Test]
-    public void Should_be_able_to_register_a_session_using_a_password_for_an_application()
-    {
-        var message = new RegisterSession(IdentityName).UsePassword("some_password").WithKnownApplicationOptions(new() { SessionTokenExchangeUrl = "http://localhost" });
-        var authenticationService = new Mock<IAuthenticationService>();
-
-        authenticationService.Setup(m => m.AuthenticateAsync(IdentityName, "some_password", CancellationToken.None)).ReturnsAsync(new AuthenticationResult(true, IdentityName));
-
-        var identityQuery = MockIdentitySearchAsync();
-
-        identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), CancellationToken.None)).Returns(ValueTask.FromResult(Guid.NewGuid()));
-
-        var sessionTokenExchangeRepository = new Mock<ISessionTokenExchangeRepository>();
-
-        var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), authenticationService.Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, identityQuery.Object, sessionTokenExchangeRepository.Object);
-
-        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
-        Assert.That(message.HasSession, Is.True);
-        Assert.That(new Regex("http://localhost/[0-9a-fA-F-]{36}").Match(message.SessionTokenExchangeUrl).Success, Is.True);
-
-        sessionTokenExchangeRepository.Verify(m => m.SaveAsync(It.IsAny<SessionTokenExchange>(), CancellationToken.None), Times.Once);
     }
 
     [Test]

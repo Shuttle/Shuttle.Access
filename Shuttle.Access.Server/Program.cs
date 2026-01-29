@@ -60,6 +60,7 @@ internal class Program
 
                 services
                     .AddSingleton<IConfiguration>(configuration)
+                    .AddSingleton<IKeepAliveContext, KeepAliveContext>()
                     .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
                     .AddAccess(accessBuilder =>
                     {

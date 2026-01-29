@@ -34,9 +34,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include=".extension\KnownApplication\Recall.svg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include=".extension\OAuth\GitHub.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -6,8 +6,8 @@ import { i18n } from "@/i18n";
 import type { Credentials, OAuthData, SessionResponse } from "@/access";
 
 export const useSessionStore = defineStore("session", () => {
-  const authenticated = ref(false);
-  const initialized = ref(false);
+  const isAuthenticated = ref(false);
+  const isInitialized = ref(false);
   const identityName = ref<string | undefined>("");
   const token = ref<string | undefined>("");
   const tenantId = ref<string | undefined>("");
@@ -16,21 +16,19 @@ export const useSessionStore = defineStore("session", () => {
   const status = computed(() => (!token.value ? "not-signed-in" : "signed-in"));
 
   async function initialize() {
-    if (initialized.value) return;
+    if (isInitialized.value) return;
 
     const storedIdentity = localStorage.getItem("shuttle-access.identityName");
     const storedToken = localStorage.getItem("shuttle-access.token");
-    const storedTenantId = localStorage.getItem("shuttle-access.tenantId");
 
-    if (storedIdentity && storedToken && storedTenantId) {
+    if (storedIdentity && storedToken) {
       try {
         return await signIn({
           identityName: storedIdentity,
           token: storedToken,
-          tenantId: storedTenantId,
         });
       } finally {
-        initialized.value = true;
+        isInitialized.value = true;
       }
     }
 
@@ -60,7 +58,6 @@ export const useSessionStore = defineStore("session", () => {
 
     localStorage.setItem("shuttle-access.identityName", session.identityName);
     localStorage.setItem("shuttle-access.token", session.token);
-    localStorage.setItem("shuttle-access.tenantId", session.tenantId);
 
     identityName.value = session.identityName;
     token.value = session.token;
@@ -70,7 +67,7 @@ export const useSessionStore = defineStore("session", () => {
 
     session.permissions.forEach((item) => addPermission(item));
 
-    authenticated.value = true;
+    isAuthenticated.value = true;
   }
 
   async function signIn(credentials: Credentials): Promise<SessionResponse> {
@@ -88,8 +85,6 @@ export const useSessionStore = defineStore("session", () => {
         identityName: credentials.identityName,
         password: credentials.password,
         token: credentials.token,
-        applicationName: credentials.applicationName,
-        tenantId: credentials.tenantId,
       },
     );
 
@@ -141,7 +136,7 @@ export const useSessionStore = defineStore("session", () => {
       register(sessionResponse);
     }
 
-    initialized.value = true;
+    isInitialized.value = true;
 
     return sessionResponse;
   }
@@ -153,11 +148,10 @@ export const useSessionStore = defineStore("session", () => {
 
     localStorage.removeItem("shuttle-access.identityName");
     localStorage.removeItem("shuttle-access.token");
-    localStorage.removeItem("shuttle-access.tenantId");
 
     removePermissions();
 
-    authenticated.value = false;
+    isAuthenticated.value = false;
   }
 
   function hasSession() {
@@ -192,8 +186,8 @@ export const useSessionStore = defineStore("session", () => {
   }
 
   return {
-    authenticated,
-    initialized,
+    isAuthenticated,
+    isInitialized,
     identityName,
     token,
     tenantId,

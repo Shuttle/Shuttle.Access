@@ -1,14 +1,5 @@
 <template>
   <form @submit.prevent="signIn" class="sv-form sv-form--sm px-5 pt-6">
-    <div v-if="application" class="mb-6">
-      <div class="flex flex-row">
-        <div v-if="application.svg" v-html="application.svg" class="v-icon__svg w-10 h-10 mb-2">
-        </div>
-        <div class="text-xl font-bold">{{ application.title }}</div>
-      </div>
-      <v-divider></v-divider>
-      <div>{{ application.description }}</div>
-    </div>
     <a-title :title="$t('sign-in')"></a-title>
     <div v-if="configuration.isPasswordAuthenticationAllowed()">
       <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
@@ -23,15 +14,13 @@
       </div>
       <v-divider v-if="oauthProviders.length > 0" class="mt-4 mb-2"></v-divider>
     </div>
-    <div class="flex flex-row justify-start space-x-2" v-if="oauthProviders.length > 0">
-      <div v-for="oauthProvider in oauthProviders" v-bind:key="oauthProvider.name" :alt="`${oauthProvider.name} logo`"
-        class="cursor-pointer" @click="oauthAuthenticate(oauthProvider.name)">
-        <div v-if="oauthProvider.svg" v-html="oauthProvider.svg" class="v-icon__svg w-10 h-10">
-        </div>
-        <div v-else
-          class="rounded-full bg-zinc-800 text-gray-400 h-10 flex justify-center items-center px-4 uppercase font-semibold">
-          {{ oauthProvider.name }}</div>
-      </div>
+    <div class="flex flex-col gap-2 justify-start" v-if="oauthProviders.length > 0">
+      <v-btn v-for="oauthProvider in oauthProviders" v-bind:key="oauthProvider.name" :alt="`${oauthProvider.name} logo`"
+        class="py-8 px-4 flex flex-row justify-center items-center gap-2 w-full"
+        @click="oauthAuthenticate(oauthProvider.name)">
+        <div v-if="oauthProvider.svg" v-html="oauthProvider.svg" class="v-icon__svg w-8 h-8 mr-4"></div>
+        <span>{{ oauthProvider.name }}</span>
+      </v-btn>
     </div>
   </form>
 </template>
@@ -116,8 +105,7 @@ const signIn = async () => {
   try {
     const response = await sessionStore.signIn({
       identityName: state.identityName,
-      password: state.password,
-      applicationName: props.applicationName
+      password: state.password
     });
 
     if (response.sessionTokenExchangeUrl) {

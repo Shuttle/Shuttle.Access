@@ -37,7 +37,6 @@ export type Credentials = {
   identityName: string;
   token?: string;
   password?: string;
-  applicationName?: string;
   tenantId?: string;
 };
 

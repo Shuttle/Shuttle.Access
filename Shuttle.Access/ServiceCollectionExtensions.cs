@@ -27,7 +27,6 @@ public static class ServiceCollectionExtensions
                 options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
                 options.ExtensionFolder = accessBuilder.Options.ExtensionFolder;
                 options.Realm = accessBuilder.Options.Realm;
-                options.KnownApplications = accessBuilder.Options.KnownApplications;
                 options.Configuration = accessBuilder.Options.Configuration;
                 options.AllowPasswordAuthentication = accessBuilder.Options.AllowPasswordAuthentication;
             });

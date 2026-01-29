@@ -14,7 +14,7 @@
     </v-list>
   </v-navigation-drawer>
   <v-app-bar class="shadow-sm">
-    <template v-slot:prepend v-if="sessionStore.authenticated">
+    <template v-slot:prepend v-if="sessionStore.isAuthenticated">
       <v-app-bar-nav-icon variant="text" @click.stop="showMainDrawer = !showMainDrawer"></v-app-bar-nav-icon>
     </template>
     <v-app-bar-title class="cursor-pointer font-bold"
@@ -23,7 +23,7 @@
       <div class="flex items-center">
         <v-switch class="mr-2" v-model="isDarkTheme" :false-icon="mdiWhiteBalanceSunny" :true-icon="mdiWeatherNight"
           hide-details />
-        <v-btn v-if="!sessionStore.authenticated" :icon="mdiLogin" @click.prevent="signIn"></v-btn>
+        <v-btn v-if="!sessionStore.isAuthenticated" :icon="mdiLogin" @click.prevent="signIn"></v-btn>
         <v-btn v-else :icon="mdiDotsVertical" variant="text"
           @click.stop="showProfileDrawer = !showProfileDrawer"></v-btn>
       </div>

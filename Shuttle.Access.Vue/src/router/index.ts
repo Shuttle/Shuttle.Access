@@ -227,7 +227,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const sessionStore = useSessionStore();
 
-  if (!sessionStore.initialized) {
+  if (!sessionStore.isInitialized) {
     return;
   }
 
@@ -246,7 +246,7 @@ router.beforeEach(async (to) => {
 
   if (
     !!to.meta.authenticated &&
-    !sessionStore.authenticated &&
+    !sessionStore.isAuthenticated &&
     to.name !== "signin"
   ) {
     return { name: "signin" };
