@@ -1,5 +1,6 @@
 ﻿using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
@@ -14,7 +15,7 @@ public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEve
     public async Task ProcessMessageAsync(RequestResponseMessage<GetPasswordResetToken, Guid> message, CancellationToken cancellationToken = default)
     {
         var identityName = message.Request.Name;
-        var query = (await _identityQuery.SearchAsync(new SqlServer.Models.Identity.Specification().WithName(identityName), cancellationToken)).SingleOrDefault();
+        var query = (await _identityQuery.SearchAsync(new IdentitySpecification().WithName(identityName), cancellationToken)).SingleOrDefault();
 
         if (query == null)
         {

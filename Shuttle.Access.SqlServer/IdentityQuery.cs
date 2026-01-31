@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
@@ -12,9 +13,9 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
         return await _accessDbContext.IdentityRoles.CountAsync(item => item.Role.Name == "administrator", cancellationToken);
     }
 
-    public async ValueTask<int> CountAsync(Models.Identity.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(IdentitySpecification identitySpecification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(specification).CountAsync(cancellationToken);
+        return await GetQueryable(identitySpecification).CountAsync(cancellationToken);
     }
 
     public async ValueTask<Guid> IdAsync(string identityName, CancellationToken cancellationToken = default)
@@ -35,21 +36,21 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             .ToList();
     }
 
-    public async Task<IEnumerable<Guid>> RoleIdsAsync(Models.Identity.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Guid>> RoleIdsAsync(IdentitySpecification identitySpecification, CancellationToken cancellationToken = default)
     {
-        return (await SearchAsync(specification, cancellationToken))
+        return (await SearchAsync(identitySpecification, cancellationToken))
             .SelectMany(e => e.IdentityRoles.Select(ir => ir.RoleId)).ToList();
     }
 
-    public async Task<IEnumerable<Models.Identity>> SearchAsync(Models.Identity.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Models.Identity>> SearchAsync(IdentitySpecification identitySpecification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(specification)
+        return await GetQueryable(identitySpecification)
             .OrderBy(e => e.Name)
             .Distinct()
             .ToListAsync(cancellationToken);
     }
 
-    private IQueryable<Models.Identity> GetQueryable(Models.Identity.Specification specification)
+    private IQueryable<Models.Identity> GetQueryable(IdentitySpecification identitySpecification)
     {
         var queryable = _accessDbContext.Identities
             .Include(item => item.IdentityTenants)
@@ -59,44 +60,44 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             .AsNoTracking()
             .AsQueryable();
 
-        if (!string.IsNullOrEmpty(specification.NameMatch))
+        if (!string.IsNullOrEmpty(identitySpecification.NameMatch))
         {
-            queryable = queryable.Where(e => e.Name.Contains(specification.NameMatch) || e.Description.Contains(specification.NameMatch));
+            queryable = queryable.Where(e => e.Name.Contains(identitySpecification.NameMatch) || e.Description.Contains(identitySpecification.NameMatch));
         }
 
-        if (!string.IsNullOrEmpty(specification.Name))
+        if (!string.IsNullOrEmpty(identitySpecification.Name))
         {
-            queryable = queryable.Where(e => e.Name == specification.Name || e.Description == specification.Name);
+            queryable = queryable.Where(e => e.Name == identitySpecification.Name || e.Description == identitySpecification.Name);
         }
 
-        if (!string.IsNullOrEmpty(specification.RoleName))
+        if (!string.IsNullOrEmpty(identitySpecification.RoleName))
         {
-            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.Name == specification.RoleName));
+            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.Name == identitySpecification.RoleName));
         }
 
-        if (specification.RoleId != null)
+        if (identitySpecification.RoleId != null)
         {
-            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.RoleId == specification.RoleId));
+            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.RoleId == identitySpecification.RoleId));
         }
 
-        if (specification.PermissionId != null)
+        if (identitySpecification.PermissionId != null)
         {
-            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.RolePermissions.Any(rp => rp.PermissionId == specification.PermissionId)));
+            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.RolePermissions.Any(rp => rp.PermissionId == identitySpecification.PermissionId)));
         }
 
-        if (specification.HasIds)
+        if (identitySpecification.HasIds)
         {
-            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
+            queryable = queryable.Where(e => identitySpecification.Ids.Contains(e.Id));
         }
 
-        if (specification.HasExcludedIds)
+        if (identitySpecification.HasExcludedIds)
         {
-            queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
+            queryable = queryable.Where(e => !identitySpecification.ExcludedIds.Contains(e.Id));
         }
 
-        if (specification.MaximumRows > 0)
+        if (identitySpecification.MaximumRows > 0)
         {
-            queryable = queryable.Take(specification.MaximumRows);
+            queryable = queryable.Take(identitySpecification.MaximumRows);
         }
 
         return queryable;

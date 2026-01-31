@@ -1,6 +1,7 @@
 ﻿using Shuttle.Access.Application;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -38,8 +39,8 @@ public class AccessServiceHandler(IPrimitiveEventQuery primitiveEventQuery, IPro
             return;
         }
 
-        await RefreshAsync(new SqlServer.Models.Session.Specification().AddPermissions(
-            (await _permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddRoleId(message.RoleId), cancellationToken))
+        await RefreshAsync(new SessionSpecification().AddPermissions(
+            (await _permissionQuery.SearchAsync(new PermissionSpecification().AddRoleId(message.RoleId), cancellationToken))
             .Select(item => item.Name)));
     }
 
@@ -59,7 +60,7 @@ public class AccessServiceHandler(IPrimitiveEventQuery primitiveEventQuery, IPro
             return;
         }
 
-        await RefreshAsync(new SqlServer.Models.Session.Specification().AddPermission(message.Name));
+        await RefreshAsync(new SessionSpecification().AddPermission(message.Name));
     }
 
     public async Task ProcessMessageAsync(IHandlerContext<RolePermissionSet> context, CancellationToken cancellationToken = default)
@@ -78,14 +79,14 @@ public class AccessServiceHandler(IPrimitiveEventQuery primitiveEventQuery, IPro
             return;
         }
 
-        await RefreshAsync(new SqlServer.Models.Session.Specification().AddPermissions(
-            (await _permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddId(message.PermissionId), cancellationToken))
+        await RefreshAsync(new SessionSpecification().AddPermissions(
+            (await _permissionQuery.SearchAsync(new PermissionSpecification().AddId(message.PermissionId), cancellationToken))
             .Select(item => item.Name)));
     }
 
-    private async Task RefreshAsync(SqlServer.Models.Session.Specification specification)
+    private async Task RefreshAsync(SessionSpecification sessionSpecification)
     {
-        foreach (var session in await _sessionQuery.SearchAsync(specification))
+        foreach (var session in await _sessionQuery.SearchAsync(sessionSpecification))
         {
             await _mediator.SendAsync(new RefreshSession(session.Id));
         }

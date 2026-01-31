@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using PasswordSet = Shuttle.Access.Events.Identity.v1.PasswordSet;
 
 namespace Shuttle.Access.Tests.Participants;
@@ -23,7 +24,7 @@ public class ChangePasswordParticipantFixture
 
         var session = new Session(Guid.NewGuid(), sessionTokenHash, Guid.NewGuid(), "identity-name", now, now.AddSeconds(5));
 
-        sessionRepository.Setup(m => m.FindAsync(sessionTokenHash, CancellationToken.None)).Returns(Task.FromResult(session)!);
+        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).ReturnsAsync([session]);
 
         var participant = new ChangePasswordParticipant(hashingService, sessionRepository.Object, eventStore);
 

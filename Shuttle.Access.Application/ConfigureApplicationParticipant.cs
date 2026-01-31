@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -9,7 +10,7 @@ using Shuttle.Core.TransactionScope;
 
 namespace Shuttle.Access.Application;
 
-public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptions, ILogger<ConfigureApplicationParticipant> logger, ITransactionScopeFactory transactionScopeFactory, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, AccessDbContext accessDbContext)
+public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IOptions<AccessOptions> accessOptions, ITransactionScopeFactory transactionScopeFactory, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, AccessDbContext accessDbContext)
     : IParticipant<ConfigureApplication>
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
@@ -61,7 +62,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
         {
             using (var scope = _transactionScopeFactory.Create())
             {
-                if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
+                if (await _permissionQuery.ContainsAsync(new PermissionSpecification().AddName(permission), cancellationToken))
                 {
                     continue;
                 }
@@ -85,7 +86,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
         {
             using (var scope = _transactionScopeFactory.Create())
             {
-                if (await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddName(permission), cancellationToken))
+                if (await _permissionQuery.ContainsAsync(new PermissionSpecification().AddName(permission), cancellationToken))
                 {
                     continue;
                 }
@@ -106,9 +107,9 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             }
         }
 
-        var timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
+        var timeout = DateTimeOffset.Now.Add(message.Timeout);
 
-        var permissionSpecification = new SqlServer.Models.Permission.Specification();
+        var permissionSpecification = new PermissionSpecification();
 
         foreach (var permission in _permissions)
         {
@@ -125,7 +126,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             throw new ApplicationException(Resources.PermissionsException);
         }
 
-        if (!_accessOptions.Configuration.ShouldConfigure)
+        if (!message.ShouldConfigure)
         {
             return;
         }
@@ -185,7 +186,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
          *
          */
 
-        var roleSpecification = new SqlServer.Models.Role.Specification()
+        var roleSpecification = new RoleSpecification()
             .AddName("Access Administrator")
             .IncludePermissions();
 
@@ -207,7 +208,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
                 scope.Complete();
             }
 
-            timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
+            timeout = DateTimeOffset.Now.Add(message.Timeout);
 
             while (await _roleQuery.CountAsync(roleSpecification, cancellationToken) == 0 && DateTimeOffset.Now < timeout)
             {
@@ -227,7 +228,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             throw new ApplicationException(Resources.AdministratorRoleException);
         }
 
-        var administratorPermission = (await _permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddName("access://*"), cancellationToken)).SingleOrDefault();
+        var administratorPermission = (await _permissionQuery.SearchAsync(new PermissionSpecification().AddName("access://*"), cancellationToken)).SingleOrDefault();
 
         if (administratorPermission == null)
         {
@@ -242,7 +243,7 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             AuditIdentityName = "system"
         }), cancellationToken);
 
-        timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
+        timeout = DateTimeOffset.Now.Add(message.Timeout);
 
         var administratorPermissionsRegistered = false;
 
@@ -270,15 +271,15 @@ public class ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptio
             throw new ApplicationException(Resources.AdministratorPermissionException);
         }
 
-        if (await _identityQuery.CountAsync(new SqlServer.Models.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken) == 0)
+        if (await _identityQuery.CountAsync(new IdentitySpecification().WithRoleName("Access Administrator"), cancellationToken) == 0)
         {
-            var generateHash = new GenerateHash { Value = _accessOptions.Configuration.AdministratorPassword };
+            var generateHash = new GenerateHash { Value = message.AdministratorPassword };
 
             await _mediator.SendAsync(generateHash, cancellationToken);
 
             var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new()
             {
-                Name = _accessOptions.Configuration.AdministratorIdentityName,
+                Name = message.AdministratorIdentityName,
                 System = "system://access",
                 PasswordHash = generateHash.Hash,
                 AuditIdentityName = "system",

@@ -1,8 +1,9 @@
-﻿namespace Shuttle.Access.SqlServer;
+﻿using Shuttle.Access.Query;
+
+namespace Shuttle.Access.SqlServer;
 
 public interface ISessionQuery
 {
-    ValueTask<bool> ContainsAsync(Models.Session.Specification specification, CancellationToken cancellationToken = default);
-    ValueTask<int> CountAsync(Models.Session.Specification specification, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Models.Session>> SearchAsync(Models.Session.Specification specification, CancellationToken cancellationToken = default);
+    ValueTask<int> CountAsync(SessionSpecification sessionSpecification, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Models.Session>> SearchAsync(SessionSpecification sessionSpecification, CancellationToken cancellationToken = default);
 }

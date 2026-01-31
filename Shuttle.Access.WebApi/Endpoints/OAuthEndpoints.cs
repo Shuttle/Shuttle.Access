@@ -36,7 +36,7 @@ public static class OAuthEndpoints
         return app;
     }
 
-    private static async Task<IResult> GetSessionStateCode(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IMediator mediator, string state, string code)
+    private static async Task<IResult> GetSessionStateCode(ILogger<OAuthService> logger, IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IMediator mediator, string state, string code)
     {
         if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var requestId))
         {
@@ -70,7 +70,7 @@ public static class OAuthEndpoints
 
         await mediator.SendAsync(registerSession);
 
-        var requestRegistration = registerSession.Result == SessionRegistrationResult.UnknownIdentity && accessOptions.Value.OAuthRegisterUnknownIdentities;
+        var requestRegistration = registerSession.Result == SessionRegistrationResult.UnknownIdentity && apiOptions.Value.OAuthRegisterUnknownIdentities;
 
         if (requestRegistration)
         {
@@ -142,9 +142,9 @@ public static class OAuthEndpoints
         return Results.Ok(new { AuthorizationUrl = authorizationUrl + $"&state={grant.Id}" });
     }
 
-    private static IResult GetProviders(IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions)
+    private static IResult GetProviders(IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions)
     {
-        Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+        Guard.AgainstNull(Guard.AgainstNull(apiOptions).Value);
         Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
 
         var result = new List<OAuthProvider>();
@@ -153,7 +153,7 @@ public static class OAuthEndpoints
         {
             var oauthProvider = new OAuthProvider { Name = oauthProviderOptions.Name };
 
-            var path = Path.Combine(accessOptions.Value.ExtensionFolder, "OAuth", $"{oauthProviderOptions.Name}.svg");
+            var path = Path.Combine(apiOptions.Value.ExtensionFolder, "OAuth", $"{oauthProviderOptions.Name}.svg");
 
             if (File.Exists(path))
             {

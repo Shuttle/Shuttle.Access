@@ -6,6 +6,7 @@ using Shuttle.Access.AspNetCore;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Core.TransactionScope;
@@ -128,7 +129,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var roles = (await identityQuery.RoleIdsAsync(new SqlServer.Models.Identity.Specification().AddId(id))).ToList();
+        var roles = (await identityQuery.RoleIdsAsync(new IdentitySpecification().AddId(id))).ToList();
 
         return Results.Ok(from roleId in identifiers.Values select new IdentifierAvailability<Guid> { Id = roleId, Active = roles.Any(item => item.Equals(roleId)) });
     }
@@ -190,7 +191,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var specification = new SqlServer.Models.Identity.Specification();
+        var specification = new IdentitySpecification();
 
         if (message.Id.HasValue)
         {
@@ -256,7 +257,9 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
-        var session = await sessionRepository.FindAsync(sessionContext.Session.TenantId.Value, sessionContext.Session.IdentityId);
+        var session = await sessionRepository.FindAsync(new SessionSpecification()
+            .WithTenantId(sessionContext.Session.TenantId.Value)
+            .WithIdentityId(sessionContext.Session.IdentityId));
 
         if (message.Id.HasValue && !(session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
         {
@@ -308,7 +311,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> Get(IIdentityQuery identityQuery, string value)
     {
-        var specification = new SqlServer.Models.Identity.Specification().IncludeRoles();
+        var specification = new IdentitySpecification().IncludeRoles();
 
         if (Guid.TryParse(value, out var id))
         {
@@ -328,7 +331,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> Search(IIdentityQuery identityQuery, [FromBody] Messages.v1.Identity.Specification specification)
     {
-        var search = new SqlServer.Models.Identity.Specification();
+        var search = new IdentitySpecification();
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {

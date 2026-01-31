@@ -13,9 +13,9 @@ public static class ServerEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapGet("/v{version:apiVersion}/server/configuration", (IOptions<AccessOptions> accessOptions) =>
+        app.MapGet("/v{version:apiVersion}/server/configuration", (IOptions<ApiOptions> apiOptions) =>
             {
-                var options = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+                var options = Guard.AgainstNull(Guard.AgainstNull(apiOptions).Value);
 
                 var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 

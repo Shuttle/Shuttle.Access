@@ -6,6 +6,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -92,6 +93,8 @@ public class Program
             });
 
         webApplicationBuilder.Services
+            .Configure<ApiOptions>(webApplicationBuilder.Configuration.GetSection(ApiOptions.SectionName))
+            .AddSingleton<ISessionCache, SessionCache>()
             .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
@@ -196,7 +199,7 @@ public class Program
             {
                 var sessionRepository = context.RequestServices.GetRequiredService<ISessionRepository>();
 
-                sessionContext.Session = await sessionRepository.FindAsync(tenantId.Value, identityId.Value);
+                sessionContext.Session = await sessionRepository.FindAsync(new SessionSpecification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value));
             }
             else
             {

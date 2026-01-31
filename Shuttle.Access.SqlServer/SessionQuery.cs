@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
@@ -7,19 +8,14 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(Models.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(SessionSpecification sessionSpecification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(specification).CountAsync(cancellationToken);
+        return await GetQueryable(sessionSpecification).CountAsync(cancellationToken);
     }
 
-    public async ValueTask<bool> ContainsAsync(Models.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Models.Session>> SearchAsync(SessionSpecification sessionSpecification, CancellationToken cancellationToken = default)
     {
-        return await CountAsync(specification, cancellationToken) > 0;
-    }
-
-    public async Task<IEnumerable<Models.Session>> SearchAsync(Models.Session.Specification specification, CancellationToken cancellationToken = default)
-    {
-        return await GetQueryable(specification)
+        return await GetQueryable(sessionSpecification)
             .Include(e => e.Identity)
             .Include(e => e.SessionPermissions)
             .ThenInclude(e => e.Permission)
@@ -28,33 +24,33 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
             .ToListAsync(cancellationToken);
     }
 
-    private IQueryable<Models.Session> GetQueryable(Models.Session.Specification specification)
+    private IQueryable<Models.Session> GetQueryable(SessionSpecification sessionSpecification)
     {
         var queryable = _accessDbContext.Sessions.AsQueryable();
 
-        if (specification.Token != null)
+        if (sessionSpecification.Token != null)
         {
-            queryable = queryable.Where(e => e.Token == specification.Token);
+            queryable = queryable.Where(e => e.Token == sessionSpecification.Token);
         }
 
-        if (specification.IdentityId.HasValue)
+        if (sessionSpecification.IdentityId.HasValue)
         {
-            queryable = queryable.Where(e => e.IdentityId == specification.IdentityId);
+            queryable = queryable.Where(e => e.IdentityId == sessionSpecification.IdentityId);
         }
 
-        if (!string.IsNullOrWhiteSpace(specification.IdentityName))
+        if (!string.IsNullOrWhiteSpace(sessionSpecification.IdentityName))
         {
-            queryable = queryable.Where(e => e.IdentityName == specification.IdentityName);
+            queryable = queryable.Where(e => e.IdentityName == sessionSpecification.IdentityName);
         }
 
-        if (!string.IsNullOrWhiteSpace(specification.IdentityNameMatch))
+        if (!string.IsNullOrWhiteSpace(sessionSpecification.IdentityNameMatch))
         {
-            queryable = queryable.Where(e => e.IdentityName.Contains(specification.IdentityNameMatch));
+            queryable = queryable.Where(e => e.IdentityName.Contains(sessionSpecification.IdentityNameMatch));
         }
 
-        if (specification.Permissions.Any())
+        if (sessionSpecification.Permissions.Any())
         {
-            queryable = queryable.Where(e => e.SessionPermissions.Any(p => specification.Permissions.Contains(p.Permission.Name)));
+            queryable = queryable.Where(e => e.SessionPermissions.Any(p => sessionSpecification.Permissions.Contains(p.Permission.Name)));
         }
 
         return queryable;

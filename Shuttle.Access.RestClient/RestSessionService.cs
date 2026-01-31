@@ -5,10 +5,11 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IAccessClient accessClient)
-    : SessionCache, ISessionService, IContextSessionService
+public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionCache sessionCache, IAccessClient accessClient)
+    : ISessionService, IContextSessionService
 {
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
+    private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
     private readonly IAccessClient _accessClient = Guard.AgainstNull(accessClient);
     private readonly SemaphoreSlim _lock = new(1, 1);
 
@@ -16,7 +17,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
     {
         var sessionResponse = await _accessClient.Sessions.GetSelfAsync(cancellationToken);
 
-        var result = sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? AddSession(null, sessionResponse.Content) : null;
+        var result = sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? _sessionCache.Add(null, sessionResponse.Content) : null;
 
         if (result == null)
         {
@@ -30,13 +31,13 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         return result;
     }
 
-    public async Task<Messages.v1.Session?> FindAsync(Guid tenantId, string identityName, CancellationToken cancellationToken = default)
+    public async Task<Messages.v1.Session?> FindAsync(Messages.v1.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 
         try
         {
-            var session = Find(identityName);
+            var session = _sessionCache.Find(specification);
 
             if (session != null)
             {
@@ -50,11 +51,9 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 return await FindAsync(cancellationToken);
             }
 
-            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new()
-            {
-                IdentityName = identityName,
-                ShouldIncludePermissions = true
-            }, cancellationToken);
+            specification.ShouldIncludePermissions = true;
+
+            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(specification, cancellationToken);
 
             if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
             {
@@ -62,7 +61,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 {
                     case 1:
                     {
-                        var result = AddSession(null, sessionResponse.Content.Single());
+                        var result = _sessionCache.Add(null, sessionResponse.Content.Single());
 
                         await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
@@ -70,43 +69,45 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                     }
                     case > 1:
                     {
-                        throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityName", identityName));
+                        throw new InvalidOperationException(string.Format(Access.Resources.SessionCountException));
                     }
                 }
             }
             else
             {
-                var registrationResponse = await _accessClient.Sessions.PostAsync(new RegisterSession
+                if (!string.IsNullOrWhiteSpace(specification.IdentityName))
                 {
-                    IdentityName = identityName
-                }, cancellationToken);
+                    var registrationResponse = await _accessClient.Sessions.PostAsync(new RegisterSession
+                    {
+                        IdentityName = specification.IdentityName
+                    }, cancellationToken);
 
-                var content = registrationResponse.Content;
+                    var content = registrationResponse.Content;
 
-                if (!registrationResponse.IsSuccessStatusCode ||
-                    content == null ||
-                    content.RegistrationRequested)
-                {
-                    await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identityName), cancellationToken);
+                    if (!registrationResponse.IsSuccessStatusCode || content == null || !content.IsSuccessResult())
+                    {
+                        await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", specification.IdentityName), cancellationToken);
 
-                    return null;
+                        return null;
+                    }
+
+                    var result = new Messages.v1.Session
+                    {
+                        TenantId = content.TenantId,
+                        IdentityId = content.IdentityId,
+                        IdentityName = content.IdentityName,
+                        DateRegistered = content.DateRegistered,
+                        ExpiryDate = content.ExpiryDate,
+                        Permissions = content.Permissions.ToList()
+                    };
+
+                    await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
+
+                    return _sessionCache.Add(content.Token, result);
                 }
-
-                var result = new Messages.v1.Session
-                {
-                    IdentityId = content.IdentityId,
-                    IdentityName = content.IdentityName,
-                    DateRegistered = content.DateRegistered,
-                    ExpiryDate = content.ExpiryDate,
-                    Permissions = content.Permissions.ToList()
-                };
-
-                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
-
-                return Add(content.Token, result);
             }
 
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identityName), cancellationToken);
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", specification.IdentityName), cancellationToken);
 
             return null;
         }
@@ -114,41 +115,6 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         {
             _lock.Release();
         }
-    }
-
-    public async Task FlushAsync(CancellationToken cancellationToken = default)
-    {
-        await _lock.WaitAsync(cancellationToken);
-
-        try
-        {
-            Flush();
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
-
-    public async Task FlushAsync(Guid identityId, CancellationToken cancellationToken = default)
-    {
-        await _lock.WaitAsync(cancellationToken);
-
-        try
-        {
-            Flush();
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
-
-    public async ValueTask<bool> HasPermissionAsync(Guid tenantId, Guid identityId, string permission, CancellationToken cancellationToken = default)
-    {
-        var session = await FindAsync(tenantId, identityId, cancellationToken);
-
-        return session != null && HasPermission(session.IdentityId, permission);
     }
 
     public async Task AddAsync(Guid? token, Messages.v1.Session session, CancellationToken cancellationToken = default)
@@ -157,123 +123,19 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         try
         {
-            if (Find(session.IdentityId) != null)
+            if (_sessionCache.Find(new()
+                {
+                    IdentityId = session.IdentityId
+                }) != null)
             {
                 return;
             }
 
-            Add(token, session);
+            _sessionCache.Add(token, session);
         }
         finally
         {
             _lock.Release();
         }
-    }
-
-    public async Task<Messages.v1.Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
-    {
-        await _lock.WaitAsync(cancellationToken);
-
-        try
-        {
-            var session = FindByToken(token);
-
-            if (session != null)
-            {
-                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
-
-                return session;
-            }
-
-            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new()
-            {
-                Token = token,
-                ShouldIncludePermissions = true
-            }, cancellationToken);
-
-            var tokenValue = token.ToString();
-
-            if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
-            {
-                switch (sessionResponse.Content.Count())
-                {
-                    case 1:
-                    {
-                        var result = AddSession(token, sessionResponse.Content.Single());
-
-                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
-
-                        return result;
-                    }
-                    case > 1:
-                    {
-                        throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "token", $"{tokenValue[..4]}****-****-****-****-********{tokenValue[^4..]}"));
-                    }
-                }
-            }
-
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Token", tokenValue), cancellationToken);
-
-            return null;
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
-
-    public async Task<Messages.v1.Session?> FindAsync(Guid tenantId, Guid identityId, CancellationToken cancellationToken = default)
-    {
-        await _lock.WaitAsync(cancellationToken);
-
-        try
-        {
-            var session = Find(identityId);
-
-            if (session != null)
-            {
-                await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
-
-                return session;
-            }
-
-            var sessionResponse = await _accessClient.Sessions.PostSearchAsync(new()
-            {
-                IdentityId = identityId,
-                ShouldIncludePermissions = true
-            }, cancellationToken);
-
-            if (sessionResponse is { IsSuccessStatusCode: true, Content: not null } && sessionResponse.Content.Any())
-            {
-                switch (sessionResponse.Content.Count())
-                {
-                    case 1:
-                    {
-                        var result = AddSession(null, sessionResponse.Content.Single());
-
-                        await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
-
-                        return result;
-                    }
-                    case > 1:
-                    {
-                        throw new InvalidOperationException(string.Format(Resources.UnexpectedMultipleSessionsException, "IdentityId", identityId.ToString()));
-                    }
-                }
-            }
-
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityId", identityId.ToString()), cancellationToken);
-
-            return null;
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
-
-    private Messages.v1.Session AddSession(Guid? token, Messages.v1.Session session)
-    {
-        return Add(token, session);
     }
 }

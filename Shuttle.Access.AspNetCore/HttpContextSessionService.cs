@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
@@ -21,6 +22,6 @@ public class HttpContextSessionService(ISessionService sessionService, IHttpCont
             throw new ApplicationException(Resources.HttpContextIdentityIdNotFoundException);
         }
 
-        return await _sessionService.HasPermissionAsync(tenantId.Value, identityId.Value, permission, cancellationToken);
+        return (await _sessionService.FindAsync(new() { TenantId = tenantId.Value, IdentityId = identityId.Value }, cancellationToken))?.HasPermission(permission) ?? false;
     }
 }

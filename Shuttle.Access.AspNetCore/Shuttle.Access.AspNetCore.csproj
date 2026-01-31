@@ -33,7 +33,7 @@
 
   <PropertyGroup>
     <Description>Authorization middleware for web API endpoints using Shuttle.Access.</Description>
-    <Version>9.0.0-alpha</Version>
+    <Version>9.0.0-beta</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

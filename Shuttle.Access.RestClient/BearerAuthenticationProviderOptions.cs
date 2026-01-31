@@ -2,5 +2,5 @@
 
 public class BearerAuthenticationProviderOptions
 {
-    public Func<HttpRequestMessage, IServiceProvider, ValueTask<string>>? GetTokenAsync { get; set; } = null!;
+    public Func<HttpRequestMessage, IServiceProvider, Task<BearerAuthenticationContext>>? GetBearerAuthenticationContextAsync { get; set; }
 }

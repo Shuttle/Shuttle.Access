@@ -1,4 +1,5 @@
 ﻿using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
@@ -30,7 +31,7 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
 
         if (request.Token.HasValue)
         {
-            var session = await _sessionRepository.FindAsync(_hashingService.Sha256(request.Token.Value.ToString("D")), cancellationToken);
+            var session = await _sessionRepository.FindAsync(new SessionSpecification().WithToken(_hashingService.Sha256(request.Token.Value.ToString("D"))), cancellationToken);
 
             if (session == null)
             {

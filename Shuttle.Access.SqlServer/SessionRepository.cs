@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer.Models;
 using Shuttle.Core.Contract;
 
@@ -8,9 +9,50 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async Task RemoveAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Session>> SearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
     {
-        await _accessDbContext.Database.ExecuteSqlAsync($"DELETE FROM [access].[Session]", cancellationToken: cancellationToken);
+        Guard.AgainstNull(specification);
+
+        var results = new List<Session>();
+
+        foreach (var model in await ModelSearchAsync(specification, cancellationToken))
+        {
+            var session = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
+
+            if (model.TenantId.HasValue)
+            {
+                session.WithTenantId(model.TenantId.Value);
+            }
+
+            foreach (var sessionPermission in model.SessionPermissions)
+            {
+                session.AddPermission(new(sessionPermission.PermissionId, sessionPermission.Permission.Name));
+            }
+
+            results.Add(session);
+        }
+
+        return results;
+    }
+
+    public async ValueTask<int> RemoveAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(specification);
+
+        var hasCriteria =
+            specification.TenantId.HasValue ||
+            specification.IdentityId.HasValue ||
+            specification.Token != null ||
+            !string.IsNullOrWhiteSpace(specification.IdentityName);
+
+        if (!hasCriteria)
+        {
+            return await _accessDbContext.Database.ExecuteSqlAsync($"DELETE FROM [access].[Session]", cancellationToken);
+        }
+
+        _accessDbContext.Sessions.RemoveRange(await ModelSearchAsync(specification, cancellationToken));
+
+        return await _accessDbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task SaveAsync(Session session, CancellationToken cancellationToken = default)
@@ -19,7 +61,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
 
         var model = await _accessDbContext.Sessions
             .Include(item => item.SessionPermissions)
-            .SingleOrDefaultAsync(item => item.IdentityName == session.IdentityName, cancellationToken: cancellationToken);
+            .SingleOrDefaultAsync(item => item.IdentityName == session.IdentityName, cancellationToken);
 
         if (model == null)
         {
@@ -60,27 +102,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         await _accessDbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Session?> FindAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await FindAsync(new SqlServer.Models.Session.Specification().AddId(id), cancellationToken);
-    }
-
-    public async Task<Session?> FindAsync(byte[] token, CancellationToken cancellationToken = default)
-    {
-        return await FindAsync(new SqlServer.Models.Session.Specification().WithToken(token), cancellationToken);
-    }
-
-    public async Task<Session?> FindAsync(Guid tenantId, string identityName, CancellationToken cancellationToken = default)
-    {
-        return await FindAsync(new SqlServer.Models.Session.Specification().WithIdentityName(identityName), cancellationToken);
-    }
-
-    public async Task<Session?> FindAsync(Guid tenantId, Guid identityId, CancellationToken cancellationToken = default)
-    {
-        return await FindAsync(new SqlServer.Models.Session.Specification().WithIdentityId(identityId), cancellationToken);
-    }
-
-    private async Task<Session?> FindAsync(SqlServer.Models.Session.Specification specification, CancellationToken cancellationToken)
+    private async Task<IEnumerable<Models.Session>> ModelSearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
     {
         var queryable = _accessDbContext.Sessions
             .Include(item => item.Tenant)
@@ -88,6 +110,11 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             .ThenInclude(e => e.Permission)
             .AsNoTracking()
             .AsQueryable();
+
+        if (specification.HasIds)
+        {
+            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
+        }
 
         if (specification.Token != null)
         {
@@ -99,51 +126,16 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             queryable = queryable.Where(e => e.IdentityName == specification.IdentityName);
         }
 
+        if (specification.TenantId.HasValue)
+        {
+            queryable = queryable.Where(e => e.TenantId == specification.TenantId.Value);
+        }
+
         if (specification.IdentityId.HasValue)
         {
             queryable = queryable.Where(e => e.IdentityId == specification.IdentityId.Value);
         }
 
-        if (specification.HasIds)
-        {
-            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
-        }
-
-        var model = await queryable.SingleOrDefaultAsync(cancellationToken: cancellationToken);
-
-        if (model == null)
-        {
-            return null;
-        }
-
-        var result = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
-
-        if (model.TenantId.HasValue)
-        {
-            result.WithTenantId(model.TenantId.Value);
-        }
-
-        foreach (var sessionPermission in model.SessionPermissions)
-        {
-            result.AddPermission(new(sessionPermission.PermissionId, sessionPermission.Permission.Name));
-        }
-
-        return result;
-    }
-
-    public async ValueTask<bool> RemoveAsync(Guid identityId, CancellationToken cancellationToken = default)
-    {
-        var model = await _accessDbContext.Sessions.SingleOrDefaultAsync(e => e.IdentityId == identityId, cancellationToken: cancellationToken);
-
-        if (model == null)
-        {
-            return false;
-        }
-
-        _accessDbContext.Sessions.Remove(model);
-
-        await _accessDbContext.SaveChangesAsync(cancellationToken);
-
-        return true;
+        return await queryable.ToListAsync(cancellationToken);
     }
 }

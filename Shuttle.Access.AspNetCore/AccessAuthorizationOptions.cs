@@ -8,6 +8,7 @@ public class AccessAuthorizationOptions
 
     public AsyncEvent<AuthorizationHeaderAvailableEventArgs> AuthorizationHeaderAvailable { get; set; } = new();
 
+    public string Realm { get; set; } = "API";
     public bool InsecureModeEnabled { get; set; }
     public List<IssuerOptions> Issuers { get; set; } = [];
     public AsyncEvent<JwtIssuerOptionsAvailableEventArgs> JwtIssuerOptionsAvailable { get; set; } = new();

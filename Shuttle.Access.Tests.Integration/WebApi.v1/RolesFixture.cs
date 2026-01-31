@@ -2,6 +2,7 @@
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -43,7 +44,7 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(
             Task.FromResult(new List<SqlServer.Models.Role>
             {
                 role
@@ -73,7 +74,7 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(
             Task.FromResult(new List<SqlServer.Models.Role>
             {
                 role
@@ -141,7 +142,7 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<SqlServer.Models.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(
             Task.FromResult(new List<SqlServer.Models.Permission>
             {
                 new()

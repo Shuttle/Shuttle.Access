@@ -1,6 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
+using Shuttle.Access.Query;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -33,7 +34,7 @@ public class SessionsFixture
             ]
         };
 
-        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<SqlServer.Models.Session> { session }.AsEnumerable()));
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<SqlServer.Models.Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 

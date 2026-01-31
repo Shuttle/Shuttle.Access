@@ -19,7 +19,7 @@ namespace Shuttle.Access.RestClient {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -61,11 +61,29 @@ namespace Shuttle.Access.RestClient {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No &apos;IAuthenticationInterceptor&apos; has been registered..
+        /// </summary>
+        public static string AuthenticationInterceptorException {
+            get {
+                return ResourceManager.GetString("AuthenticationInterceptorException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;HttpContext&apos; does not contain an &apos;Authorization&apos; header..
         /// </summary>
-        public static string AuthorizationHeaderNotFound {
+        public static string AuthorizationHeaderException {
             get {
-                return ResourceManager.GetString("AuthorizationHeaderNotFound", resourceCulture);
+                return ResourceManager.GetString("AuthorizationHeaderException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not obtain &apos;BearerAuthenticationContext&apos;.  You may need to configure the &apos;BearerAuthenticationProviderOptions.GetBearerAuthenticationContextAsync&apos; function..
+        /// </summary>
+        public static string BearerAuthenticationContextException {
+            get {
+                return ResourceManager.GetString("BearerAuthenticationContextException", resourceCulture);
             }
         }
         
@@ -88,11 +106,20 @@ namespace Shuttle.Access.RestClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to More than one session found for {0} &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Could not register the session.  Received a result of &apos;{0}&apos;..
         /// </summary>
-        public static string UnexpectedMultipleSessionsException {
+        public static string SessionResponseException {
             get {
-                return ResourceManager.GetString("UnexpectedMultipleSessionsException", resourceCulture);
+                return ResourceManager.GetString("SessionResponseException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;HttpContext&apos; does not contain a &apos;Shuttle-Access-Tenant-Id&apos; header..
+        /// </summary>
+        public static string TenantIdException {
+            get {
+                return ResourceManager.GetString("TenantIdException", resourceCulture);
             }
         }
     }

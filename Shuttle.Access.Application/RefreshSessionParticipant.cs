@@ -1,23 +1,24 @@
 ﻿using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
-public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService sessionService, IAuthorizationService authorizationService, ISessionRepository sessionRepository)
+public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionCache sessionCache, IAuthorizationService authorizationService, ISessionRepository sessionRepository)
     : IParticipant<RefreshSession>
 {
     private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
     private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
+    private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
-    private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
     public async Task ProcessMessageAsync(RefreshSession message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
-        var session = await _sessionRepository.FindAsync(message.Id, cancellationToken);
+        var session = await _sessionRepository.FindAsync(new SessionSpecification().AddId(message.Id), cancellationToken);
 
         if (session is not { TenantId: not null })
         {
@@ -33,7 +34,7 @@ public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionService s
 
         await _sessionRepository.SaveAsync(session, cancellationToken);
 
-        await _sessionService.FlushAsync(session.IdentityId, cancellationToken);
+        _sessionCache.Flush(session.IdentityId);
 
         await _serviceBus.PublishAsync(new SessionRefreshed
         {

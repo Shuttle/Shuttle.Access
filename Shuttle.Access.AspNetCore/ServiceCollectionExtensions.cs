@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore.Authentication;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
@@ -22,16 +21,15 @@ public static class ServiceCollectionExtensions
 
             services.Configure<AccessAuthorizationOptions>(options =>
             {
+                options.AuthorizationHeaderAvailable = accessAuthorizationBuilder.Options.AuthorizationHeaderAvailable;
                 options.InsecureModeEnabled = accessAuthorizationBuilder.Options.InsecureModeEnabled;
-
                 options.Issuers = accessAuthorizationBuilder.Options.Issuers;
+                options.JwtIssuerOptionsAvailable = accessAuthorizationBuilder.Options.JwtIssuerOptionsAvailable;
+                options.JwtIssuerOptionsUnavailable = accessAuthorizationBuilder.Options.JwtIssuerOptionsUnavailable;
                 options.PassThrough = accessAuthorizationBuilder.Options.PassThrough;
                 options.SessionAvailable = accessAuthorizationBuilder.Options.SessionAvailable;
-                options.SessionAvailable = accessAuthorizationBuilder.Options.SessionAvailable;
-
-                options.AuthorizationHeaderAvailable = accessAuthorizationBuilder.Options.AuthorizationHeaderAvailable;
-                options.SessionAvailable = accessAuthorizationBuilder.Options.SessionAvailable;
                 options.SessionUnavailable = accessAuthorizationBuilder.Options.SessionUnavailable;
+                options.Realm = accessAuthorizationBuilder.Options.Realm;
             });
 
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -54,7 +52,6 @@ public static class ServiceCollectionExtensions
                 .AddScheme<AuthenticationSchemeOptions, SessionTokenAuthenticationHandler>(SessionTokenAuthenticationHandler.AuthenticationScheme, _ =>
                 {
                 });
-
 
             return services;
         }

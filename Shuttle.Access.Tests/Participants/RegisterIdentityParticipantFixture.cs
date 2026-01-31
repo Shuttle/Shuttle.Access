@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall.SqlServer.Storage;
@@ -22,7 +23,7 @@ public class RegisterIdentityParticipantFixture
 
         var identity = new Messages.v1.Identity { Id = Guid.NewGuid(), Name = "name" };
 
-        identityQuery.Setup(m => m.CountAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
+        identityQuery.Setup(m => m.CountAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
 
         idKeyRepository.Setup(m => m.FindAsync(Identity.Key(identity.Name), CancellationToken.None)).ReturnsAsync(await ValueTask.FromResult((Guid?)null));
 

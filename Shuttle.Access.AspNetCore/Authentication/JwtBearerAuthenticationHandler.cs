@@ -1,3 +1,7 @@
+using System.Security.Authentication;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -5,24 +9,21 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
-using System.Security.Authentication;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-using System.Text.Json;
 
-namespace Shuttle.Access.AspNetCore.Authentication;
+namespace Shuttle.Access.AspNetCore;
 
-public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory logger, UrlEncoder encoder)
+public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory logger, UrlEncoder encoder)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Bearer";
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
+    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly IContextSessionService _contextSessionService = Guard.AgainstNull(contextSessionService);
     private readonly IJwtService _jwtService = Guard.AgainstNull(jwtService);
     private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
-    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync(string tenantId)
+    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync(string? tenantId)
     {
         var session = await _contextSessionService.FindAsync();
 
@@ -35,21 +36,34 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
-            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
-            new(HttpContextExtensions.SessionTenantIdClaimType, tenantId)
+            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
         ];
+
+        if (!string.IsNullOrWhiteSpace(tenantId))
+        {
+            claims.Add(new(HttpContextExtensions.SessionTenantIdClaimType, tenantId));
+        }
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
     }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var authorizationHeader = Request.Headers["Authorization"].FirstOrDefault();
+        var authorizationHeader = Request.Headers.Authorization.FirstOrDefault();
         var tenantIdHeader = Request.Headers["Shuttle-Access-Tenant-Id"].FirstOrDefault();
+        Guid? tenantId = null;
 
-        if (authorizationHeader == null || tenantIdHeader == null || !Guid.TryParse(tenantIdHeader, out var tenantId))
+        if (authorizationHeader == null)
         {
             return AuthenticateResult.NoResult();
+        }
+
+        if (tenantIdHeader != null)
+        {
+            if (Guid.TryParse(tenantIdHeader, out var id))
+            {
+                tenantId = id;
+            }
         }
 
         if (_accessAuthorizationOptions.PassThrough)
@@ -96,7 +110,11 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
             new(ClaimTypes.Name, identityName)
         ];
 
-        var session = await _sessionService.FindAsync(tenantId, identityName);
+        var session = await _sessionService.FindAsync(new()
+        {
+            TenantId = tenantId ?? _accessOptions.SystemTenantId,
+            IdentityName = identityName
+        });
 
         if (session != null)
         {

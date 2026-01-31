@@ -1,52 +1,15 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
 
-public class SessionService(IOptions<AccessOptions> accessOptions, IHashingService hashingService, IAuthorizationService authorizationService, IIdentityQuery identityQuery, ISessionRepository sessionRepository)
-    : SessionCache, ISessionService
+public class SessionService(ISessionCache sessionCache, IHashingService hashingService, ISessionRepository sessionRepository)
+    : ISessionService
 {
-    private readonly AccessOptions _accessOptions = Guard.AgainstNull(accessOptions).Value;
-    private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
+    private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
-    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
-
-    public async Task FlushAsync(CancellationToken cancellationToken = default)
-    {
-        await _lock.WaitAsync(cancellationToken);
-
-        try
-        {
-            Flush();
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
-
-    public async ValueTask<bool> HasPermissionAsync(Guid tenantId, Guid identityId, string permission, CancellationToken cancellationToken = default)
-    {
-        var session = await FindAsync(tenantId, identityId, cancellationToken);
-
-        return session != null && HasPermission(session.IdentityId, permission);
-    }
-
-    public async Task FlushAsync(Guid identityId, CancellationToken cancellationToken = default)
-    {
-        await _lock.WaitAsync(cancellationToken);
-
-        try
-        {
-            Flush(identityId);
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
 
     public async Task AddAsync(Guid? token, Messages.v1.Session session, CancellationToken cancellationToken = default)
     {
@@ -54,12 +17,15 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
 
         try
         {
-            if (Find(session.IdentityId) != null)
+            if (_sessionCache.Find(new()
+                {
+                    IdentityId = session.IdentityId
+                }) != null)
             {
                 return;
             }
 
-            Add(token, session);
+            _sessionCache.Add(token, session);
         }
         finally
         {
@@ -67,91 +33,47 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
         }
     }
 
-    public async Task<Messages.v1.Session?> FindAsync(Guid token, CancellationToken cancellationToken = default)
+    public async Task<Messages.v1.Session?> FindAsync(Messages.v1.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         await _lock.WaitAsync(cancellationToken);
 
         try
         {
-            var session = FindByToken(token);
+            var session = _sessionCache.Find(specification);
 
             if (session != null)
             {
                 return session;
             }
 
-            return Add(token, await _sessionRepository.FindAsync(_hashingService.Sha256(token.ToString("D")), cancellationToken));
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
+            var sessionSpecification = new SessionSpecification();
 
-    public async Task<Messages.v1.Session?> FindAsync(Guid tenantId, Guid identityId, CancellationToken cancellationToken = default)
-    {
-        await _lock.WaitAsync(cancellationToken);
-
-        try
-        {
-            var session = Find(identityId);
-
-            if (session != null)
+            if (specification.Id.HasValue)
             {
-                return session;
+                sessionSpecification.AddId(specification.Id.Value);
             }
 
-            var aggregate = await _sessionRepository.FindAsync(tenantId, identityId, cancellationToken);
-
-            if (aggregate == null)
+            if (specification.Token.HasValue)
             {
-                var identity = (await _identityQuery.SearchAsync(new Models.Identity.Specification().AddId(identityId), cancellationToken)).FirstOrDefault();
-
-                if (identity != null)
-                {
-                    var now = DateTimeOffset.UtcNow;
-                    var token = Guid.NewGuid();
-
-                    aggregate = new(Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), identityId, identity.Name, now, now.Add(_accessOptions.SessionDuration));
-
-                    await SaveAsync(token, aggregate, cancellationToken);
-                }
+                sessionSpecification.WithToken(_hashingService.Sha256(specification.Token.Value.ToString("D")));
             }
 
-            return Add(null, aggregate);
-        }
-        finally
-        {
-            _lock.Release();
-        }
-    }
-
-    public async Task<Messages.v1.Session?> FindAsync(Guid tenantId, string identityName, CancellationToken cancellationToken = default)
-    {
-        await _lock.WaitAsync(cancellationToken);
-
-        try
-        {
-            var session = Find(identityName);
-
-            if (session != null)
+            if (specification.TenantId.HasValue)
             {
-                return session;
+                sessionSpecification.WithTenantId(specification.TenantId.Value);
             }
 
-            var aggregate = await _sessionRepository.FindAsync(tenantId, identityName, cancellationToken);
-
-            if (aggregate == null && await _identityQuery.CountAsync(new Models.Identity.Specification().WithName(identityName), cancellationToken) > 0)
+            if (specification.IdentityId.HasValue)
             {
-                var now = DateTimeOffset.UtcNow;
-                var token = Guid.NewGuid();
-
-                aggregate = new(Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(identityName, cancellationToken), identityName, now, now.Add(_accessOptions.SessionDuration));
-
-                await SaveAsync(token, aggregate, cancellationToken);
+                sessionSpecification.WithIdentityId(specification.IdentityId.Value);
             }
 
-            return Add(null, aggregate);
+            if (!string.IsNullOrWhiteSpace(specification.IdentityName))
+            {
+                sessionSpecification.WithIdentityName(specification.IdentityName);
+            }
+
+            return Add(specification.Token, await _sessionRepository.FindAsync(sessionSpecification, cancellationToken));
         }
         finally
         {
@@ -166,7 +88,7 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
             return null;
         }
 
-        return Add(token, new Messages.v1.Session
+        return sessionCache.Add(token, new()
         {
             TenantId = session.TenantId,
             IdentityId = session.IdentityId,
@@ -175,17 +97,5 @@ public class SessionService(IOptions<AccessOptions> accessOptions, IHashingServi
             ExpiryDate = session.ExpiryDate,
             Permissions = session.Permissions.Select(item => item.Name).ToList()
         });
-    }
-
-    private async Task SaveAsync(Guid token, Session session, CancellationToken cancellationToken)
-    {
-        foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, cancellationToken))
-        {
-            session.AddPermission(new(permission.Id, permission.Name));
-        }
-
-        session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));
-
-        await _sessionRepository.SaveAsync(session, cancellationToken);
     }
 }

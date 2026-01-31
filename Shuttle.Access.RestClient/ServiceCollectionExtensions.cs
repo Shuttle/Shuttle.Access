@@ -45,66 +45,71 @@ public static class ServiceCollectionExtensions
         }
     }
 
-    [Obsolete("Replace with `UseBearerAuthenticationProvider`.")]
-    public static AccessClientBuilder AddBearerAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<BearerAuthenticationProviderBuilder>? builder = null)
+    extension(AccessClientBuilder accessClientBuilder)
     {
-        return accessClientBuilder.UseBearerAuthenticationProvider(builder);
-    }
-
-    [Obsolete("Replace with `UsePasswordAuthenticationProvider`.")]
-    public static AccessClientBuilder AddPasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
-    {
-        return accessClientBuilder.UsePasswordAuthenticationProvider(builder);
-    }
-
-    public static AccessClientBuilder UseBearerAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<BearerAuthenticationProviderBuilder>? builder = null)
-    {
-        Guard.AgainstNull(accessClientBuilder);
-
-        accessClientBuilder.Services.TryAddSingleton<IJwtService, JwtService>();
-        accessClientBuilder.Services.AddHttpClient<IAuthenticationProvider, BearerAuthenticationProvider>("BearerAuthenticationProvider");
-
-        var bearerAuthenticationProviderBuilder = new BearerAuthenticationProviderBuilder(accessClientBuilder.Services);
-
-        builder?.Invoke(bearerAuthenticationProviderBuilder);
-
-        bearerAuthenticationProviderBuilder.Services
-            .Configure<BearerAuthenticationProviderOptions>(options =>
-            {
-                options.GetTokenAsync = bearerAuthenticationProviderBuilder.Options.GetTokenAsync;
-            });
-
-        accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
+        public AccessClientBuilder UseBearerAuthenticationProvider(Action<BearerAuthenticationProviderBuilder>? builder = null)
         {
-            httpRequestMessage.Headers.Authorization = await serviceProvider.GetRequiredService<IAuthenticationProvider>().GetAuthenticationHeaderAsync(httpRequestMessage);
-        };
+            Guard.AgainstNull(accessClientBuilder);
 
-        return accessClientBuilder;
-    }
+            accessClientBuilder.Services.TryAddSingleton<IJwtService, JwtService>();
+            accessClientBuilder.Services.AddHttpClient<IAuthenticationInterceptor, BearerAuthenticationInterceptor>("BearerAuthenticationProvider");
 
-    public static AccessClientBuilder UsePasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
-    {
-        Guard.AgainstNull(accessClientBuilder).Services
-            .AddHttpClient<IAuthenticationProvider, PasswordAuthenticationProvider>("PasswordAuthenticationProvider");
+            var bearerAuthenticationProviderBuilder = new BearerAuthenticationProviderBuilder(accessClientBuilder.Services);
 
-        var passwordAuthenticationProviderBuilder = new PasswordAuthenticationProviderBuilder(accessClientBuilder.Services);
+            builder?.Invoke(bearerAuthenticationProviderBuilder);
 
-        builder?.Invoke(passwordAuthenticationProviderBuilder);
+            bearerAuthenticationProviderBuilder.Services
+                .Configure<BearerAuthenticationProviderOptions>(options =>
+                {
+                    options.GetBearerAuthenticationContextAsync = bearerAuthenticationProviderBuilder.Options.GetBearerAuthenticationContextAsync;
+                });
 
-        passwordAuthenticationProviderBuilder.Services
-            .Configure<PasswordAuthenticationProviderOptions>(options =>
+            accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
             {
-                options.IdentityName = passwordAuthenticationProviderBuilder.Options.IdentityName;
-                options.Password = passwordAuthenticationProviderBuilder.Options.Password;
-            });
+                var authenticationInterceptor = serviceProvider.GetService<IAuthenticationInterceptor>();
 
-        passwordAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<PasswordAuthenticationProviderOptions>, PasswordAuthenticationProviderOptionsValidator>();
+                if (authenticationInterceptor == null)
+                {
+                    throw new InvalidOperationException(Resources.AuthenticationInterceptorException);
+                }
 
-        accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
+                await authenticationInterceptor.ConfigureAsync(httpRequestMessage);
+            };
+
+            return accessClientBuilder;
+        }
+
+        public AccessClientBuilder UsePasswordAuthenticationProvider(Action<PasswordAuthenticationProviderBuilder>? builder = null)
         {
-            httpRequestMessage.Headers.Authorization = await serviceProvider.GetRequiredService<IAuthenticationProvider>().GetAuthenticationHeaderAsync(httpRequestMessage);
-        };
+            Guard.AgainstNull(accessClientBuilder).Services
+                .AddHttpClient<IAuthenticationInterceptor, PasswordAuthenticationInterceptor>("PasswordAuthenticationProvider");
 
-        return accessClientBuilder;
+            var passwordAuthenticationProviderBuilder = new PasswordAuthenticationProviderBuilder(accessClientBuilder.Services);
+
+            builder?.Invoke(passwordAuthenticationProviderBuilder);
+
+            passwordAuthenticationProviderBuilder.Services
+                .Configure<PasswordAuthenticationProviderOptions>(options =>
+                {
+                    options.IdentityName = passwordAuthenticationProviderBuilder.Options.IdentityName;
+                    options.Password = passwordAuthenticationProviderBuilder.Options.Password;
+                });
+
+            passwordAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<PasswordAuthenticationProviderOptions>, PasswordAuthenticationProviderOptionsValidator>();
+
+            accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
+            {
+                var authenticationInterceptor = serviceProvider.GetService<IAuthenticationInterceptor>();
+
+                if (authenticationInterceptor == null)
+                {
+                    throw new InvalidOperationException(Resources.AuthenticationInterceptorException);
+                }
+
+                await authenticationInterceptor.ConfigureAsync(httpRequestMessage);
+            };
+
+            return accessClientBuilder;
+        }
     }
 }

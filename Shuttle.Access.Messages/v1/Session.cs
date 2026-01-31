@@ -13,6 +13,8 @@ public class Session
 
     public class Specification
     {
+        public Guid? Id { get; set; }
+        public Guid? TenantId { get; set; }
         public Guid? IdentityId { get; set; }
         public string IdentityName { get; set; } = string.Empty;
         public string IdentityNameMatch { get; set; } = string.Empty;

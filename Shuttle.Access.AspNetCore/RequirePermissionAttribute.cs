@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
@@ -26,8 +27,8 @@ public class RequirePermissionAttribute : TypeFilterAttribute
                 SetUnauthorized(context);
                 return;
             }
-
-            if (!_sessionService.HasPermissionAsync(tenantId.Value, identityId.Value, _permission).GetAwaiter().GetResult())
+            
+            if (!_sessionService.FindAsync(new() { TenantId = tenantId.Value, IdentityId = identityId.Value }).GetAwaiter().GetResult()?.HasPermission(_permission) ?? false)
             {
                 SetUnauthorized(context);
             }

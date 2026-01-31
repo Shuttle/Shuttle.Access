@@ -1,5 +1,6 @@
 ﻿using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
@@ -16,7 +17,7 @@ public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventSto
         var request = message.Request;
         var now = DateTimeOffset.UtcNow;
 
-        var specification = new SqlServer.Models.Identity.Specification();
+        var specification = new IdentitySpecification();
 
         if (request.Id.HasValue)
         {

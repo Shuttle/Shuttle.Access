@@ -1,5 +1,6 @@
 ﻿using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
@@ -13,7 +14,7 @@ public class ReviewSetIdentityRoleParticipant(IRoleQuery roleQuery, IIdentityQue
     public async Task ProcessMessageAsync(RequestMessage<SetIdentityRoleStatus> message, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(message).Request;
-        var roles = (await _roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().AddName("Access Administrator"), cancellationToken)).ToList();
+        var roles = (await _roleQuery.SearchAsync(new RoleSpecification().AddName("Access Administrator"), cancellationToken)).ToList();
 
         if (roles.Count != 1)
         {

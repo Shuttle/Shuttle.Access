@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
@@ -7,41 +8,41 @@ public class PermissionQuery(AccessDbContext accessDbContext) : IPermissionQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(Models.Permission.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(PermissionSpecification permissionSpecification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(specification).CountAsync(cancellationToken);
+        return await GetQueryable(permissionSpecification).CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Models.Permission>> SearchAsync(Models.Permission.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Models.Permission>> SearchAsync(PermissionSpecification permissionSpecification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(specification)
+        return await GetQueryable(permissionSpecification)
             .Distinct()
             .OrderBy(e => e.Name)
             .ToListAsync(cancellationToken);
     }
 
-    private IQueryable<Models.Permission> GetQueryable(Models.Permission.Specification specification)
+    private IQueryable<Models.Permission> GetQueryable(PermissionSpecification permissionSpecification)
     {
         var queryable = _accessDbContext.Permissions.AsNoTracking().AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(specification.NameMatch))
+        if (!string.IsNullOrWhiteSpace(permissionSpecification.NameMatch))
         {
-            queryable = queryable.Where(e => EF.Functions.Like(e.Name, $"%{specification.NameMatch}%"));
+            queryable = queryable.Where(e => EF.Functions.Like(e.Name, $"%{permissionSpecification.NameMatch}%"));
         }
 
-        if (specification.Names.Any())
+        if (permissionSpecification.Names.Any())
         {
-            queryable = queryable.Where(e => specification.Names.Contains(e.Name));
+            queryable = queryable.Where(e => permissionSpecification.Names.Contains(e.Name));
         }
 
-        if (specification.Ids.Any())
+        if (permissionSpecification.Ids.Any())
         {
-            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
+            queryable = queryable.Where(e => permissionSpecification.Ids.Contains(e.Id));
         }
 
-        if (specification.RoleIds.Any())
+        if (permissionSpecification.RoleIds.Any())
         {
-            queryable = queryable.Where(e => e.RolePermissions.Any(rp => specification.RoleIds.Contains(rp.RoleId)));
+            queryable = queryable.Where(e => e.RolePermissions.Any(rp => permissionSpecification.RoleIds.Contains(rp.RoleId)));
         }
 
         return queryable;

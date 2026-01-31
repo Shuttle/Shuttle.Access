@@ -1,4 +1,5 @@
 ﻿using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -18,7 +19,7 @@ public class RequestIdentityRegistrationParticipant(IServiceBus serviceBus, ISes
 
         if (message is { TenantId: not null, IdentityId: not null })
         {
-            var session = await _sessionRepository.FindAsync(message.TenantId.Value, message.IdentityId.Value, cancellationToken);
+            var session = await _sessionRepository.FindAsync(new SessionSpecification().WithTenantId(message.TenantId.Value).WithIdentityId(message.IdentityId.Value), cancellationToken);
 
             if (session != null && session.HasPermission(AccessPermissions.Identities.Register))
             {

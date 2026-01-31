@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.AspNetCore.Authentication;
+namespace Shuttle.Access.AspNetCore;
 
 public class RoutingAuthenticationHandler(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
@@ -14,7 +14,7 @@ public class RoutingAuthenticationHandler(IOptions<AccessAuthorizationOptions> a
 
     private async ValueTask<string?> GetAuthenticationSchemeAsync()
     {
-        var header = Request.Headers["Authorization"].FirstOrDefault();
+        var header = Request.Headers.Authorization.FirstOrDefault();
 
         if (header == null)
         {

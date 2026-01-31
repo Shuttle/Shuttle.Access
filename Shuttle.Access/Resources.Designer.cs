@@ -232,6 +232,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Found {0} sessions matching the specification.  Expected exactly 1..
+        /// </summary>
+        public static string SessionCountException {
+            get {
+                return ResourceManager.GetString("SessionCountException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to `IdentityName` may not be empty..
         /// </summary>
         public static string SessionIdentityNameRequired {

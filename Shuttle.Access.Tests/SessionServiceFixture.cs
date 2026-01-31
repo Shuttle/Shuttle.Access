@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Options;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 
 namespace Shuttle.Access.Tests;
@@ -13,14 +13,11 @@ public class SessionServiceFixture
     {
         var repository = new Mock<ISessionRepository>();
 
-        repository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult<Session?>(null));
+        repository.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).ReturnsAsync([]);
 
-        var service = new SessionService(Options.Create(new AccessOptions
-        {
-            SessionDuration = TimeSpan.FromHours(1)
-        }), new HashingService(), new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, repository.Object);
+        var service = new SessionService(new NullSessionCache(), new HashingService(), new Mock<ISessionRepository>().Object);
 
-        Assert.That(await service.FindAsync(Guid.NewGuid()), Is.Null);
+        Assert.That(await service.FindAsync(new()), Is.Null);
     }
 
     [Test]
@@ -31,15 +28,12 @@ public class SessionServiceFixture
         var sessionToken = Guid.NewGuid();
         Session session = new(Guid.NewGuid(), sessionToken.ToByteArray(), sessionToken, "test-user", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(1));
 
-        sessionRepository.Setup(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None)).Returns(Task.FromResult(session)!);
+        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).ReturnsAsync([session]);
 
-        var service = new SessionService(Options.Create(new AccessOptions
-        {
-            SessionDuration = TimeSpan.FromHours(1)
-        }), new HashingService(), new Mock<IAuthorizationService>().Object, new Mock<IIdentityQuery>().Object, sessionRepository.Object);
+        var service = new SessionService(new NullSessionCache(), new HashingService(), sessionRepository.Object);
 
-        Assert.That(await service.FindAsync(sessionToken), Is.Not.Null);
+        Assert.That(await service.FindAsync(new()), Is.Not.Null);
 
-        sessionRepository.Verify(m => m.FindAsync(It.IsAny<byte[]>(), CancellationToken.None), Times.Exactly(1));
+        sessionRepository.Verify(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None), Times.Exactly(1));
     }
 }

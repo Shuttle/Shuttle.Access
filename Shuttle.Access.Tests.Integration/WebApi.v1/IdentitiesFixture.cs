@@ -3,6 +3,7 @@ using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
@@ -42,7 +43,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(
             Task.FromResult(
                 new List<SqlServer.Models.Identity>
                 {
@@ -110,7 +111,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(
             Task.FromResult(new List<SqlServer.Models.Identity>
             {
                 identity
@@ -162,7 +163,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(
             Task.FromResult(
                 new List<Guid>
                 {
@@ -251,7 +252,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(Task.FromResult(
             new List<SqlServer.Models.Identity>
             {
                 identity

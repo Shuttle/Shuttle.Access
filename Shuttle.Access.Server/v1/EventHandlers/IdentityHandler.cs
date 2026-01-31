@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shuttle.Access.Events.Identity.v1;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
@@ -88,7 +89,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
     {
         Guard.AgainstNull(context);
 
-        await _sessionRepository.RemoveAsync(context.PrimitiveEvent.Id, cancellationToken);
+        await _sessionRepository.RemoveAsync(new SessionSpecification().AddId(context.PrimitiveEvent.Id), cancellationToken);
 
         var model = await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken);
 
@@ -108,7 +109,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
     {
         Guard.AgainstNull(context);
 
-        var roleModel = (await _roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().AddId(context.Event.RoleId), cancellationToken)).FirstOrDefault();
+        var roleModel = (await _roleQuery.SearchAsync(new RoleSpecification().AddId(context.Event.RoleId), cancellationToken)).FirstOrDefault();
 
         if (roleModel == null ||
             !await _tenantQuery.ContainsAsync(new SqlServer.Models.Tenant.Specification().AddId(roleModel.TenantId), cancellationToken))

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -22,7 +23,13 @@ public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOpt
 
         using var scope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
 
-        await scope.ServiceProvider.GetRequiredService<IMediator>().SendAsync(new ConfigureApplication(), cancellationToken);
+        await scope.ServiceProvider.GetRequiredService<IMediator>().SendAsync(new ConfigureApplication
+        {
+            AdministratorIdentityName = serverOptions.Value.AdministratorIdentityName,
+            AdministratorPassword = serverOptions.Value.AdministratorPassword,
+            ShouldConfigure = serverOptions.Value.ShouldConfigure,
+            Timeout = serverOptions.Value.Timeout
+        }, cancellationToken);
     }
 
     public Task StopAsync(CancellationToken cancellationToken)

@@ -7,6 +7,7 @@ using Shuttle.Access.AspNetCore;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
@@ -104,7 +105,7 @@ public static class RoleEndpoints
             return Results.BadRequest();
         }
 
-        var roles = (await roleQuery.SearchAsync(new SqlServer.Models.Role.Specification().IncludePermissions().AddIds(ids))).ToList();
+        var roles = (await roleQuery.SearchAsync(new RoleSpecification().IncludePermissions().AddIds(ids))).ToList();
 
         var result = roles.Select(item => new { item.Name, Permissions = item.RolePermissions.Select(permission => new RegisterPermission { Name = permission.Permission.Name, Description = permission.Permission.Description, Status = permission.Permission.Status }).ToList() });
 
@@ -187,7 +188,7 @@ public static class RoleEndpoints
 
     private static async Task<IResult> Get(string value, [FromServices] IRoleQuery roleQuery)
     {
-        var specification = new SqlServer.Models.Role.Specification();
+        var specification = new RoleSpecification();
 
         if (Guid.TryParse(value, out var id))
         {
@@ -207,7 +208,7 @@ public static class RoleEndpoints
 
     private static async Task<IResult> PostSearch([FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification)
     {
-        var search = new SqlServer.Models.Role.Specification();
+        var search = new RoleSpecification();
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {
@@ -233,7 +234,7 @@ public static class RoleEndpoints
                 return Results.BadRequest(ex.Message);
             }
 
-            var permissions = (await roleQuery.PermissionsAsync(new SqlServer.Models.Role.Specification().AddId(id).AddPermissionIds(identifiers.Values))).ToList();
+            var permissions = (await roleQuery.PermissionsAsync(new RoleSpecification().AddId(id).AddPermissionIds(identifiers.Values))).ToList();
 
             var result = from permissionId in identifiers.Values
                 select new IdentifierAvailability<Guid>

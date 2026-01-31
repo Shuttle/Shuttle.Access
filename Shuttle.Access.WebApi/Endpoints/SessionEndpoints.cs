@@ -7,6 +7,7 @@ using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -16,9 +17,9 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
-    private static SqlServer.Models.Session.Specification GetSpecification(Messages.v1.Session.Specification model, IHashingService hashingService)
+    private static SessionSpecification GetSpecification(Messages.v1.Session.Specification model, IHashingService hashingService)
     {
-        var specification = new SqlServer.Models.Session.Specification();
+        var specification = new SessionSpecification();
 
         if (model.Token != null)
         {
@@ -159,7 +160,7 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        var session = (await sessionQuery.SearchAsync(new SqlServer.Models.Session.Specification().WithToken(sessionTokenExchange.SessionToken.ToByteArray()).IncludePermissions())).FirstOrDefault();
+        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithToken(sessionTokenExchange.SessionToken.ToByteArray()).IncludePermissions())).FirstOrDefault();
 
         return session == null
             ? Results.BadRequest()
@@ -170,14 +171,12 @@ public static class SessionEndpoints
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = await sessionRepository.FindAsync(sessionId);
+            var specification = new SessionSpecification().AddId(sessionId);
+            var session = await sessionRepository.FindAsync(specification);
 
-            if (session != null)
+            if (session != null && await sessionRepository.RemoveAsync(specification) > 0)
             {
-                if (await sessionRepository.RemoveAsync(sessionId))
-                {
-                    await serviceBus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
-                }
+                await serviceBus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
             }
 
             tx.Complete();
@@ -190,7 +189,7 @@ public static class SessionEndpoints
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            await sessionRepository.RemoveAllAsync();
+            await sessionRepository.RemoveAsync(new());
 
             await serviceBus.PublishAsync(new AllSessionsDeleted());
 
@@ -200,7 +199,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionService sessionService, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
+    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
     {
         async Task<IResult> AttemptRegistration()
         {
@@ -230,21 +229,20 @@ public static class SessionEndpoints
                     }).ToList()
                 });
             }
-            else if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession)
+
+            if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession)
             {
                 return Results.NotFound();
             }
-            else
+
+            return Results.Ok(new Messages.v1.Session
             {
-                return Results.Ok(new Messages.v1.Session
-                {
-                    DateRegistered = registerSession.Session!.DateRegistered,
-                    ExpiryDate = registerSession.Session.ExpiryDate,
-                    IdentityId = registerSession.Session.IdentityId,
-                    IdentityName = identityName,
-                    Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList()
-                });
-            }
+                DateRegistered = registerSession.Session!.DateRegistered,
+                ExpiryDate = registerSession.Session.ExpiryDate,
+                IdentityId = registerSession.Session.IdentityId,
+                IdentityName = identityName,
+                Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList()
+            });
         }
 
         var sessionIdentityId = httpContext.FindIdentityId();
@@ -254,7 +252,7 @@ public static class SessionEndpoints
             return await AttemptRegistration();
         }
 
-        var session = (await sessionQuery.SearchAsync(new SqlServer.Models.Session.Specification().WithIdentityId(sessionIdentityId.Value).IncludePermissions())).FirstOrDefault();
+        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithIdentityId(sessionIdentityId.Value).IncludePermissions())).FirstOrDefault();
 
         if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
         {
@@ -268,7 +266,7 @@ public static class SessionEndpoints
             });
         }
 
-        await sessionService.FlushAsync(sessionIdentityId.Value);
+        sessionCache.Flush(sessionIdentityId.Value);
 
         return await AttemptRegistration();
     }
@@ -285,11 +283,11 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = await sessionRepository.FindAsync(tenantId.Value, identityId.Value);
+            var session = await sessionRepository.FindAsync(new SessionSpecification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value));
 
             if (session != null)
             {
-                if (await sessionRepository.RemoveAsync(identityId.Value))
+                if (await sessionRepository.RemoveAsync(new SessionSpecification().WithIdentityId(identityId.Value)) > 0)
                 {
                     await serviceBus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
                 }
@@ -320,9 +318,9 @@ public static class SessionEndpoints
         return await RegisterSession(registerSession, mediator);
     }
 
-    private static async Task<IResult> Post([FromBody] Messages.v1.RegisterSession message, ILogger<RegisterSession> logger, IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
+    private static async Task<IResult> Post([FromBody] Messages.v1.RegisterSession message, ILogger<RegisterSession> logger, IOptions<ApiOptions> apiOptions, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
     {
-        var options = Guard.AgainstNull(accessOptions.Value);
+        var options = Guard.AgainstNull(apiOptions.Value);
 
         if (!options.AllowPasswordAuthentication && !string.IsNullOrWhiteSpace(message.Password))
         {

@@ -24,11 +24,6 @@ public static class ServiceCollectionExtensions
                 options.SystemTenantName = accessBuilder.Options.SystemTenantName;
                 options.SessionDuration = accessBuilder.Options.SessionDuration;
                 options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
-                options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
-                options.ExtensionFolder = accessBuilder.Options.ExtensionFolder;
-                options.Realm = accessBuilder.Options.Realm;
-                options.Configuration = accessBuilder.Options.Configuration;
-                options.AllowPasswordAuthentication = accessBuilder.Options.AllowPasswordAuthentication;
             });
 
             return services;

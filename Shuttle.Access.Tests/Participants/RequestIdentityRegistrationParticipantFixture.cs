@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
 
@@ -23,7 +24,7 @@ public class RequestIdentityRegistrationParticipantFixture
             .AddPermission(new(Guid.NewGuid(), AccessPermissions.Identities.Activate));
         var sessionRepository = new Mock<ISessionRepository>();
 
-        sessionRepository.Setup(m => m.FindAsync(_tenantId, session.IdentityId, CancellationToken.None)).Returns(Task.FromResult(session)!);
+        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).ReturnsAsync([session]);
 
         var serviceBus = new Mock<IServiceBus>();
         var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, sessionRepository.Object, new Mock<IMediator>().Object);

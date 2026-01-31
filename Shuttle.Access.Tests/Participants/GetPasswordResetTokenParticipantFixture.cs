@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Mediator;
 
@@ -19,7 +20,7 @@ public class GetPasswordResetTokenParticipantFixture
 
         var identity = new SqlServer.Models.Identity { Id = Guid.NewGuid() };
 
-        identityQuery.Setup(m => m.SearchAsync(It.IsAny<SqlServer.Models.Identity.Specification>(), CancellationToken.None))
+        identityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None))
             .Returns(Task.FromResult(new List<SqlServer.Models.Identity> { identity }.AsEnumerable()));
 
         var participant = new GetPasswordResetTokenParticipant(identityQuery.Object, eventStore);

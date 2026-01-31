@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Hopper;
 
@@ -145,7 +146,7 @@ public static class PermissionEndpoints
             return Results.BadRequest();
         }
 
-        var permissions = (await permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddIds(ids))).Select(item => new RegisterPermission { Name = item.Name, Description = item.Description, Status = item.Status })
+        var permissions = (await permissionQuery.SearchAsync(new PermissionSpecification().AddIds(ids))).Select(item => new RegisterPermission { Name = item.Name, Description = item.Description, Status = item.Status })
             .ToList();
 
         return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(permissions)), "application/json", "permissions.json");
@@ -208,13 +209,13 @@ public static class PermissionEndpoints
 
     private static async Task<IResult> Get(Guid id, IPermissionQuery permissionQuery)
     {
-        var permission = (await permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddId(id))).SingleOrDefault();
+        var permission = (await permissionQuery.SearchAsync(new PermissionSpecification().AddId(id))).SingleOrDefault();
         return permission != null ? Results.Ok(Map(permission)) : Results.BadRequest();
     }
 
     private static async Task<IResult> PostSearch(IPermissionQuery permissionQuery, [FromBody] Messages.v1.Permission.Specification specification)
     {
-        var search = new SqlServer.Models.Permission.Specification();
+        var search = new PermissionSpecification();
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {

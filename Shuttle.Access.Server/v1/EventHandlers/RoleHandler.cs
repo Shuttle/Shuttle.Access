@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Events.Role.v1;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Recall;
@@ -39,7 +40,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
     {
         Guard.AgainstNull(context);
 
-        if (!await _permissionQuery.ContainsAsync(new SqlServer.Models.Permission.Specification().AddId(context.Event.PermissionId), cancellationToken: cancellationToken))
+        if (!await _permissionQuery.ContainsAsync(new PermissionSpecification().AddId(context.Event.PermissionId), cancellationToken: cancellationToken))
         {
             context.Defer();
             return;

@@ -1,5 +1,6 @@
 ﻿using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
@@ -22,7 +23,7 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
 
         foreach (var permission in request.GetPermissions())
         {
-            var permissionId = (await _permissionQuery.SearchAsync(new SqlServer.Models.Permission.Specification().AddName(permission.Name), cancellationToken)).FirstOrDefault()?.Id;
+            var permissionId = (await _permissionQuery.SearchAsync(new PermissionSpecification().AddName(permission.Name), cancellationToken)).FirstOrDefault()?.Id;
 
             if (permissionId.HasValue)
             {

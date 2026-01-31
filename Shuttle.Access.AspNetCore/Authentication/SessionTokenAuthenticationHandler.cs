@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Core.Contract;
 
-namespace Shuttle.Access.AspNetCore.Authentication;
+namespace Shuttle.Access.AspNetCore;
 
 public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionService sessionService)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
@@ -22,7 +22,7 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var header = Request.Headers["Authorization"].FirstOrDefault();
+        var header = Request.Headers.Authorization.FirstOrDefault();
 
         if (header == null || !header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
         {
@@ -37,7 +37,10 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
             return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
         }
 
-        var session = await _sessionService.FindAsync(sessionToken);
+        var session = await _sessionService.FindAsync(new()
+        {
+            Token = sessionToken
+        });
 
         if (session == null)
         {

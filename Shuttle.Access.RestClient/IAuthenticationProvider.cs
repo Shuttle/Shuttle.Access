@@ -1,8 +1,6 @@
-﻿using System.Net.Http.Headers;
+﻿namespace Shuttle.Access.RestClient;
 
-namespace Shuttle.Access.RestClient;
-
-public interface IAuthenticationProvider
+public interface IAuthenticationInterceptor
 {
-    Task<AuthenticationHeaderValue> GetAuthenticationHeaderAsync(HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken = default);
+    Task ConfigureAsync(HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken = default);
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
+using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.WebApi;
 using Shuttle.Core.Mediator;
@@ -48,8 +49,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
             TenantId = Guid.NewGuid()
         };
 
-        SessionService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(ValueTask.FromResult(true));
-        SessionService.Setup(m => m.FindAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(session)!);
+        SessionService.Setup(m => m.FindAsync(It.IsAny<Messages.v1.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(session)!);
 
         SessionContext.Setup(m => m.Session).Returns(new Session(Guid.NewGuid(), Array.Empty<byte>(), session.IdentityId, session.IdentityName, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(5)).WithTenantId(Guid.NewGuid()));
 

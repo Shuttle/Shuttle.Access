@@ -5,7 +5,7 @@ namespace Shuttle.Access.Messages.v1;
 
 public static class SessionExtensions
 {
-    public static bool HasPermission(this Session session, string requiredPermission)
+    public static bool HasPermission(this Session? session, string requiredPermission)
     {
         Guard.AgainstEmpty(requiredPermission);
 

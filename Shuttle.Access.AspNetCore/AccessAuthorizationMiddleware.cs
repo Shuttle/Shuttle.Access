@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
@@ -11,9 +12,9 @@ public class AccessAuthorizationMiddleware : IMiddleware
     private readonly ISessionService _sessionService;
     private readonly StringValues _wwwAuthenticate;
 
-    public AccessAuthorizationMiddleware(IOptions<AccessOptions> accessOptions, ISessionService sessionService)
+    public AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionService sessionService)
     {
-        var options = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+        var options = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
 
         _sessionService = Guard.AgainstNull(sessionService);
 
@@ -50,7 +51,7 @@ public class AccessAuthorizationMiddleware : IMiddleware
         }
 
         if (permissionRequirement != null &&
-            !await _sessionService.HasPermissionAsync(tenantId.Value, identityId.Value, permissionRequirement.Permission))
+            !((await _sessionService.FindAsync(new() { TenantId = tenantId.Value, IdentityId =  identityId.Value}))?.HasPermission(permissionRequirement.Permission) ?? false))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
