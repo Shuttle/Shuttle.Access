@@ -2,9 +2,9 @@
 
 namespace Shuttle.Access.RestClient;
 
-public class PasswordAuthenticationProviderOptionsValidator : IValidateOptions<PasswordAuthenticationProviderOptions>
+public class PasswordAuthenticationInterceptorOptionsValidator : IValidateOptions<PasswordAuthenticationInterceptorOptions>
 {
-    public ValidateOptionsResult Validate(string? name, PasswordAuthenticationProviderOptions options)
+    public ValidateOptionsResult Validate(string? name, PasswordAuthenticationInterceptorOptions options)
     {
         if (string.IsNullOrWhiteSpace(options.IdentityName))
         {

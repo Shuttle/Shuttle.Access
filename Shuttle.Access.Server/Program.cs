@@ -61,7 +61,6 @@ internal class Program
                 services
                     .AddSingleton<IConfiguration>(configuration)
                     .AddSingleton<IKeepAliveContext, KeepAliveContext>()
-                    .AddSingleton<ISessionCache, NullSessionCache>()
                     .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
                     .AddAccess(accessBuilder =>
                     {

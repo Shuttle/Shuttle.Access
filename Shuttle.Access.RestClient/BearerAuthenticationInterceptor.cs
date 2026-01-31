@@ -14,7 +14,7 @@ public class BearerAuthenticationInterceptor : IAuthenticationInterceptor
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
     private readonly AccessClientOptions _accessClientOptions;
     private readonly string _baseAddress;
-    private readonly BearerAuthenticationProviderOptions _bearerAuthenticationProviderOptions;
+    private readonly BearerAuthenticationInterceptorOptions _bearerAuthenticationInterceptorOptions;
     private readonly HttpClient _httpClient;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
@@ -24,11 +24,11 @@ public class BearerAuthenticationInterceptor : IAuthenticationInterceptor
     private DateTimeOffset _tokenExpiryDate = DateTimeOffset.MinValue;
     private string _token = string.Empty;
 
-    public BearerAuthenticationInterceptor(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptions<AccessClientOptions> accessClientOptions, IOptions<BearerAuthenticationProviderOptions> bearerAuthenticationProviderOptions, IHttpContextAccessor httpContextAccessor, HttpClient httpClient, IJwtService jwtService, IServiceProvider serviceProvider)
+    public BearerAuthenticationInterceptor(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptions<AccessClientOptions> accessClientOptions, IOptions<BearerAuthenticationInterceptorOptions> bearerAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, HttpClient httpClient, IJwtService jwtService, IServiceProvider serviceProvider)
     {
         _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
         _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
-        _bearerAuthenticationProviderOptions = Guard.AgainstNull(Guard.AgainstNull(bearerAuthenticationProviderOptions).Value);
+        _bearerAuthenticationInterceptorOptions = Guard.AgainstNull(Guard.AgainstNull(bearerAuthenticationInterceptorOptions).Value);
         _httpContextAccessor = Guard.AgainstNull(httpContextAccessor);
         _httpClient = Guard.AgainstNull(httpClient);
         _jwtService = Guard.AgainstNull(jwtService);
@@ -56,9 +56,9 @@ public class BearerAuthenticationInterceptor : IAuthenticationInterceptor
 
             BearerAuthenticationContext? authenticationContext = null;
 
-            if (_bearerAuthenticationProviderOptions.GetBearerAuthenticationContextAsync != null)
+            if (_bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync != null)
             {
-                authenticationContext = await _bearerAuthenticationProviderOptions.GetBearerAuthenticationContextAsync.Invoke(httpRequestMessage, _serviceProvider);
+                authenticationContext = await _bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync.Invoke(httpRequestMessage, _serviceProvider);
             }
 
             if (_accessAuthorizationOptions.PassThrough)
@@ -66,7 +66,13 @@ public class BearerAuthenticationInterceptor : IAuthenticationInterceptor
                 if (authenticationContext != null)
                 {
                     httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
-                    httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", authenticationContext.TenantId.ToString("D"));
+
+                    if (authenticationContext.TenantId.HasValue)
+                    {
+                        httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", authenticationContext.TenantId.Value.ToString("D"));
+                    }
+
+                    return;
                 }
 
                 var authorizationHeaderValue = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.FirstOrDefault();
@@ -113,7 +119,11 @@ public class BearerAuthenticationInterceptor : IAuthenticationInterceptor
 
             request.Content = content;
             request.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
-            request.Headers.Add("Shuttle-Access-Tenant-Id", authenticationContext.TenantId.ToString("D"));
+
+            if (authenticationContext.TenantId.HasValue)
+            {
+                request.Headers.Add("Shuttle-Access-Tenant-Id", authenticationContext.TenantId.Value.ToString("D"));
+            }
 
             var response = await _httpClient.SendAsync(request, cancellationToken);
 

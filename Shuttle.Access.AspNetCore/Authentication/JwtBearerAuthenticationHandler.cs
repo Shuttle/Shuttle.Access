@@ -58,12 +58,9 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             return AuthenticateResult.NoResult();
         }
 
-        if (tenantIdHeader != null)
+        if (tenantIdHeader != null && Guid.TryParse(tenantIdHeader, out var id))
         {
-            if (Guid.TryParse(tenantIdHeader, out var id))
-            {
-                tenantId = id;
-            }
+            tenantId = id;
         }
 
         if (_accessAuthorizationOptions.PassThrough)

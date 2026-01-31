@@ -14,14 +14,14 @@ public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
     private readonly HttpClient _httpClient;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly SemaphoreSlim _lock = new(1, 1);
-    private readonly PasswordAuthenticationProviderOptions _passwordAuthenticationProviderOptions;
+    private readonly PasswordAuthenticationInterceptorOptions _passwordAuthenticationInterceptorOptions;
     private DateTimeOffset _tokenExpiryDate = DateTimeOffset.MinValue;
     private string _token = string.Empty;
 
-    public PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> accessClientOptions, IOptions<PasswordAuthenticationProviderOptions> passwordAuthenticationProviderOptions, HttpClient httpClient)
+    public PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> accessClientOptions, IOptions<PasswordAuthenticationInterceptorOptions> passwordAuthenticationInterceptorOptions, HttpClient httpClient)
     {
         _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
-        _passwordAuthenticationProviderOptions = Guard.AgainstNull(Guard.AgainstNull(passwordAuthenticationProviderOptions).Value);
+        _passwordAuthenticationInterceptorOptions = Guard.AgainstNull(Guard.AgainstNull(passwordAuthenticationInterceptorOptions).Value);
         _httpClient = Guard.AgainstNull(httpClient);
 
         _baseAddress = _accessClientOptions.BaseAddress;
@@ -46,8 +46,8 @@ public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
 
             var requestData = new
             {
-                identityName = _passwordAuthenticationProviderOptions.IdentityName,
-                password = _passwordAuthenticationProviderOptions.Password
+                identityName = _passwordAuthenticationInterceptorOptions.IdentityName,
+                password = _passwordAuthenticationInterceptorOptions.Password
             };
 
             var json = JsonSerializer.Serialize(requestData);

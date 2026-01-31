@@ -201,17 +201,16 @@ public static class SessionEndpoints
 
     private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
     {
-        async Task<IResult> AttemptRegistration()
+        async Task<IResult> AttemptRegistration(Guid tenantId)
         {
             var identityName = httpContext.FindIdentityName();
-            var tenantId = httpContext.FindTenantId();
 
-            if (tenantId == null || string.IsNullOrWhiteSpace(identityName))
+            if (string.IsNullOrWhiteSpace(identityName))
             {
                 return Results.BadRequest();
             }
 
-            var registerSession = new RegisterSession(identityName).WithTenantId(tenantId.Value).UseDirect();
+            var registerSession = new RegisterSession(identityName).WithTenantId(tenantId).UseDirect();
 
             await RegisterSession(registerSession, mediator);
 
@@ -245,14 +244,15 @@ public static class SessionEndpoints
             });
         }
 
-        var sessionIdentityId = httpContext.FindIdentityId();
+        var identityId = httpContext.FindIdentityId();
+        var tenantId = httpContext.FindTenantId() ?? accessOptions.Value.SystemTenantId;
 
-        if (sessionIdentityId == null)
+        if (identityId == null)
         {
-            return await AttemptRegistration();
+            return await AttemptRegistration(tenantId);
         }
 
-        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithIdentityId(sessionIdentityId.Value).IncludePermissions())).FirstOrDefault();
+        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithTenantId(tenantId).WithIdentityId(identityId.Value).IncludePermissions())).FirstOrDefault();
 
         if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
         {
@@ -262,13 +262,14 @@ public static class SessionEndpoints
                 ExpiryDate = session.ExpiryDate,
                 IdentityId = session.IdentityId,
                 IdentityName = session.IdentityName,
-                Permissions = session.SessionPermissions.Select(item => item.Permission.Name).OrderBy(item => item).ToList()
+                Permissions = session.SessionPermissions.Select(item => item.Permission.Name).OrderBy(item => item).ToList(),
+                TenantId = session.TenantId
             });
         }
 
-        sessionCache.Flush(sessionIdentityId.Value);
+        sessionCache.Flush(identityId.Value);
 
-        return await AttemptRegistration();
+        return await AttemptRegistration(tenantId);
     }
 
     private static async Task<IResult> DeleteSelf(IServiceBus serviceBus, ISessionRepository sessionRepository, HttpContext httpContext)

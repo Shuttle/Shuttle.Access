@@ -94,7 +94,6 @@ public class Program
 
         webApplicationBuilder.Services
             .Configure<ApiOptions>(webApplicationBuilder.Configuration.GetSection(ApiOptions.SectionName))
-            .AddSingleton<ISessionCache, SessionCache>()
             .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()

@@ -2,8 +2,8 @@
 
 public class SessionCache : ISessionCache
 {
-    private readonly List<SessionEntry> _sessionEntries = [];
     private readonly Lock _lock = new();
+    private readonly List<SessionEntry> _sessionEntries = [];
 
     private Messages.v1.Session? ActiveSessionOnly(Messages.v1.Session? session)
     {
@@ -48,10 +48,12 @@ public class SessionCache : ISessionCache
                 query = query.Where(e => e.Session.IdentityName.Contains(specification.IdentityNameMatch, StringComparison.InvariantCultureIgnoreCase));
             }
 
-            var sessions = query.Select(e => e.Session).ToList();
+            var sessions = query
+                .Where(e => e.ExpiryDate > DateTimeOffset.UtcNow)
+                .Select(e => e.Session).ToList();
 
-            return sessions.Count > 1 
-                ? throw new ApplicationException(string.Format(Resources.SessionCountException, sessions.Count)) 
+            return sessions.Count > 1
+                ? throw new ApplicationException(string.Format(Resources.SessionCountException, sessions.Count))
                 : ActiveSessionOnly(sessions.FirstOrDefault());
         }
     }
@@ -60,7 +62,7 @@ public class SessionCache : ISessionCache
     {
         lock (_lock)
         {
-            _sessionEntries.RemoveAll(item => item.Session.IdentityId.Equals(session.IdentityId));
+            _sessionEntries.RemoveAll(item => item.Session.TenantId == session.TenantId && item.Session.IdentityId.Equals(session.IdentityId));
             _sessionEntries.Add(new(token, session));
 
             return session;
@@ -87,5 +89,6 @@ public class SessionCache : ISessionCache
     {
         public Messages.v1.Session Session { get; } = session;
         public Guid? Token { get; } = token;
+        public DateTimeOffset ExpiryDate { get; } = DateTimeOffset.UtcNow.AddMinutes(5);
     }
 }

@@ -3,9 +3,9 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class PasswordAuthenticationProviderBuilder(IServiceCollection services)
+public class BearerAuthenticationInterceptorBuilder(IServiceCollection services)
 {
-    public PasswordAuthenticationProviderOptions Options
+    public BearerAuthenticationInterceptorOptions Options
     {
         get;
         set => field = value ?? throw new ArgumentNullException(nameof(value));

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Data.Common;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Shuttle.Access.SqlServer;
 
@@ -25,6 +26,8 @@ public static class ServiceCollectionExtensions
                 options.ConnectionString = accessSqlServerBuilder.Options.ConnectionString;
                 options.CommandTimeout = accessSqlServerBuilder.Options.CommandTimeout;
             });
+
+            services.TryAddSingleton<ISessionCache, SessionCache>();
 
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IAuthorizationService, AuthorizationService>();
