@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 :: Prompt for version input
 set /p version="Enter the version tag (e.g., 1.0.0): "
@@ -10,23 +10,30 @@ if "%version%"=="" (
     exit /b 1
 )
 
+:: Detect pre-release (contains '-')
+set pushLatest=1
+if not "%version:-=%"=="%version%" (
+    echo Pre-release version detected (%version%). Skipping 'latest' tag.
+    set pushLatest=0
+)
+
 echo Pushing Docker image shuttle/access-vue:%version%...
 docker push shuttle/access-vue:%version%
 
-:: Check if the docker push command was successful
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo ERROR: Failed to push Docker image shuttle/access-vue:%version%.
     exit /b 1
 )
 
-echo Pushing Docker image shuttle/access-vue:latest...
-docker tag shuttle/access-vue:%version% shuttle/access-vue:latest
-docker push shuttle/access-vue:latest
+if !pushLatest! equ 1 (
+    echo Pushing Docker image shuttle/access-vue:latest...
+    docker tag shuttle/access-vue:%version% shuttle/access-vue:latest
+    docker push shuttle/access-vue:latest
 
-:: Check if the docker push command was successful
-if %ERRORLEVEL% neq 0 (
-    echo ERROR: Failed to push Docker image shuttle/access-vue:latest.
-    exit /b 1
+    if errorlevel 1 (
+        echo ERROR: Failed to push Docker image shuttle/access-vue:latest.
+        exit /b 1
+    )
 )
 
 echo All Docker images pushed successfully!

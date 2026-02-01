@@ -12,14 +12,29 @@ namespace Shuttle.Access.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
-delete from [access].[Projection]
-delete from [access].[SessionPermission]
-delete from [access].[Session]
-delete from [access].[RolePermission]
-delete from [access].[Role]
-delete from [access].[IdentityRole]
-delete from [access].[Identity]
-delete from [access].[Permission]
+IF OBJECT_ID('access.[Projection]') IS NOT NULL
+    DELETE FROM [access].[Projection];
+
+IF OBJECT_ID('access.[SessionPermission]') IS NOT NULL
+    DELETE FROM [access].[SessionPermission];
+
+IF OBJECT_ID('access.[Session]') IS NOT NULL
+    DELETE FROM [access].[Session];
+
+IF OBJECT_ID('access.[RolePermission]') IS NOT NULL
+    DELETE FROM [access].[RolePermission];
+
+IF OBJECT_ID('access.[Role]') IS NOT NULL
+    DELETE FROM [access].[Role];
+
+IF OBJECT_ID('access.[IdentityRole]') IS NOT NULL
+    DELETE FROM [access].[IdentityRole];
+
+IF OBJECT_ID('access.[Identity]') IS NOT NULL
+    DELETE FROM [access].[Identity];
+
+IF OBJECT_ID('access.[Permission]') IS NOT NULL
+    DELETE FROM [access].[Permission];
 ");
 
             migrationBuilder.DropForeignKey(

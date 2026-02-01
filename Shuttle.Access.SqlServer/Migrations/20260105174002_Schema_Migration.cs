@@ -59,35 +59,41 @@ namespace Shuttle.Access.Data.Migrations
             ALTER SCHEMA access TRANSFER dbo.[__EFMigrationsHistory];
         """);
 
-            migrationBuilder.Sql("""
-        IF OBJECT_ID('access.[PrimitiveEvent]') IS NULL
-            ALTER SCHEMA access TRANSFER dbo.[PrimitiveEvent];
-        """);
+            migrationBuilder.Sql(
+                """
+                IF OBJECT_ID('dbo.[PrimitiveEvent]') IS NOT NULL AND OBJECT_ID('access.[PrimitiveEvent]') IS NULL
+                    ALTER SCHEMA access TRANSFER dbo.[PrimitiveEvent];
+                """);
 
-            migrationBuilder.Sql("""
-        IF OBJECT_ID('access.[EventType]') IS NULL
-            ALTER SCHEMA access TRANSFER dbo.[EventType];
-        """);
+            migrationBuilder.Sql(
+                """
+                IF OBJECT_ID('dbo.[EventType]') IS NOT NULL AND OBJECT_ID('access.[EventType]') IS NULL
+                    ALTER SCHEMA access TRANSFER dbo.[EventType];
+                """);
 
-            migrationBuilder.Sql("""
-        IF OBJECT_ID('access.[IdKey]') IS NULL
-            ALTER SCHEMA access TRANSFER dbo.[IdKey];
-        """);
+            migrationBuilder.Sql(
+                """
+                IF OBJECT_ID('dbo.[IdKey]') IS NOT NULL AND OBJECT_ID('access.[IdKey]') IS NULL
+                    ALTER SCHEMA access TRANSFER dbo.[IdKey];
+                """);
 
-            migrationBuilder.Sql("""
-        IF OBJECT_ID('access.[Projection]') IS NULL
-            ALTER SCHEMA access TRANSFER dbo.[Projection];
-        """);
+            migrationBuilder.Sql(
+                """
+                IF OBJECT_ID('dbo.[Projection]') IS NOT NULL AND OBJECT_ID('access.[Projection]') IS NULL
+                    ALTER SCHEMA access TRANSFER dbo.[Projection];
+                """);
 
-            migrationBuilder.Sql("""
-        IF OBJECT_ID('access.[ProjectionJournal]') IS NULL
-            ALTER SCHEMA access TRANSFER dbo.[ProjectionJournal];
-        """);
+            migrationBuilder.Sql(
+                """
+                IF OBJECT_ID('dbo.[ProjectionJournal]') IS NOT NULL AND OBJECT_ID('access.[ProjectionJournal]') IS NULL
+                    ALTER SCHEMA access TRANSFER dbo.[ProjectionJournal];
+                """);
 
-            migrationBuilder.Sql("""
-        IF OBJECT_ID('access.[SubscriberMessageType]') IS NULL
-            ALTER SCHEMA access TRANSFER dbo.[SubscriberMessageType];
-        """);
+            migrationBuilder.Sql(
+                """
+                IF OBJECT_ID('dbo.[SubscriberMessageType]') IS NOT NULL AND OBJECT_ID('access.[SubscriberMessageType]') IS NULL
+                    ALTER SCHEMA access TRANSFER dbo.[SubscriberMessageType];
+                """);
 
             migrationBuilder.Sql("DELETE FROM [access].[SessionPermission]");
             migrationBuilder.Sql("DELETE FROM [access].[Session]");

@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 :: List of container names
 set containers=shuttle/access-server shuttle/access-webapi shuttle/access-sqlserver-linux
@@ -13,25 +13,32 @@ if "%version%"=="" (
     exit /b 1
 )
 
-:: Loop through each container and push with version and latest tags
+:: Detect pre-release (contains '-')
+set pushLatest=1
+if not "%version:-=%"=="%version%" (
+    echo Pre-release version detected (%version%). Skipping 'latest' tag.
+    set pushLatest=0
+)
+
+:: Loop through each container and push
 for %%c in (%containers%) do (
     echo Pushing Docker image %%c:%version%...
     docker push %%c:%version%
-    
-    :: Check if the docker push command was successful
-    if %ERRORLEVEL% neq 0 (
+
+    if errorlevel 1 (
         echo ERROR: Failed to push Docker image %%c:%version%.
         exit /b 1
     )
-    
-    echo Pushing Docker image %%c:latest...
-    docker tag %%c:%version% %%c:latest
-    docker push %%c:latest
-    
-    :: Check if the docker push command was successful
-    if %ERRORLEVEL% neq 0 (
-        echo ERROR: Failed to push Docker image %%c:latest.
-        exit /b 1
+
+    if !pushLatest! equ 1 (
+        echo Pushing Docker image %%c:latest...
+        docker tag %%c:%version% %%c:latest
+        docker push %%c:latest
+
+        if errorlevel 1 (
+            echo ERROR: Failed to push Docker image %%c:latest.
+            exit /b 1
+        )
     )
 )
 
