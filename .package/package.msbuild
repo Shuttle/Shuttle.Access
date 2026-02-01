@@ -23,14 +23,14 @@
         <Exec
             Command="dotnet ef migrations bundle -p ../Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj -r $(LinuxRuntimeIdentifier) --self-contained --output $(MSBuildProjectDirectory)/deployment/shuttle-access-efbundle-linux-x64 --force -- -c Release -f net10.0" />
         <Exec
-            Command="dotnet ef migrations bundle -p ../Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj -r $(WindowsRuntimeIdentifier) --self-contained --output $(MSBuildProjectDirectory)/deployment/shuttle-access-efbundle-win-x64.exe --force -- -c Release -f ne108.0" />
+            Command="dotnet ef migrations bundle -p ../Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj -r $(WindowsRuntimeIdentifier) --self-contained --output $(MSBuildProjectDirectory)/deployment/shuttle-access-efbundle-win-x64.exe --force -- -c Release -f ne10.0" />
     </Target>
 
     <Target Name="Package" DependsOnTargets="EfBundle">
         <Error Condition="'$(Version)' == ''" Text="Version property is required. Use /p:Version={version}" />
 
         <Exec
-            Command="dotnet publish %(ProjectReference.Identity) -c Release -f net8.0 -r $(LinuxRuntimeIdentifier) --self-contained false --output $(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)" />
+            Command="dotnet publish %(ProjectReference.Identity) -c Release -f net10.0 -r $(LinuxRuntimeIdentifier) --self-contained false --output $(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)" />
 
         <Copy SourceFiles="%(ProjectReference.ConfigFile)"
               DestinationFiles="$(MSBuildProjectDirectory)/deployment/%(ProjectReference.Filename)/%(ProjectReference.ConfigFile)"

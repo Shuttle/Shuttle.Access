@@ -3,7 +3,7 @@
     <File Path=".package/data-appsettings.json" />
     <File Path=".package/docker-compose.yml" />
     <File Path=".package/docker-pull.cmd" />
-    <File Path=".package/docker-push.cmd" />
+    <File Path=".package/docker-push.ps1" />
     <File Path=".package/dockerfile-linux-sqlserver-demo" />
     <File Path=".package/dockerfile-server" />
     <File Path=".package/dockerfile-webapi" />

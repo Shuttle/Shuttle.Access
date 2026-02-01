@@ -36,7 +36,6 @@ import Permissions from "@/permissions";
 import type { Tenant } from "@/access";
 import { useSessionStore } from "@/stores/session";
 import { useDrawerStore } from "@/stores/drawer";
-import { useSnackbarStore } from "@/stores/snackbar";
 import { useAlertStore } from "@/stores/alert";
 
 const sessionStore = useSessionStore();
