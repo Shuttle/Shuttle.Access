@@ -74,7 +74,8 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                     {
                         Name = permission,
                         Status = (int)PermissionStatus.Active,
-                        AuditIdentityName = "system"
+                        AuditIdentityName = "system",
+                        AuditTenantId = _accessOptions.SystemTenantId
                     });
 
                 await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
@@ -98,8 +99,9 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                     {
                         Name = permission,
                         Status = (int)PermissionStatus.Active,
+                        TenantIds = [_accessOptions.SystemTenantId],
                         AuditIdentityName = "system",
-                        TenantIds = [_accessOptions.SystemTenantId]
+                        AuditTenantId = _accessOptions.SystemTenantId
                     });
 
                 await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
@@ -153,7 +155,8 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                     Id = _accessOptions.SystemTenantId,
                     Name = _accessOptions.SystemTenantName,
                     Status = 1,
-                    AuditIdentityName = "system"
+                    AuditIdentityName = "system",
+                    AuditTenantId = _accessOptions.SystemTenantId
                 });
 
                 await _mediator.SendAsync(registerTenant, cancellationToken);
@@ -240,7 +243,8 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
             Active = true,
             RoleId = role.Id,
             PermissionId = administratorPermission.Id,
-            AuditIdentityName = "system"
+            AuditIdentityName = "system",
+            AuditTenantId = _accessOptions.SystemTenantId
         }), cancellationToken);
 
         timeout = DateTimeOffset.Now.Add(message.Timeout);
@@ -283,6 +287,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                 System = "system://access",
                 PasswordHash = generateHash.Hash,
                 AuditIdentityName = "system",
+                AuditTenantId = _accessOptions.SystemTenantId,
                 Activated = true
             });
 

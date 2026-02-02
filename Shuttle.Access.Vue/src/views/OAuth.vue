@@ -49,7 +49,6 @@ onMounted(async () => {
 
     if (response.sessionTokenExchangeUrl) {
       window.location.replace(response.sessionTokenExchangeUrl);
-
       return;
     }
 
