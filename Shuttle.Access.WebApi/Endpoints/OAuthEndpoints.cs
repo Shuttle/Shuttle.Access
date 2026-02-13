@@ -18,7 +18,7 @@ public static class OAuthEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapGet("/v{version:apiVersion}/oauth/providers", GetProviders)
+        app.MapGet("/v{version:apiVersion}/oauth/providers/{group?}", GetProviders)
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
@@ -123,7 +123,7 @@ public static class OAuthEndpoints
 
         var authorizationUrl = new StringBuilder(oauthProviderOptions.Authorize.Url);
 
-        authorizationUrl.Append($"?response_type=code&client_id={oauthProviderOptions.Authorize.ClientId}");
+        authorizationUrl.Append($"?response_type=code&client_id={oauthProviderOptions.ClientId}");
         authorizationUrl.Append($"&scope={oauthProviderOptions.Scope}");
         authorizationUrl.Append($"&redirect_uri={(hasRedirectUri ? redirectUri : oauthOptionsValue.DefaultRedirectUri)}");
 
@@ -142,14 +142,14 @@ public static class OAuthEndpoints
         return Results.Ok(new { AuthorizationUrl = authorizationUrl + $"&state={grant.Id}" });
     }
 
-    private static IResult GetProviders(IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions)
+    private static IResult GetProviders(IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, string group = "default")
     {
         Guard.AgainstNull(Guard.AgainstNull(apiOptions).Value);
         Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
 
         var result = new List<OAuthProvider>();
 
-        foreach (var oauthProviderOptions in oauthOptions.Value.Providers)
+        foreach (var oauthProviderOptions in oauthOptions.Value.Providers.Where(item => item.Groups.Count == 0 || item.Groups.Contains(group)))
         {
             var oauthProvider = new OAuthProvider { Name = oauthProviderOptions.Name };
 

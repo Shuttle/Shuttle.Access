@@ -18,7 +18,7 @@
     <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.1-rc1" />
     <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.1-rc1" />
     <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.1-rc1" />
-    <PackageReference Include="Shuttle.OAuth" Version="20.3.1" />
+    <PackageReference Include="Shuttle.OAuth" Version="21.0.0-beta" />
     <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.1-rc1" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
