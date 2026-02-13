@@ -26,8 +26,8 @@ public class RequestIdentityRegistrationParticipantFixture
 
         sessionRepository.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).ReturnsAsync([session]);
 
-        var serviceBus = new Mock<IServiceBus>();
-        var participant = new RequestIdentityRegistrationParticipant(serviceBus.Object, sessionRepository.Object, new Mock<IMediator>().Object);
+        var bus = new Mock<IBus>();
+        var participant = new RequestIdentityRegistrationParticipant(bus.Object, sessionRepository.Object, new Mock<IMediator>().Object);
 
         var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).Authorized(_tenantId, identityId);
 
@@ -36,6 +36,6 @@ public class RequestIdentityRegistrationParticipantFixture
         Assert.That(identityRegistrationRequested.IsAllowed, Is.True);
         Assert.That(identityRegistrationRequested.IsActivationAllowed, Is.True);
 
-        serviceBus.Verify(m => m.SendAsync(It.IsAny<RegisterIdentity>(), null), Times.Once);
+        bus.Verify(m => m.SendAsync(It.IsAny<RegisterIdentity>(), null), Times.Once);
     }
 }

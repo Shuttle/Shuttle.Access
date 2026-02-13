@@ -18,7 +18,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
     public Mock<IOAuthGrantRepository> OAuthGrantRepository { get; } = new();
     public Mock<IPermissionQuery> PermissionQuery { get; } = new();
     public Mock<IRoleQuery> RoleQuery { get; } = new();
-    public Mock<IServiceBus> ServiceBus { get; } = new();
+    public Mock<IBus> Bus { get; } = new();
     public Mock<ISessionQuery> SessionQuery { get; } = new();
     public Mock<ISessionRepository> SessionRepository { get; } = new();
     public Mock<ISessionService> SessionService { get; } = new();
@@ -73,7 +73,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
             services.AddSingleton(PermissionQuery.Object);
             services.AddSingleton(RoleQuery.Object);
             services.AddSingleton(SessionQuery.Object);
-            services.AddSingleton(ServiceBus.Object);
+            services.AddSingleton(Bus.Object);
             services.AddSingleton(SessionRepository.Object);
             services.AddSingleton(SessionContext.Object);
         });

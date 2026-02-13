@@ -11,9 +11,9 @@ public class SetPermissionNameParticipant(IEventStore eventStore, IIdKeyReposito
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetPermissionName, PermissionNameSet> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetPermissionName, PermissionNameSet> context, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(message).Request;
+        var request = Guard.AgainstNull(context).Request;
 
         var permission = new Permission();
         var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
@@ -39,7 +39,7 @@ public class SetPermissionNameParticipant(IEventStore eventStore, IIdKeyReposito
 
         await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
             Id = request.Id,
             Name = request.Name

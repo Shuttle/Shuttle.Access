@@ -59,7 +59,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<ActivateIdentity>(), null), Times.Once);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<ActivateIdentity>(), null), Times.Once);
     }
 
     [Test]
@@ -69,7 +69,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<ChangePassword>(message => message.Token.Equals(token)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<ChangePassword>(message => message.Token.Equals(token)), null)).Verifiable();
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None)).Verifiable();
 
@@ -84,7 +84,7 @@ public class IdentitiesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 
     [Test]
@@ -94,14 +94,14 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RemoveIdentity>(message => message.Id.Equals(id)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<RemoveIdentity>(message => message.Id.Equals(id)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.DeleteAsync(id);
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
     }
 
     [Test]
@@ -226,7 +226,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<ResetPassword>(message => message.PasswordResetToken.Equals(token)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<ResetPassword>(message => message.PasswordResetToken.Equals(token)), null)).Verifiable();
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<ResetPassword>>(), CancellationToken.None)).Verifiable();
 
@@ -242,7 +242,7 @@ public class IdentitiesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 
     [Test]
@@ -284,7 +284,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<SetIdentityRoleStatus>>(), CancellationToken.None)).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
@@ -296,7 +296,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
         factory.Mediator.VerifyAll();
     }
 
@@ -339,7 +339,7 @@ public class IdentitiesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 
     [Test]
@@ -363,7 +363,7 @@ public class IdentitiesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 
     [Test]
@@ -411,7 +411,7 @@ public class IdentitiesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 
     [Test]
@@ -436,7 +436,7 @@ public class IdentitiesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 
     [Test]
@@ -461,6 +461,6 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.False);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 }

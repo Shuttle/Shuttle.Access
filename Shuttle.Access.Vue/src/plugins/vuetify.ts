@@ -30,8 +30,8 @@ const colors = {
   "secondary-darken-1": "#383838",
   error: "#bb4445",
   info: "#2196F3",
-  success: "#4CAF50",
-  warning: "#FB8C00",
+  success: "#4caf50",
+  warning: "#fb8c00",
 };
 
 const darkTheme: ThemeDefinition = {

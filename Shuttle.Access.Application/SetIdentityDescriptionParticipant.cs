@@ -9,9 +9,9 @@ public class SetIdentityDescriptionParticipant(IEventStore eventStore) : IPartic
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityDescription, IdentityDescriptionSet> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityDescription, IdentityDescriptionSet> context, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(message).Request;
+        var request = Guard.AgainstNull(context).Request;
 
         var identity = new Identity();
         var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
@@ -27,7 +27,7 @@ public class SetIdentityDescriptionParticipant(IEventStore eventStore) : IPartic
 
         await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
             Id = request.Id,
             Description = request.Description

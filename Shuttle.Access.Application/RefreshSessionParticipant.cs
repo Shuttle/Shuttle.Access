@@ -6,11 +6,11 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
-public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionCache sessionCache, IAuthorizationService authorizationService, ISessionRepository sessionRepository)
+public class RefreshSessionParticipant(IBus bus, ISessionCache sessionCache, IAuthorizationService authorizationService, ISessionRepository sessionRepository)
     : IParticipant<RefreshSession>
 {
     private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
-    private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
+    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
@@ -36,7 +36,7 @@ public class RefreshSessionParticipant(IServiceBus serviceBus, ISessionCache ses
 
         _sessionCache.Flush(session.IdentityId);
 
-        await _serviceBus.PublishAsync(new SessionRefreshed
+        await _bus.PublishAsync(new SessionRefreshed
         {
             Id = session.Id,
             TenantId = session.TenantId.Value,

@@ -180,7 +180,7 @@ public static class IdentityEndpoints
         return !requestResponse.Ok ? Results.BadRequest(requestResponse.Message) : Results.Ok(requestResponse.Response);
     }
 
-    private static async Task<IResult> PutActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IServiceBus serviceBus, IIdentityQuery identityQuery)
+    private static async Task<IResult> PutActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
     {
         try
         {
@@ -209,7 +209,7 @@ public static class IdentityEndpoints
             return Results.BadRequest();
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
@@ -275,7 +275,7 @@ public static class IdentityEndpoints
             : Results.Accepted();
     }
 
-    private static async Task<IResult> PatchRole(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message, ISessionContext sessionContext, IMediator mediator, IServiceBus serviceBus)
+    private static async Task<IResult> PatchRole(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
     {
         try
         {
@@ -297,14 +297,14 @@ public static class IdentityEndpoints
             return Results.BadRequest(reviewRequest.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, IBus bus)
     {
-        await serviceBus.SendAsync(sessionContext.Audit(new RemoveIdentity { Id = id }));
+        await bus.SendAsync(sessionContext.Audit(new RemoveIdentity { Id = id }));
 
         return Results.Accepted();
     }
@@ -346,7 +346,7 @@ public static class IdentityEndpoints
         return Results.Ok((await identityQuery.SearchAsync(search)).Select(Map).ToList());
     }
 
-    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetIdentityDescription message, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetIdentityDescription message, ISessionContext sessionContext, IBus bus)
     {
         try
         {
@@ -358,12 +358,12 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] SetIdentityName message, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetIdentityName message, ISessionContext sessionContext, IBus bus)
     {
         try
         {
@@ -375,7 +375,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }

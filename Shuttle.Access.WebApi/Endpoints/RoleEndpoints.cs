@@ -112,7 +112,7 @@ public static class RoleEndpoints
         return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(result)), "application/json", "roles.json");
     }
 
-    private static async Task<IResult> PostBulkUpload(List<RegisterRole> messages, ISessionContext sessionContext, [FromServices] IServiceBus serviceBus)
+    private static async Task<IResult> PostBulkUpload(List<RegisterRole> messages, ISessionContext sessionContext, [FromServices] IBus bus)
     {
         if (!messages.Any())
         {
@@ -123,16 +123,16 @@ public static class RoleEndpoints
         {
             foreach (var registerPermission in message.Permissions)
             {
-                await serviceBus.SendAsync(sessionContext.Audit(registerPermission));
+                await bus.SendAsync(sessionContext.Audit(registerPermission));
             }
 
-            await serviceBus.SendAsync(message);
+            await bus.SendAsync(message);
         }
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PostFile(ISessionContext sessionContext, IServiceBus serviceBus, HttpContext httpContext)
+    private static async Task<IResult> PostFile(ISessionContext sessionContext, IBus bus, HttpContext httpContext)
     {
         var form = httpContext.Request.Form;
 
@@ -152,16 +152,16 @@ public static class RoleEndpoints
         {
             foreach (var registerPermission in message.Permissions)
             {
-                await serviceBus.SendAsync(sessionContext.Audit(registerPermission));
+                await bus.SendAsync(sessionContext.Audit(registerPermission));
             }
 
-            await serviceBus.SendAsync(message);
+            await bus.SendAsync(message);
         }
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, IBus bus)
     {
         try
         {
@@ -174,14 +174,14 @@ public static class RoleEndpoints
 
         sessionContext.Audit(message);
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, [FromServices] IServiceBus serviceBus)
+    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, [FromServices] IBus bus)
     {
-        await serviceBus.SendAsync(sessionContext.Audit(new RemoveRole { Id = id }));
+        await bus.SendAsync(sessionContext.Audit(new RemoveRole { Id = id }));
 
         return Results.Accepted();
     }
@@ -246,7 +246,7 @@ public static class RoleEndpoints
             return Results.Ok(result);
         }
 
-    private static async Task<IResult> PatchPermissions(Guid id, [FromBody] SetRolePermissionStatus message, ISessionContext sessionContext, [FromServices] IServiceBus serviceBus)
+    private static async Task<IResult> PatchPermissions(Guid id, [FromBody] SetRolePermissionStatus message, ISessionContext sessionContext, [FromServices] IBus bus)
     {
         try
         {
@@ -258,12 +258,12 @@ public static class RoleEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] SetRoleName message, ISessionContext sessionContext, [FromServices] IServiceBus serviceBus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetRoleName message, ISessionContext sessionContext, [FromServices] IBus bus)
     {
         try
         {
@@ -275,7 +275,7 @@ public static class RoleEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }

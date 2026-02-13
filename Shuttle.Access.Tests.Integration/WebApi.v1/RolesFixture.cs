@@ -100,14 +100,14 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RemoveRole>(message => message.Id.Equals(id)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<RemoveRole>(message => message.Id.Equals(id)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Roles.DeleteAsync(id);
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
     }
 
     [Test]
@@ -117,7 +117,7 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m =>
+        factory.Bus.Setup(m =>
                 m.SendAsync(It.Is<SetRolePermissionStatus>(message => message.PermissionId.Equals(permissionId)), null))
             .Verifiable();
 
@@ -131,7 +131,7 @@ public class RolesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
     }
 
     [Test]
@@ -193,6 +193,6 @@ public class RolesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<RegisterRole>(), null), Times.Once);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<RegisterRole>(), null), Times.Once);
     }
 }

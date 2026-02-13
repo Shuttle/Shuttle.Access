@@ -36,13 +36,9 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
-            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
+            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
+            new(HttpContextExtensions.SessionTenantIdClaimType, $"{session.TenantId:D}")
         ];
-
-        if (!string.IsNullOrWhiteSpace(tenantId))
-        {
-            claims.Add(new(HttpContextExtensions.SessionTenantIdClaimType, tenantId));
-        }
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
     }

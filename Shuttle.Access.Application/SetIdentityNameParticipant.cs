@@ -11,9 +11,9 @@ public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityName, IdentityNameSet> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityName, IdentityNameSet> context, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(message).Request;
+        var request = Guard.AgainstNull(context).Request;
 
         var identity = new Identity();
         var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
@@ -39,7 +39,7 @@ public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository
 
         await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
             Id = request.Id,
             Name = request.Name

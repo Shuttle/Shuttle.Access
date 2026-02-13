@@ -21,7 +21,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
 
     public async Task ProcessEventAsync(IEventHandlerContext<Activated> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(accessDbContext);
 
         await SetStatusAsync(context.PrimitiveEvent.Id, (int)PermissionStatus.Deactivated, cancellationToken);
 
@@ -30,7 +30,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
 
     public async Task ProcessEventAsync(IEventHandlerContext<Deactivated> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(accessDbContext);
 
         await SetStatusAsync(context.PrimitiveEvent.Id, (int)PermissionStatus.Deactivated, cancellationToken);
 
@@ -39,7 +39,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
 
     public async Task ProcessEventAsync(IEventHandlerContext<DescriptionSet> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(accessDbContext);
 
         var model = (await _accessDbContext.Permissions.FirstOrDefaultAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken))
             .GuardAgainstRecordNotFound(context.PrimitiveEvent.Id);
@@ -53,7 +53,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
 
     public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(accessDbContext);
 
         var model = (await _accessDbContext.Permissions.FirstOrDefaultAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken))
             .GuardAgainstRecordNotFound(context.PrimitiveEvent.Id);
@@ -67,7 +67,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
 
     public async Task ProcessEventAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(accessDbContext);
 
         _accessDbContext.Permissions.Add(new()
         {
@@ -84,7 +84,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
 
     public async Task ProcessEventAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(accessDbContext);
 
         await SetStatusAsync(context.PrimitiveEvent.Id, (int)PermissionStatus.Removed, cancellationToken);
 

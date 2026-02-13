@@ -11,30 +11,29 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.WebApi.Handlers;
 
-public class AccessServiceHandler(IPrimitiveEventQuery primitiveEventQuery, IProjectionRepository projectionRepository, IPermissionQuery permissionQuery, ISessionQuery sessionQuery, IMediator mediator)
+public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQuery, IProjectionRepository projectionRepository, IPermissionQuery permissionQuery, ISessionQuery sessionQuery, IMediator mediator)
     :
         IMessageHandler<IdentityRoleSet>,
         IMessageHandler<RolePermissionSet>,
         IMessageHandler<PermissionStatusSet>
 {
+    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
     private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
     private readonly IPrimitiveEventQuery _primitiveEventQuery = Guard.AgainstNull(primitiveEventQuery);
     private readonly IProjectionRepository _projectionRepository = Guard.AgainstNull(projectionRepository);
     private readonly ISessionQuery _sessionQuery = Guard.AgainstNull(sessionQuery);
 
-    public async Task ProcessMessageAsync(IHandlerContext<IdentityRoleSet> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(IdentityRoleSet message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
-
-        var message = context.Message;
+        Guard.AgainstNull(message);
 
         var primitiveEvent = (await _primitiveEventQuery.SearchAsync(new PrimitiveEvent.Specification().AddId(message.IdentityId).AddVersion(message.Version), cancellationToken)).FirstOrDefault();
 
         if (primitiveEvent?.SequenceNumber == null ||
             (await _projectionRepository.GetAsync(ProjectionNames.Identity, cancellationToken)).SequenceNumber < primitiveEvent.SequenceNumber.Value)
         {
-            await context.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
+            await _bus.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
             return;
         }
@@ -44,18 +43,16 @@ public class AccessServiceHandler(IPrimitiveEventQuery primitiveEventQuery, IPro
             .Select(item => item.Name)));
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<PermissionStatusSet> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(PermissionStatusSet message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
-
-        var message = context.Message;
+        Guard.AgainstNull(message);
 
         var primitiveEvent = (await _primitiveEventQuery.SearchAsync(new PrimitiveEvent.Specification().AddId(message.Id).AddVersion(message.Version), cancellationToken)).FirstOrDefault();
 
         if (primitiveEvent?.SequenceNumber == null ||
             (await _projectionRepository.GetAsync(ProjectionNames.Identity, cancellationToken)).SequenceNumber < primitiveEvent.SequenceNumber.Value)
         {
-            await context.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
+            await _bus.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
             return;
         }
@@ -63,18 +60,16 @@ public class AccessServiceHandler(IPrimitiveEventQuery primitiveEventQuery, IPro
         await RefreshAsync(new SessionSpecification().AddPermission(message.Name));
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<RolePermissionSet> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RolePermissionSet message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
-
-        var message = context.Message;
+        Guard.AgainstNull(message);
 
         var primitiveEvent = (await _primitiveEventQuery.SearchAsync(new PrimitiveEvent.Specification().AddId(message.RoleId).AddVersion(message.Version), cancellationToken)).FirstOrDefault();
 
         if (primitiveEvent?.SequenceNumber == null ||
             (await _projectionRepository.GetAsync(ProjectionNames.Identity, cancellationToken)).SequenceNumber < primitiveEvent.SequenceNumber.Value)
         {
-            await context.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
+            await _bus.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
             return;
         }

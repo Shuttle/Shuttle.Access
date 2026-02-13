@@ -14,15 +14,15 @@ public class ResetPasswordParticipant(IHashingService hashingService, IEventStor
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task ProcessMessageAsync(RequestMessage<ResetPassword> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestMessage<ResetPassword> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        Guard.AgainstNull(context);
 
-        var queryIdentity = (await _identityQuery.SearchAsync(new IdentitySpecification().WithName(message.Request.Name), cancellationToken)).SingleOrDefault();
+        var queryIdentity = (await _identityQuery.SearchAsync(new IdentitySpecification().WithName(context.Request.Name), cancellationToken)).SingleOrDefault();
 
         if (queryIdentity == null)
         {
-            message.Failed(Access.Resources.InvalidCredentialsException);
+            context.Failed(Access.Resources.InvalidCredentialsException);
 
             return;
         }
@@ -32,15 +32,15 @@ public class ResetPasswordParticipant(IHashingService hashingService, IEventStor
 
         stream.Apply(identity);
 
-        if (!identity.HasPasswordResetToken || identity.PasswordResetToken != message.Request.PasswordResetToken)
+        if (!identity.HasPasswordResetToken || identity.PasswordResetToken != context.Request.PasswordResetToken)
         {
-            message.Failed(Access.Resources.InvalidCredentialsException);
+            context.Failed(Access.Resources.InvalidCredentialsException);
 
             return;
         }
 
-        stream.Add(identity.SetPassword(_hashingService.Sha256(message.Request.Password)));
+        stream.Add(identity.SetPassword(_hashingService.Sha256(context.Request.Password)));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken);
     }
 }

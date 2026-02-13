@@ -15,9 +15,9 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterRole, RoleRegistered> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterRole, RoleRegistered> context, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(message).Request;
+        var request = Guard.AgainstNull(context).Request;
 
         var permissionIds = new List<Guid>();
 
@@ -62,7 +62,7 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
 
         await _eventStore.SaveAsync(stream, builder => builder.Audit(request.AuditInformation), cancellationToken);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
             Id = id,
             Name = request.Name

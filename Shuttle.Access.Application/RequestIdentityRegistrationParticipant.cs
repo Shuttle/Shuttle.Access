@@ -6,11 +6,11 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
-public class RequestIdentityRegistrationParticipant(IServiceBus serviceBus, ISessionRepository sessionRepository, IMediator mediator)
+public class RequestIdentityRegistrationParticipant(IBus bus, ISessionRepository sessionRepository, IMediator mediator)
     : IParticipant<RequestIdentityRegistration>
 {
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
-    private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
+    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
     public async Task ProcessMessageAsync(RequestIdentityRegistration message, CancellationToken cancellationToken = default)
@@ -51,6 +51,6 @@ public class RequestIdentityRegistrationParticipant(IServiceBus serviceBus, ISes
         message.RegisterIdentityMessage.Activated = message.RegisterIdentityMessage.Activated && message.IsActivationAllowed;
         message.RegisterIdentityMessage.System = message.RegisterIdentityMessage.System;
 
-        await _serviceBus.SendAsync(message.RegisterIdentityMessage, cancellationToken);
+        await _bus.SendAsync(message.RegisterIdentityMessage, cancellationToken);
     }
 }

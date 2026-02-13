@@ -6,12 +6,12 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server;
 
-public class KeepAliveObserver(ILogger<KeepAliveObserver> logger, IServiceBus serviceBus, IKeepAliveContext keepAliveContext)
+public class KeepAliveObserver(ILogger<KeepAliveObserver> logger, IBus bus, IKeepAliveContext keepAliveContext)
     : IPipelineObserver<MessageReceived>
 {
     private readonly IKeepAliveContext _keepAliveContext = Guard.AgainstNull(keepAliveContext);
     private readonly ILogger<KeepAliveObserver> _logger = Guard.AgainstNull(logger);
-    private readonly IServiceBus _serviceBus = Guard.AgainstNull(serviceBus);
+    private readonly IBus _bus = Guard.AgainstNull(bus);
 
     public async Task ExecuteAsync(IPipelineContext<MessageReceived> pipelineContext, CancellationToken cancellationToken = default)
     {
@@ -22,7 +22,7 @@ public class KeepAliveObserver(ILogger<KeepAliveObserver> logger, IServiceBus se
 
         var ignoreTillDate = _keepAliveContext.GetIgnoreTillDate();
 
-        await _serviceBus.SendAsync(new MonitorKeepAlive(), builder =>
+        await _bus.SendAsync(new MonitorKeepAlive(), builder =>
         {
             builder.ToSelf().DeferUntil(ignoreTillDate);
         }, cancellationToken);

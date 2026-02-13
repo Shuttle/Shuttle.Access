@@ -9,9 +9,11 @@ public class SetTenantStatusParticipant(IEventStore eventStore) : IParticipant<R
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetTenantStatus, TenantStatusSet> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetTenantStatus, TenantStatusSet> context, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(message).Request;
+        var request = Guard.AgainstNull(context
+        
+        ).Request;
         var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
 
         if (stream.IsEmpty)
@@ -23,20 +25,20 @@ public class SetTenantStatusParticipant(IEventStore eventStore) : IParticipant<R
 
         stream.Apply(tenant);
 
-        if (tenant.Status == message.Request.Status)
+        if (tenant.Status == context.Request.Status)
         {
             return;
         }
 
         stream.Add(tenant.SetStatus(request.Status));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
-            Id = message.Request.Id,
+            Id = context.Request.Id,
             Name = tenant.Name,
-            Status = message.Request.Status,
+            Status = context.Request.Status,
             Version = stream.Version
         });
     }

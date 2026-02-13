@@ -9,12 +9,12 @@ public class SetIdentityRoleStatusParticipant(IEventStore eventStore) : IPartici
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        Guard.AgainstNull(context);
 
         var identity = new Identity();
-        var request = message.Request;
+        var request = context.Request;
         var stream = await _eventStore.GetAsync(request.IdentityId, cancellationToken);
 
         stream.Apply(identity);
@@ -29,11 +29,11 @@ public class SetIdentityRoleStatusParticipant(IEventStore eventStore) : IPartici
             stream.Add(identity.RemoveRole(request.RoleId));
         }
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken);
 
         if (stream.ShouldSave())
         {
-            message.WithResponse(new()
+            context.WithResponse(new()
             {
                 RoleId = request.RoleId,
                 IdentityId = request.IdentityId,

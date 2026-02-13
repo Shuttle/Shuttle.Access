@@ -16,14 +16,14 @@ public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepositor
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterIdentity, IdentityRegistered> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterIdentity, IdentityRegistered> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        Guard.AgainstNull(context);
 
         EventStream stream;
         Identity identity;
 
-        var request = message.Request;
+        var request = context.Request;
         var key = Identity.Key(request.Name);
         var id = await _idKeyRepository.FindAsync(key, cancellationToken);
 
@@ -79,7 +79,7 @@ public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepositor
 
         await _eventStore.SaveAsync(stream, cancellationToken);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
             Id = id.Value,
             Name = request.Name,

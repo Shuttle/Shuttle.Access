@@ -12,9 +12,9 @@ public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventSto
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<ActivateIdentity, IdentityActivated> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<ActivateIdentity, IdentityActivated> context, CancellationToken cancellationToken = default)
     {
-        var request = message.Request;
+        var request = context.Request;
         var now = DateTimeOffset.UtcNow;
 
         var specification = new IdentitySpecification();
@@ -42,9 +42,9 @@ public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventSto
         stream.Apply(identity);
         stream.Add(identity.Activate(now));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken).ConfigureAwait(false);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken).ConfigureAwait(false);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
             Id = id,
             DateActivated = now

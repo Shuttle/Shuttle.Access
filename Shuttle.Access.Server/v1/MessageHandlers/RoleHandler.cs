@@ -5,18 +5,17 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class RoleHandler(IMediator mediator) :
+public class RoleHandler(IBus bus, IMediator mediator) :
     IMessageHandler<RegisterRole>,
     IMessageHandler<RemoveRole>,
     IMessageHandler<SetRolePermissionStatus>,
     IMessageHandler<SetRoleName>
 {
+    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
-    public async Task ProcessMessageAsync(IHandlerContext<RegisterRole> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RegisterRole message, CancellationToken cancellationToken = default)
     {
-        var message = context.Message;
-
         if (string.IsNullOrEmpty(message.Name))
         {
             return;
@@ -39,7 +38,7 @@ public class RoleHandler(IMediator mediator) :
 
             message.WaitCount++;
 
-            await context.SendAsync(message, builder => builder.DeferUntil(DateTime.Now.AddSeconds(5)).ToSelf(), cancellationToken);
+            await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.Now.AddSeconds(5)).ToSelf(), cancellationToken);
 
             return;
 
@@ -47,28 +46,24 @@ public class RoleHandler(IMediator mediator) :
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
+            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<RemoveRole> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RemoveRole message, CancellationToken cancellationToken = default)
     {
-        var message = context.Message;
-
         var requestResponse = new RequestResponseMessage<RemoveRole, RoleRemoved>(message);
 
         await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
+            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetRoleName> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(SetRoleName message, CancellationToken cancellationToken = default)
     {
-        var message = context.Message;
-
         if (string.IsNullOrEmpty(message.Name))
         {
             return;
@@ -80,21 +75,19 @@ public class RoleHandler(IMediator mediator) :
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
+            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<SetRolePermissionStatus> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(SetRolePermissionStatus message, CancellationToken cancellationToken = default)
     {
-        var message = context.Message;
-
         var requestResponse = new RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet>(message);
 
         await _mediator.SendAsync(requestResponse, cancellationToken);
 
         if (requestResponse.Response != null)
         {
-            await context.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
+            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 }

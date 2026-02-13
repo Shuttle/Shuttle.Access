@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.1" />
-    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.1-beta" />
-    <PackageReference Include="Shuttle.Extensions.Options" Version="21.0.1-beta" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.3" />
+    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.1-rc1" />
+    <PackageReference Include="Shuttle.Extensions.Options" Version="21.0.1-rc1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +30,7 @@
 
   <PropertyGroup>
     <Description>An abstraction for simple identity and access control.</Description>
-    <Version>9.0.0-beta</Version>
+    <Version>9.0.0-rc1</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

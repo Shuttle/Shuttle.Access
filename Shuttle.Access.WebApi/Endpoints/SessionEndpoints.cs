@@ -167,7 +167,7 @@ public static class SessionEndpoints
             : Results.Ok(Map(session));
     }
 
-    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IServiceBus serviceBus, ISessionRepository sessionRepository)
+    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionRepository sessionRepository)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
@@ -176,7 +176,7 @@ public static class SessionEndpoints
 
             if (session != null && await sessionRepository.RemoveAsync(specification) > 0)
             {
-                await serviceBus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
+                await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
             }
 
             tx.Complete();
@@ -185,13 +185,13 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteAll(IServiceBus serviceBus, ISessionRepository sessionRepository)
+    private static async Task<IResult> DeleteAll(IBus bus, ISessionRepository sessionRepository)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             await sessionRepository.RemoveAsync(new());
 
-            await serviceBus.PublishAsync(new AllSessionsDeleted());
+            await bus.PublishAsync(new AllSessionsDeleted());
 
             tx.Complete();
         }
@@ -272,7 +272,7 @@ public static class SessionEndpoints
         return await AttemptRegistration(tenantId);
     }
 
-    private static async Task<IResult> DeleteSelf(IServiceBus serviceBus, ISessionRepository sessionRepository, HttpContext httpContext)
+    private static async Task<IResult> DeleteSelf(IBus bus, ISessionRepository sessionRepository, HttpContext httpContext)
     {
         var identityId = httpContext.FindIdentityId();
         var tenantId = httpContext.FindTenantId();
@@ -290,7 +290,7 @@ public static class SessionEndpoints
             {
                 if (await sessionRepository.RemoveAsync(new SessionSpecification().WithIdentityId(identityId.Value)) > 0)
                 {
-                    await serviceBus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
+                    await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
                 }
             }
 

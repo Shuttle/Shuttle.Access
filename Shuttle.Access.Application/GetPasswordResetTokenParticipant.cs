@@ -12,14 +12,14 @@ public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEve
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<GetPasswordResetToken, Guid> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<GetPasswordResetToken, Guid> context, CancellationToken cancellationToken = default)
     {
-        var identityName = message.Request.Name;
+        var identityName = context.Request.Name;
         var query = (await _identityQuery.SearchAsync(new IdentitySpecification().WithName(identityName), cancellationToken)).SingleOrDefault();
 
         if (query == null)
         {
-            message.Failed(string.Format(Access.Resources.UnknownIdentityException, identityName));
+            context.Failed(string.Format(Access.Resources.UnknownIdentityException, identityName));
 
             return;
         }
@@ -38,11 +38,11 @@ public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEve
                 await _eventStore.SaveAsync(stream, cancellationToken);
             }
 
-            message.WithResponse(identity.PasswordResetToken!.Value);
+            context.WithResponse(identity.PasswordResetToken!.Value);
         }
         else
         {
-            message.Failed(string.Format(Access.Resources.IdentityInactiveException, identityName));
+            context.Failed(string.Format(Access.Resources.IdentityInactiveException, identityName));
         }
     }
 }

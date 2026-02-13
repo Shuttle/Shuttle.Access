@@ -11,11 +11,11 @@ public class RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKe
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<RemoveRole, RoleRemoved> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<RemoveRole, RoleRemoved> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        Guard.AgainstNull(context);
 
-        var stream = await _eventStore.GetAsync(message.Request.Id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(context.Request.Id, cancellationToken: cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -28,13 +28,13 @@ public class RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKe
 
         stream.Add(role.Remove());
 
-        await _idKeyRepository.RemoveAsync(message.Request.Id, cancellationToken);
+        await _idKeyRepository.RemoveAsync(context.Request.Id, cancellationToken);
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
-            Id = message.Request.Id,
+            Id = context.Request.Id,
             Name = role.Name
         });
     }

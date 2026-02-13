@@ -10,12 +10,12 @@ public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipa
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetPermissionStatus, PermissionStatusSet> message, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(RequestResponseMessage<SetPermissionStatus, PermissionStatusSet> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-        Guard.AgainstUndefinedEnum<PermissionStatus>(message.Request.Status, nameof(message.Request.Status));
+        Guard.AgainstNull(context);
+        Guard.AgainstUndefinedEnum<PermissionStatus>(context.Request.Status, nameof(context.Request.Status));
 
-        var stream = await _eventStore.GetAsync(message.Request.Id, cancellationToken);
+        var stream = await _eventStore.GetAsync(context.Request.Id, cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -26,7 +26,7 @@ public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipa
 
         stream.Apply(permission);
 
-        var status = (PermissionStatus)message.Request.Status;
+        var status = (PermissionStatus)context.Request.Status;
 
         switch (status)
         {
@@ -47,13 +47,13 @@ public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipa
             }
         }
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.Request), cancellationToken);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken);
 
-        message.WithResponse(new()
+        context.WithResponse(new()
         {
-            Id = message.Request.Id,
+            Id = context.Request.Id,
             Name = permission.Name,
-            Status = message.Request.Status,
+            Status = context.Request.Status,
             Version = stream.Version
         });
     }

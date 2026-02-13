@@ -10,9 +10,10 @@ using Shuttle.Recall.SqlServer.Storage;
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
 [SuppressMessage("Security", "EF1002:Risk of vulnerability to SQL injection", Justification = "Schema and table names are from trusted configuration sources")]
-public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IOptions<ServerOptions> serverOptions, IOptions<SqlServerStorageOptions> sqlServerStorageOptions, IOptions<SqlServerEventProcessingOptions> sqlServerEventProcessingOptions, SqlServerStorageDbContext sqlServerStorageDbContext, SqlServerEventProcessingDbContext sqlServerEventProcessingDbContext, IKeepAliveContext keepAliveContext)
+public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IOptions<ServerOptions> serverOptions, IOptions<SqlServerStorageOptions> sqlServerStorageOptions, IOptions<SqlServerEventProcessingOptions> sqlServerEventProcessingOptions, IBus bus, SqlServerStorageDbContext sqlServerStorageDbContext, SqlServerEventProcessingDbContext sqlServerEventProcessingDbContext, IKeepAliveContext keepAliveContext)
     : IMessageHandler<MonitorKeepAlive>
 {
+    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IKeepAliveContext _keepAliveContext = Guard.AgainstNull(keepAliveContext);
     private readonly ILogger<MonitorKeepAliveHandler> _logger = Guard.AgainstNull(logger);
     private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
@@ -21,7 +22,7 @@ public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IO
     private readonly SqlServerStorageDbContext _sqlServerStorageDbContext = Guard.AgainstNull(sqlServerStorageDbContext);
     private readonly SqlServerStorageOptions _sqlServerStorageOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerStorageOptions).Value);
 
-    public async Task ProcessMessageAsync(IHandlerContext<MonitorKeepAlive> context, CancellationToken cancellationToken = default)
+    public async Task ProcessMessageAsync(MonitorKeepAlive message, CancellationToken cancellationToken = default)
     {
         var maxSequenceNumber = await _sqlServerStorageDbContext.Database
             .SqlQueryRaw<long?>($@"SELECT MAX(SequenceNumber) [Value] FROM [{_sqlServerStorageOptions.Schema}].[PrimitiveEvent]")
@@ -62,7 +63,7 @@ SELECT
 
         var ignoreTillDate = DateTime.UtcNow.Add(_serverOptions.MonitorKeepAliveInterval);
 
-        await context.SendAsync(new MonitorKeepAlive(), builder =>
+        await _bus.SendAsync(new MonitorKeepAlive(), builder =>
         {
             builder.ToSelf().DeferUntil(ignoreTillDate);
         }, cancellationToken);

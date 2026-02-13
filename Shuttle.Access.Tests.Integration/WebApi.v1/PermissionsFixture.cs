@@ -14,7 +14,7 @@ public class PermissionsFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RegisterPermission>(message => message.Name.Equals(permission)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<RegisterPermission>(message => message.Name.Equals(permission)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Permissions.PostAsync(new()
         {
@@ -24,7 +24,7 @@ public class PermissionsFixture
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
     }
 
     [Test]
@@ -56,7 +56,7 @@ public class PermissionsFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Permissions.SetStatusAsync(permissionId, new()
         {
@@ -67,6 +67,6 @@ public class PermissionsFixture
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
     }
 }

@@ -86,7 +86,7 @@ public static class PermissionEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchStatus(Guid id, SetPermissionStatus message, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> PatchStatus(Guid id, SetPermissionStatus message, ISessionContext sessionContext, IBus bus)
     {
         try
         {
@@ -100,12 +100,12 @@ public static class PermissionEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetPermissionDescription message, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetPermissionDescription message, ISessionContext sessionContext, IBus bus)
     {
         try
         {
@@ -117,12 +117,12 @@ public static class PermissionEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, SetPermissionName message, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> PatchName(Guid id, SetPermissionName message, ISessionContext sessionContext, IBus bus)
     {
         try
         {
@@ -134,7 +134,7 @@ public static class PermissionEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
@@ -152,7 +152,7 @@ public static class PermissionEndpoints
         return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(permissions)), "application/json", "permissions.json");
     }
 
-    private static async Task<IResult> PostBulkUpload(List<RegisterPermission> registerPermissions, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> PostBulkUpload(List<RegisterPermission> registerPermissions, ISessionContext sessionContext, IBus bus)
     {
         if (!registerPermissions.Any())
         {
@@ -161,13 +161,13 @@ public static class PermissionEndpoints
 
         foreach (var registerPermission in registerPermissions)
         {
-            await serviceBus.SendAsync(sessionContext.Audit(registerPermission));
+            await bus.SendAsync(sessionContext.Audit(registerPermission));
         }
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PostFile(ISessionContext sessionContext, IServiceBus serviceBus, HttpContext httpContext)
+    private static async Task<IResult> PostFile(ISessionContext sessionContext, IBus bus, HttpContext httpContext)
     {
         var form = httpContext.Request.Form;
 
@@ -185,13 +185,13 @@ public static class PermissionEndpoints
 
         foreach (var registerPermission in registerPermissions)
         {
-            await serviceBus.SendAsync(sessionContext.Audit(registerPermission));
+            await bus.SendAsync(sessionContext.Audit(registerPermission));
         }
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(RegisterPermission message, ISessionContext sessionContext, IServiceBus serviceBus)
+    private static async Task<IResult> Post(RegisterPermission message, ISessionContext sessionContext, IBus bus)
     {
         try
         {
@@ -202,7 +202,7 @@ public static class PermissionEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await serviceBus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message));
 
         return Results.Accepted();
     }
