@@ -1,7 +1,9 @@
 <template>
-  <v-navigation-drawer v-model="showMainDrawer" :permanent="!$vuetify.display.mobile" class="pt-2">
+  <v-navigation-drawer v-model="drawerStore.showNavigationDrawer" :permanent="!$vuetify.display.mobile" class="pt-2">
     <div class="flex justify-end">
-      <v-btn :icon="mdiArrowCollapseLeft" @click.stop="showMainDrawer = !showMainDrawer" class="mr-4" flat></v-btn>
+      <v-btn :icon="mdiArrowCollapseLeft"
+        @click.stop="drawerStore.showNavigationDrawer = !drawerStore.showNavigationDrawer" class="mr-4" flat></v-btn>
+
     </div>
     <v-list>
       <v-list-item v-for="(item, i) in items" :key="i" :value="item" color="primary" :to="item.to">
@@ -14,7 +16,8 @@
   </v-navigation-drawer>
   <v-app-bar class="shadow-sm">
     <template v-slot:prepend v-if="sessionStore.isAuthenticated">
-      <v-app-bar-nav-icon variant="text" @click.stop="showMainDrawer = !showMainDrawer"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon variant="text"
+        @click.stop="drawerStore.showNavigationDrawer = !drawerStore.showNavigationDrawer"></v-app-bar-nav-icon>
     </template>
     <v-app-bar-title class="cursor-pointer font-bold"
       @click="$router.push('/dashboard')">Shuttle.Access</v-app-bar-title>
@@ -24,11 +27,11 @@
           hide-details />
         <v-btn v-if="!sessionStore.isAuthenticated" :icon="mdiLogin" @click.prevent="signIn"></v-btn>
         <v-btn v-else :icon="mdiDotsVertical" variant="text"
-          @click.stop="showProfileDrawer = !showProfileDrawer"></v-btn>
+          @click.stop="drawerStore.showProfileDrawer = !drawerStore.showProfileDrawer"></v-btn>
       </div>
     </template>
   </v-app-bar>
-  <v-navigation-drawer v-model="showProfileDrawer" location="right" temporary>
+  <v-navigation-drawer v-model="drawerStore.showProfileDrawer" location="right" temporary>
     <v-list>
       <v-list-item :title="sessionStore.identityName" class="select-none"></v-list-item>
       <v-divider></v-divider>
@@ -51,12 +54,11 @@ import type { NavigationItem } from "@/access";
 import { useAlertStore } from "@/stores/alert";
 import configuration from "@/configuration";
 import axios from "axios";
+import { useDrawerStore } from "@/stores/drawer";
 
 const { t } = useI18n({ useScope: 'global' });
 
-const showMainDrawer = ref(false);
-const showProfileDrawer = ref(false);
-
+const drawerStore = useDrawerStore();
 const sessionStore = useSessionStore();
 const router = useRouter();
 const theme = useTheme();
@@ -114,8 +116,8 @@ const signOut = () => {
   })
     .then(() => {
       sessionStore.signOut()
-      showMainDrawer.value = false;
-      showProfileDrawer.value = false;
+      drawerStore.showNavigationDrawer = false;
+      drawerStore.showProfileDrawer = false;
 
       signIn();
     })
