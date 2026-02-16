@@ -36,7 +36,7 @@ public class RegisterIdentityParticipantFixture
 
         var requestResponseMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(registerIdentity);
 
-        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
+        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
 
         Assert.That(requestResponseMessage.Ok, Is.True);
         Assert.That(requestResponseMessage.Response, Is.Not.Null);

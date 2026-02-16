@@ -21,7 +21,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
         var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new());
 
-        await participant.ProcessMessageAsync(reviewRequest);
+        await participant.HandleAsync(reviewRequest);
 
         Assert.That(reviewRequest.Ok, Is.True);
     }
@@ -48,7 +48,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, identityQuery.Object);
         var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new() { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
 
-        await participant.ProcessMessageAsync(reviewRequest);
+        await participant.HandleAsync(reviewRequest);
 
         Assert.That(reviewRequest.Ok, Is.False);
         Assert.That(reviewRequest.Message, Is.EqualTo("last-administrator"));

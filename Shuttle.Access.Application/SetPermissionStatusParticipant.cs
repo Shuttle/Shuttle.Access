@@ -10,7 +10,7 @@ public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipa
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetPermissionStatus, PermissionStatusSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<SetPermissionStatus, PermissionStatusSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
         Guard.AgainstUndefinedEnum<PermissionStatus>(context.Request.Status, nameof(context.Request.Status));

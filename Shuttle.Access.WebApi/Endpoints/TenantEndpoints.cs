@@ -77,6 +77,8 @@ public static class TenantEndpoints
     {
         Guard.AgainstNull(message);
 
+        message.Id ??= Guid.NewGuid();
+
         var requestResponseMessage = new RequestResponseMessage<RegisterTenant, TenantRegistered>(sessionContext.Audit(message));
 
         using var scope = transactionScopeFactory.Create();

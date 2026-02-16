@@ -16,7 +16,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
-    public async Task ProcessMessageAsync(RegisterSession message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RegisterSession message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

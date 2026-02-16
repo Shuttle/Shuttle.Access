@@ -11,7 +11,7 @@ public class RemoveIdentityParticipant(IEventStore eventStore, IIdKeyRepository 
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task ProcessMessageAsync(RemoveIdentity message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RemoveIdentity message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

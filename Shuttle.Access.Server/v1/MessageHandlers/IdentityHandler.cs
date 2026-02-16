@@ -17,7 +17,7 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
     private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
-    public async Task ProcessMessageAsync(ActivateIdentity message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(ActivateIdentity message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
@@ -31,7 +31,7 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(RegisterIdentity message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RegisterIdentity message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
@@ -52,7 +52,7 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(RemoveIdentity message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RemoveIdentity message, CancellationToken cancellationToken = default)
     {
         await _mediator.SendAsync(message, cancellationToken);
 
@@ -62,7 +62,7 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
         }, cancellationToken: cancellationToken);
     }
 
-    public async Task ProcessMessageAsync(SetIdentityDescription message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetIdentityDescription message, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(message.Description))
         {
@@ -79,7 +79,7 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(SetIdentityName message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetIdentityName message, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(message.Name))
         {
@@ -96,7 +96,7 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(SetIdentityRoleStatus message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetIdentityRoleStatus message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
@@ -118,7 +118,7 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(SetPassword message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetPassword message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

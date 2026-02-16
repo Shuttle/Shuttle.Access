@@ -14,7 +14,7 @@ public class RefreshSessionParticipant(IBus bus, ISessionCache sessionCache, IAu
     private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
-    public async Task ProcessMessageAsync(RefreshSession message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RefreshSession message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

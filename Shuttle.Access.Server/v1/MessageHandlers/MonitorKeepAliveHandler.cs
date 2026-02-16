@@ -22,7 +22,7 @@ public class MonitorKeepAliveHandler(ILogger<MonitorKeepAliveHandler> logger, IO
     private readonly SqlServerStorageDbContext _sqlServerStorageDbContext = Guard.AgainstNull(sqlServerStorageDbContext);
     private readonly SqlServerStorageOptions _sqlServerStorageOptions = Guard.AgainstNull(Guard.AgainstNull(sqlServerStorageOptions).Value);
 
-    public async Task ProcessMessageAsync(MonitorKeepAlive message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(MonitorKeepAlive message, CancellationToken cancellationToken = default)
     {
         var maxSequenceNumber = await _sqlServerStorageDbContext.Database
             .SqlQueryRaw<long?>($@"SELECT MAX(SequenceNumber) [Value] FROM [{_sqlServerStorageOptions.Schema}].[PrimitiveEvent]")

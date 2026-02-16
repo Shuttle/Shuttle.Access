@@ -12,7 +12,7 @@ public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEve
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<GetPasswordResetToken, Guid> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<GetPasswordResetToken, Guid> context, CancellationToken cancellationToken = default)
     {
         var identityName = context.Request.Name;
         var query = (await _identityQuery.SearchAsync(new IdentitySpecification().WithName(identityName), cancellationToken)).SingleOrDefault();

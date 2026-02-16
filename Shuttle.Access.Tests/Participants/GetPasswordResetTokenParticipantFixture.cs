@@ -28,7 +28,7 @@ public class GetPasswordResetTokenParticipantFixture
         var getPasswordResetToken = new GetPasswordResetToken { Name = "identity-name" };
         var requestResponseMessage = new RequestResponseMessage<GetPasswordResetToken, Guid>(getPasswordResetToken);
 
-        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
+        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
 
         Assert.That(requestResponseMessage.Ok, Is.False);
 
@@ -36,7 +36,7 @@ public class GetPasswordResetTokenParticipantFixture
 
         requestResponseMessage = new(getPasswordResetToken);
 
-        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
+        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
 
         Assert.That(requestResponseMessage.Ok, Is.True);
     }

@@ -8,7 +8,7 @@ public class GenerateHashParticipant(IHashingService hashingService) : IParticip
 {
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
 
-    public async Task ProcessMessageAsync(GenerateHash message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(GenerateHash message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

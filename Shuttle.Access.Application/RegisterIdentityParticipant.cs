@@ -16,7 +16,7 @@ public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepositor
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterIdentity, IdentityRegistered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<RegisterIdentity, IdentityRegistered> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 

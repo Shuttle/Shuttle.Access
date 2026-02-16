@@ -14,7 +14,7 @@ public class RoleHandler(IBus bus, IMediator mediator) :
     private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
-    public async Task ProcessMessageAsync(RegisterRole message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RegisterRole message, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(message.Name))
         {
@@ -50,7 +50,7 @@ public class RoleHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(RemoveRole message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RemoveRole message, CancellationToken cancellationToken = default)
     {
         var requestResponse = new RequestResponseMessage<RemoveRole, RoleRemoved>(message);
 
@@ -62,7 +62,7 @@ public class RoleHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(SetRoleName message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetRoleName message, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(message.Name))
         {
@@ -79,7 +79,7 @@ public class RoleHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(SetRolePermissionStatus message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetRolePermissionStatus message, CancellationToken cancellationToken = default)
     {
         var requestResponse = new RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet>(message);
 

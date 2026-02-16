@@ -29,7 +29,7 @@ public class ActivateIdentityParticipantFixture
         var requestResponseMessage =
             new RequestResponseMessage<ActivateIdentity, IdentityActivated>(new() { Id = identity.Id });
 
-        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
+        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
 
         var @event = eventStore.FindEvent<Activated>(identity.Id);
 

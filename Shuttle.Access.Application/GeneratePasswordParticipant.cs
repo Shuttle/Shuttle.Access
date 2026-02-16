@@ -8,7 +8,7 @@ public class GeneratePasswordParticipant(IPasswordGenerator passwordGenerator) :
 {
     private readonly IPasswordGenerator _passwordGenerator = Guard.AgainstNull(passwordGenerator);
 
-    public async Task ProcessMessageAsync(GeneratePassword message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(GeneratePassword message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

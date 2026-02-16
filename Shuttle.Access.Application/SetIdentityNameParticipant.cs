@@ -11,7 +11,7 @@ public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityName, IdentityNameSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<SetIdentityName, IdentityNameSet> context, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(context).Request;
 

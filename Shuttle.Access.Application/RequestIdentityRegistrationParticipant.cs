@@ -13,7 +13,7 @@ public class RequestIdentityRegistrationParticipant(IBus bus, ISessionRepository
     private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
-    public async Task ProcessMessageAsync(RequestIdentityRegistration message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestIdentityRegistration message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

@@ -21,7 +21,7 @@ public class RemoveIdentityParticipantFixture
 
         var participant = new RemoveIdentityParticipant(eventStore, new Mock<IIdKeyRepository>().Object);
 
-        await participant.ProcessMessageAsync(removeIdentity, CancellationToken.None);
+        await participant.HandleAsync(removeIdentity, CancellationToken.None);
 
         Assert.That((await eventStore.GetAsync(removeIdentity.Id)).Count, Is.EqualTo(1));
 

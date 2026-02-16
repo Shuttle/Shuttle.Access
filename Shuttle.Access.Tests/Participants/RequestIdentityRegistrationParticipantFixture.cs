@@ -31,7 +31,7 @@ public class RequestIdentityRegistrationParticipantFixture
 
         var identityRegistrationRequested = new RequestIdentityRegistration(new() { Name = "identity" }).Authorized(_tenantId, identityId);
 
-        await participant.ProcessMessageAsync(identityRegistrationRequested, CancellationToken.None);
+        await participant.HandleAsync(identityRegistrationRequested, CancellationToken.None);
 
         Assert.That(identityRegistrationRequested.IsAllowed, Is.True);
         Assert.That(identityRegistrationRequested.IsActivationAllowed, Is.True);

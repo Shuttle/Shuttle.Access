@@ -12,7 +12,7 @@ public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventSto
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<ActivateIdentity, IdentityActivated> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<ActivateIdentity, IdentityActivated> context, CancellationToken cancellationToken = default)
     {
         var request = context.Request;
         var now = DateTimeOffset.UtcNow;

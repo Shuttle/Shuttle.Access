@@ -28,7 +28,7 @@ public class RegisterRoleParticipantFixture
         var requestResponseMessage =
             new RequestResponseMessage<RegisterRole, RoleRegistered>(addRole);
 
-        await participant.ProcessMessageAsync(requestResponseMessage, CancellationToken.None);
+        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
 
         Assert.That(requestResponseMessage.Response, Is.Not.Null);
 

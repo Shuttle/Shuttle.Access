@@ -11,7 +11,7 @@ public class RegisterTenantParticipant(IEventStore eventStore, IIdKeyRepository 
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterTenant, TenantRegistered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<RegisterTenant, TenantRegistered> context, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(context).Request;
 
@@ -22,7 +22,7 @@ public class RegisterTenantParticipant(IEventStore eventStore, IIdKeyRepository 
             return;
         }
 
-        var id = request.Id ?? Guid.NewGuid();
+        var id = request.Id!.Value;
 
         await _idKeyRepository.AddAsync(id, key, cancellationToken);
 

@@ -11,7 +11,7 @@ public class RegisterPermissionParticipant(IEventStore eventStore, IIdKeyReposit
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<RegisterPermission, PermissionRegistered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<RegisterPermission, PermissionRegistered> context, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(context).Request;
 

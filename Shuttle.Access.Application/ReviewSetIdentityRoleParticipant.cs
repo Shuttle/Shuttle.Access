@@ -11,7 +11,7 @@ public class ReviewSetIdentityRoleParticipant(IRoleQuery roleQuery, IIdentityQue
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
-    public async Task ProcessMessageAsync(RequestMessage<SetIdentityRoleStatus> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestMessage<SetIdentityRoleStatus> context, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(context).Request;
         var roles = (await _roleQuery.SearchAsync(new RoleSpecification().AddName("Access Administrator"), cancellationToken)).ToList();

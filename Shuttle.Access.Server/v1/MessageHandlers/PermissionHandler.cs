@@ -14,7 +14,7 @@ public class PermissionHandler(IBus bus, IMediator mediator) :
     private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
-    public async Task ProcessMessageAsync(RegisterPermission message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RegisterPermission message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
@@ -28,7 +28,7 @@ public class PermissionHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(SetPermissionDescription message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetPermissionDescription message, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(message.Description))
         {
@@ -45,7 +45,7 @@ public class PermissionHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(SetPermissionName message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetPermissionName message, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(message.Name))
         {
@@ -62,7 +62,7 @@ public class PermissionHandler(IBus bus, IMediator mediator) :
         }
     }
 
-    public async Task ProcessMessageAsync(SetPermissionStatus message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetPermissionStatus message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

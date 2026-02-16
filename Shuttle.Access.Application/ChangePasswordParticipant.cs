@@ -13,7 +13,7 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
-    public async Task ProcessMessageAsync(RequestMessage<ChangePassword> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestMessage<ChangePassword> context, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(context).Request;
 

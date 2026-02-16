@@ -22,10 +22,10 @@
   </Folder>
   <Project Path="Shuttle.Access.Application/Shuttle.Access.Application.csproj" />
   <Project Path="Shuttle.Access.AspNetCore/Shuttle.Access.AspNetCore.csproj" />
-  <Project Path="Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj" />
   <Project Path="Shuttle.Access.Messages/Shuttle.Access.Messages.csproj" />
   <Project Path="Shuttle.Access.RestClient/Shuttle.Access.RestClient.csproj" />
   <Project Path="Shuttle.Access.Server/Shuttle.Access.Server.csproj" />
+  <Project Path="Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj" />
   <Project Path="Shuttle.Access.Tests.Integration/Shuttle.Access.Tests.Integration.csproj" />
   <Project Path="Shuttle.Access.Tests/Shuttle.Access.Tests.csproj" />
   <Project Path="Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj" />

@@ -25,7 +25,7 @@ public class SetIdentityRoleParticipantFixture
             IdentityId = identityId
         });
 
-        await participant.ProcessMessageAsync(setIdentityRole);
+        await participant.HandleAsync(setIdentityRole);
 
         var eventStream = await eventStore.GetAsync(identityId);
 

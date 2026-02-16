@@ -19,7 +19,7 @@ public class RegisterSessionParticipantFixture
         var message = new RegisterSession(IdentityName);
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, new Mock<IIdentityQuery>().Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Exception);
+        Assert.That(async () => await participant.HandleAsync(message, CancellationToken.None), Throws.Exception);
     }
 
     [Test]
@@ -36,7 +36,7 @@ public class RegisterSessionParticipantFixture
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), authenticationService.Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, identityQuery.Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
+        Assert.That(async () => await participant.HandleAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
     }
 
@@ -64,7 +64,7 @@ public class RegisterSessionParticipantFixture
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
+        Assert.That(async () => await participant.HandleAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
     }
 
@@ -87,7 +87,7 @@ public class RegisterSessionParticipantFixture
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, hashingService, sessionRepository.Object, identityQuery.Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
+        Assert.That(async () => await participant.HandleAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
     }
 
@@ -117,7 +117,7 @@ public class RegisterSessionParticipantFixture
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), new Mock<ISessionRepository>().Object, identityQuery.Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
+        Assert.That(async () => await participant.HandleAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
     }
 
@@ -134,7 +134,7 @@ public class RegisterSessionParticipantFixture
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object);
 
-        Assert.That(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
+        Assert.That(async () => await participant.HandleAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
 
         sessionRepository.Verify(m => m.SaveAsync(It.IsAny<Session>(), CancellationToken.None), Times.Once);
@@ -161,7 +161,7 @@ public class RegisterSessionParticipantFixture
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object);
 
-        Assert.ThatAsync(async () => await participant.ProcessMessageAsync(message, CancellationToken.None), Throws.Nothing);
+        Assert.ThatAsync(async () => await participant.HandleAsync(message, CancellationToken.None), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
 
         sessionRepository.Verify(m => m.SaveAsync(session, CancellationToken.None), Times.Once);

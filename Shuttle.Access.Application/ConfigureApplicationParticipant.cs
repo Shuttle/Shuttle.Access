@@ -54,7 +54,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
     private readonly ITenantQuery _tenantQuery = Guard.AgainstNull(tenantQuery);
     private readonly ITransactionScopeFactory _transactionScopeFactory = Guard.AgainstNull(transactionScopeFactory);
 
-    public async Task ProcessMessageAsync(ConfigureApplication message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(ConfigureApplication message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

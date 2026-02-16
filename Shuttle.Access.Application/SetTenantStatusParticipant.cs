@@ -9,7 +9,7 @@ public class SetTenantStatusParticipant(IEventStore eventStore) : IParticipant<R
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetTenantStatus, TenantStatusSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<SetTenantStatus, TenantStatusSet> context, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(context
         

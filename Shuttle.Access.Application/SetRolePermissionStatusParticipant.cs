@@ -9,7 +9,7 @@ public class SetRolePermissionStatusParticipant(IEventStore eventStore) : IParti
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 

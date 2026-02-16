@@ -9,7 +9,7 @@ public class SetIdentityDescriptionParticipant(IEventStore eventStore) : IPartic
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityDescription, IdentityDescriptionSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<SetIdentityDescription, IdentityDescriptionSet> context, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(context).Request;
 

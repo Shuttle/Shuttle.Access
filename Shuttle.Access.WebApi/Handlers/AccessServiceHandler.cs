@@ -24,7 +24,7 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
     private readonly IProjectionRepository _projectionRepository = Guard.AgainstNull(projectionRepository);
     private readonly ISessionQuery _sessionQuery = Guard.AgainstNull(sessionQuery);
 
-    public async Task ProcessMessageAsync(IdentityRoleSet message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IdentityRoleSet message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
@@ -43,7 +43,7 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
             .Select(item => item.Name)));
     }
 
-    public async Task ProcessMessageAsync(PermissionStatusSet message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(PermissionStatusSet message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
@@ -60,7 +60,7 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
         await RefreshAsync(new SessionSpecification().AddPermission(message.Name));
     }
 
-    public async Task ProcessMessageAsync(RolePermissionSet message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RolePermissionSet message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

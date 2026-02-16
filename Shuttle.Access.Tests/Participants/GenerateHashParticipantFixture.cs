@@ -19,7 +19,7 @@ public class GenerateHashParticipantFixture
 
         var participant = new GenerateHashParticipant(hashingService.Object);
 
-        await participant.ProcessMessageAsync(generateHash, CancellationToken.None);
+        await participant.HandleAsync(generateHash, CancellationToken.None);
 
         Assert.That(generateHash.Hash, Is.Not.Null);
         Assert.That(generateHash.Hash, Is.EqualTo(hash));

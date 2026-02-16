@@ -14,7 +14,7 @@ public class ResetPasswordParticipant(IHashingService hashingService, IEventStor
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task ProcessMessageAsync(RequestMessage<ResetPassword> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestMessage<ResetPassword> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 

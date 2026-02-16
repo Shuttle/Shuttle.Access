@@ -9,7 +9,7 @@ public class SetIdentityRoleStatusParticipant(IEventStore eventStore) : IPartici
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 

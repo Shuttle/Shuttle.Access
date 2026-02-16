@@ -9,7 +9,7 @@ public class SetPasswordParticipant(IEventStore eventStore) : IParticipant<SetPa
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task ProcessMessageAsync(SetPassword message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetPassword message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 

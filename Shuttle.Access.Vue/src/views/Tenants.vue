@@ -53,8 +53,11 @@ const headers = useSecureTableHeaders([
     headerProps: {
       class: "w-1",
     },
-    permission: Permissions.Tenants.Manage,
     filterable: false
+  },
+  {
+    title: t("id"),
+    value: "id",
   },
   {
     title: t("name"),
