@@ -11,5 +11,6 @@ public class SessionResponse
     public string Result { get; set; } = string.Empty;
     public string SessionTokenExchangeUrl { get; set; } = string.Empty;
     public Guid Token { get; set; }
-    public Guid TenantId { get; set; }
+    public Guid? TenantId { get; set; }
+    public List<Tenant> Tenants { get; set; } = [];
 }

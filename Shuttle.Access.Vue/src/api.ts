@@ -9,9 +9,11 @@ const api = axios.create({ baseURL: configuration.getUrl() });
 api.interceptors.request.use(function (config) {
   const sessionStore = useSessionStore();
 
-  config.headers["Authorization"] =
-    `Shuttle.Access token=${sessionStore.token}`;
-  config.headers["Shuttle-Access-Tenant-Id"] = `${sessionStore.tenantId}`;
+  if (sessionStore.isAuthenticated) {
+    config.headers["Authorization"] =
+      `Shuttle.Access token=${sessionStore.token}`;
+    config.headers["Shuttle-Access-Tenant-Id"] = `${sessionStore.tenantId}`;
+  }
 
   return config;
 });

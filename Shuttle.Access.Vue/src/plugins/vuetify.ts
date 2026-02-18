@@ -55,7 +55,7 @@ export default createVuetify({
   },
   defaults: {
     VBtn: {
-      variant: "flat",
+      variant: "elevated",
     },
     VBtnPrimary: {
       variant: "tonal",

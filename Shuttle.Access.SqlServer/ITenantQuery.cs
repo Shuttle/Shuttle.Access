@@ -1,7 +1,9 @@
-﻿namespace Shuttle.Access.SqlServer;
+﻿using Shuttle.Access.Query;
+
+namespace Shuttle.Access.SqlServer;
 
 public interface ITenantQuery
 {
-    ValueTask<int> CountAsync(Models.Tenant.Specification specification, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Models.Tenant>> SearchAsync(Models.Tenant.Specification specification, CancellationToken cancellationToken = default);
+    ValueTask<int> CountAsync(TenantSpecification specification, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Models.Tenant>> SearchAsync(TenantSpecification specification, CancellationToken cancellationToken = default);
 }

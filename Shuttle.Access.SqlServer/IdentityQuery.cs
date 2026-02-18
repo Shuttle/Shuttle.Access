@@ -13,9 +13,9 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
         return await _accessDbContext.IdentityRoles.CountAsync(item => item.Role.Name == "administrator", cancellationToken);
     }
 
-    public async ValueTask<int> CountAsync(IdentitySpecification identitySpecification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(IdentitySpecification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(identitySpecification).CountAsync(cancellationToken);
+        return await GetQueryable(specification).CountAsync(cancellationToken);
     }
 
     public async ValueTask<Guid> IdAsync(string identityName, CancellationToken cancellationToken = default)
@@ -36,15 +36,21 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             .ToList();
     }
 
-    public async Task<IEnumerable<Guid>> RoleIdsAsync(IdentitySpecification identitySpecification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Guid>> RoleIdsAsync(IdentitySpecification specification, CancellationToken cancellationToken = default)
     {
-        return (await SearchAsync(identitySpecification, cancellationToken))
+        return (await SearchAsync(specification, cancellationToken))
             .SelectMany(e => e.IdentityRoles.Select(ir => ir.RoleId)).ToList();
     }
 
-    public async Task<IEnumerable<Models.Identity>> SearchAsync(IdentitySpecification identitySpecification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Guid>> TenantIdsAsync(IdentitySpecification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(identitySpecification)
+        return (await SearchAsync(specification, cancellationToken))
+            .SelectMany(e => e.IdentityTenants.Select(it => it.TenantId)).ToList();
+    }
+
+    public async Task<IEnumerable<Models.Identity>> SearchAsync(IdentitySpecification specification, CancellationToken cancellationToken = default)
+    {
+        return await GetQueryable(specification)
             .OrderBy(e => e.Name)
             .Distinct()
             .ToListAsync(cancellationToken);

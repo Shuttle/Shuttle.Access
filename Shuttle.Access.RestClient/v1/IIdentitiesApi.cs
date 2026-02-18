@@ -27,12 +27,18 @@ public interface IIdentitiesApi
     [Put("/v1/identities/password/reset")]
     Task<IApiResponse> ResetPasswordAsync(ResetPassword message, CancellationToken cancellationToken = default);
 
+    [Patch("/v1/identities/{id}/roles/{roleId}")]
+    Task<IApiResponse> SetRoleAsync(Guid id, Guid roleId, SetIdentityRoleStatus message, CancellationToken cancellationToken = default);
+
     [Post("/v1/identities/{id}/roles/availability")]
     Task<IApiResponse<List<IdentifierAvailability<Guid>>>> RoleAvailabilityAsync(Guid id, Identifiers<Guid> identifiers, CancellationToken cancellationToken = default);
 
+    [Patch("/v1/identities/{id}/tenants/{tenantId}")]
+    Task<IApiResponse> SetTenantAsync(Guid id, Guid tenantId, SetIdentityTenantStatus message, CancellationToken cancellationToken = default);
+
+    [Post("/v1/identities/{id}/tenants/availability")]
+    Task<IApiResponse<List<IdentifierAvailability<Guid>>>> TenantAvailabilityAsync(Guid id, Identifiers<Guid> identifiers, CancellationToken cancellationToken = default);
+
     [Post("/v1/identities/search")]
     Task<IApiResponse<List<Messages.v1.Identity>>> SearchAsync(Messages.v1.Identity.Specification specification, CancellationToken cancellationToken = default);
-
-    [Patch("/v1/identities/{id}/roles/{roleId}")]
-    Task<IApiResponse> SetRoleAsync(Guid id, Guid roleId, SetIdentityRoleStatus message, CancellationToken cancellationToken = default);
 }

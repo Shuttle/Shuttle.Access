@@ -301,6 +301,27 @@ public class IdentitiesFixture
     }
 
     [Test]
+    public async Task Should_be_able_to_set_identity_tenant_status_async()
+    {
+        var tenantId = Guid.NewGuid();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityTenantStatus>(message => message.TenantId.Equals(tenantId)), null)).Verifiable();
+
+        var response = await factory.GetAccessClient().Identities.SetTenantAsync(Guid.NewGuid(), tenantId, new()
+        {
+            Active = true
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+        factory.Bus.VerifyAll();
+    }
+
+    [Test]
     public async Task Should_not_be_able_to_activate_unknown_identity()
     {
         var factory = new FixtureWebApplicationFactory();

@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <a-title :title="`${t('roles')} - ${name}`" close-drawer type="borderless"></a-title>
+      <a-title :title="`${t('tenants')} - ${name}`" close-drawer type="borderless"></a-title>
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -33,8 +33,8 @@ const snackbarStore = useSnackbarStore();
 
 const id: Ref<string | string[]> = ref(useRoute().params.id);
 const name: Ref<string> = ref('');
-const identityRoles: Ref = ref([]);
-const roles: Ref = ref([]);
+const identityTenants: Ref = ref([]);
+const tenants: Ref = ref([]);
 const busy: Ref<boolean> = ref(false);
 const search = ref('');
 let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -48,37 +48,37 @@ const headers: any = [
     },
   },
   {
-    title: t("role-name"),
-    value: "roleName",
+    title: t("name"),
+    value: "tenantName",
   }
 ];
 
-export type RoleItem = {
-  roleId: string;
-  roleName: string;
+export type TenantItem = {
+  tenantId: string;
+  tenantName: string;
   active: boolean;
   activeOnToggle?: boolean;
   working: boolean;
 };
 
 const items = computed(() => {
-  const result: RoleItem[] = [];
+  const result: TenantItem[] = [];
 
-  identityRoles.value.forEach((item: any) => {
+  identityTenants.value.forEach((item: any) => {
     result.push(reactive({
-      roleId: item.id,
-      roleName: item.name,
+      tenantId: item.id,
+      tenantName: item.name,
       active: true,
       working: false,
     }));
   });
 
-  roles.value.filter((item: any) => {
-    return !result.some((r) => r.roleId == item.id);
+  tenants.value.filter((item: any) => {
+    return !result.some((r) => r.tenantId == item.id);
   }).forEach((item: any) => {
     result.push(reactive({
-      roleId: item.id,
-      roleName: item.name,
+      tenantId: item.id,
+      tenantName: item.name,
       active: false,
       working: false,
     }));
@@ -91,14 +91,14 @@ const refresh = async () => {
   busy.value = true;
 
   try {
-    const roleResponse = await api.post("v1/roles/search", {});
+    const tenantResponse = await api.post("v1/tenants/search", {});
 
-    roles.value = roleResponse.data;
+    tenants.value = tenantResponse.data;
 
     const identityResponse = await api.get(`v1/identities/${id.value}`);
 
     name.value = identityResponse.data.name;
-    identityRoles.value = identityResponse.data.roles;
+    identityTenants.value = identityResponse.data.tenants;
   } finally {
     busy.value = false;
   }
@@ -114,35 +114,35 @@ const workingCount = computed(() => {
   return workingItems.value.length;
 });
 
-const getRoleAssignment = (id: string): RoleItem | undefined => {
-  return items.value.find(item => item.roleId === id);
+const getTenantAssignment = (id: string): TenantItem | undefined => {
+  return items.value.find(item => item.tenantId === id);
 };
 
-const getWorkingRoles = async () => {
+const getWorkingTenants = async () => {
   if (workingCount.value === 0) {
     return;
   }
 
-  const response = await api.post(`v1/identities/${id.value}/roles/availability`, {
-    values: workingItems.value.map(item => item.roleId)
+  const response = await api.post(`v1/identities/${id.value}/tenants/availability`, {
+    values: workingItems.value.map(item => item.tenantId)
   });
 
   response.data.forEach((availability: IdentifierAvailability) => {
-    const roleItem = getRoleAssignment(availability.id);
+    const tenantItem = getTenantAssignment(availability.id);
 
-    if (!roleItem) {
+    if (!tenantItem) {
       return;
     }
 
-    roleItem.working = roleItem.activeOnToggle ? availability.active : !availability.active;
+    tenantItem.working = tenantItem.activeOnToggle ? availability.active : !availability.active;
   });
 
   timeoutId = setTimeout(async () => {
-    await getWorkingRoles();
+    await getWorkingTenants();
   }, 1000);
 };
 
-const toggle = async (item: RoleItem) => {
+const toggle = async (item: TenantItem) => {
   if (item.working) {
     snackbarStore.working();
     return;
@@ -151,11 +151,11 @@ const toggle = async (item: RoleItem) => {
   item.working = true;
   item.activeOnToggle = !item.active;
 
-  await api.patch(`v1/identities/${id.value}/roles/${item.roleId}`, {
+  await api.patch(`v1/identities/${id.value}/tenants/${item.tenantId}`, {
     active: item.active,
   });
 
-  getWorkingRoles();
+  getWorkingTenants();
 }
 
 onMounted(() => {

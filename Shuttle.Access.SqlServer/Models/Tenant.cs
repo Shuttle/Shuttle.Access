@@ -24,22 +24,4 @@ public class Tenant
 
     [StringLength(2048)]
     public string LogoUrl { get; set; } = string.Empty;
-
-    public class Specification : Specification<Specification>
-    {
-        public string Name { get; private set; } = string.Empty;
-        public string NameMatch { get; private set; } = string.Empty;
-
-        public Specification WithName(string name)
-        {
-            Name = Guard.AgainstEmpty(name);
-            return WithMaximumRows(1);
-        }
-
-        public Specification WithNameMatch(string nameMatch)
-        {
-            NameMatch = Guard.AgainstEmpty(nameMatch);
-            return this;
-        }
-    }
 }

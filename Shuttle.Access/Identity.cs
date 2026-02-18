@@ -5,7 +5,8 @@ namespace Shuttle.Access;
 
 public class Identity
 {
-    private readonly List<Guid> _roles = [];
+    private readonly List<Guid> _tenantIds = [];
+    private readonly List<Guid> _roleIds = [];
     private byte[]? _passwordHash;
     public bool Activated => DateActivated.HasValue;
     public DateTimeOffset? DateActivated { get; private set; }
@@ -26,17 +27,26 @@ public class Identity
 
     public RoleAdded AddRole(Guid roleId)
     {
-        if (IsInRole(roleId))
-        {
-            throw new ApplicationException(string.Format(Resources.DuplicateIdentityRoleException, Name, roleId));
-        }
-
-        return On(new RoleAdded { RoleId = roleId });
+        return IsInRole(roleId) 
+            ? throw new ApplicationException(string.Format(Resources.DuplicateIdentityRoleException, Name, roleId)) 
+            : On(new RoleAdded { RoleId = roleId });
     }
 
     public bool IsInRole(Guid roleId)
     {
-        return _roles.Contains(roleId);
+        return _roleIds.Contains(roleId);
+    }
+
+    public TenantAdded AddTenant(Guid tenantId)
+    {
+        return IsInTenant(tenantId) 
+            ? throw new ApplicationException(string.Format(Resources.DuplicateIdentityTenantException, Name, tenantId)) 
+            : On(new TenantAdded { TenantId = tenantId });
+    }
+
+    public bool IsInTenant(Guid tenantId)
+    {
+        return _tenantIds.Contains(tenantId);
     }
 
     public static string Key(string name)
@@ -107,18 +117,36 @@ public class Identity
     {
         Guard.AgainstNull(roleAdded);
 
-        _roles.Add(roleAdded.RoleId);
+        _roleIds.Add(roleAdded.RoleId);
 
         return roleAdded;
+    }
+
+    private TenantAdded On(TenantAdded tenantAdded)
+    {
+        Guard.AgainstNull(tenantAdded);
+
+        _tenantIds.Add(tenantAdded.TenantId);
+
+        return tenantAdded;
     }
 
     private RoleRemoved On(RoleRemoved roleRemoved)
     {
         Guard.AgainstNull(roleRemoved);
 
-        _roles.Remove(roleRemoved.RoleId);
+        _roleIds.Remove(roleRemoved.RoleId);
 
         return roleRemoved;
+    }
+
+    private TenantRemoved On(TenantRemoved tenantRemoved)
+    {
+        Guard.AgainstNull(tenantRemoved);
+
+        _tenantIds.Remove(tenantRemoved.TenantId);
+
+        return tenantRemoved;
     }
 
     private Removed On(Removed removed)
@@ -171,12 +199,16 @@ public class Identity
 
     public RoleRemoved RemoveRole(Guid roleId)
     {
-        if (!IsInRole(roleId))
-        {
-            throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, roleId, Name));
-        }
+        return !IsInRole(roleId) 
+            ? throw new InvalidOperationException(string.Format(Resources.IdentityRoleNotFoundException, roleId, Name)) 
+            : On(new RoleRemoved { RoleId = roleId });
+    }
 
-        return On(new RoleRemoved { RoleId = roleId });
+    public TenantRemoved RemoveTenant(Guid tenantId)
+    {
+        return !IsInTenant(tenantId) 
+            ? throw new InvalidOperationException(string.Format(Resources.IdentityTenantNotFoundException, tenantId, Name)) 
+            : On(new TenantRemoved { TenantId = tenantId });
     }
 
     public DescriptionSet SetDescription(string description)

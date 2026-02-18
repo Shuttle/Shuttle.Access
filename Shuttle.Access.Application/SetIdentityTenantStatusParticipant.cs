@@ -5,11 +5,11 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetIdentityRoleStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet>>
+public class SetIdentityTenantStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetIdentityTenantStatus, IdentityTenantSet>>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task HandleAsync(RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RequestResponseMessage<SetIdentityTenantStatus, IdentityTenantSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -19,14 +19,14 @@ public class SetIdentityRoleStatusParticipant(IEventStore eventStore) : IPartici
 
         stream.Apply(identity);
 
-        if (request.Active && !identity.IsInRole(request.RoleId))
+        if (request.Active && !identity.IsInTenant(request.TenantId))
         {
-            stream.Add(identity.AddRole(request.RoleId));
+            stream.Add(identity.AddTenant(request.TenantId));
         }
 
-        if (!request.Active && identity.IsInRole(request.RoleId))
+        if (!request.Active && identity.IsInTenant(request.TenantId))
         {
-            stream.Add(identity.RemoveRole(request.RoleId));
+            stream.Add(identity.RemoveTenant(request.TenantId));
         }
 
         if (stream.ShouldSave())
@@ -35,7 +35,7 @@ public class SetIdentityRoleStatusParticipant(IEventStore eventStore) : IPartici
 
             context.WithResponse(new()
             {
-                RoleId = request.RoleId,
+                TenantId = request.TenantId,
                 IdentityId = request.IdentityId,
                 Active = request.Active,
                 Version = stream.Version

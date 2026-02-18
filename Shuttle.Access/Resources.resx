@@ -134,6 +134,10 @@
     <value>Identity '{0}' is already in role with id '{1}'.</value>
     <comment>0 = identity name; 1 = role id</comment>
   </data>
+  <data name="DuplicateIdentityTenantException" xml:space="preserve">
+    <value>Identity '{0}' is already in tenant with id '{1}'.</value>
+    <comment>0 = identity name; 1 = tenant id</comment>
+  </data>
   <data name="DuplicateRolePermissionException" xml:space="preserve">
     <value>Permission with Id '{0}' already exists on role '{1}'.</value>
     <comment>0 = permission, 1 = role name</comment>
@@ -177,9 +181,13 @@
   <data name="RequiredOptionMissing" xml:space="preserve">
     <value>Required option '{0}' is missing.</value>
   </data>
-  <data name="RoleNotFoundException" xml:space="preserve">
-    <value>Role '{0}' does not exist on user '{1}'.</value>
-    <comment>0 = role name, 1 = user name</comment>
+  <data name="IdentityRoleNotFoundException" xml:space="preserve">
+    <value>Role id '{0}' does not exist on identity '{1}'.</value>
+    <comment>0 = role id, 1 = identity name</comment>
+  </data>
+  <data name="IdentityTenantNotFoundException" xml:space="preserve">
+    <value>Tenant id '{0}' does not exist on identity '{1}'.</value>
+    <comment>0 = tenant id, 1 = identity name</comment>
   </data>
   <data name="SessionCountException" xml:space="preserve">
     <value>Found {0} sessions matching the specification.  Expected exactly 1.</value>

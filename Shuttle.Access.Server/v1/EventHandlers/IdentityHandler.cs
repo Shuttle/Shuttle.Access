@@ -13,6 +13,8 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         IEventHandler<Registered>,
         IEventHandler<RoleAdded>,
         IEventHandler<RoleRemoved>,
+        IEventHandler<TenantAdded>,
+        IEventHandler<TenantRemoved>,
         IEventHandler<Removed>,
         IEventHandler<Activated>,
         IEventHandler<NameSet>,
@@ -112,7 +114,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         var roleModel = (await _roleQuery.SearchAsync(new RoleSpecification().AddId(context.Event.RoleId), cancellationToken)).FirstOrDefault();
 
         if (roleModel == null ||
-            !await _tenantQuery.ContainsAsync(new SqlServer.Models.Tenant.Specification().AddId(roleModel.TenantId), cancellationToken))
+            !await _tenantQuery.ContainsAsync(new TenantSpecification().AddId(roleModel.TenantId), cancellationToken))
         {
             context.Defer();
             return;
@@ -165,5 +167,46 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[RoleRemoved] : id = '{PrimitiveEventId}' / role id = '{RoleId}'", context.PrimitiveEvent.Id, context.Event.RoleId);
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<TenantAdded> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        var tenantModel = (await _tenantQuery.SearchAsync(new TenantSpecification().AddId(context.Event.TenantId), cancellationToken)).FirstOrDefault();
+
+        if (tenantModel == null)
+        {
+            context.Defer();
+            return;
+        }
+
+        _accessDbContext.IdentityTenants.Add(new()
+        {
+            IdentityId = context.PrimitiveEvent.Id,
+            TenantId = context.Event.TenantId
+        });
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogDebug("[TenantAdded] : id = '{PrimitiveEventId}' / tenant id = '{TenantId}'", context.PrimitiveEvent.Id, context.Event.TenantId);
+    }
+
+    public async Task ProcessEventAsync(IEventHandlerContext<TenantRemoved> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        var model = await _accessDbContext.IdentityTenants.FirstOrDefaultAsync(item => item.IdentityId == context.PrimitiveEvent.Id && item.TenantId == context.Event.TenantId, cancellationToken);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        _accessDbContext.IdentityTenants.Remove(model);
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogDebug("[TenantRemoved] : id = '{PrimitiveEventId}' / tenant id = '{TenantId}'", context.PrimitiveEvent.Id, context.Event.TenantId);
     }
 }

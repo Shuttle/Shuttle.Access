@@ -27,6 +27,11 @@ public static class MessageExtensions
         Guard.AgainstNull(message);
     }
 
+    public static void ApplyInvariants(this SetIdentityTenantStatus message)
+    {
+        Guard.AgainstNull(message);
+    }
+
     public static void ApplyInvariants(this RegisterPasswordReset message)
     {
         Guard.AgainstNull(message);

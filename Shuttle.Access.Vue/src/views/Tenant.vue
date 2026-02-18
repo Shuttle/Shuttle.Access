@@ -60,11 +60,7 @@ const submit = async () => {
   busy.value = true;
 
   try {
-    await api.post("v1/tenants", {
-      name: state.name,
-      logoSvg: state.logoSvg,
-      logoUrl: state.logoUrl,
-    })
+    await api.post("v1/tenants", state)
 
     useSnackbarStore().requestSent();
 

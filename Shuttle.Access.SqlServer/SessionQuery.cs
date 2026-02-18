@@ -8,14 +8,14 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(SessionSpecification sessionSpecification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(sessionSpecification).CountAsync(cancellationToken);
+        return await GetQueryable(specification).CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Models.Session>> SearchAsync(SessionSpecification sessionSpecification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Models.Session>> SearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(sessionSpecification)
+        return await GetQueryable(specification)
             .Include(e => e.Identity)
             .Include(e => e.SessionPermissions)
             .ThenInclude(e => e.Permission)

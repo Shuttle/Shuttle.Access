@@ -142,4 +142,8 @@
   <data name="SystemTenantException" xml:space="preserve">
     <value>Timed out waiting for the system tenant to be registered.</value>
   </data>
+  <data name="IdentityHasNoTenantsException" xml:space="preserve">
+    <value>Identity '{0}' has not been associated with any tenants.</value>
+    <comment>0 = identity name</comment>
+  </data>
 </root>

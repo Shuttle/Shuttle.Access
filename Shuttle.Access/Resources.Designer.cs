@@ -106,6 +106,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Identity &apos;{0}&apos; is already in tenant with id &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateIdentityTenantException {
+            get {
+                return ResourceManager.GetString("DuplicateIdentityTenantException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Permission with Id &apos;{0}&apos; already exists on role &apos;{1}&apos;..
         /// </summary>
         public static string DuplicateRolePermissionException {
@@ -138,6 +147,24 @@ namespace Shuttle.Access {
         public static string IdentityNameClaimNotFound {
             get {
                 return ResourceManager.GetString("IdentityNameClaimNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Role id &apos;{0}&apos; does not exist on identity &apos;{1}&apos;..
+        /// </summary>
+        public static string IdentityRoleNotFoundException {
+            get {
+                return ResourceManager.GetString("IdentityRoleNotFoundException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tenant id &apos;{0}&apos; does not exist on identity &apos;{1}&apos;..
+        /// </summary>
+        public static string IdentityTenantNotFoundException {
+            get {
+                return ResourceManager.GetString("IdentityTenantNotFoundException", resourceCulture);
             }
         }
         
@@ -219,15 +246,6 @@ namespace Shuttle.Access {
         public static string RequiredOptionMissing {
             get {
                 return ResourceManager.GetString("RequiredOptionMissing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Role &apos;{0}&apos; does not exist on user &apos;{1}&apos;..
-        /// </summary>
-        public static string RoleNotFoundException {
-            get {
-                return ResourceManager.GetString("RoleNotFoundException", resourceCulture);
             }
         }
         

@@ -80,6 +80,24 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
+        app.MapPost("/v{version:apiVersion}/identities/{id}/roles/availability", PostRoleAvailability)
+            .WithTags("Identities")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Identities.Register);
+
+        app.MapPatch("/v{version:apiVersion}/identities/{id}/tenants/{tenantId}", PatchTenant)
+            .WithTags("Identities")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Identities.Register);
+
+        app.MapPost("/v{version:apiVersion}/identities/{id}/tenants/availability", PostTenantAvailability)
+            .WithTags("Identities")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Identities.Register);
+
         app.MapPut("/v{version:apiVersion}/identities/password", PutPassword)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
@@ -87,12 +105,6 @@ public static class IdentityEndpoints
             .RequireSession();
 
         app.MapPut("/v{version:apiVersion}/identities/password/reset", PutPasswordReset)
-            .WithTags("Identities")
-            .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register);
-
-        app.MapPost("/v{version:apiVersion}/identities/{id}/roles/availability", PostRoleAvailability)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -132,6 +144,22 @@ public static class IdentityEndpoints
         var roles = (await identityQuery.RoleIdsAsync(new IdentitySpecification().AddId(id))).ToList();
 
         return Results.Ok(from roleId in identifiers.Values select new IdentifierAvailability<Guid> { Id = roleId, Active = roles.Any(item => item.Equals(roleId)) });
+    }
+
+    private static async Task<IResult> PostTenantAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
+    {
+        try
+        {
+            identifiers.ApplyInvariants();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
+
+        var tenants = (await identityQuery.TenantIdsAsync(new IdentitySpecification().AddId(id))).ToList();
+
+        return Results.Ok(from tenantId in identifiers.Values select new IdentifierAvailability<Guid> { Id = tenantId, Active = tenants.Any(item => item.Equals(tenantId)) });
     }
 
     private static async Task<IResult> Post([FromBody] RegisterIdentity message, ISessionContext sessionContext, IMediator mediator, ITransactionScopeFactory transactionScopeFactory)
@@ -288,13 +316,31 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(message);
+        var request = new RequestMessage<SetIdentityRoleStatus>(message);
 
-        await mediator.SendAsync(reviewRequest);
+        await mediator.SendAsync(request);
 
-        if (!reviewRequest.Ok)
+        if (!request.Ok)
         {
-            return Results.BadRequest(reviewRequest.Message);
+            return Results.BadRequest(request.Message);
+        }
+
+        await bus.SendAsync(sessionContext.Audit(message));
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchTenant(Guid id, Guid tenantId, [FromBody] SetIdentityTenantStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    {
+        try
+        {
+            message.ApplyInvariants();
+            message.IdentityId = id;
+            message.TenantId = tenantId;
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
         }
 
         await bus.SendAsync(sessionContext.Audit(message));

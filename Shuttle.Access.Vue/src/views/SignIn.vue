@@ -172,6 +172,7 @@ onMounted(async () => {
     return;
   }
 
+  await sessionStore.signOut();
   await refreshOAuthProviders();
 
   if (props.applicationName) {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
@@ -7,12 +8,12 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(Models.Tenant.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(TenantSpecification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification).CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Models.Tenant>> SearchAsync(Models.Tenant.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Models.Tenant>> SearchAsync(TenantSpecification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification)
             .OrderBy(e => e.Name)
@@ -20,15 +21,15 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
             .ToListAsync(cancellationToken);
     }
 
-    private IQueryable<Models.Tenant> GetQueryable(Models.Tenant.Specification specification)
+    private IQueryable<Models.Tenant> GetQueryable(TenantSpecification specification)
     {
         var queryable = _accessDbContext.Tenants
             .AsNoTracking()
             .AsQueryable();
 
-        if (!string.IsNullOrEmpty(specification.Name))
+        if (specification.Names.Any())
         {
-            queryable = queryable.Where(e => e.Name == specification.Name);
+            queryable = queryable.Where(e => specification.Names.Contains(e.Name));
         }
 
         if (!string.IsNullOrEmpty(specification.NameMatch))

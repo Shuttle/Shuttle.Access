@@ -17,7 +17,7 @@ public class RegisterSession(string identityName)
     public Session? Session { get; private set; }
     public Guid? SessionToken { get; private set; }
     public string SessionTokenExchangeUrl { get; private set; } = string.Empty;
-    public Guid? TenantId { get; set; }
+    public Guid? TenantId { get; private set; }
 
     public IEnumerable<Messages.v1.Tenant> Tenants => _tenants.AsReadOnly();
     
@@ -47,13 +47,31 @@ public class RegisterSession(string identityName)
 
     public RegisterSession Registered(Guid sessionToken, Session session)
     {
-        SessionToken = sessionToken;
+        SessionToken = Guard.AgainstEmpty(sessionToken);
         Session = Guard.AgainstNull(session);
 
         Result = SessionRegistrationResult.Registered;
 
         return this;
     }
+
+    public RegisterSession WithTenants(IEnumerable<Messages.v1.Tenant> tenants)
+    {
+        _tenants = new(Guard.AgainstNull(tenants));
+
+        if (_tenants.Count == 0)
+        {
+            throw new InvalidOperationException(string.Format(Resources.IdentityHasNoTenantsException, IdentityName));
+        }
+
+        if (_tenants.Count == 1)
+        {
+            TenantId = _tenants[0].Id;
+        }
+
+        return this;
+    }
+
 
     private void SetRegistrationType(SessionRegistrationType type)
     {
@@ -116,16 +134,6 @@ public class RegisterSession(string identityName)
     public RegisterSession WithTenantId(Guid tenantId)
     {
         TenantId = Guard.AgainstEmpty(tenantId);
-        return this;
-    }
-
-    public RegisterSession RequiresTenantSelection(IEnumerable<Messages.v1.Tenant> tenants)
-    {
-        Guard.AgainstEmpty(tenants);
-
-        _tenants = new(tenants);
-        Result = SessionRegistrationResult.TenantSelectionRequired;
-
         return this;
     }
 }

@@ -137,7 +137,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
          * System Tenant
          */
 
-        var tenantSpecification = new SqlServer.Models.Tenant.Specification()
+        var tenantSpecification = new TenantSpecification()
             .AddId(_accessOptions.SystemTenantId);
 
         var systemTenantExists = await _tenantQuery.CountAsync(tenantSpecification, cancellationToken) > 0;

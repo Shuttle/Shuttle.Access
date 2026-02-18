@@ -68,6 +68,14 @@ const routes: Array<RouteRecordRaw> = [
           permission: Permissions.Identities.View,
         },
       },
+      {
+        path: "/identities/:id/tenants",
+        name: "identity-tenants",
+        component: () => import("../views/IdentityTenants.vue"),
+        meta: {
+          permission: Permissions.Identities.View,
+        },
+      },
     ],
   },
   {

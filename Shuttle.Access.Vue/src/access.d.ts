@@ -84,7 +84,7 @@ export type Identity = {
   name: string;
   registeredBy: string;
   roles: IdentityRole[] | undefined;
-  roles: IdentityTenant[] | undefined;
+  tenants: IdentityTenant[] | undefined;
 };
 
 export type IdentityRole = {

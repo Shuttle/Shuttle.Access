@@ -8,14 +8,14 @@ public class PermissionQuery(AccessDbContext accessDbContext) : IPermissionQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(PermissionSpecification permissionSpecification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(PermissionSpecification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(permissionSpecification).CountAsync(cancellationToken);
+        return await GetQueryable(specification).CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Models.Permission>> SearchAsync(PermissionSpecification permissionSpecification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Models.Permission>> SearchAsync(PermissionSpecification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(permissionSpecification)
+        return await GetQueryable(specification)
             .Distinct()
             .OrderBy(e => e.Name)
             .ToListAsync(cancellationToken);

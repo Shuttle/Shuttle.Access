@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Core.TransactionScope;
@@ -90,7 +91,7 @@ public static class TenantEndpoints
 
     private static async Task<IResult> Get(string value, ITenantQuery tenantQuery)
     {
-        var specification = new SqlServer.Models.Tenant.Specification();
+        var specification = new TenantSpecification();
 
         if (Guid.TryParse(value, out var id))
         {
@@ -98,7 +99,7 @@ public static class TenantEndpoints
         }
         else
         {
-            specification.WithName(value);
+            specification.AddName(value);
         }
 
         var tenant = (await tenantQuery.SearchAsync(specification)).SingleOrDefault();
@@ -110,7 +111,7 @@ public static class TenantEndpoints
 
     private static async Task<IResult> Search([FromBody] Messages.v1.Tenant.Specification specification, ITenantQuery tenantQuery)
     {
-        var search = new SqlServer.Models.Tenant.Specification();
+        var search = new TenantSpecification();
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {

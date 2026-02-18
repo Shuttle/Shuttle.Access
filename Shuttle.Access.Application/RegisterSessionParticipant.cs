@@ -120,22 +120,20 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
             session = new( Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(message.IdentityName, cancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
 
-            if (identity.IdentityTenants.Count == 1)
+            var tenants = identity.IdentityTenants
+                .Where(item => item.Tenant.Status == 1)
+                .Select(item => new Messages.v1.Tenant
             {
-                session.WithTenantId(identity.IdentityTenants.First().TenantId);
-                message.Registered(token, session);
-            }
-            else
-            {
-                message.RequiresTenantSelection(identity.IdentityTenants.Select(item => new Messages.v1.Tenant
-                {
-                    Id = item.TenantId,
-                    Name = item.Tenant.Name,
-                    LogoSvg = item.Tenant.LogoSvg,
-                    LogoUrl = item.Tenant.LogoUrl,
-                    Status = item.Tenant.Status
-                }));
-            }
+                Id = item.TenantId,
+                Name = item.Tenant.Name,
+                LogoSvg = item.Tenant.LogoSvg,
+                LogoUrl = item.Tenant.LogoUrl,
+                Status = item.Tenant.Status
+            });
+
+            message
+                .Registered(token, session)
+                .WithTenants(tenants);
 
             await SaveAsync(token);
         }

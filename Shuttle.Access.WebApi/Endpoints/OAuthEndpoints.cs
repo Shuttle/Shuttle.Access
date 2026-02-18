@@ -81,7 +81,7 @@ public static class OAuthEndpoints
 
         var sessionResponse = new SessionResponse { Result = registerSession.Result.ToString(), RegistrationRequested = requestRegistration, IdentityName = identity };
 
-        if (registerSession.HasSession)
+        if (registerSession.Result == SessionRegistrationResult.Registered)
         {
             sessionResponse.IdentityId = registerSession.Session!.IdentityId;
             sessionResponse.IdentityName = registerSession.Session!.IdentityName;
@@ -90,7 +90,8 @@ public static class OAuthEndpoints
             sessionResponse.Permissions = registerSession.Session.Permissions.Select(item => item.Name).ToList();
             sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
             sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
-            sessionResponse.TenantId = registerSession.Session.TenantId!.Value;
+            sessionResponse.TenantId = registerSession.Session.TenantId;
+            sessionResponse.Tenants = registerSession.Tenants.ToList();
         }
 
         return Results.Ok(sessionResponse);

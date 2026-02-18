@@ -8,22 +8,22 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(RoleSpecification roleSpecification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(roleSpecification).CountAsync(cancellationToken);
+        return await GetQueryable(specification).CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Models.Permission>> PermissionsAsync(RoleSpecification roleSpecification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Models.Permission>> PermissionsAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
     {
-        var model = await GetQueryable(roleSpecification)
+        var model = await GetQueryable(specification)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
         return model == null ? [] : model.RolePermissions.Select(e => e.Permission).ToList();
     }
 
-    public async Task<IEnumerable<Models.Role>> SearchAsync(RoleSpecification roleSpecification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Models.Role>> SearchAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(roleSpecification)
+        return await GetQueryable(specification)
             .OrderBy(e => e.Name)
             .Distinct()
             .ToListAsync(cancellationToken);

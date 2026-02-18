@@ -8,6 +8,7 @@ namespace Shuttle.Access.Server.v1.MessageHandlers;
 public class IdentityHandler(IBus bus, IMediator mediator) :
     IMessageHandler<RegisterIdentity>,
     IMessageHandler<SetIdentityRoleStatus>,
+    IMessageHandler<SetIdentityTenantStatus>,
     IMessageHandler<RemoveIdentity>,
     IMessageHandler<SetPassword>,
     IMessageHandler<ActivateIdentity>,
@@ -109,6 +110,20 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
         {
             return;
         }
+
+        await _mediator.SendAsync(requestResponse, cancellationToken);
+
+        if (requestResponse.Response != null)
+        {
+            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
+        }
+    }
+
+    public async Task HandleAsync(SetIdentityTenantStatus message, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(message);
+
+        var requestResponse = new RequestResponseMessage<SetIdentityTenantStatus, IdentityTenantSet>(message);
 
         await _mediator.SendAsync(requestResponse, cancellationToken);
 

@@ -214,21 +214,6 @@ public static class SessionEndpoints
 
             await RegisterSession(registerSession, mediator);
 
-            if (registerSession.Result == SessionRegistrationResult.TenantSelectionRequired)
-            {
-                return Results.Ok(new SessionTenants
-                {
-                    SessionId = registerSession.Session!.Id,
-                    Tenants = registerSession.Tenants.Select(item => new SessionTenants.Tenant
-                    {
-                        Id = item.Id,
-                        Name = item.Name,
-                        LogoSvg = item.LogoSvg,
-                        LogoUrl = item.LogoUrl
-                    }).ToList()
-                });
-            }
-
             if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession)
             {
                 return Results.NotFound();
@@ -240,7 +225,14 @@ public static class SessionEndpoints
                 ExpiryDate = registerSession.Session.ExpiryDate,
                 IdentityId = registerSession.Session.IdentityId,
                 IdentityName = identityName,
-                Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList()
+                Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList(),
+                Tenants = registerSession.Tenants.Select(item => new SessionTenants.Tenant
+                {
+                Id = item.Id,
+                Name = item.Name,
+                LogoSvg = item.LogoSvg,
+                LogoUrl = item.LogoUrl
+            }).ToList()
             });
         }
 
