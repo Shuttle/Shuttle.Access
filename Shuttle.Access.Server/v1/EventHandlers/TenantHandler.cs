@@ -12,7 +12,7 @@ public class TenantHandler(ILogger<TenantHandler> logger, ITenantProjectionQuery
     private readonly ILogger<TenantHandler> _logger = Guard.AgainstNull(logger);
     private readonly ITenantProjectionQuery _query = Guard.AgainstNull(query);
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -21,7 +21,7 @@ public class TenantHandler(ILogger<TenantHandler> logger, ITenantProjectionQuery
         _logger.LogDebug($"[Registered] : id = '{context.PrimitiveEvent.Id}' / name = '{context.Event.Name}'");
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<StatusSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<StatusSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 

@@ -6,14 +6,16 @@ namespace Shuttle.Access.Query;
 public class SessionSpecification : Specification<SessionSpecification>
 {
     private readonly List<string> _permissions = [];
-
-    public Guid? TenantId { get; private set; }
     public Guid? IdentityId { get; private set; }
     public string? IdentityName { get; private set; }
     public string? IdentityNameMatch { get; private set; }
     public IEnumerable<string> Permissions => _permissions.AsReadOnly();
 
     public bool ShouldIncludePermissions { get; private set; }
+
+    public bool ShouldIncludeTenantId { get; private set; }
+
+    public Guid? TenantId { get; private set; }
 
     public byte[]? Token { get; private set; }
 
@@ -47,12 +49,6 @@ public class SessionSpecification : Specification<SessionSpecification>
         return this;
     }
 
-    public SessionSpecification WithTenantId(Guid tenantId)
-    {
-        TenantId = tenantId;
-        return this;
-    }
-
     public SessionSpecification WithIdentityId(Guid identityId)
     {
         IdentityId = identityId;
@@ -69,6 +65,13 @@ public class SessionSpecification : Specification<SessionSpecification>
     {
         IdentityNameMatch = Guard.AgainstEmpty(identityNameMatch);
 
+        return this;
+    }
+
+    public SessionSpecification WithTenantId(Guid? tenantId)
+    {
+        TenantId = tenantId;
+        ShouldIncludeTenantId = true;
         return this;
     }
 

@@ -1,20 +1,24 @@
-﻿using Shuttle.Access.SqlServer;
+﻿using Microsoft.Extensions.Options;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
+using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class ReviewSetIdentityRoleParticipant(IRoleQuery roleQuery, IIdentityQuery identityQuery) : IParticipant<RequestMessage<SetIdentityRoleStatus>>
+public class ReviewSetIdentityRoleParticipant(IOptions<AccessOptions> accessOptions, IRoleQuery roleQuery, IIdentityQuery identityQuery) : IParticipant<RequestMessage<SetIdentityRoleStatus>>
 {
+    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
     public async Task HandleAsync(RequestMessage<SetIdentityRoleStatus> context, CancellationToken cancellationToken = default)
     {
         var request = Guard.AgainstNull(context).Request;
-        var roles = (await _roleQuery.SearchAsync(new RoleSpecification().AddName("Access Administrator"), cancellationToken)).ToList();
+        var roles = (await _roleQuery.SearchAsync(new RoleSpecification()
+            .WithTenantId(_accessOptions.SystemTenantId)
+            .AddName("Access Administrator"), cancellationToken)).ToList();
 
         if (roles.Count != 1)
         {

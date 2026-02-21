@@ -18,6 +18,7 @@ import type { App } from "vue";
 import AccessContainer from "@/components/AccessContainer.vue";
 import AccessDataTable from "@/components/AccessDataTable.vue";
 import AccessDrawer from "@/components/AccessDrawer.vue";
+import AccessFilterDrawer from "@/components/AccessFilterDrawer.vue";
 import AccessTitle from "@/components/AccessTitle.vue";
 import AccessStrip from "@/components/AccessStrip.vue";
 
@@ -29,6 +30,7 @@ export function registerPlugins(app: App) {
   app.component("a-container", AccessContainer);
   app.component("a-data-table", AccessDataTable);
   app.component("a-drawer", AccessDrawer);
+  app.component("a-filter-drawer", AccessFilterDrawer);
   app.component("a-strip", AccessStrip);
   app.component("a-title", AccessTitle);
 }

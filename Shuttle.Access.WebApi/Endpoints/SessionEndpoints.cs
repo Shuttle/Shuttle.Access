@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
+using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -17,6 +17,156 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
+    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionRepository sessionRepository)
+    {
+        using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            var specification = new SessionSpecification().AddId(sessionId);
+            var session = await sessionRepository.FindAsync(specification);
+
+            if (session != null && await sessionRepository.RemoveAsync(specification) > 0)
+            {
+                await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
+            }
+
+            tx.Complete();
+        }
+
+        return Results.Ok();
+    }
+
+    private static async Task<IResult> DeleteAll(IBus bus, ISessionRepository sessionRepository)
+    {
+        using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            await sessionRepository.RemoveAsync(new());
+
+            await bus.PublishAsync(new AllSessionsDeleted());
+
+            tx.Complete();
+        }
+
+        return Results.Ok();
+    }
+
+    private static async Task<IResult> DeleteSelf(IBus bus, ISessionRepository sessionRepository, HttpContext httpContext)
+    {
+        var identityId = httpContext.FindIdentityId();
+        var tenantId = httpContext.FindTenantId();
+
+        if (tenantId == null || identityId == null)
+        {
+            return Results.BadRequest();
+        }
+
+        using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            var session = await sessionRepository.FindAsync(new SessionSpecification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value));
+
+            if (session != null)
+            {
+                if (await sessionRepository.RemoveAsync(new SessionSpecification().WithIdentityId(identityId.Value)) > 0)
+                {
+                    await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
+                }
+            }
+
+            tx.Complete();
+        }
+
+        return Results.Ok();
+    }
+
+    private static async Task<IResult> GetExchange(Guid token, ISessionTokenExchangeRepository sessionTokenExchangeRepository, ISessionQuery sessionQuery)
+    {
+        var sessionTokenExchange = await sessionTokenExchangeRepository.FindAsync(token);
+
+        if (sessionTokenExchange == null)
+        {
+            return Results.BadRequest();
+        }
+
+        await sessionTokenExchangeRepository.RemoveAsync(token);
+
+        if (sessionTokenExchange.HasExpired)
+        {
+            return Results.BadRequest();
+        }
+
+        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithToken(sessionTokenExchange.SessionToken.ToByteArray()).IncludePermissions())).FirstOrDefault();
+
+        return session == null
+            ? Results.BadRequest()
+            : Results.Ok(Map(session));
+    }
+
+    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
+    {
+        async Task<IResult> AttemptRegistration(Guid tenantId)
+        {
+            var identityName = httpContext.FindIdentityName();
+
+            if (string.IsNullOrWhiteSpace(identityName))
+            {
+                return Results.BadRequest();
+            }
+
+            var registerSession = new RegisterSession(identityName).WithTenantId(tenantId).UseDirect();
+
+            await RegisterSession(registerSession, mediator);
+
+            if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession || registerSession.Identity == null)
+            {
+                return Results.NotFound();
+            }
+
+            return Results.Ok(new Messages.v1.Session
+            {
+                DateRegistered = registerSession.Session!.DateRegistered,
+                ExpiryDate = registerSession.Session.ExpiryDate,
+                IdentityId = registerSession.Session.IdentityId,
+                IdentityName = identityName,
+                Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList(),
+                Tenants = registerSession.Identity.IdentityTenants
+                    .Where(item => item.Tenant.Status == 1)
+                    .Select(item => new SessionTenants.Tenant
+                {
+                    Id = item.Tenant.Id,
+                    Name = item.Tenant.Name,
+                    LogoSvg = item.Tenant.LogoSvg,
+                    LogoUrl = item.Tenant.LogoUrl
+                }).ToList()
+            });
+        }
+
+        var identityId = httpContext.FindIdentityId();
+        var tenantId = httpContext.FindTenantId() ?? accessOptions.Value.SystemTenantId;
+
+        if (identityId == null)
+        {
+            return await AttemptRegistration(tenantId);
+        }
+
+        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithTenantId(tenantId).WithIdentityId(identityId.Value).IncludePermissions())).FirstOrDefault();
+
+        if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
+        {
+            return Results.Ok(new Messages.v1.Session
+            {
+                DateRegistered = session.DateRegistered,
+                ExpiryDate = session.ExpiryDate,
+                IdentityId = session.IdentityId,
+                IdentityName = session.IdentityName,
+                Permissions = session.SessionPermissions.Select(item => item.Permission.Name).OrderBy(item => item).ToList(),
+                TenantId = session.TenantId
+            });
+        }
+
+        sessionCache.Flush(identityId.Value);
+
+        return await AttemptRegistration(tenantId);
+    }
+
     private static SessionSpecification GetSpecification(Messages.v1.Session.Specification model, IHashingService hashingService)
     {
         var specification = new SessionSpecification();
@@ -108,6 +258,11 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
+        app.MapPatch("/v{version:apiVersion}/sessions/tenant", PatchTenant)
+            .WithTags("Sessions")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
+
         app.MapPost("/v{version:apiVersion}/sessions/delegated", PostDelegated)
             .WithTags("Sessions")
             .RequireSession()
@@ -144,171 +299,31 @@ public static class SessionEndpoints
         return app;
     }
 
-    private static async Task<IResult> GetExchange(Guid token, ISessionTokenExchangeRepository sessionTokenExchangeRepository, ISessionQuery sessionQuery)
+    private static async Task<IResult> PatchTenant(ISessionContext sessionContext, SelectTenant selectTenant, IMediator mediator, CancellationToken cancellationToken)
     {
-        var sessionTokenExchange = await sessionTokenExchangeRepository.FindAsync(token);
-
-        if (sessionTokenExchange == null)
+        if (sessionContext.Session == null)
         {
             return Results.BadRequest();
         }
 
-        await sessionTokenExchangeRepository.RemoveAsync(token);
+        var message = new TenantSelected(sessionContext.Session.Id, selectTenant.TenantId);
 
-        if (sessionTokenExchange.HasExpired)
+        await Guard.AgainstNull(mediator).SendAsync(message, cancellationToken);
+
+        if (message.Session == null)
         {
             return Results.BadRequest();
         }
 
-        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithToken(sessionTokenExchange.SessionToken.ToByteArray()).IncludePermissions())).FirstOrDefault();
-
-        return session == null
-            ? Results.BadRequest()
-            : Results.Ok(Map(session));
-    }
-
-    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionRepository sessionRepository)
-    {
-        using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        return Results.Ok(new SessionResponse
         {
-            var specification = new SessionSpecification().AddId(sessionId);
-            var session = await sessionRepository.FindAsync(specification);
-
-            if (session != null && await sessionRepository.RemoveAsync(specification) > 0)
-            {
-                await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
-            }
-
-            tx.Complete();
-        }
-
-        return Results.Ok();
-    }
-
-    private static async Task<IResult> DeleteAll(IBus bus, ISessionRepository sessionRepository)
-    {
-        using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-        {
-            await sessionRepository.RemoveAsync(new());
-
-            await bus.PublishAsync(new AllSessionsDeleted());
-
-            tx.Complete();
-        }
-
-        return Results.Ok();
-    }
-
-    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
-    {
-        async Task<IResult> AttemptRegistration(Guid tenantId)
-        {
-            var identityName = httpContext.FindIdentityName();
-
-            if (string.IsNullOrWhiteSpace(identityName))
-            {
-                return Results.BadRequest();
-            }
-
-            var registerSession = new RegisterSession(identityName).WithTenantId(tenantId).UseDirect();
-
-            await RegisterSession(registerSession, mediator);
-
-            if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession)
-            {
-                return Results.NotFound();
-            }
-
-            return Results.Ok(new Messages.v1.Session
-            {
-                DateRegistered = registerSession.Session!.DateRegistered,
-                ExpiryDate = registerSession.Session.ExpiryDate,
-                IdentityId = registerSession.Session.IdentityId,
-                IdentityName = identityName,
-                Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList(),
-                Tenants = registerSession.Tenants.Select(item => new SessionTenants.Tenant
-                {
-                Id = item.Id,
-                Name = item.Name,
-                LogoSvg = item.LogoSvg,
-                LogoUrl = item.LogoUrl
-            }).ToList()
-            });
-        }
-
-        var identityId = httpContext.FindIdentityId();
-        var tenantId = httpContext.FindTenantId() ?? accessOptions.Value.SystemTenantId;
-
-        if (identityId == null)
-        {
-            return await AttemptRegistration(tenantId);
-        }
-
-        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithTenantId(tenantId).WithIdentityId(identityId.Value).IncludePermissions())).FirstOrDefault();
-
-        if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
-        {
-            return Results.Ok(new Messages.v1.Session
-            {
-                DateRegistered = session.DateRegistered,
-                ExpiryDate = session.ExpiryDate,
-                IdentityId = session.IdentityId,
-                IdentityName = session.IdentityName,
-                Permissions = session.SessionPermissions.Select(item => item.Permission.Name).OrderBy(item => item).ToList(),
-                TenantId = session.TenantId
-            });
-        }
-
-        sessionCache.Flush(identityId.Value);
-
-        return await AttemptRegistration(tenantId);
-    }
-
-    private static async Task<IResult> DeleteSelf(IBus bus, ISessionRepository sessionRepository, HttpContext httpContext)
-    {
-        var identityId = httpContext.FindIdentityId();
-        var tenantId = httpContext.FindTenantId();
-
-        if (tenantId == null || identityId == null)
-        {
-            return Results.BadRequest();
-        }
-
-        using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-        {
-            var session = await sessionRepository.FindAsync(new SessionSpecification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value));
-
-            if (session != null)
-            {
-                if (await sessionRepository.RemoveAsync(new SessionSpecification().WithIdentityId(identityId.Value)) > 0)
-                {
-                    await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
-                }
-            }
-
-            tx.Complete();
-        }
-
-        return Results.Ok();
-    }
-
-    private static async Task<IResult> PostDelegated(IMediator mediator, RegisterDelegatedSession message, HttpContext httpContext)
-    {
-        if (string.IsNullOrEmpty(message.IdentityName))
-        {
-            return Results.BadRequest();
-        }
-
-        var sessionIdentityId = httpContext.FindIdentityId();
-
-        if (sessionIdentityId == null)
-        {
-            return Results.Unauthorized();
-        }
-
-        var registerSession = new RegisterSession(message.IdentityName).UseDelegation(message.TenantId, sessionIdentityId.Value);
-
-        return await RegisterSession(registerSession, mediator);
+            IdentityId = message.Session.IdentityId,
+            IdentityName = message.Session!.IdentityName,
+            ExpiryDate = message.Session.ExpiryDate,
+            Permissions = message.Session.Permissions.Select(item => item.Name).ToList(),
+            DateRegistered = message.Session.DateRegistered,
+            TenantId = message.Session.TenantId!.Value,
+        });
     }
 
     private static async Task<IResult> Post([FromBody] Messages.v1.RegisterSession message, ILogger<RegisterSession> logger, IOptions<ApiOptions> apiOptions, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
@@ -373,11 +388,23 @@ public static class SessionEndpoints
         return await RegisterSession(registerSession, mediator);
     }
 
-    private static async Task<IResult> PostSearchData([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
+    private static async Task<IResult> PostDelegated(IMediator mediator, RegisterDelegatedSession message, HttpContext httpContext)
     {
-        var specification = GetSpecification(model, hashingService);
+        if (string.IsNullOrEmpty(message.IdentityName))
+        {
+            return Results.BadRequest();
+        }
 
-        return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(MapData).ToList());
+        var sessionIdentityId = httpContext.FindIdentityId();
+
+        if (sessionIdentityId == null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var registerSession = new RegisterSession(message.IdentityName).UseDelegation(message.TenantId, sessionIdentityId.Value);
+
+        return await RegisterSession(registerSession, mediator);
     }
 
     private static async Task<IResult> PostSearch([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
@@ -385,6 +412,13 @@ public static class SessionEndpoints
         var specification = GetSpecification(model, hashingService);
 
         return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(Map).ToList());
+    }
+
+    private static async Task<IResult> PostSearchData([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
+    {
+        var specification = GetSpecification(model, hashingService);
+
+        return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(MapData).ToList());
     }
 
     private static async Task<IResult> RegisterSession(RegisterSession registerSession, IMediator mediator)

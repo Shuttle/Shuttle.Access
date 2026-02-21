@@ -19,7 +19,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
     private readonly ILogger<PermissionHandler> _logger = Guard.AgainstNull(logger);
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Activated> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<Activated> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(accessDbContext);
 
@@ -28,7 +28,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
         _logger.LogDebug("[Activated] : id = '{PrimitiveEventId}'", context.PrimitiveEvent.Id);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Deactivated> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<Deactivated> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(accessDbContext);
 
@@ -37,7 +37,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
         _logger.LogDebug("[Deactivated] : id = '{PrimitiveEventId}'", context.PrimitiveEvent.Id);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<DescriptionSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<DescriptionSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(accessDbContext);
 
@@ -51,7 +51,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
         _logger.LogDebug("[NameSet] : id = '{PrimitiveEventId}' / description = '{Description}'", context.PrimitiveEvent.Id, context.Event.Description);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(accessDbContext);
 
@@ -65,7 +65,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
         _logger.LogDebug("[NameSet] : id = '{PrimitiveEventId}' / name = '{Name}'", context.PrimitiveEvent.Id, context.Event.Name);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(accessDbContext);
 
@@ -82,7 +82,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
         _logger.LogDebug("[Registered] : id = '{PrimitiveEventId}' / name = '{Name}' / status = '{PermissionStatus}'", context.PrimitiveEvent.Id, context.Event.Name, context.Event.Status);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(accessDbContext);
 

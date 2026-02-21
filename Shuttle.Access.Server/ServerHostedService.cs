@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Core.Pipelines;
@@ -19,7 +18,7 @@ public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOpt
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _pipelineOptions.PipelineCreated += PipelineCreated;
+        _pipelineOptions.PipelineStarting += PipelineStarting;
 
         using var scope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
 
@@ -34,12 +33,12 @@ public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOpt
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _pipelineOptions.PipelineCreated -= PipelineCreated;
+        _pipelineOptions.PipelineStarting -= PipelineStarting;
 
         return Task.CompletedTask;
     }
 
-    private Task PipelineCreated(PipelineEventArgs eventArgs, CancellationToken cancellationToken)
+    private Task PipelineStarting(PipelineEventArgs eventArgs, CancellationToken cancellationToken)
     {
         if (!_serverOptions.MonitorKeepAliveInterval.Equals(TimeSpan.Zero) &&
             eventArgs.Pipeline.GetType() == _inboxMessagePipeline)

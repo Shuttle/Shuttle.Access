@@ -220,6 +220,11 @@ const routes: Array<RouteRecordRaw> = [
     ],
   },
   {
+    path: "/tenant-selection",
+    name: "tenant-selection",
+    component: () => import("../views/TenantSelection.vue"),
+  },
+  {
     path: "/signin/:applicationName?",
     name: "sign-in",
     props: true,

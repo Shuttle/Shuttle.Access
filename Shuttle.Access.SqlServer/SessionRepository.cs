@@ -17,22 +17,27 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
 
         foreach (var model in await ModelSearchAsync(specification, cancellationToken))
         {
-            var session = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
-
-            if (model.TenantId.HasValue)
-            {
-                session.WithTenantId(model.TenantId.Value);
-            }
-
-            foreach (var sessionPermission in model.SessionPermissions)
-            {
-                session.AddPermission(new(sessionPermission.PermissionId, sessionPermission.Permission.Name));
-            }
-
-            results.Add(session);
+            results.Add(GetSession(model));
         }
 
         return results;
+    }
+
+    private static Session GetSession(Models.Session model)
+    {
+        var session = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
+
+        if (model.TenantId.HasValue)
+        {
+            session.WithTenantId(model.TenantId.Value);
+        }
+
+        foreach (var sessionPermission in model.SessionPermissions)
+        {
+            session.AddPermission(new(sessionPermission.PermissionId, sessionPermission.Permission.Name));
+        }
+
+        return session;
     }
 
     public async ValueTask<int> RemoveAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
@@ -85,6 +90,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         {
             model.Token = session.Token;
             model.ExpiryDate = session.ExpiryDate;
+            model.TenantId = session.TenantId;
 
             _accessDbContext.SessionPermissions.RemoveRange(model.SessionPermissions);
 
@@ -100,6 +106,11 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         }
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<Session> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return GetSession((await _accessDbContext.Sessions.FirstOrDefaultAsync(e => e.Id == id, cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(id));
     }
 
     private async Task<IEnumerable<Models.Session>> ModelSearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)

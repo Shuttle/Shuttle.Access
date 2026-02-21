@@ -22,7 +22,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
     private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
 
-    public async Task ProcessEventAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -36,7 +36,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
         _logger.LogDebug("[NameSet] : id = '{PrimitiveEventId}' / name = '{Name}'", context.PrimitiveEvent.Id, context.Event.Name);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<PermissionAdded> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<PermissionAdded> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -68,7 +68,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
         _logger.LogDebug("[PermissionAdded] : id = '{PrimitiveEventId}' / permission id = '{PermissionId}'", context.PrimitiveEvent.Id, context.Event.PermissionId);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<PermissionRemoved> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<PermissionRemoved> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -86,7 +86,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
         _logger.LogDebug("[PermissionRemoved] : id = '{PrimitiveEventId}' / permission id = '{PermissionId}'", context.PrimitiveEvent.Id, context.Event.PermissionId);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -102,7 +102,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
         _logger.LogDebug("[Registered] : id = '{PrimitiveEventId}' / name = '{Name}'", context.PrimitiveEvent.Id, context.Event.Name);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 
@@ -120,7 +120,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
         _logger.LogDebug("[Removed] : id = '{PrimitiveEventId}'", context.PrimitiveEvent.Id);
     }
 
-    public async Task ProcessEventAsync(IEventHandlerContext<Events.Role.v2.Registered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IEventHandlerContext<Events.Role.v2.Registered> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
 

@@ -11,11 +11,15 @@ declare module 'vue' {
     AccessContainer: typeof import('./src/components/AccessContainer.vue')['default']
     AccessDataTable: typeof import('./src/components/AccessDataTable.vue')['default']
     AccessDrawer: typeof import('./src/components/AccessDrawer.vue')['default']
+    AccessFilterDrawer: typeof import('./src/components/AccessFilterDrawer.vue')['default']
+    AccessForm: typeof import('./src/components/AccessForm.vue')['default']
     AccessNavbar: typeof import('./src/components/AccessNavbar.vue')['default']
     AccessStrip: typeof import('./src/components/AccessStrip.vue')['default']
     AccessTitle: typeof import('./src/components/AccessTitle.vue')['default']
     BroadsheetStrip: typeof import('./src/components/BroadsheetStrip.vue')['default']
+    copy: typeof import('./src/components/AccessFilterDrawer copy.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SciethicaFilterDrawer: typeof import('./src/components/SciethicaFilterDrawer.vue')['default']
   }
 }

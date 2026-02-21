@@ -195,11 +195,13 @@ public class Program
             var identityId = context.FindIdentityId();
             var tenantId = context.FindTenantId();
 
-            if (tenantId != null && identityId != null)
+            if (identityId != null)
             {
                 var sessionRepository = context.RequestServices.GetRequiredService<ISessionRepository>();
 
-                sessionContext.Session = await sessionRepository.FindAsync(new SessionSpecification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value));
+                sessionContext.Session = await sessionRepository.FindAsync(new SessionSpecification()
+                    .WithTenantId(tenantId)
+                    .WithIdentityId(identityId.Value));
             }
             else
             {

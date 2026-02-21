@@ -40,27 +40,31 @@ onMounted(async () => {
   const code = (route.query.code?.toString() || "");
 
   try {
-    const response = await sessionStore.oauth({
+    const sessionResponse = await sessionStore.oauth({
       state: state,
       code: code
     });
 
-    const params = { identityName: response.identityName };
+    const params = { identityName: sessionResponse.identityName };
 
-    if (response.sessionTokenExchangeUrl) {
-      window.location.replace(response.sessionTokenExchangeUrl);
+    if (sessionResponse.sessionTokenExchangeUrl) {
+      window.location.replace(sessionResponse.sessionTokenExchangeUrl);
       return;
     }
 
-    if (response.result === "UnknownIdentity") {
+    if (sessionResponse.result === "UnknownIdentity") {
       alertStore.add({
-        message: response.registrationRequested ? t("messages.oauth-unknown-identity-registered", params) : t("messages.oauth-unknown-identity", params),
+        message: sessionResponse.registrationRequested ? t("messages.oauth-unknown-identity-registered", params) : t("messages.oauth-unknown-identity", params),
         type: "error",
         name: "oauth-unknown-identity"
       });
 
       router.push({ name: "sign-in" });
+      return;
+    }
 
+    if (sessionResponse.tenants?.length ?? 0 > 1) {
+      router.push({ name: "tenant-selection" });
       return;
     }
 

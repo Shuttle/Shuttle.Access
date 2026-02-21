@@ -1,14 +1,17 @@
-﻿using Shuttle.Core.Contract;
+﻿using Shuttle.Access.Messages.v1;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
 
 public class RegisterSession(string identityName)
 {
-    private List<Messages.v1.Tenant> _tenants = [];
     private Guid? _authenticationToken;
     private string _password = string.Empty;
+    private List<Messages.v1.Tenant> _tenants = [];
 
     public bool HasSession => Session != null && SessionToken.HasValue;
+
+    public SqlServer.Models.Identity? Identity { get; set; }
 
     public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
@@ -17,10 +20,9 @@ public class RegisterSession(string identityName)
     public Session? Session { get; private set; }
     public Guid? SessionToken { get; private set; }
     public string SessionTokenExchangeUrl { get; private set; } = string.Empty;
-    public Guid? TenantId { get; private set; }
 
-    public IEnumerable<Messages.v1.Tenant> Tenants => _tenants.AsReadOnly();
-    
+    public Guid? TenantId { get; set; }
+
     public RegisterSession DelegationSessionInvalid()
     {
         Result = SessionRegistrationResult.DelegationSessionInvalid;
@@ -40,9 +42,35 @@ public class RegisterSession(string identityName)
 
     public string GetPassword()
     {
-        return string.IsNullOrWhiteSpace(_password) 
-            ? throw new InvalidOperationException(Resources.RegisterSessionPasswordNotSetException) 
+        return string.IsNullOrWhiteSpace(_password)
+            ? throw new InvalidOperationException(Resources.RegisterSessionPasswordNotSetException)
             : _password;
+    }
+
+    public SessionResponse GetSessionResponse(bool registrationRequested)
+    {
+        if (Identity == null || Session == null)
+        {
+            return new()
+            {
+                Result = Result.ToString()
+            };
+        }
+
+        return new()
+        {
+            Token = SessionToken,
+            Result = Result.ToString(),
+            RegistrationRequested = registrationRequested,
+            IdentityId = Identity.Id,
+            IdentityName = IdentityName,
+            SessionTokenExchangeUrl = SessionTokenExchangeUrl,
+            ExpiryDate = Session.ExpiryDate,
+            Permissions = Session.Permissions.Select(item => item.Name).ToList(),
+            DateRegistered = Session.DateRegistered,
+            TenantId = Session.TenantId,
+            Tenants = _tenants
+        };
     }
 
     public RegisterSession Registered(Guid sessionToken, Session session)
@@ -54,24 +82,6 @@ public class RegisterSession(string identityName)
 
         return this;
     }
-
-    public RegisterSession WithTenants(IEnumerable<Messages.v1.Tenant> tenants)
-    {
-        _tenants = new(Guard.AgainstNull(tenants));
-
-        if (_tenants.Count == 0)
-        {
-            throw new InvalidOperationException(string.Format(Resources.IdentityHasNoTenantsException, IdentityName));
-        }
-
-        if (_tenants.Count == 1)
-        {
-            TenantId = _tenants[0].Id;
-        }
-
-        return this;
-    }
-
 
     private void SetRegistrationType(SessionRegistrationType type)
     {
@@ -121,6 +131,34 @@ public class RegisterSession(string identityName)
         SetRegistrationType(SessionRegistrationType.Password);
 
         _password = Guard.AgainstEmpty(password);
+
+        return this;
+    }
+
+    public RegisterSession WithIdentity(SqlServer.Models.Identity identity)
+    {
+        Identity = Guard.AgainstNull(identity);
+
+        _tenants = Identity.IdentityTenants
+            .Where(item => item.Tenant.Status == 1)
+            .Select(item => new Messages.v1.Tenant
+            {
+                Id = item.TenantId,
+                Name = item.Tenant.Name,
+                LogoSvg = item.Tenant.LogoSvg,
+                LogoUrl = item.Tenant.LogoUrl
+            })
+            .ToList();
+
+        if (_tenants.Count == 0)
+        {
+            throw new InvalidOperationException(string.Format(Resources.IdentityHasNoTenantsException, IdentityName));
+        }
+
+        if (_tenants.Count == 1)
+        {
+            TenantId = _tenants[0].Id;
+        }
 
         return this;
     }

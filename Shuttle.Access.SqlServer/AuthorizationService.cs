@@ -6,11 +6,11 @@ public class AuthorizationService(IIdentityQuery identityQuery) : IAuthorization
 {
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task<IEnumerable<Messages.v1.Permission>> GetPermissionsAsync(string identityName, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Messages.v1.Permission>> GetPermissionsAsync(string identityName, Guid tenantId, CancellationToken cancellationToken = default)
     {
         var result = new List<Messages.v1.Permission>();
 
-        var permissions = await _identityQuery.PermissionsAsync(await _identityQuery.IdAsync(identityName, cancellationToken), cancellationToken);
+        var permissions = await _identityQuery.PermissionsAsync(await _identityQuery.IdAsync(identityName, cancellationToken), tenantId, cancellationToken);
 
         foreach (var permission in permissions)
         {

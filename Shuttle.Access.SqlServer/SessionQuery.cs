@@ -28,6 +28,11 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
     {
         var queryable = _accessDbContext.Sessions.AsQueryable();
 
+        if (sessionSpecification.ShouldIncludeTenantId || sessionSpecification.TenantId.HasValue)
+        {
+            queryable = queryable.Where(e => e.TenantId == sessionSpecification.TenantId);
+        }
+
         if (sessionSpecification.Token != null)
         {
             queryable = queryable.Where(e => e.Token == sessionSpecification.Token);

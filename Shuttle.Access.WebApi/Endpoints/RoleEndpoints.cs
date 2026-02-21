@@ -83,13 +83,13 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/bulk-upload", PostBulkUpload)
+        app.MapPost("/v{version:apiVersion}/roles/upload", PostBulkUpload)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/bulk-download", PostBulkDownload)
+        app.MapPost("/v{version:apiVersion}/roles/download", PostDownload)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -98,7 +98,7 @@ public static class RoleEndpoints
         return app;
     }
 
-    private static async Task<IResult> PostBulkDownload(List<Guid> ids, IRoleQuery roleQuery)
+    private static async Task<IResult> PostDownload(List<Guid> ids, IRoleQuery roleQuery)
     {
         if (!ids.Any())
         {
@@ -206,9 +206,15 @@ public static class RoleEndpoints
             : Results.BadRequest();
     }
 
-    private static async Task<IResult> PostSearch([FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification)
+    private static async Task<IResult> PostSearch(ISessionContext sessionContext, [FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification)
     {
-        var search = new RoleSpecification();
+        if (sessionContext.Session == null ||
+            sessionContext.Session.TenantId == null)
+        {
+            return Results.BadRequest();
+        }
+
+        var search = new RoleSpecification().WithTenantId(sessionContext.Session.TenantId.Value);
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {

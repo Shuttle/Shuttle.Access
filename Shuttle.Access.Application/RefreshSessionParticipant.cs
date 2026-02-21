@@ -27,7 +27,7 @@ public class RefreshSessionParticipant(IBus bus, ISessionCache sessionCache, IAu
 
         session.ClearPermissions();
 
-        foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, cancellationToken))
+        foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, session.TenantId.Value, cancellationToken))
         {
             session.AddPermission(new(permission.Id, permission.Name));
         }

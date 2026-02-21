@@ -165,13 +165,13 @@ export type SessionData = {
 export type SessionResponse = {
   identityId: string;
   identityName: string;
-  permissions: string[];
   registrationRequested: boolean;
   result: string;
   token: string;
-  tokenExpiryDate: string;
   sessionTokenExchangeUrl?: string;
   tenantId: string;
+  tenants?: Tenant[];
+  permissions: string[];
 };
 
 export type Tenant = {
@@ -179,5 +179,5 @@ export type Tenant = {
   name: string;
   logoSvg?: string;
   logoUrl?: string;
-  status: number;
+  status?: number;
 };

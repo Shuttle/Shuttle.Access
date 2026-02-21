@@ -10,7 +10,7 @@ public class SessionResponse
     public bool RegistrationRequested { get; set; }
     public string Result { get; set; } = string.Empty;
     public string SessionTokenExchangeUrl { get; set; } = string.Empty;
-    public Guid Token { get; set; }
+    public Guid? Token { get; set; }
     public Guid? TenantId { get; set; }
     public List<Tenant> Tenants { get; set; } = [];
 }

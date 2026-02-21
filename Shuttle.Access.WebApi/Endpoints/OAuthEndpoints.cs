@@ -57,16 +57,16 @@ public static class OAuthEndpoints
             return Results.Problem($"The 'Data.IdentityPropertyName' is empty for the '{grant.ProviderName}' provider options.");
         }
 
-        var identity = data.GetProperty(oauthProviderOptions.Data.IdentityPropertyName).ToString();
+        var identityName = data.GetProperty(oauthProviderOptions.Data.IdentityPropertyName).ToString();
 
-        if (string.IsNullOrWhiteSpace(identity))
+        if (string.IsNullOrWhiteSpace(identityName))
         {
             return Results.BadRequest($"No identity property '{oauthProviderOptions.Data.IdentityPropertyName}' was returned from the data endpoint provider.");
         }
 
-        logger.LogDebug($"[oauth/identity] : grant id = '{requestId}' / identity = '{identity}'");
+        logger.LogDebug($"[oauth/identity] : grant id = '{requestId}' / identity = '{identityName}'");
 
-        var registerSession = new RegisterSession(identity).UseDirect();
+        var registerSession = new RegisterSession(identityName).UseDirect();
 
         await mediator.SendAsync(registerSession);
 
@@ -74,27 +74,12 @@ public static class OAuthEndpoints
 
         if (requestRegistration)
         {
-            var requestIdentityRegistration = new RequestIdentityRegistration(new() { Name = identity, Activated = true }).Allowed(grant.ProviderName);
+            var requestIdentityRegistration = new RequestIdentityRegistration(new() { Name = identityName, Activated = true }).Allowed(grant.ProviderName);
 
             await mediator.SendAsync(requestIdentityRegistration);
         }
 
-        var sessionResponse = new SessionResponse { Result = registerSession.Result.ToString(), RegistrationRequested = requestRegistration, IdentityName = identity };
-
-        if (registerSession.Result == SessionRegistrationResult.Registered)
-        {
-            sessionResponse.IdentityId = registerSession.Session!.IdentityId;
-            sessionResponse.IdentityName = registerSession.Session!.IdentityName;
-            sessionResponse.Token = registerSession.SessionToken!.Value;
-            sessionResponse.ExpiryDate = registerSession.Session.ExpiryDate;
-            sessionResponse.Permissions = registerSession.Session.Permissions.Select(item => item.Name).ToList();
-            sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
-            sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
-            sessionResponse.TenantId = registerSession.Session.TenantId;
-            sessionResponse.Tenants = registerSession.Tenants.ToList();
-        }
-
-        return Results.Ok(sessionResponse);
+        return Results.Ok(registerSession.GetSessionResponse(requestRegistration));
     }
 
     private static async Task<IResult> GetAuthenticateProvider(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName, [FromQuery] string? redirectUri)

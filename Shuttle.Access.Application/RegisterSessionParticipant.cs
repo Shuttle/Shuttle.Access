@@ -71,6 +71,8 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             message.Forbidden();
             return;
         }
+
+        message.WithIdentity(identity);
         
         Session? session = null;
 
@@ -120,20 +122,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
             session = new( Guid.NewGuid(), _hashingService.Sha256(token.ToString("D")), await _identityQuery.IdAsync(message.IdentityName, cancellationToken), message.IdentityName, now, now.Add(_accessOptions.SessionDuration));
 
-            var tenants = identity.IdentityTenants
-                .Where(item => item.Tenant.Status == 1)
-                .Select(item => new Messages.v1.Tenant
-            {
-                Id = item.TenantId,
-                Name = item.Tenant.Name,
-                LogoSvg = item.Tenant.LogoSvg,
-                LogoUrl = item.Tenant.LogoUrl,
-                Status = item.Tenant.Status
-            });
-
-            message
-                .Registered(token, session)
-                .WithTenants(tenants);
+            message.Registered(token, session);
 
             await SaveAsync(token);
         }
@@ -142,9 +131,12 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
         async Task SaveAsync(Guid token)
         {
-            foreach (var permission in await _authorizationService.GetPermissionsAsync(message.IdentityName, cancellationToken))
+            if (message.TenantId.HasValue)
             {
-                session.AddPermission(new(permission.Id, permission.Name));
+                foreach (var permission in await _authorizationService.GetPermissionsAsync(message.IdentityName, message.TenantId.Value, cancellationToken))
+                {
+                    session.AddPermission(new(permission.Id, permission.Name));
+                }
             }
 
             session.Renew(DateTimeOffset.UtcNow.Add(_accessOptions.SessionDuration), _hashingService.Sha256(token.ToString("D")));

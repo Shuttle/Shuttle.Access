@@ -79,7 +79,7 @@ namespace Shuttle.Access.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Identity &apos;{0}&apos; has not been associated with any tenants..
+        ///   Looks up a localized string similar to Identity &apos;{0}&apos; has not been associated with any active tenants..
         /// </summary>
         public static string IdentityHasNoTenantsException {
             get {

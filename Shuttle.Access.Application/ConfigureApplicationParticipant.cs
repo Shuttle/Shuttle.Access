@@ -190,6 +190,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
          */
 
         var roleSpecification = new RoleSpecification()
+            .WithTenantId(_accessOptions.SystemTenantId)
             .AddName("Access Administrator")
             .IncludePermissions();
 

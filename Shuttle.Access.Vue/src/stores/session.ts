@@ -3,7 +3,7 @@ import { ref, computed } from "vue";
 import axios from "axios";
 import configuration from "@/configuration";
 import { i18n } from "@/i18n";
-import type { Credentials, OAuthData, SessionResponse } from "@/access";
+import type { Credentials, OAuthData, SessionResponse, Tenant } from "@/access";
 
 export const useSessionStore = defineStore("session", () => {
   const isAuthenticated = ref(false);
@@ -12,15 +12,13 @@ export const useSessionStore = defineStore("session", () => {
   const token = ref<string | undefined>("");
   const tenantId = ref<string | undefined>("");
   const permissions = ref<string[]>([]);
-
+  const tenants = ref<Tenant[] | undefined>([]);
   const status = computed(() => (!token.value ? "not-signed-in" : "signed-in"));
 
-  async function initialize() {
+  const initialize = async () => {
     if (isInitialized.value) return;
-
     const storedIdentity = localStorage.getItem("shuttle-access.identityName");
     const storedToken = localStorage.getItem("shuttle-access.token");
-
     if (storedIdentity && storedToken) {
       try {
         return await signIn({
@@ -31,46 +29,52 @@ export const useSessionStore = defineStore("session", () => {
         isInitialized.value = true;
       }
     }
-
     return Promise.resolve();
-  }
+  };
 
-  function addPermission(permission: string) {
+  const addPermission = (permission: string) => {
     if (hasPermission(permission)) return;
     permissions.value.push(permission);
-  }
+  };
 
-  function removePermissions() {
+  const removePermissions = () => {
     permissions.value = [];
-  }
+  };
 
-  function register(session: SessionResponse) {
+  const register = (sessionResponse: SessionResponse) => {
     if (
-      !session ||
-      !session.identityId ||
-      !session.identityName ||
-      !session.token ||
-      !session.permissions ||
-      !session.tenantId
+      !sessionResponse ||
+      !sessionResponse.identityId ||
+      !sessionResponse.identityName ||
+      !sessionResponse.token
     ) {
       throw Error(i18n.global.t("messages.invalid-session"));
     }
 
-    localStorage.setItem("shuttle-access.identityName", session.identityName);
-    localStorage.setItem("shuttle-access.token", session.token);
-
-    identityName.value = session.identityName;
-    token.value = session.token;
-    tenantId.value = session.tenantId;
-
+    localStorage.setItem(
+      "shuttle-access.identityName",
+      sessionResponse.identityName,
+    );
+    localStorage.setItem("shuttle-access.token", sessionResponse.token);
+    identityName.value = sessionResponse.identityName;
+    token.value = sessionResponse.token;
+    tenantId.value = sessionResponse.tenantId;
     removePermissions();
-
-    session.permissions.forEach((item) => addPermission(item));
-
+    sessionResponse.permissions.forEach((item) => addPermission(item));
     isAuthenticated.value = true;
-  }
+  };
 
-  async function signIn(credentials: Credentials): Promise<SessionResponse> {
+  const tenantSelected = (sessionResponse: SessionResponse) => {
+    if (!sessionResponse) {
+      throw Error(i18n.global.t("messages.invalid-session"));
+    }
+
+    tenantId.value = sessionResponse.tenantId;
+    removePermissions();
+    sessionResponse.permissions.forEach((item) => addPermission(item));
+  };
+
+  const signIn = async (credentials: Credentials): Promise<SessionResponse> => {
     if (
       !credentials ||
       !credentials.identityName ||
@@ -78,8 +82,7 @@ export const useSessionStore = defineStore("session", () => {
     ) {
       throw new Error(i18n.global.t("messages.missing-credentials"));
     }
-
-    const response = await axios.post<SessionResponse>(
+    const { data: sessionResponse } = await axios.post<SessionResponse>(
       configuration.getApiUrl("v1/sessions"),
       {
         identityName: credentials.identityName,
@@ -87,103 +90,70 @@ export const useSessionStore = defineStore("session", () => {
         token: credentials.token,
       },
     );
-
-    if (!response?.data) {
+    if (!sessionResponse) {
       throw new Error("Invalid response data.");
     }
 
-    const sessionResponse = response.data;
+    register(sessionResponse);
 
-    switch (sessionResponse.result) {
-      case "Registered": {
-        if (sessionResponse.sessionTokenExchangeUrl) {
-          window.location.replace(sessionResponse.sessionTokenExchangeUrl);
-          break;
-        }
+    return sessionResponse;
+  };
 
-        register(sessionResponse);
-        break;
-      }
-      case "UnknownIdentity": {
-        break;
-      }
-      default: {
-        throw new Error(i18n.global.t("exceptions.invalid-credentials"));
-      }
-    }
-
-    return response.data;
-  }
-
-  async function oauth(oauthData: OAuthData): Promise<SessionResponse> {
+  const oauth = async (oauthData: OAuthData): Promise<SessionResponse> => {
     if (!oauthData || !oauthData.state || !oauthData.code) {
       throw new Error(i18n.global.t("messages.oauth-missing-data"));
     }
-
-    const response = await axios.get<SessionResponse>(
+    const { data: sessionResponse } = await axios.get<SessionResponse>(
       configuration.getApiUrl(
         `v1/oauth/session/${oauthData.state}/${oauthData.code}`,
       ),
     );
-
-    if (!response?.data) {
+    if (!sessionResponse) {
       throw new Error("Invalid response data.");
     }
 
-    const sessionResponse = response.data;
+    register(sessionResponse);
 
-    if (sessionResponse.result === "Registered") {
-      register(sessionResponse);
-    }
-
+    tenants.value = sessionResponse.tenants;
     isInitialized.value = true;
-
     return sessionResponse;
-  }
+  };
 
-  function signOut() {
+  const signOut = () => {
     identityName.value = undefined;
     token.value = undefined;
     tenantId.value = undefined;
-
     localStorage.removeItem("shuttle-access.identityName");
     localStorage.removeItem("shuttle-access.token");
-
     removePermissions();
-
     isAuthenticated.value = false;
-  }
+  };
 
-  function hasSession() {
+  const hasSession = () => {
     return !!token.value;
-  }
+  };
 
-  function hasPermission(permission: string) {
+  const hasPermission = (permission: string) => {
     const required = permission.toLowerCase();
     let result = false;
-
     permissions.value.forEach((item) => {
       if (result) return;
-
       if (item.toLowerCase() === required) {
         result = true;
         return;
       }
-
       if (item.includes("*")) {
         const escaped = item
           .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
           .replace(/\\\*/g, ".*");
-
         const regex = new RegExp(`^${escaped}$`, "i");
         if (regex.test(required)) {
           result = true;
         }
       }
     });
-
     return result;
-  }
+  };
 
   return {
     isAuthenticated,
@@ -193,6 +163,7 @@ export const useSessionStore = defineStore("session", () => {
     tenantId,
     permissions,
     status,
+    tenants,
     initialize,
     addPermission,
     removePermissions,
@@ -202,5 +173,6 @@ export const useSessionStore = defineStore("session", () => {
     oauth,
     hasSession,
     hasPermission,
+    tenantSelected,
   };
 });

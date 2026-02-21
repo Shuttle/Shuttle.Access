@@ -24,7 +24,8 @@
     "configuration-error": "Could not complete configuration.  Error: {error}",
     "invalid-credentials": "Invalid credentials.  Reason: {reason}",
     "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access.",
-    "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}"
+    "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}",
+    "tenant-selection": "Could not select tenant."
   },
   "expiry-date": "Expiry date",
   "generated-password": "Generated password",
@@ -88,6 +89,7 @@
   "table-empty": "(no results)",
   "tenant": "Tenant",
   "tenants": "Tenants",
+  "tenant-selection": "Tenant selection",
   "token": "Token",
   "identity-required": "No identities have been registered.  You will be registered as an administrator.",
   "yes": "Yes"

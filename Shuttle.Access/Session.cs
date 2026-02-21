@@ -48,10 +48,14 @@ public class Session(Guid id, byte[] token, Guid identityId, string identityName
                 Regex.IsMatch(requiredPermission, $"^{Regex.Escape(permission.Name).Replace(@"\*", ".*")}$", RegexOptions.IgnoreCase));
     }
 
-    public void Renew(DateTimeOffset expiryDate, byte[] token)
+    public void Renew(DateTimeOffset expiryDate, byte[]? token = null)
     {
-        Token = Guard.AgainstNull(token);
         ExpiryDate = expiryDate;
+
+        if (token != null)
+        {
+            Token = Guard.AgainstNull(token);
+        }
     }
 
     public Session WithTenantId(Guid tenantId)

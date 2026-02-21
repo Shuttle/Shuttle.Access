@@ -10,7 +10,7 @@ public class Session
     public List<string> Permissions { get; set; } = [];
     public Guid? TenantId { get; set; }
     public string TenantName { get; set; } = string.Empty;
-    public List<SessionTenants.Tenant> Tenants { get; set; }
+    public List<SessionTenants.Tenant> Tenants { get; set; } = [];
 
     public class Specification
     {
