@@ -99,7 +99,12 @@ public class RegisterSessionParticipantFixture
         {
             IdentityTenants = [new()
             {
-                TenantId = _tenantId
+                TenantId = _tenantId,
+                Tenant = new()
+                {
+                    Id = _tenantId,
+                    Status = 1
+                }
             }]
         } }.AsEnumerable()));
 

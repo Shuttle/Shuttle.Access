@@ -119,6 +119,7 @@ internal class Program
 
                                 builder.Options.ConnectionString = accessConnectionString;
                                 builder.Options.Schema = "access";
+                                builder.Options.DbConnectionServiceKey = "AccessDbConnection";
                             })
                             .UseSqlServerEventProcessing(builder =>
                             {
@@ -126,6 +127,7 @@ internal class Program
 
                                 builder.Options.ConnectionString = accessConnectionString;
                                 builder.Options.Schema = "access";
+                                builder.Options.DbConnectionServiceKey = "AccessDbConnection";
                             });
 
                         recallBuilder.AddProjection(ProjectionNames.Identity).AddEventHandler<IdentityHandler>();

@@ -202,10 +202,9 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var requestResponse = new RequestResponseMessage<GetPasswordResetToken, Guid>(message);
-        await mediator.SendAsync(requestResponse);
+        await mediator.SendAsync(message);
 
-        return !requestResponse.Ok ? Results.BadRequest(requestResponse.Message) : Results.Ok(requestResponse.Response);
+        return Results.Ok(message.PasswordResetToken);
     }
 
     private static async Task<IResult> PutActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
@@ -260,13 +259,9 @@ public static class IdentityEndpoints
             return Results.BadRequest(Resources.SessionTokenException);
         }
 
-        var requestMessage = new RequestMessage<ResetPassword>(sessionContext.Audit(message));
+        await mediator.SendAsync(sessionContext.Audit(message));
 
-        await mediator.SendAsync(requestMessage);
-
-        return !requestMessage.Ok
-            ? Results.BadRequest(requestMessage.Message)
-            : Results.Ok();
+        return Results.Ok();
     }
 
     private static async Task<IResult> PutPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository)
@@ -294,13 +289,9 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
-        var changePassword = new RequestMessage<ChangePassword>(sessionContext.Audit(message));
+        await mediator.SendAsync(sessionContext.Audit(message));
 
-        await mediator.SendAsync(changePassword);
-
-        return !changePassword.Ok
-            ? Results.BadRequest(changePassword.Message)
-            : Results.Accepted();
+        return Results.Accepted();
     }
 
     private static async Task<IResult> PatchRole(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
@@ -316,14 +307,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var request = new RequestMessage<SetIdentityRoleStatus>(message);
-
-        await mediator.SendAsync(request);
-
-        if (!request.Ok)
-        {
-            return Results.BadRequest(request.Message);
-        }
+        await mediator.SendAsync(message);
 
         await bus.SendAsync(sessionContext.Audit(message));
 

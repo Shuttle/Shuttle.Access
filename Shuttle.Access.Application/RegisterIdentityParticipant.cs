@@ -10,7 +10,7 @@ using Shuttle.Recall.SqlServer.Storage;
 namespace Shuttle.Access.Application;
 
 public class RegisterIdentityParticipant(IOptions<AccessOptions> accessOptions, IEventStore eventStore, IIdKeyRepository idKeyRepository, IIdentityQuery identityQuery, IRoleQuery roleQuery)
-    : IParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
+    : IParticipant<RegisterIdentity>
 {
     private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
@@ -18,15 +18,14 @@ public class RegisterIdentityParticipant(IOptions<AccessOptions> accessOptions, 
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
-    public async Task HandleAsync(RequestResponseMessage<RegisterIdentity, IdentityRegistered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RegisterIdentity message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(message);
 
         EventStream stream;
         Identity identity;
 
-        var request = context.Request;
-        var key = Identity.Key(request.Name);
+        var key = Identity.Key(message.Name);
         var id = await _idKeyRepository.FindAsync(key, cancellationToken);
 
         if (id.HasValue)
@@ -51,7 +50,7 @@ public class RegisterIdentityParticipant(IOptions<AccessOptions> accessOptions, 
             stream = await _eventStore.GetAsync(id.Value, cancellationToken: cancellationToken);
         }
 
-        var registered = identity.Register(request.Name, request.Description, request.PasswordHash, request.AuditIdentityName, request.GeneratedPassword, request.Activated);
+        var registered = identity.Register(message.Name, message.Description, message.PasswordHash, message.AuditIdentityName, message.GeneratedPassword, message.Activated);
 
         stream.Add(registered);
 
@@ -76,20 +75,11 @@ public class RegisterIdentityParticipant(IOptions<AccessOptions> accessOptions, 
             }
         }
 
-        if (request.Activated)
+        if (message.Activated)
         {
             stream.Add(identity.Activate(registered.DateRegistered));
         }
 
         await _eventStore.SaveAsync(stream, cancellationToken);
-
-        context.WithResponse(new()
-        {
-            Id = id.Value,
-            Name = request.Name,
-            RegisteredBy = request.AuditIdentityName,
-            GeneratedPassword = request.GeneratedPassword,
-            System = request.System
-        });
     }
 }

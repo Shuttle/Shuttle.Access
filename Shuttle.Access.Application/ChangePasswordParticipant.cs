@@ -7,25 +7,15 @@ using Shuttle.Recall;
 namespace Shuttle.Access.Application;
 
 public class ChangePasswordParticipant(IHashingService hashingService, ISessionRepository sessionRepository, IEventStore eventStore)
-    : IParticipant<RequestMessage<ChangePassword>>
+    : IParticipant<ChangePassword>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
 
-    public async Task HandleAsync(RequestMessage<ChangePassword> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(ChangePassword message, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(context).Request;
-
-        try
-        {
-            request.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            context.Failed(ex.Message);
-            throw;
-        }
+        var request = Guard.AgainstNull(message).ApplyInvariants();
 
         var id = Guid.Empty;
 
@@ -35,9 +25,7 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
 
             if (session == null)
             {
-                context.Failed(Access.Resources.SessionTokenExpiredException);
-
-                return;
+                throw new ApplicationException(Access.Resources.SessionTokenExpiredException);
             }
 
             id = session.IdentityId;
@@ -59,6 +47,6 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
         stream.Apply(user);
         stream.Add(user.SetPassword(_hashingService.Sha256(request.NewPassword)));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken).ConfigureAwait(false);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken).ConfigureAwait(false);
     }
 }

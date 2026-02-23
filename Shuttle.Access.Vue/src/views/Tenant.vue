@@ -11,6 +11,9 @@
     <v-text-field v-model="state.logoUrl" :label="$t('logo-url')" class="mb-2"
       :error-messages="validation.message('logoUrl')">
     </v-text-field>
+    <v-text-field v-model="state.administratorIdentityName" :label="$t('administrator-identity-name')" class="mb-2"
+      :error-messages="validation.message('administratorIdentityName')">
+    </v-text-field>
     <div class="sv-strip sv-strip--reverse">
       <v-btn type="submit" :disabled="busy">{{ $t("save") }}</v-btn>
     </div>
@@ -35,12 +38,16 @@ const state: Reactive<Tenant> = reactive({
   name: "",
   logoSvg: "",
   logoUrl: "",
-  status: 1
+  status: 1,
+  administratorIdentityName: ""
 });
 
 const rules = computed(() => {
   return {
     name: {
+      required
+    },
+    administratorIdentityName: {
       required
     },
     logoSvg: {},

@@ -69,14 +69,13 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
                 _logger.LogDebug($"[permission/registration] : name = '{permission}'");
 
-                var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
-                    new()
+                var registerPermissionMessage = new RegisterPermission
                     {
                         Name = permission,
                         Status = (int)PermissionStatus.Active,
                         AuditIdentityName = "system",
                         AuditTenantId = _accessOptions.SystemTenantId
-                    });
+                    };
 
                 await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
                 scope.Complete();
@@ -94,15 +93,14 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
                 _logger.LogDebug($"[system-permission/registration] : name = '{permission}'");
 
-                var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
-                    new()
+                var registerPermissionMessage = new RegisterPermission
                     {
                         Name = permission,
                         Status = (int)PermissionStatus.Active,
                         TenantIds = [_accessOptions.SystemTenantId],
                         AuditIdentityName = "system",
                         AuditTenantId = _accessOptions.SystemTenantId
-                    });
+                    };
 
                 await _mediator.SendAsync(registerPermissionMessage, cancellationToken);
                 scope.Complete();
@@ -150,14 +148,14 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
             using (var scope = _transactionScopeFactory.Create())
             {
-                var registerTenant = new RequestResponseMessage<RegisterTenant, TenantRegistered>(new()
+                var registerTenant = new RegisterTenant
                 {
                     Id = _accessOptions.SystemTenantId,
                     Name = _accessOptions.SystemTenantName,
                     Status = 1,
                     AuditIdentityName = "system",
                     AuditTenantId = _accessOptions.SystemTenantId
-                });
+                };
 
                 await _mediator.SendAsync(registerTenant, cancellationToken);
 
@@ -204,10 +202,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
             using (var scope = _transactionScopeFactory.Create())
             {
-                var registerRole = new RegisterRole("Access Administrator", new AuditInformation(_accessOptions.SystemTenantId, "system"));
-                var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(registerRole);
-
-                await _mediator.SendAsync(registerRoleMessage, cancellationToken);
+                await _mediator.SendAsync(new RegisterRole(Guid.NewGuid(), "Access Administrator", _accessOptions.SystemTenantId, new AuditInformation(_accessOptions.SystemTenantId, "system")), cancellationToken);
 
                 scope.Complete();
             }
@@ -239,14 +234,14 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
             throw new ApplicationException(Resources.AdministratorPermissionException);
         }
 
-        await _mediator.SendAsync(new RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet>(new()
+        await _mediator.SendAsync(new SetRolePermissionStatus
         {
             Active = true,
             RoleId = role.Id,
             PermissionId = administratorPermission.Id,
             AuditIdentityName = "system",
             AuditTenantId = _accessOptions.SystemTenantId
-        }), cancellationToken);
+        }, cancellationToken);
 
         timeout = DateTimeOffset.Now.Add(message.Timeout);
 
@@ -282,7 +277,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
             await _mediator.SendAsync(generateHash, cancellationToken);
 
-            var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new()
+            var registerIdentityMessage = new RegisterIdentity
             {
                 Name = message.AdministratorIdentityName,
                 System = "system://access",
@@ -290,7 +285,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                 AuditIdentityName = "system",
                 AuditTenantId = _accessOptions.SystemTenantId,
                 Activated = true
-            });
+            };
 
             await _mediator.SendAsync(registerIdentityMessage, cancellationToken);
         }

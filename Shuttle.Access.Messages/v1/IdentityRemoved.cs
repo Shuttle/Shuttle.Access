@@ -3,4 +3,5 @@
 public class IdentityRemoved
 {
     public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }

@@ -5,39 +5,29 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetRolePermissionStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet>>
+public class SetRolePermissionStatusParticipant(IEventStore eventStore) : IParticipant<SetRolePermissionStatus>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task HandleAsync(RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetRolePermissionStatus message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
-
-        var request = context.Request;
+        Guard.AgainstNull(message);
 
         var role = new Role();
-        var stream = await _eventStore.GetAsync(request.RoleId, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(message.RoleId, cancellationToken: cancellationToken);
 
         stream.Apply(role);
 
-        if (request.Active && !role.HasPermission(request.PermissionId))
+        if (message.Active && !role.HasPermission(message.PermissionId))
         {
-            stream.Add(role.AddPermission(request.PermissionId));
+            stream.Add(role.AddPermission(message.PermissionId));
         }
 
-        if (!request.Active && role.HasPermission(request.PermissionId))
+        if (!message.Active && role.HasPermission(message.PermissionId))
         {
-            stream.Add(role.RemovePermission(request.PermissionId));
+            stream.Add(role.RemovePermission(message.PermissionId));
         }
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
-
-        context.WithResponse(new()
-        {
-            RoleId = request.RoleId,
-            PermissionId = request.PermissionId,
-            Active = request.Active,
-            Version = stream.Version
-        });
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
     }
 }

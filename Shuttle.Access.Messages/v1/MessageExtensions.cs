@@ -42,7 +42,7 @@ public static class MessageExtensions
         Guard.AgainstNull(message);
     }
 
-    public static void ApplyInvariants(this ChangePassword message)
+    public static ChangePassword ApplyInvariants(this ChangePassword message)
     {
         Guard.AgainstNull(message);
         Guard.AgainstNull(message.NewPassword);
@@ -52,6 +52,8 @@ public static class MessageExtensions
         {
             throw new InvalidOperationException(Resources.ChangePasswordException);
         }
+
+        return message;
     }
 
     public static void ApplyInvariants(this ResetPassword message)
@@ -76,6 +78,13 @@ public static class MessageExtensions
     {
         Guard.AgainstNull(message);
         Guard.AgainstNull(message.Name);
+    }
+
+    public static void ApplyInvariants(this RegisterTenant message)
+    {
+        Guard.AgainstNull(message);
+        Guard.AgainstNull(message.Name);
+        Guard.AgainstNull(message.AdministratorIdentityName);
     }
 
     public static void ApplyInvariants(this SetRolePermissionStatus message)

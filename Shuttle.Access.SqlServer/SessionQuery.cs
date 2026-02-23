@@ -16,7 +16,7 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
     public async Task<IEnumerable<Models.Session>> SearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification)
-            .Include(e => e.Identity)
+            .Include(e => e.Identity).ThenInclude(e => e.IdentityRoles)
             .Include(e => e.SessionPermissions)
             .ThenInclude(e => e.Permission)
             .OrderBy(e => e.IdentityName)
@@ -41,6 +41,11 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
         if (sessionSpecification.IdentityId.HasValue)
         {
             queryable = queryable.Where(e => e.IdentityId == sessionSpecification.IdentityId);
+        }
+
+        if (sessionSpecification.RoleId.HasValue)
+        {
+            queryable = queryable.Where(e => e.Identity.IdentityRoles.Any(item => item.RoleId == sessionSpecification.RoleId.Value));
         }
 
         if (!string.IsNullOrWhiteSpace(sessionSpecification.IdentityName))

@@ -6,27 +6,27 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RequestResponseMessage<SetIdentityName, IdentityNameSet>>
+public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<SetIdentityName>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task HandleAsync(RequestResponseMessage<SetIdentityName, IdentityNameSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetIdentityName message, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(context).Request;
+        Guard.AgainstNull(message);
 
         var identity = new Identity();
-        var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
+        var stream = await _eventStore.GetAsync(message.Id, cancellationToken);
 
         stream.Apply(identity);
 
-        if (identity.Name.Equals(request.Name))
+        if (identity.Name.Equals(message.Name))
         {
             return;
         }
 
         var key = Identity.Key(identity.Name);
-        var rekey = Identity.Key(request.Name);
+        var rekey = Identity.Key(message.Name);
 
         if (await _idKeyRepository.ContainsAsync(rekey, cancellationToken) || !await _idKeyRepository.ContainsAsync(key, cancellationToken))
         {
@@ -35,14 +35,8 @@ public class SetIdentityNameParticipant(IEventStore eventStore, IIdKeyRepository
 
         await _idKeyRepository.RekeyAsync(key, rekey, cancellationToken);
 
-        stream.Add(identity.SetName(request.Name));
+        stream.Add(identity.SetName(message.Name));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
-
-        context.WithResponse(new()
-        {
-            Id = request.Id,
-            Name = request.Name
-        });
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
     }
 }

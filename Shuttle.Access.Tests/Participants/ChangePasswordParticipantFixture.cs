@@ -35,7 +35,7 @@ public class ChangePasswordParticipantFixture
             Name = "user"
         });
 
-        await participant.HandleAsync(new(changePassword), CancellationToken.None);
+        await participant.HandleAsync(changePassword, CancellationToken.None);
 
         var @event = eventStore.FindEvent<PasswordSet>(session.IdentityId);
 

@@ -5,44 +5,27 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class PermissionHandler(IBus bus, IMediator mediator) :
+public class PermissionHandler(IMediator mediator) :
     IMessageHandler<RegisterPermission>,
     IMessageHandler<SetPermissionStatus>,
     IMessageHandler<SetPermissionName>,
     IMessageHandler<SetPermissionDescription>
 {
-    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
     public async Task HandleAsync(RegisterPermission message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-
-        var requestResponse = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetPermissionDescription message, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(message.Description))
+        if (string.IsNullOrEmpty(Guard.AgainstNull(message).Description))
         {
             return;
         }
 
-        var requestResponse = new RequestResponseMessage<SetPermissionDescription, PermissionDescriptionSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(message, cancellationToken);
     }
 
     public async Task HandleAsync(SetPermissionName message, CancellationToken cancellationToken = default)
@@ -52,27 +35,11 @@ public class PermissionHandler(IBus bus, IMediator mediator) :
             return;
         }
 
-        var requestResponse = new RequestResponseMessage<SetPermissionName, PermissionNameSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetPermissionStatus message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-
-        var requestResponse = new RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 }

@@ -18,18 +18,18 @@ public class SetIdentityRoleParticipantFixture
 
         var identityId = Guid.NewGuid();
 
-        var setIdentityRole = new RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet>(new()
+        var setIdentityRole = new SetIdentityRoleStatus
         {
             RoleId = Guid.NewGuid(),
             Active = true,
             IdentityId = identityId
-        });
+        };
 
         await participant.HandleAsync(setIdentityRole);
 
         var eventStream = await eventStore.GetAsync(identityId);
 
         Assert.That(eventStream.Count, Is.EqualTo(1));
-        Assert.That(((RoleAdded)eventStream.GetEvents(EventStream.EventRegistrationType.All).First().Event).RoleId, Is.EqualTo(setIdentityRole.Request.RoleId));
+        Assert.That(((RoleAdded)eventStream.GetEvents(EventStream.EventRegistrationType.All).First().Event).RoleId, Is.EqualTo(setIdentityRole.RoleId));
     }
 }

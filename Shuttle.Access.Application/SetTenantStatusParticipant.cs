@@ -5,16 +5,15 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetTenantStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetTenantStatus, TenantStatusSet>>
+public class SetTenantStatusParticipant(IEventStore eventStore) : IParticipant<SetTenantStatus>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task HandleAsync(RequestResponseMessage<SetTenantStatus, TenantStatusSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetTenantStatus message, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(context
-        
-        ).Request;
-        var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
+        Guard.AgainstNull(message);
+
+        var stream = await _eventStore.GetAsync(message.Id, cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -25,21 +24,13 @@ public class SetTenantStatusParticipant(IEventStore eventStore) : IParticipant<R
 
         stream.Apply(tenant);
 
-        if (tenant.Status == context.Request.Status)
+        if (tenant.Status == message.Status)
         {
             return;
         }
 
-        stream.Add(tenant.SetStatus(request.Status));
+        stream.Add(tenant.SetStatus(message.Status));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken);
-
-        context.WithResponse(new()
-        {
-            Id = context.Request.Id,
-            Name = tenant.Name,
-            Status = context.Request.Status,
-            Version = stream.Version
-        });
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
     }
 }

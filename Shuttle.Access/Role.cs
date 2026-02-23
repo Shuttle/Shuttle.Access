@@ -26,9 +26,9 @@ public class Role
         return _permissionIds.Contains(permissionId);
     }
 
-    public static string Key(string name)
+    public static string Key(string name, Guid tenantId)
     {
-        return $"[role]:name={name}";
+        return $"[role]:name={Guard.AgainstEmpty(name)};tenant-id={Guard.AgainstEmpty(tenantId):D}";
     }
 
     private Registered On(Registered registered)

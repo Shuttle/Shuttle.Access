@@ -13,27 +13,40 @@ export const useSessionStore = defineStore("session", () => {
   const tenantId = ref<string | undefined>("");
   const permissions = ref<string[]>([]);
   const tenants = ref<Tenant[] | undefined>([]);
-  const status = computed(() => (!token.value ? "not-signed-in" : "signed-in"));
+
+  const status = computed(() => {
+    return !token.value ? "not-signed-in" : "signed-in";
+  });
 
   const initialize = async () => {
-    if (isInitialized.value) return;
-    const storedIdentity = localStorage.getItem("shuttle-access.identityName");
+    if (isInitialized.value) {
+      return;
+    }
+
+    const storedIdentityName = localStorage.getItem(
+      "shuttle-access.identityName",
+    );
     const storedToken = localStorage.getItem("shuttle-access.token");
-    if (storedIdentity && storedToken) {
+
+    if (storedIdentityName && storedToken) {
       try {
         return await signIn({
-          identityName: storedIdentity,
+          identityName: storedIdentityName,
           token: storedToken,
         });
       } finally {
         isInitialized.value = true;
       }
     }
+
     return Promise.resolve();
   };
 
   const addPermission = (permission: string) => {
-    if (hasPermission(permission)) return;
+    if (hasPermission(permission)) {
+      return;
+    }
+
     permissions.value.push(permission);
   };
 
@@ -56,11 +69,14 @@ export const useSessionStore = defineStore("session", () => {
       sessionResponse.identityName,
     );
     localStorage.setItem("shuttle-access.token", sessionResponse.token);
+
     identityName.value = sessionResponse.identityName;
     token.value = sessionResponse.token;
     tenantId.value = sessionResponse.tenantId;
+
     removePermissions();
     sessionResponse.permissions.forEach((item) => addPermission(item));
+
     isAuthenticated.value = true;
   };
 
@@ -70,6 +86,7 @@ export const useSessionStore = defineStore("session", () => {
     }
 
     tenantId.value = sessionResponse.tenantId;
+
     removePermissions();
     sessionResponse.permissions.forEach((item) => addPermission(item));
   };
@@ -82,6 +99,7 @@ export const useSessionStore = defineStore("session", () => {
     ) {
       throw new Error(i18n.global.t("messages.missing-credentials"));
     }
+
     const { data: sessionResponse } = await axios.post<SessionResponse>(
       configuration.getApiUrl("v1/sessions"),
       {
@@ -90,6 +108,7 @@ export const useSessionStore = defineStore("session", () => {
         token: credentials.token,
       },
     );
+
     if (!sessionResponse) {
       throw new Error("Invalid response data.");
     }
@@ -103,11 +122,13 @@ export const useSessionStore = defineStore("session", () => {
     if (!oauthData || !oauthData.state || !oauthData.code) {
       throw new Error(i18n.global.t("messages.oauth-missing-data"));
     }
+
     const { data: sessionResponse } = await axios.get<SessionResponse>(
       configuration.getApiUrl(
         `v1/oauth/session/${oauthData.state}/${oauthData.code}`,
       ),
     );
+
     if (!sessionResponse) {
       throw new Error("Invalid response data.");
     }
@@ -116,6 +137,7 @@ export const useSessionStore = defineStore("session", () => {
 
     tenants.value = sessionResponse.tenants;
     isInitialized.value = true;
+
     return sessionResponse;
   };
 
@@ -123,9 +145,12 @@ export const useSessionStore = defineStore("session", () => {
     identityName.value = undefined;
     token.value = undefined;
     tenantId.value = undefined;
+
     localStorage.removeItem("shuttle-access.identityName");
     localStorage.removeItem("shuttle-access.token");
+
     removePermissions();
+
     isAuthenticated.value = false;
   };
 
@@ -136,22 +161,30 @@ export const useSessionStore = defineStore("session", () => {
   const hasPermission = (permission: string) => {
     const required = permission.toLowerCase();
     let result = false;
+
     permissions.value.forEach((item) => {
-      if (result) return;
+      if (result) {
+        return;
+      }
+
       if (item.toLowerCase() === required) {
         result = true;
         return;
       }
+
       if (item.includes("*")) {
         const escaped = item
           .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
           .replace(/\\\*/g, ".*");
+
         const regex = new RegExp(`^${escaped}$`, "i");
+
         if (regex.test(required)) {
           result = true;
         }
       }
     });
+
     return result;
   };
 

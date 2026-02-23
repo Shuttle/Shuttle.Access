@@ -5,7 +5,7 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class IdentityHandler(IBus bus, IMediator mediator) :
+public class IdentityHandler(IMediator mediator) :
     IMessageHandler<RegisterIdentity>,
     IMessageHandler<SetIdentityRoleStatus>,
     IMessageHandler<SetIdentityTenantStatus>,
@@ -15,21 +15,11 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
     IMessageHandler<SetIdentityName>,
     IMessageHandler<SetIdentityDescription>
 {
-    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
 
     public async Task HandleAsync(ActivateIdentity message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-
-        var requestResponse = new RequestResponseMessage<ActivateIdentity, IdentityActivated>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(RegisterIdentity message, CancellationToken cancellationToken = default)
@@ -43,24 +33,12 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
             return;
         }
 
-        var requestResponse = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(message, cancellationToken);
     }
 
     public async Task HandleAsync(RemoveIdentity message, CancellationToken cancellationToken = default)
     {
-        await _mediator.SendAsync(message, cancellationToken);
-
-        await _bus.PublishAsync(new IdentityRemoved
-        {
-            Id = message.Id
-        }, cancellationToken: cancellationToken);
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetIdentityDescription message, CancellationToken cancellationToken = default)
@@ -70,14 +48,7 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
             return;
         }
 
-        var requestResponse = new RequestResponseMessage<SetIdentityDescription, IdentityDescriptionSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetIdentityName message, CancellationToken cancellationToken = default)
@@ -87,56 +58,21 @@ public class IdentityHandler(IBus bus, IMediator mediator) :
             return;
         }
 
-        var requestResponse = new RequestResponseMessage<SetIdentityName, IdentityNameSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetIdentityRoleStatus message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-
-        var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(message);
-        var requestResponse = new RequestResponseMessage<SetIdentityRoleStatus, IdentityRoleSet>(message);
-
-        await _mediator.SendAsync(reviewRequest, cancellationToken);
-
-        if (!reviewRequest.Ok)
-        {
-            return;
-        }
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetIdentityTenantStatus message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-
-        var requestResponse = new RequestResponseMessage<SetIdentityTenantStatus, IdentityTenantSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetPassword message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-
-        await _mediator.SendAsync(message, cancellationToken);
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 }

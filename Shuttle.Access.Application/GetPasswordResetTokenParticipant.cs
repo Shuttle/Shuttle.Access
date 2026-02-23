@@ -7,21 +7,21 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEventStore eventStore) : IParticipant<RequestResponseMessage<GetPasswordResetToken, Guid>>
+public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEventStore eventStore) : IParticipant<GetPasswordResetToken>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task HandleAsync(RequestResponseMessage<GetPasswordResetToken, Guid> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(GetPasswordResetToken message, CancellationToken cancellationToken = default)
     {
-        var identityName = context.Request.Name;
+        Guard.AgainstNull(message);
+
+        var identityName = message.Name;
         var query = (await _identityQuery.SearchAsync(new IdentitySpecification().WithName(identityName), cancellationToken)).SingleOrDefault();
 
         if (query == null)
         {
-            context.Failed(string.Format(Access.Resources.UnknownIdentityException, identityName));
-
-            return;
+            throw new ApplicationException(string.Format(Access.Resources.UnknownIdentityException, identityName));
         }
 
         var stream = await _eventStore.GetAsync(query.Id, cancellationToken: cancellationToken);
@@ -38,11 +38,11 @@ public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEve
                 await _eventStore.SaveAsync(stream, cancellationToken);
             }
 
-            context.WithResponse(identity.PasswordResetToken!.Value);
+            message.WithPasswordResetToken(identity.PasswordResetToken!.Value);
         }
         else
         {
-            context.Failed(string.Format(Access.Resources.IdentityInactiveException, identityName));
+            throw new ApplicationException(string.Format(Access.Resources.IdentityInactiveException, identityName));
         }
     }
 }

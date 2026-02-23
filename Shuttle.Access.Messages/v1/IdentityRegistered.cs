@@ -7,5 +7,4 @@ public class IdentityRegistered
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string RegisteredBy { get; set; } = string.Empty;
-    public string System { get; set; } = string.Empty;
 }

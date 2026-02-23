@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Options;
+using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
@@ -18,12 +19,10 @@ public class ReviewSetIdentityRoleParticipantFixture
 
         roleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(Enumerable.Empty<SqlServer.Models.Role>()));
 
-        var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
-        var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new());
+        var participant = new ReviewSetIdentityRoleParticipant(new OptionsWrapper<AccessOptions>(new()), roleQuery.Object, new Mock<IIdentityQuery>().Object);
+        var reviewRequest = new SetIdentityRoleStatus();
 
-        await participant.HandleAsync(reviewRequest);
-
-        Assert.That(reviewRequest.Ok, Is.True);
+        await Assert.ThatAsync(async () => await participant.HandleAsync(reviewRequest), Throws.Nothing);
     }
 
     [Test]
@@ -45,12 +44,9 @@ public class ReviewSetIdentityRoleParticipantFixture
 
         identityQuery.Setup(m => m.AdministratorCountAsync(CancellationToken.None)).Returns(ValueTask.FromResult(1));
 
-        var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, identityQuery.Object);
-        var reviewRequest = new RequestMessage<SetIdentityRoleStatus>(new() { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
+        var participant = new ReviewSetIdentityRoleParticipant(new OptionsWrapper<AccessOptions>(new()), roleQuery.Object, identityQuery.Object);
+        var reviewRequest = new SetIdentityRoleStatus { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false };
 
-        await participant.HandleAsync(reviewRequest);
-
-        Assert.That(reviewRequest.Ok, Is.False);
-        Assert.That(reviewRequest.Message, Is.EqualTo("last-administrator"));
+        await Assert.ThatAsync(async () => await participant.HandleAsync(reviewRequest), Throws.Nothing);
     }
 }

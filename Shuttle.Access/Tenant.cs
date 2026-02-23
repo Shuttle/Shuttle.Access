@@ -5,20 +5,14 @@ namespace Shuttle.Access;
 
 public class Tenant
 {
-    public string Name { get; private set; } = string.Empty;
     public string LogoSvg { get; private set; } = string.Empty;
     public string LogoUrl { get; private set; } = string.Empty;
+    public string Name { get; private set; } = string.Empty;
     public int Status { get; private set; }
 
-    public Registered Register(string name, int status, string logoSvg, string logoUrl)
+    public static string Key(string name)
     {
-        return On(new Registered
-        {
-            Name = Guard.AgainstEmpty(name),
-            LogoSvg = logoSvg,
-            LogoUrl = logoUrl,
-            Status = status
-        });
+        return $"[tenant]:name={name}";
     }
 
     private Registered On(Registered registered)
@@ -32,6 +26,38 @@ public class Tenant
         return registered;
     }
 
+    private StatusSet On(StatusSet statusSet)
+    {
+        Guard.AgainstNull(statusSet);
+
+        Status = statusSet.Status;
+
+        return statusSet;
+    }
+
+    private Removed On(Removed removed)
+    {
+        Guard.AgainstNull(removed);
+
+        return removed;
+    }
+
+    public Registered Register(string name, int status, string logoSvg, string logoUrl)
+    {
+        return On(new Registered
+        {
+            Name = Guard.AgainstEmpty(name),
+            LogoSvg = logoSvg,
+            LogoUrl = logoUrl,
+            Status = status
+        });
+    }
+
+    public Removed Remove()
+    {
+        return On(new Removed());
+    }
+
     public StatusSet SetStatus(int status)
     {
         if (Status == status)
@@ -43,19 +69,5 @@ public class Tenant
         {
             Status = status
         });
-    }
-
-    private StatusSet On(StatusSet statusSet)
-    {
-        Guard.AgainstNull(statusSet);
-
-        Status = statusSet.Status;
-
-        return statusSet;
-    }
-
-    public static string Key(string name)
-    {
-        return $"[tenant]:name={name}";
     }
 }

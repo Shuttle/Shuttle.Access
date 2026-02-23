@@ -5,7 +5,6 @@ using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -26,18 +25,11 @@ public class GetPasswordResetTokenParticipantFixture
         var participant = new GetPasswordResetTokenParticipant(identityQuery.Object, eventStore);
 
         var getPasswordResetToken = new GetPasswordResetToken { Name = "identity-name" };
-        var requestResponseMessage = new RequestResponseMessage<GetPasswordResetToken, Guid>(getPasswordResetToken);
 
-        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
-
-        Assert.That(requestResponseMessage.Ok, Is.False);
+        await participant.HandleAsync(getPasswordResetToken, CancellationToken.None);
 
         (await eventStore.GetAsync(identity.Id)).Add(new Activated()).Commit();
 
-        requestResponseMessage = new(getPasswordResetToken);
-
-        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
-
-        Assert.That(requestResponseMessage.Ok, Is.True);
+        await participant.HandleAsync(getPasswordResetToken, CancellationToken.None);
     }
 }

@@ -129,8 +129,10 @@ public class Program
                         builder.Options.ConnectionString = accessConnectionString;
                         builder.Options.Schema = "access";
                     })
-                    .AddSubscription<IdentityRoleSet>()
-                    .AddSubscription<RolePermissionSet>()
+                    .AddSubscription<IdentityRoleAdded>()
+                    .AddSubscription<IdentityRoleRemoved>()
+                    .AddSubscription<RolePermissionAdded>()
+                    .AddSubscription<RolePermissionRemoved>()
                     .AddSubscription<PermissionStatusSet>();
             })
             .AddRecall(recallBuilder =>

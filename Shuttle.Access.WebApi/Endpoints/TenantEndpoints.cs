@@ -2,12 +2,11 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
-using Shuttle.Core.Contract;
+using Shuttle.Access.SqlServer;
 using Shuttle.Core.Mediator;
-using Shuttle.Core.TransactionScope;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
 
@@ -41,6 +40,12 @@ public static class TenantEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Tenants.View);
 
+        app.MapDelete("/v{version:apiVersion}/tenants/{id:Guid}", Delete)
+            .WithTags("Roles")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Tenants.Manage);
+
         app.MapPost("/v{version:apiVersion}/tenants/", Post)
             .WithTags("Tenants")
             .WithApiVersionSet(versionSet)
@@ -67,26 +72,37 @@ public static class TenantEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        var requestResponseMessage = new RequestResponseMessage<SetTenantStatus, TenantStatusSet>(sessionContext.Audit(message));
+        await mediator.SendAsync(sessionContext.Audit(message));
 
-        await mediator.SendAsync(requestResponseMessage);
-
-        return !requestResponseMessage.Ok ? Results.BadRequest(requestResponseMessage.Message) : Results.Accepted();
+        return Results.Accepted();
     }
 
-    private static async Task<IResult> Post([FromBody] RegisterTenant message, ISessionContext sessionContext, IMediator mediator, ITransactionScopeFactory transactionScopeFactory)
+    private static async Task<IResult> Post([FromBody] RegisterTenant message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery, CancellationToken cancellationToken)
     {
-        Guard.AgainstNull(message);
+        try
+        {
+            message.ApplyInvariants();
+        }
+        catch (Exception ex)
+        {
+            return Results.BadRequest(ex.Message);
+        }
 
-        message.Id ??= Guid.NewGuid();
+        if (await identityQuery.CountAsync(new IdentitySpecification().WithName(message.AdministratorIdentityName), cancellationToken) == 0)
+        {
+            return Results.BadRequest($"Could not find an identity with name '{message.AdministratorIdentityName}'.");
+        }
 
-        var requestResponseMessage = new RequestResponseMessage<RegisterTenant, TenantRegistered>(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(message), cancellationToken);
 
-        using var scope = transactionScopeFactory.Create();
-        await mediator.SendAsync(requestResponseMessage);
-        scope.Complete();
+        return Results.Accepted();
+    }
 
-        return !requestResponseMessage.Ok ? Results.BadRequest(requestResponseMessage.Message) : Results.Ok(requestResponseMessage.Response);
+    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, [FromServices] IBus bus, CancellationToken cancellationToken)
+    {
+        await bus.SendAsync(sessionContext.Audit(new RemoveTenant { Id = id }), cancellationToken);
+
+        return Results.Accepted();
     }
 
     private static async Task<IResult> Get(string value, ITenantQuery tenantQuery)

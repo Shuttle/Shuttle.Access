@@ -39,9 +39,8 @@ public static class ServiceCollectionExtensions
             services.AddScoped<ISessionService, SessionService>();
             services.AddScoped<ISessionTokenExchangeRepository, SessionTokenExchangeRepository>();
             services.AddScoped<ITenantQuery, TenantQuery>();
-            services.AddScoped<ITenantProjectionQuery, TenantProjectionQuery>();
 
-            services.AddScoped<DbConnection>(sp =>
+            services.AddKeyedScoped<DbConnection>("AccessDbConnection", (sp, _) =>
             {
                 var options = sp.GetRequiredService<IOptions<AccessSqlServerOptions>>().Value;
                 return new SqlConnection(options.ConnectionString);
@@ -49,7 +48,7 @@ public static class ServiceCollectionExtensions
             
             services.AddDbContext<AccessDbContext>((sp, options) =>
             {
-                var dbConnection = sp.GetService<DbConnection>();
+                var dbConnection = sp.GetKeyedService<DbConnection>("AccessDbConnection");
 
                 if (dbConnection != null)
                 {

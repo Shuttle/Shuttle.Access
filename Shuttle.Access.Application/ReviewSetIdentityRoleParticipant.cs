@@ -7,15 +7,16 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class ReviewSetIdentityRoleParticipant(IOptions<AccessOptions> accessOptions, IRoleQuery roleQuery, IIdentityQuery identityQuery) : IParticipant<RequestMessage<SetIdentityRoleStatus>>
+public class ReviewSetIdentityRoleParticipant(IOptions<AccessOptions> accessOptions, IRoleQuery roleQuery, IIdentityQuery identityQuery) : IParticipant<SetIdentityRoleStatus>
 {
     private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
-    public async Task HandleAsync(RequestMessage<SetIdentityRoleStatus> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetIdentityRoleStatus message, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(context).Request;
+        Guard.AgainstNull(message);
+
         var roles = (await _roleQuery.SearchAsync(new RoleSpecification()
             .WithTenantId(_accessOptions.SystemTenantId)
             .AddName("Access Administrator"), cancellationToken)).ToList();
@@ -27,11 +28,10 @@ public class ReviewSetIdentityRoleParticipant(IOptions<AccessOptions> accessOpti
 
         var role = roles[0];
 
-        if (request.RoleId.Equals(role.Id) &&
-            !request.Active &&
+        if (message.RoleId.Equals(role.Id) && !message.Active &&
             await _identityQuery.AdministratorCountAsync(cancellationToken) == 1)
         {
-            context.Failed("last-administrator");
+            throw new ApplicationException("last-administrator");
         }
     }
 }

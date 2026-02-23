@@ -1,14 +1,18 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Shuttle.Access.Events.Identity.v1;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
+using Shuttle.Hopper;
 using Shuttle.Recall;
+using RoleRemoved = Shuttle.Access.Events.Identity.v1.RoleRemoved;
+using TenantRemoved = Shuttle.Access.Events.Identity.v1.TenantRemoved;
 
 namespace Shuttle.Access.Server.v1.EventHandlers;
 
-public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext accessDbContext, IRoleQuery roleQuery, ITenantQuery tenantQuery, ISessionRepository sessionRepository)
+public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext accessDbContext, IRoleQuery roleQuery, ITenantQuery tenantQuery, ISessionRepository sessionRepository, IBus bus)
     :
         IEventHandler<Registered>,
         IEventHandler<RoleAdded>,
@@ -20,6 +24,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         IEventHandler<NameSet>,
         IEventHandler<DescriptionSet>
 {
+    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
     private readonly ILogger<IdentityHandler> _logger = Guard.AgainstNull(logger);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
@@ -38,6 +43,13 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[Activated] : id = '{PrimitiveEventId}' / date activated = '{DateActivated:O}'", context.PrimitiveEvent.Id, context.Event.DateActivated);
+
+        await _bus.PublishAsync(new IdentityActivated
+        {
+            Id = model.Id,
+            Name = model.Name,
+            DateActivated = context.Event.DateActivated
+        }, cancellationToken: cancellationToken);
     }
 
     public async Task HandleAsync(IEventHandlerContext<DescriptionSet> context, CancellationToken cancellationToken = default)
@@ -52,6 +64,12 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[NameSet] : id = '{PrimitiveEventId}' / description = '{Description}'", context.PrimitiveEvent.Id, context.Event.Description);
+
+        await _bus.PublishAsync(new IdentityDescriptionSet
+        {
+            Id = model.Id,
+            Description = model.Description
+        }, cancellationToken: cancellationToken);
     }
 
     public async Task HandleAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
@@ -66,6 +84,12 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[NameSet] : id = '{PrimitiveEventId}' / name = '{Name}'", context.PrimitiveEvent.Id, context.Event.Name);
+
+        await _bus.PublishAsync(new IdentityNameSet
+        {
+            Id = model.Id,
+            Name = model.Name
+        }, cancellationToken: cancellationToken);
     }
 
     public async Task HandleAsync(IEventHandlerContext<Registered> context, CancellationToken cancellationToken = default)
@@ -85,6 +109,15 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[Registered] : id = '{PrimitiveEventId}' / name = '{Name}' / activated = '{Activated}' / date registered = '{DateRegistered}' / registered by = '{RegisteredBy}'", context.PrimitiveEvent.Id, context.Event.Name, context.Event.Activated, context.Event.DateRegistered, context.Event.RegisteredBy);
+
+        await _bus.PublishAsync(new IdentityRegistered
+        {
+            Id = context.PrimitiveEvent.Id,
+            Name = context.Event.Name,
+            RegisteredBy = context.Event.RegisteredBy,
+            GeneratedPassword = context.Event.GeneratedPassword,
+            Activated = context.Event.Activated
+        }, cancellationToken);
     }
 
     public async Task HandleAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
@@ -105,6 +138,12 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[Removed] : id = '{PrimitiveEventId}'", context.PrimitiveEvent.Id);
+
+        await _bus.PublishAsync(new IdentityRemoved
+        {
+            Id = model.Id,
+            Name = model.Name
+        }, cancellationToken: cancellationToken);
     }
 
     public async Task HandleAsync(IEventHandlerContext<RoleAdded> context, CancellationToken cancellationToken = default)
@@ -138,16 +177,24 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
             });
         }
 
-        _accessDbContext.IdentityRoles.Add(new()
+        model = new()
         {
             IdentityId = context.PrimitiveEvent.Id,
             RoleId = context.Event.RoleId,
             TenantId = roleModel.TenantId
-        });
+        };
+
+        _accessDbContext.IdentityRoles.Add(model);
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[RoleAdded] : id = '{PrimitiveEventId}' / role id = '{RoleId}'", context.PrimitiveEvent.Id, context.Event.RoleId);
+
+        await _bus.PublishAsync(new IdentityRoleAdded
+        {
+            IdentityId = model.IdentityId,
+            RoleId = model.RoleId,
+        }, cancellationToken: cancellationToken);
     }
 
     public async Task HandleAsync(IEventHandlerContext<RoleRemoved> context, CancellationToken cancellationToken = default)
@@ -166,6 +213,12 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[RoleRemoved] : id = '{PrimitiveEventId}' / role id = '{RoleId}'", context.PrimitiveEvent.Id, context.Event.RoleId);
+
+        await _bus.PublishAsync(new IdentityRoleRemoved
+        {
+            IdentityId = model.IdentityId,
+            RoleId = model.RoleId,
+        }, cancellationToken: cancellationToken);
     }
 
     public async Task HandleAsync(IEventHandlerContext<TenantAdded> context, CancellationToken cancellationToken = default)
@@ -189,6 +242,12 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[TenantAdded] : id = '{PrimitiveEventId}' / tenant id = '{TenantId}'", context.PrimitiveEvent.Id, context.Event.TenantId);
+
+        await _bus.PublishAsync(new IdentityTenantAdded
+        {
+            IdentityId = context.PrimitiveEvent.Id,
+            TenantId = context.Event.TenantId
+        }, cancellationToken: cancellationToken);
     }
 
     public async Task HandleAsync(IEventHandlerContext<TenantRemoved> context, CancellationToken cancellationToken = default)
@@ -207,5 +266,11 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogDebug("[TenantRemoved] : id = '{PrimitiveEventId}' / tenant id = '{TenantId}'", context.PrimitiveEvent.Id, context.Event.TenantId);
+
+        await _bus.PublishAsync(new IdentityTenantRemoved
+        {
+            IdentityId = context.PrimitiveEvent.Id,
+            TenantId = context.Event.TenantId
+        }, cancellationToken: cancellationToken);
     }
 }

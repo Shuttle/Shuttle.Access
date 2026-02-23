@@ -7,6 +7,7 @@ public class SessionSpecification : Specification<SessionSpecification>
 {
     private readonly List<string> _permissions = [];
     public Guid? IdentityId { get; private set; }
+    public Guid? RoleId { get; private set; }
     public string? IdentityName { get; private set; }
     public string? IdentityNameMatch { get; private set; }
     public IEnumerable<string> Permissions => _permissions.AsReadOnly();
@@ -50,6 +51,12 @@ public class SessionSpecification : Specification<SessionSpecification>
     }
 
     public SessionSpecification WithIdentityId(Guid identityId)
+    {
+        IdentityId = identityId;
+        return this;
+    }
+
+    public SessionSpecification WithRoleId(Guid identityId)
     {
         IdentityId = identityId;
         return this;

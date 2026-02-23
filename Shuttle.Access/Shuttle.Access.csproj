@@ -54,10 +54,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Events\Tenant.v1\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
   </ItemGroup>
 

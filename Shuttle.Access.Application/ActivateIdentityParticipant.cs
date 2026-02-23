@@ -7,25 +7,26 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventStore eventStore) : IParticipant<RequestResponseMessage<ActivateIdentity, IdentityActivated>>
+public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventStore eventStore) : IParticipant<ActivateIdentity>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public async Task HandleAsync(RequestResponseMessage<ActivateIdentity, IdentityActivated> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(ActivateIdentity message, CancellationToken cancellationToken = default)
     {
-        var request = context.Request;
+        Guard.AgainstNull(message);
+
         var now = DateTimeOffset.UtcNow;
 
         var specification = new IdentitySpecification();
 
-        if (request.Id.HasValue)
+        if (message.Id.HasValue)
         {
-            specification.AddId(request.Id.Value);
+            specification.AddId(message.Id.Value);
         }
         else
         {
-            specification.WithName(request.Name);
+            specification.WithName(message.Name);
         }
 
         var query = (await _identityQuery.SearchAsync(specification, cancellationToken)).FirstOrDefault();
@@ -42,12 +43,6 @@ public class ActivateIdentityParticipant(IIdentityQuery identityQuery, IEventSto
         stream.Apply(identity);
         stream.Add(identity.Activate(now));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken).ConfigureAwait(false);
-
-        context.WithResponse(new()
-        {
-            Id = id,
-            DateActivated = now
-        });
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken).ConfigureAwait(false);
     }
 }

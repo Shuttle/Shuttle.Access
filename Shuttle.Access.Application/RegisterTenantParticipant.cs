@@ -6,37 +6,31 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterTenantParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RequestResponseMessage<RegisterTenant, TenantRegistered>>
+public class RegisterTenantParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RegisterTenant>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task HandleAsync(RequestResponseMessage<RegisterTenant, TenantRegistered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RegisterTenant message, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(context).Request;
+        Guard.AgainstNull(message);
 
-        var key = Tenant.Key(request.Name);
+        var key = Tenant.Key(message.Name);
 
         if (await _idKeyRepository.ContainsAsync(key, cancellationToken))
         {
             return;
         }
 
-        var id = request.Id!.Value;
+        var id = message.Id!.Value;
 
         await _idKeyRepository.AddAsync(id, key, cancellationToken);
 
         var aggregate = new Tenant();
         var stream = await _eventStore.GetAsync(id, cancellationToken);
 
-        stream.Add(aggregate.Register(request.Name, request.Status, request.LogoSvg, request.LogoUrl));
+        stream.Add(aggregate.Register(message.Name, message.Status, message.LogoSvg, message.LogoUrl));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
-
-        context.WithResponse(new()
-        {
-            Id = id,
-            Name = request.Name
-        });
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
     }
 }

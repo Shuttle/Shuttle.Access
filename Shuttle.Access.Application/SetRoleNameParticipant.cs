@@ -6,27 +6,27 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class SetRoleNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RequestResponseMessage<SetRoleName, RoleNameSet>>
+public class SetRoleNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<SetRoleName>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task HandleAsync(RequestResponseMessage<SetRoleName, RoleNameSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetRoleName message, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(context).Request;
+        Guard.AgainstNull(message);
 
         var role = new Role();
-        var stream = await _eventStore.GetAsync(request.Id, cancellationToken);
+        var stream = await _eventStore.GetAsync(message.Id, cancellationToken);
 
         stream.Apply(role);
 
-        if (role.Name.Equals(request.Name))
+        if (role.Name.Equals(message.Name))
         {
             return;
         }
 
-        var key = Role.Key(role.Name);
-        var rekey = Role.Key(request.Name);
+        var key = Role.Key(role.Name, role.TenantId);
+        var rekey = Role.Key(message.Name, role.TenantId);
 
         if (await _idKeyRepository.ContainsAsync(rekey, cancellationToken) || !await _idKeyRepository.ContainsAsync(key, cancellationToken))
         {
@@ -35,14 +35,8 @@ public class SetRoleNameParticipant(IEventStore eventStore, IIdKeyRepository idK
 
         await _idKeyRepository.RekeyAsync(key, rekey, cancellationToken);
 
-        stream.Add(role.SetName(request.Name));
+        stream.Add(role.SetName(message.Name));
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(request), cancellationToken);
-
-        context.WithResponse(new()
-        {
-            Id = request.Id,
-            Name = request.Name
-        });
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
     }
 }

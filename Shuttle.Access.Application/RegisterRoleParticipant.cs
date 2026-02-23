@@ -1,5 +1,4 @@
 ﻿using Shuttle.Access.SqlServer;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
@@ -9,19 +8,19 @@ using Shuttle.Recall.SqlServer.Storage;
 namespace Shuttle.Access.Application;
 
 public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IPermissionQuery permissionQuery)
-    : IParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
+    : IParticipant<RegisterRole>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
     private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
 
-    public async Task HandleAsync(RequestResponseMessage<RegisterRole, RoleRegistered> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RegisterRole message, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(context).Request;
+        Guard.AgainstNull(message);
 
         var permissionIds = new List<Guid>();
 
-        foreach (var permission in request.GetPermissions())
+        foreach (var permission in message.GetPermissions())
         {
             var permissionId = (await _permissionQuery.SearchAsync(new PermissionSpecification().AddName(permission.Name), cancellationToken)).FirstOrDefault()?.Id;
 
@@ -31,26 +30,24 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
             }
             else
             {
-                request.MissingPermissions();
+                message.MissingPermissions();
                 return;
             }
         }
 
-        var key = Role.Key(request.Name);
+        var key = Role.Key(message.Name, message.TenantId);
 
         if (await _idKeyRepository.ContainsAsync(key, cancellationToken))
         {
             return;
         }
 
-        var id = Guid.NewGuid();
-
-        await _idKeyRepository.AddAsync(id, key, cancellationToken);
+        await _idKeyRepository.AddAsync(message.Id, key, cancellationToken);
 
         var role = new Role();
-        var stream = await _eventStore.GetAsync(id, cancellationToken);
+        var stream = await _eventStore.GetAsync(message.Id, cancellationToken);
 
-        stream.Add(role.Register(request.AuditInformation.TenantId, request.Name));
+        stream.Add(role.Register(message.TenantId, message.Name));
 
         foreach (var permissionId in permissionIds)
         {
@@ -60,12 +57,6 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
             }
         }
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(request.AuditInformation), cancellationToken);
-
-        context.WithResponse(new()
-        {
-            Id = id,
-            Name = request.Name
-        });
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.AuditInformation), cancellationToken);
     }
 }

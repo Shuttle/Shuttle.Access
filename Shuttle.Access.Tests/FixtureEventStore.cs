@@ -41,7 +41,7 @@ public class FixtureEventStore : IEventStore
         return result;
     }
 
-    public T? FindEvent<T>(Guid id, int index = -1) where T : class
+    public T? FindEvent<T>(Guid id, Func<T, bool>? specification = null, int index = -1) where T : class
     {
         var events = Get(id).GetEvents(EventStream.EventRegistrationType.All);
 
@@ -49,19 +49,34 @@ public class FixtureEventStore : IEventStore
         {
             if (index > -1)
             {
-                return events.ElementAtOrDefault(index)?.Event as T;
-            }
+                var candidate = events.ElementAtOrDefault(index)?.Event as T;
 
-            var type = typeof(T);
+                if (candidate == null)
+                {
+                    return null;
+                }
+
+                if (specification == null || specification(candidate))
+                {
+                    return candidate;
+                }
+
+                return null;
+            }
 
             foreach (var domainEvent in events)
             {
-                if (domainEvent.Event.GetType() != type)
+                if (domainEvent.Event is not T typed)
                 {
                     continue;
                 }
 
-                return (T)domainEvent.Event;
+                if (specification != null && !specification(typed))
+                {
+                    continue;
+                }
+
+                return typed;
             }
         }
         catch

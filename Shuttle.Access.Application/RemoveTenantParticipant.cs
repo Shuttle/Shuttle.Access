@@ -6,12 +6,12 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RemoveRole>
+public class RemoveTenantParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RemoveTenant>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IIdKeyRepository _idKeyRepository = Guard.AgainstNull(idKeyRepository);
 
-    public async Task HandleAsync(RemoveRole message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(RemoveTenant message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
@@ -22,11 +22,11 @@ public class RemoveRoleParticipant(IEventStore eventStore, IIdKeyRepository idKe
             return;
         }
 
-        var role = new Role();
+        var aggregate = new Tenant();
 
-        stream.Apply(role);
+        stream.Apply(aggregate);
 
-        stream.Add(role.Remove());
+        stream.Add(aggregate.Remove());
 
         await _idKeyRepository.RemoveAsync(message.Id, cancellationToken);
 

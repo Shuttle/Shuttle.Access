@@ -5,41 +5,32 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetIdentityTenantStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetIdentityTenantStatus, IdentityTenantSet>>
+public class SetIdentityTenantStatusParticipant(IEventStore eventStore) : IParticipant<SetIdentityTenantStatus>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task HandleAsync(RequestResponseMessage<SetIdentityTenantStatus, IdentityTenantSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetIdentityTenantStatus message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(message);
 
         var identity = new Identity();
-        var request = context.Request;
-        var stream = await _eventStore.GetAsync(request.IdentityId, cancellationToken);
+        var stream = await _eventStore.GetAsync(message.IdentityId, cancellationToken);
 
         stream.Apply(identity);
 
-        if (request.Active && !identity.IsInTenant(request.TenantId))
+        if (message.Active && !identity.IsInTenant(message.TenantId))
         {
-            stream.Add(identity.AddTenant(request.TenantId));
+            stream.Add(identity.AddTenant(message.TenantId));
         }
 
-        if (!request.Active && identity.IsInTenant(request.TenantId))
+        if (!message.Active && identity.IsInTenant(message.TenantId))
         {
-            stream.Add(identity.RemoveTenant(request.TenantId));
+            stream.Add(identity.RemoveTenant(message.TenantId));
         }
 
         if (stream.ShouldSave())
         {
-            await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken);
-
-            context.WithResponse(new()
-            {
-                TenantId = request.TenantId,
-                IdentityId = request.IdentityId,
-                Active = request.Active,
-                Version = stream.Version
-            });
+            await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
         }
     }
 }

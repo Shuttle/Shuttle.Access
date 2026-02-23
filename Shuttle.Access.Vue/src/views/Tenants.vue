@@ -12,9 +12,13 @@
     <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy">
       <template v-slot:header.action="">
-        <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Tenants.Manage)">
-          <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
-        </div>
+        <a-strip v-if="sessionStore.hasPermission(Permissions.Tenants.Manage)">
+          <v-btn-primary :icon="mdiPlus" size="x-small" @click="add"></v-btn-primary>
+        </a-strip>
+      </template>
+      <template v-slot:item.action="{ item }">
+        <v-btn :icon="mdiDelete" size="x-small"
+          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
       </template>
       <template v-slot:item.status="{ item }">
         <v-switch :model-value="item.status === 1" color="primary" density="compact" hide-details
@@ -29,16 +33,18 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiMagnify, mdiPlus, mdiRefresh } from '@mdi/js';
+import { mdiDelete, mdiMagnify, mdiPlus, mdiRefresh } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
 import type { Tenant } from "@/access";
-import { useSessionStore } from "@/stores/session";
-import { useDrawerStore } from "@/stores/drawer";
 import { useAlertStore } from "@/stores/alert";
+import { useConfirmationStore } from "@/stores/confirmation";
+import { useDrawerStore } from "@/stores/drawer";
+import { useSessionStore } from "@/stores/session";
 
 const sessionStore = useSessionStore();
+const confirmationStore = useConfirmationStore();
 const drawerStore = useDrawerStore()
 const { t } = useI18n({ useScope: 'global' });
 const router = useRouter();
@@ -101,6 +107,21 @@ const setStatus = async (item: Tenant) => {
 
 const add = () => {
   router.push({ name: "tenant" })
+}
+
+const remove = (item: Tenant) => {
+  confirmationStore.close();
+
+  busy.value = true;
+
+  api
+    .delete(`v1/tenants/${item.id}`)
+    .then(function () {
+      refresh();
+    })
+    .finally(() => {
+      busy.value = false;
+    });
 }
 
 onMounted(() => {

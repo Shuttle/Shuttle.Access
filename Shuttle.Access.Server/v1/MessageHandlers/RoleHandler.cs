@@ -21,13 +21,11 @@ public class RoleHandler(IBus bus, IMediator mediator) :
             return;
         }
 
-        var registerRole = new Application.RegisterRole( message.Name, new AuditInformation(message.TenantId, message.AuditIdentityName));
+        var registerRole = new Application.RegisterRole(Guid.NewGuid(), message.Name, message.TenantId, new AuditInformation(message.TenantId, message.AuditIdentityName));
 
         registerRole.AddPermissions(message.Permissions);
 
-        var requestResponse = new RequestResponseMessage<Application.RegisterRole, RoleRegistered>(registerRole);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
+        await _mediator.SendAsync(registerRole, cancellationToken);
 
         if (registerRole.HasMissingPermissions)
         {
@@ -39,55 +37,26 @@ public class RoleHandler(IBus bus, IMediator mediator) :
             message.WaitCount++;
 
             await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.Now.AddSeconds(5)).ToSelf(), cancellationToken);
-
-            return;
-
-        }
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
         }
     }
 
     public async Task HandleAsync(RemoveRole message, CancellationToken cancellationToken = default)
     {
-        var requestResponse = new RequestResponseMessage<RemoveRole, RoleRemoved>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetRoleName message, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(message.Name))
+        if (string.IsNullOrEmpty(Guard.AgainstNull(message).Name))
         {
             return;
         }
 
-        var requestResponse = new RequestResponseMessage<SetRoleName, RoleNameSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(message, cancellationToken);
     }
 
     public async Task HandleAsync(SetRolePermissionStatus message, CancellationToken cancellationToken = default)
     {
-        var requestResponse = new RequestResponseMessage<SetRolePermissionStatus, RolePermissionSet>(message);
-
-        await _mediator.SendAsync(requestResponse, cancellationToken);
-
-        if (requestResponse.Response != null)
-        {
-            await _bus.PublishAsync(requestResponse.Response, cancellationToken: cancellationToken);
-        }
+        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 }

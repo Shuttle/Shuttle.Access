@@ -6,16 +6,16 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipant<RequestResponseMessage<SetPermissionStatus, PermissionStatusSet>>
+public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipant<SetPermissionStatus>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
 
-    public async Task HandleAsync(RequestResponseMessage<SetPermissionStatus, PermissionStatusSet> context, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SetPermissionStatus message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
-        Guard.AgainstUndefinedEnum<PermissionStatus>(context.Request.Status, nameof(context.Request.Status));
+        Guard.AgainstNull(message);
+        Guard.AgainstUndefinedEnum<PermissionStatus>(message.Status, nameof(message.Status));
 
-        var stream = await _eventStore.GetAsync(context.Request.Id, cancellationToken);
+        var stream = await _eventStore.GetAsync(message.Id, cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -26,7 +26,7 @@ public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipa
 
         stream.Apply(permission);
 
-        var status = (PermissionStatus)context.Request.Status;
+        var status = (PermissionStatus)message.Status;
 
         switch (status)
         {
@@ -47,14 +47,6 @@ public class SetPermissionStatusParticipant(IEventStore eventStore) : IParticipa
             }
         }
 
-        await _eventStore.SaveAsync(stream, builder => builder.Audit(context.Request), cancellationToken);
-
-        context.WithResponse(new()
-        {
-            Id = context.Request.Id,
-            Name = permission.Name,
-            Status = context.Request.Status,
-            Version = stream.Version
-        });
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
     }
 }

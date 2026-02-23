@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using Microsoft.Extensions.Options;
+using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Events.Identity.v1;
@@ -27,24 +28,20 @@ public class RegisterIdentityParticipantFixture
 
         idKeyRepository.Setup(m => m.FindAsync(Identity.Key(identity.Name), CancellationToken.None)).ReturnsAsync(await ValueTask.FromResult((Guid?)null));
 
-        var participant = new RegisterIdentityParticipant(eventStore, idKeyRepository.Object, identityQuery.Object, roleQuery.Object);
+        var participant = new RegisterIdentityParticipant(new OptionsWrapper<AccessOptions>(new()), eventStore, idKeyRepository.Object, identityQuery.Object, roleQuery.Object);
 
         var registerIdentity = new RegisterIdentity
         {
+            Id = Guid.NewGuid(),
             Name = "name"
         };
 
-        var requestResponseMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(registerIdentity);
+        await participant.HandleAsync(registerIdentity, CancellationToken.None);
 
-        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
-
-        Assert.That(requestResponseMessage.Ok, Is.True);
-        Assert.That(requestResponseMessage.Response, Is.Not.Null);
-
-        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response!.Id);
+        var @event = eventStore.FindEvent<Registered>(registerIdentity.Id.Value);
 
         Assert.That(@event, Is.Not.Null);
 
-        Assert.That(requestResponseMessage.Response.Name, Is.EqualTo(identity.Name));
+        Assert.That(registerIdentity.Name, Is.EqualTo(identity.Name));
     }
 }

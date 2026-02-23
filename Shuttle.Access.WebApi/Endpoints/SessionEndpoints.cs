@@ -113,7 +113,7 @@ public static class SessionEndpoints
 
             var registerSession = new RegisterSession(identityName).WithTenantId(tenantId).UseDirect();
 
-            await RegisterSession(registerSession, mediator);
+            await mediator.SendAsync(registerSession);
 
             if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession || registerSession.Identity == null)
             {
@@ -322,7 +322,7 @@ public static class SessionEndpoints
             ExpiryDate = message.Session.ExpiryDate,
             Permissions = message.Session.Permissions.Select(item => item.Name).ToList(),
             DateRegistered = message.Session.DateRegistered,
-            TenantId = message.Session.TenantId!.Value,
+            TenantId = message.Session.TenantId!.Value
         });
     }
 
@@ -385,7 +385,9 @@ public static class SessionEndpoints
             registerSession.UseDirect();
         }
 
-        return await RegisterSession(registerSession, mediator);
+        await mediator.SendAsync(registerSession);
+
+        return Results.Ok(registerSession.GetSessionResponse(false));
     }
 
     private static async Task<IResult> PostDelegated(IMediator mediator, RegisterDelegatedSession message, HttpContext httpContext)
@@ -404,7 +406,9 @@ public static class SessionEndpoints
 
         var registerSession = new RegisterSession(message.IdentityName).UseDelegation(message.TenantId, sessionIdentityId.Value);
 
-        return await RegisterSession(registerSession, mediator);
+        await mediator.SendAsync(registerSession);
+
+        return Results.Ok(registerSession.GetSessionResponse(false));
     }
 
     private static async Task<IResult> PostSearch([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
@@ -419,29 +423,5 @@ public static class SessionEndpoints
         var specification = GetSpecification(model, hashingService);
 
         return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(MapData).ToList());
-    }
-
-    private static async Task<IResult> RegisterSession(RegisterSession registerSession, IMediator mediator)
-    {
-        await mediator.SendAsync(registerSession);
-
-        var sessionResponse = new SessionResponse
-        {
-            Result = registerSession.Result.ToString()
-        };
-
-        if (registerSession.HasSession)
-        {
-            sessionResponse.IdentityId = registerSession.Session!.IdentityId;
-            sessionResponse.IdentityName = registerSession.Session!.IdentityName;
-            sessionResponse.Token = registerSession.SessionToken!.Value;
-            sessionResponse.ExpiryDate = registerSession.Session.ExpiryDate;
-            sessionResponse.Permissions = registerSession.Session.Permissions.Select(item => item.Name).ToList();
-            sessionResponse.SessionTokenExchangeUrl = registerSession.SessionTokenExchangeUrl;
-            sessionResponse.DateRegistered = registerSession.Session.DateRegistered;
-            sessionResponse.TenantId = registerSession.Session.TenantId!.Value;
-        }
-
-        return Results.Ok(sessionResponse);
     }
 }

@@ -180,4 +180,5 @@ export type Tenant = {
   logoSvg?: string;
   logoUrl?: string;
   status?: number;
+  administratorIdentityName?: string;
 };

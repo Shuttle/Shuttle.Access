@@ -3,12 +3,14 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterRole(string name, IAuditInformation auditInformation)
+public class RegisterRole(Guid id, string name, Guid tenantId, IAuditInformation auditInformation)
 {
     private readonly List<RegisterPermission> _permissions = [];
     public IAuditInformation AuditInformation { get; } = Guard.AgainstNull(auditInformation);
     public bool HasMissingPermissions { get; private set; }
+    public Guid Id { get; } = Guard.AgainstEmpty(id);
     public string Name { get; } = Guard.AgainstEmpty(name);
+    public Guid TenantId { get; } = Guard.AgainstEmpty(tenantId);
 
     public RegisterRole AddPermissions(IEnumerable<RegisterPermission> permissions)
     {

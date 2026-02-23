@@ -5,7 +5,6 @@ using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -26,16 +25,12 @@ public class ActivateIdentityParticipantFixture
         var participant =
             new ActivateIdentityParticipant(identityQuery.Object, eventStore);
 
-        var requestResponseMessage =
-            new RequestResponseMessage<ActivateIdentity, IdentityActivated>(new() { Id = identity.Id });
+        var requestResponseMessage = new ActivateIdentity { Id = identity.Id };
 
         await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
 
         var @event = eventStore.FindEvent<Activated>(identity.Id);
 
         Assert.That(@event, Is.Not.Null);
-
-        Assert.That(requestResponseMessage.Response, Is.Not.Null);
-        Assert.That(requestResponseMessage.Response!.Id, Is.EqualTo(identity.Id));
     }
 }

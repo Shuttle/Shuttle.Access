@@ -2,6 +2,7 @@
 
 public class RegisterIdentity : AuditMessage
 {
+    public Guid? Id { get; set; }
     public Guid? TenantId { get; set; }
     public bool Activated { get; set; }
     public string Description { get; set; } = string.Empty;

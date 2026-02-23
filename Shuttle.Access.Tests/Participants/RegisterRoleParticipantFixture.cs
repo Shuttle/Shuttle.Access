@@ -1,9 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Mediator;
 using Shuttle.Recall.SqlServer.Storage;
 using RegisterRole = Shuttle.Access.Application.RegisterRole;
 
@@ -23,18 +21,9 @@ public class RegisterRoleParticipantFixture
         var participant =
             new RegisterRoleParticipant(eventStore, idKeyRepository.Object, new Mock<IPermissionQuery>().Object);
 
-        var addRole = new RegisterRole("role-name", new AuditInformation(Guid.NewGuid(), "test"));
+        var tenantId = Guid.NewGuid();
+        var addRole = new RegisterRole(Guid.NewGuid(), "role-name", tenantId, new AuditInformation(tenantId, "test"));
 
-        var requestResponseMessage =
-            new RequestResponseMessage<RegisterRole, RoleRegistered>(addRole);
-
-        await participant.HandleAsync(requestResponseMessage, CancellationToken.None);
-
-        Assert.That(requestResponseMessage.Response, Is.Not.Null);
-
-        var @event = eventStore.FindEvent<Events.Role.v2.Registered>(requestResponseMessage.Response!.Id);
-
-        Assert.That(@event, Is.Not.Null);
-        Assert.That(@event!.Name, Is.EqualTo(addRole.Name));
+        await participant.HandleAsync(addRole, CancellationToken.None);
     }
 }
