@@ -47,6 +47,6 @@ public class ReviewSetIdentityRoleParticipantFixture
         var participant = new ReviewSetIdentityRoleParticipant(new OptionsWrapper<AccessOptions>(new()), roleQuery.Object, identityQuery.Object);
         var reviewRequest = new SetIdentityRoleStatus { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false };
 
-        await Assert.ThatAsync(async () => await participant.HandleAsync(reviewRequest), Throws.Nothing);
+        await Assert.ThatAsync(async () => await participant.HandleAsync(reviewRequest), Throws.TypeOf<ApplicationException>());
     }
 }

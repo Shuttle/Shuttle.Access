@@ -42,7 +42,7 @@ public class RegisterIdentityParticipant(IOptions<AccessOptions> accessOptions, 
         }
         else
         {
-            id = Guid.NewGuid();
+            id =  message.Id ?? Guid.NewGuid();
             identity = new();
 
             await _idKeyRepository.AddAsync(id.Value, key, cancellationToken);

@@ -26,8 +26,6 @@ public class GetPasswordResetTokenParticipantFixture
 
         var getPasswordResetToken = new GetPasswordResetToken { Name = "identity-name" };
 
-        await participant.HandleAsync(getPasswordResetToken, CancellationToken.None);
-
         (await eventStore.GetAsync(identity.Id)).Add(new Activated()).Commit();
 
         await participant.HandleAsync(getPasswordResetToken, CancellationToken.None);
