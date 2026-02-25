@@ -11,6 +11,7 @@ public class Session
     public Guid? TenantId { get; set; }
     public string TenantName { get; set; } = string.Empty;
     public List<SessionTenants.Tenant> Tenants { get; set; } = [];
+    public Guid Id { get; set; }
 
     public class Specification
     {

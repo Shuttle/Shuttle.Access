@@ -13,7 +13,6 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
     public DbSet<Models.RolePermission> RolePermissions { get; set; } = null!;
     public DbSet<Models.Session> Sessions { get; set; } = null!;
     public DbSet<Models.SessionPermission> SessionPermissions { get; set; } = null!;
-    public DbSet<Models.SessionTokenExchange> SessionTokenExchange { get; set; } = null!;
     public DbSet<Models.Tenant> Tenants { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

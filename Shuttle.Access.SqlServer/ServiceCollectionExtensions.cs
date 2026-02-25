@@ -37,7 +37,6 @@ public static class ServiceCollectionExtensions
             services.AddScoped<ISessionQuery, SessionQuery>();
             services.AddScoped<ISessionRepository, SessionRepository>();
             services.AddScoped<ISessionService, SessionService>();
-            services.AddScoped<ISessionTokenExchangeRepository, SessionTokenExchangeRepository>();
             services.AddScoped<ITenantQuery, TenantQuery>();
 
             services.AddKeyedScoped<DbConnection>("AccessDbConnection", (sp, _) =>

@@ -5,7 +5,7 @@ namespace Shuttle.Access.Query;
 
 public class RoleSpecification : Specification<RoleSpecification>
 {
-    public Guid TenantId { get; private set; }
+    public Guid? TenantId { get; private set; }
     private readonly List<string> _names = [];
     private readonly List<Guid> _permissionIds = [];
     public string NameMatch { get; private set; } = string.Empty;

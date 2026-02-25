@@ -5,6 +5,7 @@ using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
+using RegisterRole = Shuttle.Access.Application.RegisterRole;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
@@ -12,15 +13,10 @@ public class TenantHandler(ITenantQuery tenantQuery, IRoleQuery roleQuery, IIden
     IMessageHandler<RegisterTenant>,
     IMessageHandler<RemoveTenant>
 {
-    private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
-    private readonly ITenantQuery _tenantQuery = Guard.AgainstNull(tenantQuery);
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
-
-    public async Task HandleAsync(RemoveTenant message, CancellationToken cancellationToken = default)
-    {
-        await _mediator.SendAsync(message, cancellationToken);
-    }
+    private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
+    private readonly ITenantQuery _tenantQuery = Guard.AgainstNull(tenantQuery);
 
     public async Task HandleAsync(RegisterTenant message, CancellationToken cancellationToken = default)
     {
@@ -60,7 +56,7 @@ public class TenantHandler(ITenantQuery tenantQuery, IRoleQuery roleQuery, IIden
 
         var auditInformation = new AuditInformation(message.Id.Value, "system");
 
-        var registerRoleMessage = new Application.RegisterRole(Guid.NewGuid(), "Access Administrator", message.Id.Value, auditInformation);
+        var registerRoleMessage = new RegisterRole(Guid.NewGuid(), "Access Administrator", message.Id.Value, auditInformation);
 
         using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
         {
@@ -72,25 +68,25 @@ public class TenantHandler(ITenantQuery tenantQuery, IRoleQuery roleQuery, IIden
         timeout = DateTime.UtcNow.AddSeconds(15);
         do
         {
-            role= (await _roleQuery.SearchAsync(new RoleSpecification().AddName("Access Administrator").WithTenantId(message.Id.Value), cancellationToken)).FirstOrDefault();
+            role = (await _roleQuery.SearchAsync(new RoleSpecification().AddName("Access Administrator").WithTenantId(message.Id.Value), cancellationToken)).FirstOrDefault();
 
-            if (role== null)
+            if (role == null)
             {
                 await Task.Delay(1000, cancellationToken);
             }
-        } while (role== null && DateTime.UtcNow < timeout);
+        } while (role == null && DateTime.UtcNow < timeout);
 
         if (role == null)
         {
             throw new ApplicationException("Timed out waiting for role 'Access Administrator' to be registered.");
         }
-        
+
         var registerAdministratorMessage = new SetIdentityTenantStatus
         {
             TenantId = message.Id.Value,
             IdentityId = identity.Id,
             Active = true,
-            AuditIdentityName =auditInformation.IdentityName,
+            AuditIdentityName = auditInformation.IdentityName,
             AuditTenantId = auditInformation.TenantId
         };
 
@@ -106,5 +102,10 @@ public class TenantHandler(ITenantQuery tenantQuery, IRoleQuery roleQuery, IIden
         };
 
         await _mediator.SendAsync(setIdentityRoleMessage, cancellationToken);
+    }
+
+    public async Task HandleAsync(RemoveTenant message, CancellationToken cancellationToken = default)
+    {
+        await _mediator.SendAsync(message, cancellationToken);
     }
 }

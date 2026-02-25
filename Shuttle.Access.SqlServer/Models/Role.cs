@@ -6,7 +6,7 @@ namespace Shuttle.Access.SqlServer.Models;
 
 [Table(nameof(Role), Schema = "access")]
 [PrimaryKey(nameof(TenantId), nameof(Id))]
-[Index(nameof(Name), IsUnique = true, Name = $"UX_{nameof(Role)}_{nameof(Name)}")]
+[Index(nameof(TenantId), nameof(Name), IsUnique = true, Name = $"UX_{nameof(TenantId)}_{nameof(Role)}_{nameof(Name)}")]
 public class Role
 {
     [Required]

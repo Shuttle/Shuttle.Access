@@ -135,11 +135,22 @@ public static class OAuthEndpoints
 
         var result = new List<OAuthProvider>();
 
-        foreach (var oauthProviderOptions in oauthOptions.Value.Providers.Where(item => item.Groups.Count == 0 || item.Groups.Contains(group)))
+        foreach (var pair in oauthOptions.Value.Providers)
         {
-            var oauthProvider = new OAuthProvider { Name = oauthProviderOptions.Name };
+            var providerOptions = pair.Value;
 
-            var path = Path.Combine(apiOptions.Value.ExtensionFolder, "OAuth", $"{oauthProviderOptions.Name}.svg");
+            if (providerOptions.Groups.Count > 0 && !providerOptions.Groups.Contains(group))
+            {
+                continue;
+            }
+
+            var oauthProvider = new OAuthProvider
+            {
+                Key = pair.Key,
+                DisplayName = providerOptions.DisplayName
+            };
+
+            var path = Path.Combine(apiOptions.Value.ExtensionFolder, "OAuth", $"{pair.Key}.svg");
 
             if (File.Exists(path))
             {

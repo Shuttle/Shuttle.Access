@@ -10,7 +10,6 @@ public class AccessOptions
 
     public TimeSpan SessionDuration { get; set; } = TimeSpan.FromHours(8);
     public TimeSpan SessionRenewalTolerance { get; set; } = TimeSpan.FromMinutes(15);
-    public TimeSpan SessionTokenExchangeValidityTimeSpan { get; set; } = TimeSpan.FromMinutes(1);
 
     public AsyncEvent<AuthenticationEventArgs> Authenticated { get; set; } = new();
     public AsyncEvent<AuthenticationEventArgs> AuthenticationUnknownIdentity { get; set; } = new();

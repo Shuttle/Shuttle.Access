@@ -1,28 +1,34 @@
 ﻿using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Primitives;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class AccessAuthorizationMiddleware : IMiddleware
+public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionContext sessionContext, ISessionService sessionService) : IMiddleware
 {
-    private readonly ISessionService _sessionService;
-    private readonly StringValues _wwwAuthenticate;
-
-    public AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionService sessionService)
-    {
-        var options = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
-
-        _sessionService = Guard.AgainstNull(sessionService);
-
-        _wwwAuthenticate = $"Shuttle.Access realm=\"{options.Realm}\", token=\"GUID\"; Bearer realm=\"{options.Realm}\"";
-    }
+    private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
+        var identityId = context.FindIdentityId();
+        var tenantId = context.FindTenantId();
+
+        if (identityId != null)
+        {
+            if (sessionContext is not SessionContext sessionContextProper)
+            {
+                throw new InvalidOperationException(Resources.SessionContextException);
+            }
+
+            sessionContextProper.WithSession(await Guard.AgainstNull(sessionService).FindAsync(new()
+            {
+                TenantId = tenantId,
+                IdentityId = identityId.Value
+            }));
+        }
+
         var endpoint = context.GetEndpoint();
 
         var permissionRequirement = endpoint?.Metadata.GetMetadata<AccessPermissionRequirement>();
@@ -40,18 +46,15 @@ public class AccessAuthorizationMiddleware : IMiddleware
             return;
         }
 
-        var tenantId = context.FindTenantId();
-        var identityId = context.FindIdentityId();
-
         if (tenantId == null || identityId == null)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.Headers.Append("WWW-Authenticate", _wwwAuthenticate);
+            context.Response.Headers.Append("WWW-Authenticate", $"Shuttle.Access realm=\"{_accessAuthorizationOptions.Realm}\", token=\"GUID\"; Bearer realm=\"{_accessAuthorizationOptions.Realm}\"");
             return;
         }
 
         if (permissionRequirement != null &&
-            !((await _sessionService.FindAsync(new() { TenantId = tenantId.Value, IdentityId =  identityId.Value}))?.HasPermission(permissionRequirement.Permission) ?? false))
+            !(sessionContext.Session?.HasPermission(permissionRequirement.Permission) ?? false))
         {
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;

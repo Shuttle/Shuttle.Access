@@ -42,13 +42,6 @@ type OAuthProvider = {
   svg: string;
 }
 
-type Application = {
-  name: string;
-  title: string;
-  description: string;
-  svg?: string;
-}
-
 const props = defineProps({
   applicationName: String
 })
@@ -59,7 +52,6 @@ const sessionStore = useSessionStore();
 
 const busy = ref(false);
 const oauthProviders = ref<OAuthProvider[]>([]);
-const application = ref<Application>();
 
 const state = reactive({
   identityName: "",
@@ -142,26 +134,9 @@ const refreshOAuthProviders = async () => {
   busy.value = true;
 
   try {
-    const response = await api.get("v1/oauth/providers")
+    const response = await api.get("v1/oauth/providers/access")
 
     oauthProviders.value = response?.data;
-  } finally {
-    busy.value = false;
-  }
-}
-
-const fetchApplication = async () => {
-  busy.value = true;
-
-  try {
-    const response = await api.get("v1/applications/" + props.applicationName)
-    application.value = response?.data;
-  } catch (error: any) {
-    alertStore.add({
-      message: error.toString(),
-      type: "error",
-      name: "fetch-application-exception"
-    });
   } finally {
     busy.value = false;
   }
@@ -174,9 +149,5 @@ onMounted(async () => {
 
   await sessionStore.signOut();
   await refreshOAuthProviders();
-
-  if (props.applicationName) {
-    await fetchApplication();
-  }
 })
 </script>

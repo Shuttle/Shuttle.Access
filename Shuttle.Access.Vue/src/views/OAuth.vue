@@ -63,7 +63,7 @@ onMounted(async () => {
       return;
     }
 
-    if (sessionResponse.tenants?.length ?? 0 > 1) {
+    if ((sessionResponse.tenants?.length ?? 0) > 1) {
       router.push({ name: "tenant-selection" });
       return;
     }

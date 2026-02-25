@@ -19,7 +19,6 @@ public class RegisterSession(string identityName)
     public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;
     public Session? Session { get; private set; }
     public Guid? SessionToken { get; private set; }
-    public string SessionTokenExchangeUrl { get; private set; } = string.Empty;
 
     public Guid? TenantId { get; set; }
 
@@ -64,7 +63,6 @@ public class RegisterSession(string identityName)
             RegistrationRequested = registrationRequested,
             IdentityId = Identity.Id,
             IdentityName = IdentityName,
-            SessionTokenExchangeUrl = SessionTokenExchangeUrl,
             ExpiryDate = Session.ExpiryDate,
             Permissions = Session.Permissions.Select(item => item.Name).ToList(),
             DateRegistered = Session.DateRegistered,
@@ -77,6 +75,11 @@ public class RegisterSession(string identityName)
     {
         SessionToken = Guard.AgainstEmpty(sessionToken);
         Session = Guard.AgainstNull(session);
+
+        if (TenantId.HasValue)
+        {
+            session.WithTenantId(TenantId.Value);
+        }
 
         Result = SessionRegistrationResult.Registered;
 
@@ -160,12 +163,6 @@ public class RegisterSession(string identityName)
             TenantId = _tenants[0].Id;
         }
 
-        return this;
-    }
-
-    public RegisterSession WithSessionTokenExchangeUrl(string sessionTokenExchangeUrl)
-    {
-        SessionTokenExchangeUrl = Guard.AgainstEmpty(sessionTokenExchangeUrl);
         return this;
     }
 

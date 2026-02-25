@@ -97,7 +97,6 @@ public class Program
             .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
-            .AddScoped<ISessionContext, SessionContext>()
             .AddAccess(accessBuilder =>
             {
                 webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Bind(accessBuilder.Options);
@@ -189,29 +188,6 @@ public class Program
         });
 
         app.UseAccessAuthorization();
-
-        app.Use(async (context, next) =>
-        {
-            var sessionContext = context.RequestServices.GetRequiredService<ISessionContext>();
-
-            var identityId = context.FindIdentityId();
-            var tenantId = context.FindTenantId();
-
-            if (identityId != null)
-            {
-                var sessionRepository = context.RequestServices.GetRequiredService<ISessionRepository>();
-
-                sessionContext.Session = await sessionRepository.FindAsync(new SessionSpecification()
-                    .WithTenantId(tenantId)
-                    .WithIdentityId(identityId.Value));
-            }
-            else
-            {
-                sessionContext.Session = null;
-            }
-
-            await next();
-        });
 
         app
             .MapIdentityEndpoints(versionSet)

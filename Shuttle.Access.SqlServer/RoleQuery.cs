@@ -29,7 +29,7 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
             .ToListAsync(cancellationToken);
     }
 
-    private IQueryable<Models.Role> GetQueryable(RoleSpecification roleSpecification)
+    private IQueryable<Models.Role> GetQueryable(RoleSpecification specification)
     {
         var queryable = _accessDbContext.Roles
             .Include(item => item.RolePermissions)
@@ -37,34 +37,39 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
             .AsNoTracking()
             .AsQueryable();
 
-        if (!string.IsNullOrEmpty(roleSpecification.NameMatch))
+        if (specification.TenantId.HasValue)
         {
-            queryable = queryable.Where(e => EF.Functions.Like(e.Name, $"%{roleSpecification.NameMatch}%"));
+            queryable = queryable.Where(e => e.TenantId == specification.TenantId.Value);
         }
 
-        if (roleSpecification.Names.Any())
+        if (!string.IsNullOrEmpty(specification.NameMatch))
         {
-            queryable = queryable.Where(e => roleSpecification.Names.Contains(e.Name));
+            queryable = queryable.Where(e => EF.Functions.Like(e.Name, $"%{specification.NameMatch}%"));
         }
 
-        if (roleSpecification.PermissionIds.Any())
+        if (specification.Names.Any())
         {
-            queryable = queryable.Where(e => e.RolePermissions.Any(rp => roleSpecification.PermissionIds.Contains(rp.PermissionId)));
+            queryable = queryable.Where(e => specification.Names.Contains(e.Name));
         }
 
-        if (roleSpecification.HasIds)
+        if (specification.PermissionIds.Any())
         {
-            queryable = queryable.Where(e => roleSpecification.Ids.Contains(e.Id));
+            queryable = queryable.Where(e => e.RolePermissions.Any(rp => specification.PermissionIds.Contains(rp.PermissionId)));
         }
 
-        if (roleSpecification.HasExcludedIds)
+        if (specification.HasIds)
         {
-            queryable = queryable.Where(e => !roleSpecification.ExcludedIds.Contains(e.Id));
+            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
         }
 
-        if (roleSpecification.MaximumRows > 0)
+        if (specification.HasExcludedIds)
         {
-            queryable = queryable.Take(roleSpecification.MaximumRows);
+            queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
+        }
+
+        if (specification.MaximumRows > 0)
+        {
+            queryable = queryable.Take(specification.MaximumRows);
         }
 
         return queryable;

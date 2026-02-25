@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shuttle.Access.SqlServer;
 
@@ -11,9 +12,11 @@ using Shuttle.Access.SqlServer;
 namespace Shuttle.Access.Data.Migrations
 {
     [DbContext(typeof(AccessDbContext))]
-    partial class AccessDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260225154651_SessionTokenExchangeDrop_Migration")]
+    partial class SessionTokenExchangeDrop_Migration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,7 +156,7 @@ namespace Shuttle.Access.Data.Migrations
 
                     b.HasKey("TenantId", "Id");
 
-                    b.HasIndex(new[] { "TenantId", "Name" }, "UX_TenantId_Role_Name")
+                    b.HasIndex(new[] { "Name" }, "UX_Role_Name")
                         .IsUnique();
 
                     b.ToTable("Role", "access");

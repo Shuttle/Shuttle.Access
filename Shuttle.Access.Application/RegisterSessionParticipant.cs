@@ -90,6 +90,11 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
         if (session != null)
         {
+            if (message.TenantId.HasValue)
+            {
+                session.WithTenantId(message.TenantId.Value);
+            }
+
             if (!session.HasExpired)
             {
                 var token = message.RegistrationType == SessionRegistrationType.Token

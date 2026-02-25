@@ -39,6 +39,7 @@ public static class ServiceCollectionExtensions
                 .AddSingleton<IValidateOptions<AccessAuthorizationOptions>, AccessAuthorizationOptionsValidator>()
                 .AddScoped<AccessAuthorizationMiddleware>()
                 .AddScoped<IHttpContextSessionService, HttpContextSessionService>()
+                .AddScoped<ISessionContext, SessionContext>()
                 .AddAuthentication(options =>
                 {
                     options.DefaultScheme = "Routing";

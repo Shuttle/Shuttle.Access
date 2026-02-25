@@ -77,29 +77,6 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> GetExchange(Guid token, ISessionTokenExchangeRepository sessionTokenExchangeRepository, ISessionQuery sessionQuery)
-    {
-        var sessionTokenExchange = await sessionTokenExchangeRepository.FindAsync(token);
-
-        if (sessionTokenExchange == null)
-        {
-            return Results.BadRequest();
-        }
-
-        await sessionTokenExchangeRepository.RemoveAsync(token);
-
-        if (sessionTokenExchange.HasExpired)
-        {
-            return Results.BadRequest();
-        }
-
-        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithToken(sessionTokenExchange.SessionToken.ToByteArray()).IncludePermissions())).FirstOrDefault();
-
-        return session == null
-            ? Results.BadRequest()
-            : Results.Ok(Map(session));
-    }
-
     private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
     {
         async Task<IResult> AttemptRegistration(Guid tenantId)
@@ -288,11 +265,6 @@ public static class SessionEndpoints
         app.MapDelete("/v{version:apiVersion}/sessions/{identityId:Guid}", Delete)
             .WithTags("Sessions")
             .RequirePermission(AccessPermissions.Sessions.Manage)
-            .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1);
-
-        app.MapGet("/v{version:apiVersion}/sessions/exchange/{token:Guid}", GetExchange)
-            .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
