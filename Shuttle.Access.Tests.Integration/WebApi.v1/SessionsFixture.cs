@@ -49,34 +49,54 @@ public class SessionsFixture
     [Test]
     public async Task Should_be_able_to_register_a_session_async()
     {
+        var identityId = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
         var factory = new FixtureWebApplicationFactory();
 
         var sessionToken = Guid.NewGuid();
-        var session = new Session(Guid.NewGuid(), sessionToken.ToByteArray(), Guid.NewGuid(), "identity-name", DateTimeOffset.Now, DateTimeOffset.Now)
+        var session = new Session(Guid.NewGuid(), sessionToken.ToByteArray(), identityId, "identity-name", DateTimeOffset.Now, DateTimeOffset.Now)
             .WithTenantId(Guid.NewGuid());
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>
             {
-                ((RegisterSession)message).Registered(sessionToken, session);
+                var registerSession = (RegisterSession)message;
+
+                registerSession.WithIdentity(new()
+                {
+                    Id = identityId,
+                    Name = "identity-name",
+                    IdentityTenants = [
+                    new ()
+                    {
+                        IdentityId = identityId,
+                        TenantId = tenantId,
+                        Tenant = new()
+                        {
+                            Id = tenantId,
+                            Name = "System",
+                            Status = 1
+                        }
+                    }]
+                });
+
+                registerSession.Registered(sessionToken, session);
             });
 
         var client = factory.GetAccessClient();
 
-        var response = await client.Sessions.PostAsync(
+        var sessionResponse = await client.Sessions.PostAsync(
             new Messages.v1.RegisterSession
             {
-                IdentityName = "identity",
+                IdentityName = "identity-name",
                 Password = "password"
             });
 
-        var sessionRegistered = response;
-
-        Assert.That(sessionRegistered, Is.Not.Null);
-        Assert.That(sessionRegistered.IsSuccessStatusCode, Is.True);
-        Assert.That(sessionRegistered.Content, Is.Not.Null);
-        Assert.That(sessionRegistered.Content!.Token, Is.EqualTo(sessionToken));
-        Assert.That(sessionRegistered.Content.IdentityName, Is.EqualTo(session.IdentityName));
+        Assert.That(sessionResponse, Is.Not.Null);
+        Assert.That(sessionResponse.IsSuccessStatusCode, Is.True);
+        Assert.That(sessionResponse.Content, Is.Not.Null);
+        Assert.That(sessionResponse.Content!.Token, Is.EqualTo(sessionToken));
+        Assert.That(sessionResponse.Content.IdentityName, Is.EqualTo(session.IdentityName));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()), Times.Once);
     }

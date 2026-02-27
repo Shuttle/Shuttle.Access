@@ -1,4 +1,5 @@
-﻿using Shuttle.Access.Application;
+﻿using System.Transactions;
+using Shuttle.Access.Application;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
@@ -40,9 +41,12 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
 
     private async Task<bool> ShouldDeferAsync(CancellationToken cancellationToken)
     {
-        var sequenceNumber = await _primitiveEventQuery.GetMaximumSequenceNumberAsync(new(), cancellationToken);
+        using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+        {
+            var sequenceNumber = await _primitiveEventQuery.GetMaximumSequenceNumberAsync(new(), cancellationToken);
 
-        return sequenceNumber == null || await _projectionQuery.HasPendingProjectionsAsync(sequenceNumber.Value, cancellationToken);
+            return sequenceNumber == null || await _projectionQuery.HasPendingProjectionsAsync(sequenceNumber.Value, cancellationToken);
+        }
     }
 
     public async Task HandleAsync(PermissionStatusSet message, CancellationToken cancellationToken = default)

@@ -8,9 +8,9 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> AdministratorCountAsync(CancellationToken cancellationToken = default)
+    public async ValueTask<int> AdministratorCountAsync(Guid tenantId, CancellationToken cancellationToken = default)
     {
-        return await _accessDbContext.IdentityRoles.CountAsync(item => item.Role.Name == "administrator", cancellationToken);
+        return await _accessDbContext.IdentityRoles.CountAsync(item => item.TenantId == tenantId && item.Role.Name == "Access Administrator", cancellationToken);
     }
 
     public async ValueTask<int> CountAsync(IdentitySpecification specification, CancellationToken cancellationToken = default)

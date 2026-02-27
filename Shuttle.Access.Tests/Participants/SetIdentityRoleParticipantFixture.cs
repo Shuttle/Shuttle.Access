@@ -1,7 +1,8 @@
-﻿using NUnit.Framework;
+﻿using Moq;
+using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
+using Shuttle.Access.SqlServer;
 using Shuttle.Recall;
 using RoleAdded = Shuttle.Access.Events.Identity.v1.RoleAdded;
 
@@ -14,12 +15,13 @@ public class SetIdentityRoleParticipantFixture
     public async Task Should_be_able_to_review_with_no_administrator_role_async()
     {
         var eventStore = new FixtureEventStore();
-        var participant = new SetIdentityRoleStatusParticipant(eventStore);
+        var participant = new SetIdentityRoleStatusParticipant(eventStore, new Mock<IRoleQuery>().Object, new Mock<IIdentityQuery>().Object);
 
         var identityId = Guid.NewGuid();
 
         var setIdentityRole = new SetIdentityRoleStatus
         {
+            AuditTenantId = Guid.NewGuid(),
             RoleId = Guid.NewGuid(),
             Active = true,
             IdentityId = identityId

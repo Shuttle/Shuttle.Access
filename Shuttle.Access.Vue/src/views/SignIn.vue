@@ -42,10 +42,6 @@ type OAuthProvider = {
   svg: string;
 }
 
-const props = defineProps({
-  applicationName: String
-})
-
 const { t } = useI18n({ useScope: 'global' });
 const alertStore = useAlertStore();
 const sessionStore = useSessionStore();
@@ -122,7 +118,7 @@ const oauthAuthenticate = async (name: string) => {
   busy.value = true;
 
   try {
-    const response = await api.get(`v1/oauth/authenticate/${name}${props.applicationName ? `/${props.applicationName}` : ""}`)
+    const response = await api.get(`v1/oauth/authenticate/Access/${name}`)
 
     window.location.replace(response?.data?.authorizationUrl);
   } finally {
@@ -134,7 +130,7 @@ const refreshOAuthProviders = async () => {
   busy.value = true;
 
   try {
-    const response = await api.get("v1/oauth/providers/access")
+    const response = await api.get("v1/oauth/providers/Access")
 
     oauthProviders.value = response?.data;
   } finally {

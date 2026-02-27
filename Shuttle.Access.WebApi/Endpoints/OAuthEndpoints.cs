@@ -18,12 +18,12 @@ public static class OAuthEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapGet("/v{version:apiVersion}/oauth/providers/{group?}", GetProviders)
+        app.MapGet("/v{version:apiVersion}/oauth/providers/{groupName}", GetProviders)
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{providerName}", GetAuthenticateProvider)
+        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{groupName}/{providerName}", GetAuthenticateProvider)
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
@@ -50,7 +50,7 @@ public static class OAuthEndpoints
         logger.LogDebug($"[oauth/identity request] : grant id = '{requestId}'");
 
         var data = await oauthService.GetDataAsync(grant, code);
-        var oauthProviderOptions = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value).GetProviderOptions(grant.ProviderName);
+        var oauthProviderOptions = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value).GetProviderOptions(grant.GroupName, grant.ProviderName);
 
         if (string.IsNullOrWhiteSpace(oauthProviderOptions.Data.IdentityPropertyName))
         {
@@ -82,8 +82,13 @@ public static class OAuthEndpoints
         return Results.Ok(registerSession.GetSessionResponse(requestRegistration));
     }
 
-    private static async Task<IResult> GetAuthenticateProvider(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string providerName, [FromQuery] string? redirectUri)
+    private static async Task<IResult> GetAuthenticateProvider(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string groupName, string providerName, [FromQuery] string? redirectUri)
     {
+        if (string.IsNullOrWhiteSpace(groupName))
+        {
+            return Results.BadRequest("No provider group name has been specified.");
+        }
+
         if (string.IsNullOrWhiteSpace(providerName))
         {
             return Results.BadRequest("No provider name has been specified.");
@@ -100,18 +105,18 @@ public static class OAuthEndpoints
             data.Add("RedirectUri", redirectUri!);
         }
 
-        var grant = await oauthService.RegisterAsync(providerName, data);
+        var grant = await oauthService.RegisterAsync(groupName, providerName, data);
 
         logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{providerName}'");
 
         var oauthOptionsValue = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
-        var oauthProviderOptions = oauthOptionsValue.GetProviderOptions(providerName);
+        var oauthProviderOptions = oauthOptionsValue.GetProviderOptions(groupName, providerName);
 
         var authorizationUrl = new StringBuilder(oauthProviderOptions.Authorize.Url);
 
         authorizationUrl.Append($"?response_type=code&client_id={oauthProviderOptions.ClientId}");
         authorizationUrl.Append($"&scope={oauthProviderOptions.Scope}");
-        authorizationUrl.Append($"&redirect_uri={(hasRedirectUri ? redirectUri : oauthOptionsValue.DefaultRedirectUri)}");
+        authorizationUrl.Append($"&redirect_uri={(hasRedirectUri ? redirectUri : oauthProviderOptions.RedirectUri)}");
 
         if (!string.IsNullOrWhiteSpace(oauthProviderOptions.Authorize.CodeChallengeMethod))
         {
@@ -128,29 +133,33 @@ public static class OAuthEndpoints
         return Results.Ok(new { AuthorizationUrl = authorizationUrl + $"&state={grant.Id}" });
     }
 
-    private static IResult GetProviders(IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, string group = "default")
+    private static IResult GetProviders(IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, string groupName = "Default")
     {
         Guard.AgainstNull(Guard.AgainstNull(apiOptions).Value);
         Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
 
         var result = new List<OAuthProvider>();
 
-        foreach (var pair in oauthOptions.Value.Providers)
+        if (!oauthOptions.Value.TryGetValue(groupName, out var providerGroupOptions))
+        {
+            return Results.BadRequest($"Could not find an provider group named '{groupName}'.");
+        }
+
+        foreach (var pair in providerGroupOptions.Providers)
         {
             var providerOptions = pair.Value;
 
-            if (providerOptions.Groups.Count > 0 && !providerOptions.Groups.Contains(group))
-            {
-                continue;
-            }
-
             var oauthProvider = new OAuthProvider
             {
-                Key = pair.Key,
-                DisplayName = providerOptions.DisplayName
+                Name = pair.Key,
+                DisplayName = string.IsNullOrWhiteSpace(providerOptions.DisplayName) ? pair.Key : providerOptions.DisplayName
             };
 
-            var path = Path.Combine(apiOptions.Value.ExtensionFolder, "OAuth", $"{pair.Key}.svg");
+            var fileName = string.IsNullOrWhiteSpace(providerOptions.SvgFileName)
+                ? pair.Key
+                : providerOptions.SvgFileName;
+
+            var path = Path.ChangeExtension(Path.Combine(apiOptions.Value.ExtensionFolder, "OAuth", fileName), ".svg");
 
             if (File.Exists(path))
             {

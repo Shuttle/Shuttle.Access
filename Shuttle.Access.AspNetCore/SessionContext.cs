@@ -2,12 +2,9 @@
 
 namespace Shuttle.Access.AspNetCore;
 
-internal class SessionContext : ISessionContext
+public class SessionContext : ISessionContext
 {
-    public Shuttle.Access.Messages.v1.Session? Session { get; private set; }
+    public Shuttle.Access.Messages.v1.Session? Session { get; set; }
 
-    internal void WithSession(Shuttle.Access.Messages.v1.Session? session)
-    {
-        Session = Guard.AgainstNull(session);
-    }
+    public bool IsAuthorized => Session is { TenantId: not null } && !string.IsNullOrWhiteSpace(Session?.IdentityName);
 }

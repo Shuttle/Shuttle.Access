@@ -163,6 +163,23 @@ public static class RoleEndpoints
 
     private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, IBus bus)
     {
+        if (!sessionContext.IsAuthorized)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (Guid.Empty.Equals(message.TenantId))
+        {
+            message.TenantId = sessionContext.Session!.TenantId!.Value;
+        }
+        else
+        {
+            if (!sessionContext.Session.HasPermission(AccessPermissions.Tenants.Manage))
+            {
+                return Results.Forbid();
+            }
+        }
+
         try
         {
             message.ApplyInvariants();

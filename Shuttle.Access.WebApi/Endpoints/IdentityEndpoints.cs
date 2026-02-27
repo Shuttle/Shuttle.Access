@@ -98,19 +98,19 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPut("/v{version:apiVersion}/identities/password", PutPassword)
+        app.MapPatch("/v{version:apiVersion}/identities/password", PatchPassword)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequireSession();
 
-        app.MapPut("/v{version:apiVersion}/identities/password/reset", PutPasswordReset)
+        app.MapPatch("/v{version:apiVersion}/identities/password/reset", PatchPasswordReset)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPut("/v{version:apiVersion}/identities/activate", PutActivate)
+        app.MapPatch("/v{version:apiVersion}/identities/activate", PatchActivate)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -207,7 +207,7 @@ public static class IdentityEndpoints
         return Results.Ok(message.PasswordResetToken);
     }
 
-    private static async Task<IResult> PutActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
+    private static async Task<IResult> PatchActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
     {
         try
         {
@@ -241,8 +241,13 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PutPasswordReset([FromBody] ResetPassword message, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
+    private static async Task<IResult> PatchPasswordReset([FromBody] ResetPassword message, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
     {
+        if (!sessionContext.IsAuthorized)
+        {
+            return Results.Unauthorized();
+        }
+
         try
         {
             message.ApplyInvariants();
@@ -250,13 +255,6 @@ public static class IdentityEndpoints
         catch (Exception ex)
         {
             return Results.BadRequest(ex.Message);
-        }
-
-        var identityId = httpContext.FindIdentityId();
-
-        if (identityId == null)
-        {
-            return Results.BadRequest(Resources.SessionTokenException);
         }
 
         await mediator.SendAsync(sessionContext.Audit(message));
@@ -264,7 +262,7 @@ public static class IdentityEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> PutPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository)
+    private static async Task<IResult> PatchPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository)
     {
         try
         {
@@ -275,16 +273,7 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        if (sessionContext.Session is not { TenantId: not null })
-        {
-            return Results.Unauthorized();
-        }
-
-        var session = await sessionRepository.FindAsync(new SessionSpecification()
-            .WithTenantId(sessionContext.Session.TenantId.Value)
-            .WithIdentityId(sessionContext.Session.IdentityId));
-
-        if (message.Id.HasValue && !(session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
+        if (sessionContext.Session is not { TenantId: not null } || message.Id.HasValue && !(sessionContext.Session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
         {
             return Results.Unauthorized();
         }
@@ -307,7 +296,17 @@ public static class IdentityEndpoints
             return Results.BadRequest(ex.Message);
         }
 
-        await mediator.SendAsync(message);
+        if (!message.Active)
+        {
+            var reviewIdentityRoleRemoval = new ReviewIdentityRoleRemoval(sessionContext.Session!.TenantId!.Value, message.RoleId);
+
+            await mediator.SendAsync(reviewIdentityRoleRemoval);
+
+            if (reviewIdentityRoleRemoval.IsLastAdministrator)
+            {
+                return Results.BadRequest("The user cannot be removed from the administrator role as this is the last administrator.");
+            }
+        }
 
         await bus.SendAsync(sessionContext.Audit(message));
 

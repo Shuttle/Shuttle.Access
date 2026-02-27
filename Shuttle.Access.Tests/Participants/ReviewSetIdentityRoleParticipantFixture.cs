@@ -1,11 +1,8 @@
-﻿using Microsoft.Extensions.Options;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -19,8 +16,8 @@ public class ReviewSetIdentityRoleParticipantFixture
 
         roleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(Enumerable.Empty<SqlServer.Models.Role>()));
 
-        var participant = new ReviewSetIdentityRoleParticipant(new OptionsWrapper<AccessOptions>(new()), roleQuery.Object, new Mock<IIdentityQuery>().Object);
-        var reviewRequest = new SetIdentityRoleStatus();
+        var participant = new ReviewIdentityRoleRemovalParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
+        var reviewRequest = new ReviewIdentityRoleRemoval(Guid.NewGuid(), Guid.NewGuid());
 
         await Assert.ThatAsync(async () => await participant.HandleAsync(reviewRequest), Throws.Nothing);
     }
@@ -42,11 +39,13 @@ public class ReviewSetIdentityRoleParticipantFixture
 
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.AdministratorCountAsync(CancellationToken.None)).Returns(ValueTask.FromResult(1));
+        identityQuery.Setup(m => m.AdministratorCountAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(ValueTask.FromResult(1));
 
-        var participant = new ReviewSetIdentityRoleParticipant(new OptionsWrapper<AccessOptions>(new()), roleQuery.Object, identityQuery.Object);
-        var reviewRequest = new SetIdentityRoleStatus { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false };
+        var participant = new ReviewIdentityRoleRemovalParticipant(roleQuery.Object, identityQuery.Object);
+        var reviewRequest = new ReviewIdentityRoleRemoval(Guid.NewGuid(), roleId);
 
-        await Assert.ThatAsync(async () => await participant.HandleAsync(reviewRequest), Throws.TypeOf<ApplicationException>());
+        await participant.HandleAsync(reviewRequest);
+
+        Assert.That(reviewRequest.IsLastAdministrator, Is.True);
     }
 }

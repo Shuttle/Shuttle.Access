@@ -6,10 +6,10 @@ namespace Shuttle.Access.RestClient.v1;
 
 public interface IIdentitiesApi
 {
-    [Put("/v1/identities/activate")]
+    [Patch("/v1/identities/activate")]
     Task<IApiResponse> ActivateAsync(ActivateIdentity message, CancellationToken cancellationToken = default);
 
-    [Put("/v1/identities/password")]
+    [Patch("/v1/identities/password")]
     Task<IApiResponse> ChangePasswordAsync(ChangePassword message, CancellationToken cancellationToken = default);
 
     [Delete("/v1/identities/{id}")]
@@ -24,7 +24,7 @@ public interface IIdentitiesApi
     [Post("/v1/identities")]
     Task<IApiResponse<Guid>> RegisterAsync(RegisterIdentity message, CancellationToken cancellationToken = default);
 
-    [Put("/v1/identities/password/reset")]
+    [Patch("/v1/identities/password/reset")]
     Task<IApiResponse> ResetPasswordAsync(ResetPassword message, CancellationToken cancellationToken = default);
 
     [Patch("/v1/identities/{id}/roles/{roleId}")]

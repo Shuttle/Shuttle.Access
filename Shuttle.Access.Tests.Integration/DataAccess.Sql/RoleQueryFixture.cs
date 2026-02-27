@@ -14,7 +14,9 @@ public class RoleQueryFixture : DataAccessFixture
         using (TransactionScopeFactory.Create())
         {
             await Assert.ThatAsync(() => query.SearchAsync(new()), Throws.Nothing);
-            Assert.That((await query.SearchAsync(new RoleSpecification().AddName("Access Administrator"))).Count(), Is.LessThan(2));
+            Assert.That((await query.SearchAsync(new RoleSpecification()
+                .WithTenantId(new AccessOptions().SystemTenantId)
+                .AddName("Access Administrator"))).Count(), Is.LessThan(2));
         }
     }
 }

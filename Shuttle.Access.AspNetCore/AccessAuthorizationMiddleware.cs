@@ -17,16 +17,11 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
 
         if (identityId != null)
         {
-            if (sessionContext is not SessionContext sessionContextProper)
-            {
-                throw new InvalidOperationException(Resources.SessionContextException);
-            }
-
-            sessionContextProper.WithSession(await Guard.AgainstNull(sessionService).FindAsync(new()
+            sessionContext.Session = await Guard.AgainstNull(sessionService).FindAsync(new()
             {
                 TenantId = tenantId,
                 IdentityId = identityId.Value
-            }));
+            });
         }
 
         var endpoint = context.GetEndpoint();
