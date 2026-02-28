@@ -45,9 +45,9 @@ public static class AccessBuilderExtensions
                 return new SqlConnection(options.ConnectionString);
             });
             
-            services.AddDbContext<AccessDbContext>((sp, options) =>
+            services.AddDbContext<AccessDbContext>((serviceProvider, options) =>
             {
-                var dbConnection = sp.GetKeyedService<DbConnection>("AccessDbConnection");
+                var dbConnection = serviceProvider.GetKeyedService<DbConnection>("AccessDbConnection");
 
                 if (dbConnection != null)
                 {
