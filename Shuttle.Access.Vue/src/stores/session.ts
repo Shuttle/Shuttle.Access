@@ -28,15 +28,15 @@ export const useSessionStore = defineStore("session", () => {
     );
     const storedToken = localStorage.getItem("shuttle-access.token");
 
-    if (storedIdentityName && storedToken) {
-      try {
+    try {
+      if (storedIdentityName && storedToken) {
         return await signIn({
           identityName: storedIdentityName,
           token: storedToken,
         });
-      } finally {
-        isInitialized.value = true;
       }
+    } finally {
+      isInitialized.value = true;
     }
 
     return Promise.resolve();

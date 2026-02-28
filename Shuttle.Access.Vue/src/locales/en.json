@@ -38,6 +38,7 @@
   "logo-svg": "Logo SVG",
   "logo-url": "Logo URL",
   "messages": {
+    "fetching-oauth-providers": "(fetching authentication providers)",
     "file-required": "File is required",
     "invalid-credentials": "Invalid credentials.",
     "invalid-json": "Invalid JSON.",

@@ -5,6 +5,7 @@ import App from "./App.vue";
 import router from "./router";
 
 import { useSessionStore } from "@/stores/session";
+import { useAlertStore } from "./stores/alert";
 
 const app = createApp(App);
 
@@ -12,10 +13,15 @@ registerPlugins(app);
 
 const sessionStore = useSessionStore();
 
-if (window.location.pathname !== "/oauth") {
+if (!sessionStore.isInitialized && window.location.pathname !== "/oauth") {
   try {
     await sessionStore.initialize();
-  } catch {
+  } catch (error: any) {
+    useAlertStore().add({
+      message: error.toString(),
+      type: "error",
+      name: "session-initialize",
+    });
     if (!window.location.pathname.startsWith("/signin")) {
       router.push({ path: "/signin" });
     }

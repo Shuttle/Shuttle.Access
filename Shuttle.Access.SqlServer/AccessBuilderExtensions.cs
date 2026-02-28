@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Shuttle.Access.SqlServer;
 
-public static class ServiceCollectionExtensions
+public static class AccessBuilderExtensions
 {
     extension(AccessBuilder accessBuilder)
     {
