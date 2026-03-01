@@ -91,14 +91,13 @@ const signIn = async () => {
   busy.value = true;
 
   try {
-    const response = await sessionStore.signIn({
+    const sessionResponse = await sessionStore.signIn({
       identityName: state.identityName,
       password: state.password
     });
 
-    if (response.sessionTokenExchangeUrl) {
-      window.location.replace(response.sessionTokenExchangeUrl);
-
+    if ((sessionResponse.tenants?.length ?? 0) > 1) {
+      router.push({ name: "tenant-selection" });
       return;
     }
 
@@ -114,11 +113,11 @@ const signIn = async () => {
   }
 }
 
-const oauthAuthenticate = async (name: string) => {
+const oauthAuthenticate = async (provider: string) => {
   busy.value = true;
 
   try {
-    const response = await api.get(`v1/oauth/authenticate/Access/${name}`)
+    const response = await api.get(`v1/oauth/authenticate/${provider}`)
 
     window.location.replace(response?.data?.authorizationUrl);
   } finally {
@@ -130,7 +129,7 @@ const refreshOAuthProviders = async () => {
   busy.value = true;
 
   try {
-    const response = await api.get("v1/oauth/providers/Access")
+    const response = await api.get("v1/oauth/providers/access")
 
     oauthProviders.value = response?.data;
   } finally {

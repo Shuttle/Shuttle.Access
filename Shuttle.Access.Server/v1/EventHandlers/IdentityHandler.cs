@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.Extensions.Logging;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;

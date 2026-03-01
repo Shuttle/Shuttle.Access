@@ -22,18 +22,18 @@ if (!sessionStore.isInitialized && window.location.pathname !== "/oauth") {
       type: "error",
       name: "session-initialize",
     });
-    if (!window.location.pathname.startsWith("/signin")) {
-      router.push({ path: "/signin" });
+    if (!window.location.pathname.startsWith("/sign-in")) {
+      router.push({ path: "/sign-in" });
     }
   }
 }
 
 if (
   window.location.pathname === "/" ||
-  window.location.pathname === "/signin"
+  window.location.pathname === "/sign-in"
 ) {
   router.push({
-    path: sessionStore.isAuthenticated ? "/dashboard" : "/signin",
+    path: sessionStore.isAuthenticated ? "/dashboard" : "/sign-in",
   });
 }
 

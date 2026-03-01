@@ -225,7 +225,7 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../views/TenantSelection.vue"),
   },
   {
-    path: "/signin/:applicationName?",
+    path: "/sign-in/:applicationName?",
     name: "sign-in",
     props: true,
     component: () => import("../views/SignIn.vue"),
@@ -260,9 +260,9 @@ router.beforeEach(async (to) => {
   if (
     !!to.meta.authenticated &&
     !sessionStore.isAuthenticated &&
-    to.name !== "signin"
+    to.name !== "sign-in"
   ) {
-    return { name: "signin" };
+    return { name: "sign-in" };
   }
 });
 

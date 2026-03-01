@@ -28,7 +28,7 @@ public class SessionQuery(AccessDbContext accessDbContext) : ISessionQuery
     {
         var queryable = _accessDbContext.Sessions.AsQueryable();
 
-        if (sessionSpecification.ShouldIncludeTenantId || sessionSpecification.TenantId.HasValue)
+        if (sessionSpecification.HasNullTenantId || sessionSpecification.TenantId.HasValue)
         {
             queryable = queryable.Where(e => e.TenantId == sessionSpecification.TenantId);
         }

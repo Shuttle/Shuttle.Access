@@ -28,9 +28,9 @@ public class SessionCache : ISessionCache
                 query = query.Where(e => e.Token.HasValue && e.Token.Value == specification.Token.Value);
             }
 
-            if (specification.TenantId.HasValue)
+            if (specification.TenantId.HasValue || specification.HasNullTenantId)
             {
-                query = query.Where(e => e.Session.TenantId == specification.TenantId.Value);
+                query = query.Where(e => e.Session.TenantId == specification.TenantId);
             }
 
             if (specification.IdentityId.HasValue)

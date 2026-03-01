@@ -21,6 +21,7 @@ public class Session
         public string IdentityName { get; set; } = string.Empty;
         public string IdentityNameMatch { get; set; } = string.Empty;
         public bool ShouldIncludePermissions { get; set; }
+        public bool HasNullTenantId { get; set; }
         public Guid? Token { get; set; }
     }
 }

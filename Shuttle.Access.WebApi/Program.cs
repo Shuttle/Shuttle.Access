@@ -6,7 +6,6 @@ using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;

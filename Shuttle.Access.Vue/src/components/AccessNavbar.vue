@@ -97,7 +97,7 @@ const items = computed(() => {
       });
     }
 
-    return result.length ? result : [{ title: t("sign-in"), props: { to: "/signin" } }];
+    return result.length ? result : [{ title: t("sign-in"), props: { to: "/sign-in" } }];
   });
 
   return result;

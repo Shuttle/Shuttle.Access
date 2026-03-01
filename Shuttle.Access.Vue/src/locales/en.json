@@ -26,7 +26,8 @@
     "invalid-credentials": "Invalid credentials.  Reason: {reason}",
     "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access.",
     "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}",
-    "tenant-selection": "Could not select tenant."
+    "tenant-selection": "Could not select tenant.",
+    "unauthorised": "You do not have access to the requested endpoint, or your session has expired."
   },
   "expiry-date": "Expiry date",
   "generated-password": "Generated password",

@@ -20,9 +20,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.3" />
-    <PackageReference Include="Shuttle.Recall" Version="21.0.1-rc1" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.1-rc1" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.1-rc1" />
+    <PackageReference Include="Shuttle.Recall" Version="21.0.2-rc1" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.2-rc1" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.2-rc1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,7 +15,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="6.1.0" />
     <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.1-rc1" />
     <PackageReference Include="Shuttle.Hopper" Version="21.0.1-rc1" />
-    <PackageReference Include="Shuttle.Recall" Version="21.0.1-rc1" />
+    <PackageReference Include="Shuttle.Recall" Version="21.0.2-rc1" />
   </ItemGroup>
 
   <ItemGroup>

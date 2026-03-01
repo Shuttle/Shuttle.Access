@@ -68,7 +68,7 @@ public class IdentityHandler(IMediator mediator) :
 
     public async Task HandleAsync(SetIdentityTenantStatus message, CancellationToken cancellationToken = default)
     {
-        await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
+         await _mediator.SendAsync(Guard.AgainstNull(message), cancellationToken);
     }
 
     public async Task HandleAsync(SetPassword message, CancellationToken cancellationToken = default)

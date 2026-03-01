@@ -17,11 +17,18 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
 
         if (identityId != null)
         {
-            sessionContext.Session = await Guard.AgainstNull(sessionService).FindAsync(new()
+            var specification = new Messages.v1.Session.Specification()
             {
                 TenantId = tenantId,
                 IdentityId = identityId.Value
-            });
+            };
+
+            if (!tenantId.HasValue)
+            {
+                specification.HasNullTenantId = true;
+            }
+
+            sessionContext.Session = await Guard.AgainstNull(sessionService).FindAsync(specification);
         }
 
         var endpoint = context.GetEndpoint();

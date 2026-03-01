@@ -113,7 +113,9 @@ export const useSessionStore = defineStore("session", () => {
       throw new Error("Invalid response data.");
     }
 
-    register(sessionResponse);
+    if (sessionResponse.result === "Registered") {
+      register(sessionResponse);
+    }
 
     return sessionResponse;
   };

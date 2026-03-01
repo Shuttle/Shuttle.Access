@@ -58,6 +58,7 @@ public class SessionService(ISessionCache sessionCache, IHashingService hashingS
 
         return sessionCache.Add(token, new()
         {
+            Id = session.Id,
             TenantId = session.TenantId,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName,

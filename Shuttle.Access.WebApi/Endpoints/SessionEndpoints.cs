@@ -65,9 +65,15 @@ public static class SessionEndpoints
 
             if (session != null)
             {
-                if (await sessionRepository.RemoveAsync(new SessionSpecification().WithIdentityId(identityId.Value)) > 0)
+                if (await sessionRepository.RemoveAsync(new SessionSpecification().AddId(session.Id)) > 0)
                 {
-                    await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
+                    await bus.PublishAsync(new SessionDeleted
+                    {
+                        Id = session.Id,
+                        IdentityId = session.IdentityId, 
+                        IdentityName = session.IdentityName,
+                        TenantId = session.TenantId
+                    });
                 }
             }
 

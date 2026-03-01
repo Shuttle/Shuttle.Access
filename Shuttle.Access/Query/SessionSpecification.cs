@@ -14,7 +14,7 @@ public class SessionSpecification : Specification<SessionSpecification>
 
     public bool ShouldIncludePermissions { get; private set; }
 
-    public bool ShouldIncludeTenantId { get; private set; }
+    public bool HasNullTenantId { get; private set; }
 
     public Guid? TenantId { get; private set; }
 
@@ -75,10 +75,15 @@ public class SessionSpecification : Specification<SessionSpecification>
         return this;
     }
 
-    public SessionSpecification WithTenantId(Guid? tenantId)
+    public SessionSpecification WithTenantId(Guid tenantId)
     {
-        TenantId = tenantId;
-        ShouldIncludeTenantId = true;
+        TenantId = Guard.AgainstEmpty(tenantId);
+        return this;
+    }
+
+    public SessionSpecification WithoutTenantId()
+    {
+        HasNullTenantId = true;
         return this;
     }
 

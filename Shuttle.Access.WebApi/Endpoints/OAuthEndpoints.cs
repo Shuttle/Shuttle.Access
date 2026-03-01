@@ -18,12 +18,12 @@ public static class OAuthEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapGet("/v{version:apiVersion}/oauth/providers/{groupName}", GetProviders)
+        app.MapGet("/v{version:apiVersion}/oauth/providers/{group}", GetProviders)
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{groupName}/{providerName}", GetAuthenticateProvider)
+        app.MapGet("/v{version:apiVersion}/oauth/authenticate/{provider}", GetAuthenticateProvider)
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
@@ -50,7 +50,7 @@ public static class OAuthEndpoints
         logger.LogDebug($"[oauth/identity request] : grant id = '{requestId}'");
 
         var data = await oauthService.GetDataAsync(grant, code);
-        var oauthProviderOptions = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value).GetProviderOptions(grant.GroupName, grant.ProviderName);
+        var oauthProviderOptions = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value).GetProviderOptions(grant.ProviderName);
 
         if (string.IsNullOrWhiteSpace(oauthProviderOptions.Data.IdentityPropertyName))
         {
@@ -82,19 +82,14 @@ public static class OAuthEndpoints
         return Results.Ok(registerSession.GetSessionResponse(requestRegistration));
     }
 
-    private static async Task<IResult> GetAuthenticateProvider(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string groupName, string providerName, [FromQuery] string? redirectUri)
+    private static async Task<IResult> GetAuthenticateProvider(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string provider, [FromQuery] string? redirectUri)
     {
-        if (string.IsNullOrWhiteSpace(groupName))
-        {
-            return Results.BadRequest("No provider group name has been specified.");
-        }
-
-        if (string.IsNullOrWhiteSpace(providerName))
+        if (string.IsNullOrWhiteSpace(provider))
         {
             return Results.BadRequest("No provider name has been specified.");
         }
 
-        logger.LogDebug($"[oauth/register] : provider = '{providerName}'");
+        logger.LogDebug($"[oauth/register] : provider = '{provider}'");
 
         var data = new Dictionary<string, string>();
 
@@ -105,12 +100,12 @@ public static class OAuthEndpoints
             data.Add("RedirectUri", redirectUri!);
         }
 
-        var grant = await oauthService.RegisterAsync(groupName, providerName, data);
+        var grant = await oauthService.RegisterAsync(provider, data);
 
-        logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{providerName}'");
+        logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{provider}'");
 
         var oauthOptionsValue = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
-        var oauthProviderOptions = oauthOptionsValue.GetProviderOptions(groupName, providerName);
+        var oauthProviderOptions = oauthOptionsValue.GetProviderOptions(provider);
 
         var authorizationUrl = new StringBuilder(oauthProviderOptions.Authorize.Url);
 
@@ -125,7 +120,7 @@ public static class OAuthEndpoints
                 return Results.BadRequest($"No 'CodeChallenge' has been generated for code challenge method '{oauthProviderOptions.Authorize.CodeChallengeMethod}'.");
             }
 
-            logger.LogDebug($"[oauth/code challenge] : grant id = '{grant.Id}' / provider = '{providerName}'");
+            logger.LogDebug($"[oauth/code challenge] : grant id = '{grant.Id}' / provider = '{provider}'");
 
             authorizationUrl.Append($"&code_challenge_method={oauthProviderOptions.Authorize.CodeChallengeMethod}&code_challenge={grant.CodeChallenge}");
         }
@@ -133,19 +128,14 @@ public static class OAuthEndpoints
         return Results.Ok(new { AuthorizationUrl = authorizationUrl + $"&state={grant.Id}" });
     }
 
-    private static IResult GetProviders(IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, string groupName = "Default")
+    private static IResult GetProviders(IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, string groupName = "")
     {
         Guard.AgainstNull(Guard.AgainstNull(apiOptions).Value);
         Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
 
         var result = new List<OAuthProvider>();
 
-        if (!oauthOptions.Value.TryGetValue(groupName, out var providerGroupOptions))
-        {
-            return Results.BadRequest($"Could not find an provider group named '{groupName}'.");
-        }
-
-        foreach (var pair in providerGroupOptions.Providers)
+        foreach (var pair in oauthOptions.Value.Providers.Where(item => string.IsNullOrWhiteSpace(groupName) || item.Value.Groups.Count == 0 || item.Value.Groups.Any(group=>  group.Equals(groupName,StringComparison.CurrentCultureIgnoreCase))))
         {
             var providerOptions = pair.Value;
 
