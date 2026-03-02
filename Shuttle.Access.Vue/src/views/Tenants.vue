@@ -17,8 +17,7 @@
         </a-strip>
       </template>
       <template v-slot:item.action="{ item }">
-        <v-btn :icon="mdiDelete" size="x-small"
-          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+        <v-btn :icon="mdiDelete" size="x-small" @click.stop="remove(item)" />
       </template>
       <template v-slot:item.status="{ item }">
         <v-switch :model-value="item.status === 1" color="primary" density="compact" hide-details
@@ -109,8 +108,10 @@ const add = () => {
   router.push({ name: "tenant" })
 }
 
-const remove = (item: Tenant) => {
-  confirmationStore.close();
+const remove = async (item: Tenant) => {
+  if (!(await confirmationStore.show({ messageKey: '_confirmation.remove' })).confirmed) {
+    return;
+  }
 
   busy.value = true;
 

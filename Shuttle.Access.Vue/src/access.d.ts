@@ -26,11 +26,24 @@ export type ChangePassword = {
   newPassword: string;
 };
 
+export type ConfirmationItem = {
+  name: string;
+  getConfirmationMessage: () => string;
+  touched?: boolean;
+  unwatch?: WatchHandle;
+};
+
 export type ConfirmationOptions = {
   item?: any;
-  onConfirm: (item?: any) => void;
-  message?: string;
-  title?: string;
+  messageKey?: string;
+  messageText?: string;
+  titleKey?: string;
+  titleText?: string;
+};
+
+export type ConfirmationResult = {
+  confirmed: boolean;
+  item?: any;
 };
 
 export type Credentials = {

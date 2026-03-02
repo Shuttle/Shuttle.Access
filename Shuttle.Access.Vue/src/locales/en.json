@@ -4,10 +4,6 @@
   "cancel": "Cancel",
   "change": "Change",
   "change-password": "Change password",
-  "confirmation-remove": {
-    "title": "Confirmation",
-    "message": "Are you sure that you want to remove the selected item(s)?"
-  },
   "dashboard": "Dashboard",
   "date-activated": "Date activated",
   "date-registered": "Date registered",
@@ -95,5 +91,9 @@
   "tenant-selection": "Tenant selection",
   "token": "Token",
   "identity-required": "No identities have been registered.  You will be registered as an administrator.",
-  "yes": "Yes"
+  "yes": "Yes",
+  "_confirmation": {
+    "title": "Confirmation",
+    "remove": "Are you sure that you want to remove the selected item(s)?"
+  }
 }

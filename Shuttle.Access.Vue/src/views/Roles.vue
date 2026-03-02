@@ -23,8 +23,7 @@
         <div class="sv-strip">
           <v-btn :icon="mdiShield" size="x-small" @click.stop="permissions(item)" />
           <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" />
-          <v-btn :icon="mdiDelete" size="x-small"
-            @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+          <v-btn :icon="mdiDelete" size="x-small" @click.stop="remove(item)" />
         </div>
       </template>
       <template #expanded-row="{ columns, item }">
@@ -124,7 +123,9 @@ const refresh = async () => {
 }
 
 const remove = async (item: Role) => {
-  confirmationStore.close();
+  if (!(await confirmationStore.show({ messageKey: '_confirmation.remove' })).confirmed) {
+    return;
+  }
 
   busy.value = true;
 

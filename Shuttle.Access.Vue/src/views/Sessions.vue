@@ -13,11 +13,10 @@
       :loading="busy" show-expand v-model:expanded="expanded" item-value="identityName" expand-on-click>
       <template v-slot:header.action="">
         <v-btn v-if="sessionStore.hasPermission(Permissions.Sessions.Manage)" :icon="mdiDeleteSweepOutline"
-          size="x-small" @click="confirmRemoveAll"></v-btn>
+          size="x-small" @click="removeAll()"></v-btn>
       </template>
       <template v-slot:item.action="{ item }">
-        <v-btn :icon="mdiDelete" size="x-small"
-          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+        <v-btn :icon="mdiDelete" size="x-small" @click.stop="remove(item)" />
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
@@ -126,8 +125,10 @@ const refresh = () => {
     });
 }
 
-const remove = (item: SessionData) => {
-  confirmationStore.close();
+const remove = async (item: SessionData) => {
+  if (!(await confirmationStore.show({ messageKey: '_confirmation.remove' })).confirmed) {
+    return;
+  }
 
   busy.value = true;
 
@@ -141,12 +142,10 @@ const remove = (item: SessionData) => {
     });
 }
 
-const confirmRemoveAll = () => {
-  confirmationStore.show({ onConfirm: removeAll });
-}
-
-const removeAll = () => {
-  confirmationStore.close();
+const removeAll = async () => {
+  if (!(await confirmationStore.show({ messageKey: '_confirmation.remove' })).confirmed) {
+    return;
+  }
 
   busy.value = true;
 
