@@ -29,7 +29,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
 
         if (model.TenantId.HasValue)
         {
-            session.WithTenantId(model.TenantId.Value);
+            session.WithTenantId(model.TenantId.Value, model.Tenant?.Name ?? string.Empty);
         }
 
         foreach (var sessionPermission in model.SessionPermissions)

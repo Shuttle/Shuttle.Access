@@ -1,13 +1,16 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionCache sessionCache, IAccessClient accessClient)
+public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionCache sessionCache, IAccessClient accessClient, ILogger<RestSessionService>? logger = null)
     : ISessionService, IContextSessionService
 {
+    private readonly ILogger<RestSessionService> _logger = logger ?? NullLogger<RestSessionService>.Instance;
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
     private readonly IAccessClient _accessClient = Guard.AgainstNull(accessClient);
     private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
@@ -20,10 +23,14 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         if (result == null)
         {
+            LogMessage.SessionUnavailable(_logger, "Pass-Through", "(self)");
+
             await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"), cancellationToken);
         }
         else
         {
+            LogMessage.SessionAvailable(_logger, result.IdentityName, string.IsNullOrWhiteSpace(result.TenantName) ? "(selection-required)" : result.TenantName);
+
             await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
         }
 
@@ -36,6 +43,8 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         if (session != null)
         {
+            LogMessage.SessionAvailable(_logger, session.IdentityName, string.IsNullOrWhiteSpace(session.TenantName) ? "(selection-required)" : session.TenantName);
+            
             await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
 
             return session;
@@ -65,6 +74,8 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 {
                     var result = _sessionCache.Add(specification.Token, sessionResponse.Content.Single());
 
+                    LogMessage.SessionAvailable(_logger, result.IdentityName, string.IsNullOrWhiteSpace(result.TenantName) ? "(selection-required)" : result.TenantName);
+
                     await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
                     return result;
@@ -88,6 +99,8 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
                 if (!registrationResponse.IsSuccessStatusCode || content == null || !content.IsSuccessResult())
                 {
+                    LogMessage.SessionUnavailable(_logger, "IdentityName", specification.IdentityName);
+
                     await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", specification.IdentityName), cancellationToken);
 
                     return null;
@@ -96,6 +109,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 var result = new Messages.v1.Session
                 {
                     TenantId = content.TenantId,
+                    TenantName =  content.TenantName,
                     IdentityId = content.IdentityId,
                     IdentityName = content.IdentityName,
                     DateRegistered = content.DateRegistered,
@@ -103,11 +117,15 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                     Permissions = content.Permissions.ToList()
                 };
 
+                LogMessage.SessionAvailable(_logger, result.IdentityName, string.IsNullOrWhiteSpace(result.TenantName) ? "(selection-required)" : result.TenantName);
+
                 await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
                 return _sessionCache.Add(content.Token, result);
             }
         }
+
+        LogMessage.SessionUnavailable(_logger, "IdentityName", specification.IdentityName);
 
         await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", specification.IdentityName), cancellationToken);
 

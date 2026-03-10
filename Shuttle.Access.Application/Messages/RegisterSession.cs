@@ -20,7 +20,8 @@ public class RegisterSession(string identityName)
     public Session? Session { get; private set; }
     public Guid? SessionToken { get; private set; }
 
-    public Guid? TenantId { get; set; }
+    public Guid? TenantId { get; private set; }
+    public string TenantName { get; private set; } = string.Empty;
 
     public RegisterSession DelegationSessionInvalid()
     {
@@ -67,6 +68,7 @@ public class RegisterSession(string identityName)
             Permissions = Session.Permissions.Select(item => item.Name).ToList(),
             DateRegistered = Session.DateRegistered,
             TenantId = Session.TenantId,
+            TenantName = Session.TenantName,
             Tenants = _tenants
         };
     }
@@ -78,7 +80,7 @@ public class RegisterSession(string identityName)
 
         if (TenantId.HasValue)
         {
-            session.WithTenantId(TenantId.Value);
+            session.WithTenantId(TenantId.Value, session.TenantName);
         }
 
         Result = SessionRegistrationResult.Registered;
@@ -161,6 +163,7 @@ public class RegisterSession(string identityName)
         if (_tenants.Count == 1)
         {
             TenantId = _tenants[0].Id;
+            TenantName = _tenants[0].Name;
         }
 
         return this;

@@ -19,7 +19,7 @@ public class RequestIdentityRegistrationParticipantFixture
         var now = DateTimeOffset.UtcNow;
         var identityId = Guid.NewGuid();
         var session = new Session( Guid.NewGuid(), Guid.NewGuid().ToByteArray(), identityId, "identity-name", now, now.AddSeconds(5))
-            .WithTenantId(_tenantId)
+            .WithTenantId(_tenantId, "system")
             .AddPermission(new(Guid.NewGuid(), AccessPermissions.Identities.Register))
             .AddPermission(new(Guid.NewGuid(), AccessPermissions.Identities.Activate));
         var sessionRepository = new Mock<ISessionRepository>();

@@ -12,13 +12,14 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionService sessionService)
-    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder, ISessionService sessionService)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Shuttle.Access";
     public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
     private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
+    private readonly ILogger _logger = Guard.AgainstNull(loggerFactory).CreateLogger<JwtBearerAuthenticationHandler>();
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -81,6 +82,8 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
             Status = StatusCodes.Status401Unauthorized,
             Detail = authenticateResult.Failure?.Message
         };
+
+        LogMessage.AuthenticationFailed(_logger, AuthenticationScheme, authenticateResult.Failure?.Message ?? "Unknown authentication failure.");
 
         await Response.WriteAsJsonAsync(problemDetails, (JsonSerializerOptions?)null, "application/problem+json");
     }

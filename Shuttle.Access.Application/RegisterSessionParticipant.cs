@@ -92,7 +92,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
         {
             if (message.TenantId.HasValue)
             {
-                session.WithTenantId(message.TenantId.Value);
+                session.WithTenantId(message.TenantId.Value, message.TenantName);
             }
 
             if (!session.HasExpired)

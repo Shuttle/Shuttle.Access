@@ -21,6 +21,7 @@ public class Session(Guid id, byte[] token, Guid identityId, string identityName
     public Guid? TenantId { get; private set; }
 
     public byte[] Token { get; private set; } = Guard.AgainstNull(token);
+    public string TenantName { get; private set; } = string.Empty;
 
     public Session AddPermission(Permission permission)
     {
@@ -58,9 +59,10 @@ public class Session(Guid id, byte[] token, Guid identityId, string identityName
         }
     }
 
-    public Session WithTenantId(Guid tenantId)
+    public Session WithTenantId(Guid tenantId, string tenantName)
     {
         TenantId = Guard.AgainstEmpty(tenantId);
+        TenantName = Guard.AgainstEmpty(tenantName);
         return this;
     }
 

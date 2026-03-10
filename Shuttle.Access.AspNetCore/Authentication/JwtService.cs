@@ -1,5 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
@@ -7,9 +9,10 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IHttpClientFactory httpClientFactory)
+public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IHttpClientFactory httpClientFactory, ILogger<JwtService>? logger)
     : IJwtService
 {
+    private readonly ILogger<JwtService> _logger = logger ?? NullLogger<JwtService>.Instance;
     private static readonly MemoryCache Cache = new(new MemoryCacheOptions());
     private readonly AccessAuthorizationOptions _accessAuthorizationOptionsOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
     private readonly IHttpClientFactory _httpClientFactory = Guard.AgainstNull(httpClientFactory);
@@ -22,10 +25,12 @@ public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorization
 
         if (issuerOptions == null)
         {
+            LogMessage.JwtIssuerOptionsUnavailable(_logger, _accessAuthorizationOptionsOptions.InsecureModeEnabled ? token : $"iss={jsonWebToken.Issuer}, sub={jsonWebToken.Subject}, jti={jsonWebToken.Id}");
             await _accessAuthorizationOptionsOptions.JwtIssuerOptionsUnavailable.InvokeAsync(new(jsonWebToken));
             return string.Empty;
         }
 
+        LogMessage.JwtIssuerOptionsAvailable(_logger, _accessAuthorizationOptionsOptions.InsecureModeEnabled ? token : $"iss={jsonWebToken.Issuer}, sub={jsonWebToken.Subject}, jti={jsonWebToken.Id}");
         await _accessAuthorizationOptionsOptions.JwtIssuerOptionsAvailable.InvokeAsync(new(jsonWebToken, issuerOptions));
 
         Claim? claim = null;

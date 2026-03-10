@@ -12,8 +12,8 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory logger, UrlEncoder encoder)
-    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory loggerFactory, UrlEncoder encoder)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Bearer";
@@ -22,8 +22,9 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
     private readonly IContextSessionService _contextSessionService = Guard.AgainstNull(contextSessionService);
     private readonly IJwtService _jwtService = Guard.AgainstNull(jwtService);
     private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
+    private readonly ILogger _logger = Guard.AgainstNull(loggerFactory).CreateLogger<JwtBearerAuthenticationHandler>();
 
-    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync(string? tenantId)
+    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync()
     {
         var session = await _contextSessionService.FindAsync();
 
@@ -61,7 +62,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
 
         if (_accessAuthorizationOptions.PassThrough)
         {
-            return await GetContextAuthenticateResultAsync(tenantIdHeader);
+            return await GetContextAuthenticateResultAsync();
         }
 
         if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
@@ -136,6 +137,8 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             Status = StatusCodes.Status401Unauthorized,
             Detail = authenticateResult.Failure?.Message
         };
+
+        LogMessage.AuthenticationFailed(_logger, AuthenticationScheme, authenticateResult.Failure?.Message ?? "Unknown authentication failure.");
 
         await Response.WriteAsJsonAsync(problemDetails, (JsonSerializerOptions?)null, "application/problem+json");
     }

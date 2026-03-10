@@ -55,7 +55,7 @@ public class SessionsFixture
 
         var sessionToken = Guid.NewGuid();
         var session = new Session(Guid.NewGuid(), sessionToken.ToByteArray(), identityId, "identity-name", DateTimeOffset.Now, DateTimeOffset.Now)
-            .WithTenantId(Guid.NewGuid());
+            .WithTenantId(Guid.NewGuid(), "system");
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>

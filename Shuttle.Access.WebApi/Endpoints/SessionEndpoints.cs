@@ -300,7 +300,8 @@ public static class SessionEndpoints
             ExpiryDate = message.Session.ExpiryDate,
             Permissions = message.Session.Permissions.Select(item => item.Name).ToList(),
             DateRegistered = message.Session.DateRegistered,
-            TenantId = message.Session.TenantId!.Value
+            TenantId = message.Session.TenantId!.Value,
+            TenantName = message.Session.TenantName
         });
     }
 
