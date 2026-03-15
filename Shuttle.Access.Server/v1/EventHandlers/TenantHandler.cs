@@ -59,7 +59,7 @@ public class TenantHandler(ILogger<TenantHandler> logger, AccessDbContext access
             return;
         }
 
-        model.Status = context.Event.Status;
+        model.Status = (int)context.Event.Status;
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);
 

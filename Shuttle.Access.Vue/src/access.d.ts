@@ -144,7 +144,6 @@ export type RegisterIdentity = {
   name: string;
   description: string;
   password: string;
-  system: string;
 };
 
 export type RegisterPermission = {

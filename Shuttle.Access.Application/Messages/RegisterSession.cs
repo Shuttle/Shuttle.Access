@@ -1,4 +1,4 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿using System.Diagnostics.CodeAnalysis;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
@@ -7,11 +7,14 @@ public class RegisterSession(string identityName)
 {
     private Guid? _authenticationToken;
     private string _password = string.Empty;
-    private List<Messages.v1.Tenant> _tenants = [];
+    private List<Query.Tenant> _tenants = [];
 
+    public IEnumerable<Query.Tenant> Tenants => _tenants.AsReadOnly();
+
+    [MemberNotNullWhen(true, nameof(Session))]
     public bool HasSession => Session != null && SessionToken.HasValue;
 
-    public SqlServer.Models.Identity? Identity { get; set; }
+    public Query.Identity? Identity { get; set; }
 
     public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
@@ -21,8 +24,6 @@ public class RegisterSession(string identityName)
     public Guid? SessionToken { get; private set; }
 
     public Guid? TenantId { get; private set; }
-    public string TenantName { get; private set; } = string.Empty;
-
     public RegisterSession DelegationSessionInvalid()
     {
         Result = SessionRegistrationResult.DelegationSessionInvalid;
@@ -47,32 +48,6 @@ public class RegisterSession(string identityName)
             : _password;
     }
 
-    public SessionResponse GetSessionResponse(bool registrationRequested)
-    {
-        if (Identity == null || Session == null)
-        {
-            return new()
-            {
-                Result = Result.ToString()
-            };
-        }
-
-        return new()
-        {
-            Token = SessionToken,
-            Result = Result.ToString(),
-            RegistrationRequested = registrationRequested,
-            IdentityId = Identity.Id,
-            IdentityName = IdentityName,
-            ExpiryDate = Session.ExpiryDate,
-            Permissions = Session.Permissions.Select(item => item.Name).ToList(),
-            DateRegistered = Session.DateRegistered,
-            TenantId = Session.TenantId,
-            TenantName = Session.TenantName,
-            Tenants = _tenants
-        };
-    }
-
     public RegisterSession Registered(Guid sessionToken, Session session)
     {
         SessionToken = Guard.AgainstEmpty(sessionToken);
@@ -80,7 +55,19 @@ public class RegisterSession(string identityName)
 
         if (TenantId.HasValue)
         {
-            session.WithTenantId(TenantId.Value, session.TenantName);
+            var tenantName = Identity?.Tenants.FirstOrDefault(item => item.Id == TenantId)?.Name;
+
+            if (!string.IsNullOrWhiteSpace(tenantName))
+            {
+                session.WithTenantId(TenantId.Value);
+            }
+        }
+        else
+        {
+            if (Identity?.Tenants.Count == 1)
+            {
+                session.WithTenantId(Identity.Tenants.First().Id);
+            }
         }
 
         Result = SessionRegistrationResult.Registered;
@@ -140,18 +127,18 @@ public class RegisterSession(string identityName)
         return this;
     }
 
-    public RegisterSession WithIdentity(SqlServer.Models.Identity identity)
+    public RegisterSession WithIdentity(Query.Identity identity)
     {
         Identity = Guard.AgainstNull(identity);
 
-        _tenants = Identity.IdentityTenants
-            .Where(item => item.Tenant.Status == 1)
-            .Select(item => new Messages.v1.Tenant
+        _tenants = Identity.Tenants
+            .Where(item => item.Status == TenantStatus.Active)
+            .Select(item => new Query.Tenant
             {
-                Id = item.TenantId,
-                Name = item.Tenant.Name,
-                LogoSvg = item.Tenant.LogoSvg,
-                LogoUrl = item.Tenant.LogoUrl
+                Id = item.Id,
+                Name = item.Name,
+                LogoSvg = item.LogoSvg,
+                LogoUrl = item.LogoUrl
             })
             .ToList();
 
@@ -163,7 +150,6 @@ public class RegisterSession(string identityName)
         if (_tenants.Count == 1)
         {
             TenantId = _tenants[0].Id;
-            TenantName = _tenants[0].Name;
         }
 
         return this;

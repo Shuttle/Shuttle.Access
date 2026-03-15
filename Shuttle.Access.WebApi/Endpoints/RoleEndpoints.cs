@@ -4,29 +4,28 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
+using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
 
 public static class RoleEndpoints
 {
-    private static Messages.v1.Role Map(SqlServer.Models.Role role)
+    private static Contracts.v1.Role Map(Query.Role role)
     {
         return new()
         {
             Id = role.Id,
             Name = role.Name,
-            Permissions = role.RolePermissions.Select(item => new Messages.v1.Role.Permission
+            Permissions = role.Permissions.Select(item => new Contracts.v1.Permission
             {
-                Id = item.PermissionId,
-                Name = item.Permission.Name,
-                RoleId = role.Id,
-                Description = item.Permission.Description,
-                Status = item.Permission.Status
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                Status = (int)item.Status
             }).ToList()
         };
     }
@@ -83,7 +82,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/upload", PostBulkUpload)
+        app.MapPost("/v{version:apiVersion}/roles/upload", PostUpload)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -100,19 +99,30 @@ public static class RoleEndpoints
 
     private static async Task<IResult> PostDownload(List<Guid> ids, IRoleQuery roleQuery)
     {
-        if (!ids.Any())
+        if (ids.Count == 0)
         {
             return Results.BadRequest();
         }
 
-        var roles = (await roleQuery.SearchAsync(new RoleSpecification().IncludePermissions().AddIds(ids))).ToList();
+        var roles = (await roleQuery.SearchAsync(new Query.Role.Specification().IncludePermissions().AddIds(ids))).ToList();
 
-        var result = roles.Select(item => new { item.Name, Permissions = item.RolePermissions.Select(permission => new RegisterPermission { Name = permission.Permission.Name, Description = permission.Permission.Description, Status = permission.Permission.Status }).ToList() });
+        var result = roles.Select(item => new Contracts.v1.Role
+        {
+            Id = item.Id,
+            Name = item.Name, 
+            Permissions = item.Permissions.Select(permission => new Contracts.v1.Permission
+            {
+                Id = permission.Id,
+                Name = permission.Name, 
+                Description = permission.Description, 
+                Status = (int)permission.Status
+            }).ToList()
+        });
 
         return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(result)), "application/json", "roles.json");
     }
 
-    private static async Task<IResult> PostBulkUpload(List<RegisterRole> messages, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> PostUpload(List<Contracts.v1.RegisterRole> messages, ISessionContext sessionContext, [FromServices] IBus bus)
     {
         if (!messages.Any())
         {
@@ -123,7 +133,13 @@ public static class RoleEndpoints
         {
             foreach (var registerPermission in message.Permissions)
             {
-                await bus.SendAsync(sessionContext.Audit(registerPermission));
+                await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterPermission
+                {
+                    Id = registerPermission.Id ?? Guid.NewGuid(),
+                    Name = registerPermission.Name,
+                    Description = registerPermission.Description,
+                    Status = registerPermission.Status
+                }));
             }
 
             await bus.SendAsync(message);
@@ -141,7 +157,7 @@ public static class RoleEndpoints
             return Results.BadRequest();
         }
 
-        var messages = JsonSerializer.Deserialize<List<RegisterRole>>(form.Files[0].OpenReadStream());
+        var messages = JsonSerializer.Deserialize<List<Contracts.v1.RegisterRole>>(form.Files[0].OpenReadStream());
 
         if (messages == null || !messages.Any())
         {
@@ -152,7 +168,13 @@ public static class RoleEndpoints
         {
             foreach (var registerPermission in message.Permissions)
             {
-                await bus.SendAsync(sessionContext.Audit(registerPermission));
+                await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterPermission
+                {
+                    Id = registerPermission.Id ?? Guid.NewGuid(),
+                    Name = registerPermission.Name,
+                    Description = registerPermission.Description,
+                    Status = registerPermission.Status
+                }));
             }
 
             await bus.SendAsync(message);
@@ -161,7 +183,7 @@ public static class RoleEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> Post(Contracts.v1.RegisterRole message, ISessionContext sessionContext, IBus bus)
     {
         if (!sessionContext.IsAuthorized)
         {
@@ -180,18 +202,19 @@ public static class RoleEndpoints
             }
         }
 
-        try
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterRole
         {
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        sessionContext.Audit(message);
-
-        await bus.SendAsync(sessionContext.Audit(message));
+            Id = message.Id ?? Guid.NewGuid(),
+            Name = message.Name,
+            TenantId = message.TenantId,
+            Permissions = message.Permissions.Select(item => new Messages.v1.RegisterPermission
+            {
+                Id = item.Id ?? Guid.NewGuid(),
+                Name = item.Name,
+                Description = item.Description,
+                Status = item.Status
+            }).ToList()
+        }));
 
         return Results.Accepted();
     }
@@ -205,7 +228,7 @@ public static class RoleEndpoints
 
     private static async Task<IResult> Get(string value, [FromServices] IRoleQuery roleQuery)
     {
-        var specification = new RoleSpecification();
+        var specification = new Query.Role.Specification();
 
         if (Guid.TryParse(value, out var id))
         {
@@ -223,7 +246,7 @@ public static class RoleEndpoints
             : Results.BadRequest();
     }
 
-    private static async Task<IResult> PostSearch(ISessionContext sessionContext, [FromServices] IRoleQuery roleQuery, [FromBody] Messages.v1.Role.Specification specification)
+    private static async Task<IResult> PostSearch(ISessionContext sessionContext, [FromServices] IRoleQuery roleQuery, [FromBody] Contracts.v1.Role.Specification specification)
     {
         if (sessionContext.Session == null ||
             sessionContext.Session.TenantId == null)
@@ -231,7 +254,7 @@ public static class RoleEndpoints
             return Results.BadRequest();
         }
 
-        var search = new RoleSpecification().WithTenantId(sessionContext.Session.TenantId.Value);
+        var search = new Query.Role.Specification().WithTenantId(sessionContext.Session.TenantId.Value);
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {
@@ -248,16 +271,7 @@ public static class RoleEndpoints
 
     private static async Task<IResult> PostPermissionsAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, [FromServices] IRoleQuery roleQuery)
         {
-            try
-            {
-                identifiers.ApplyInvariants();
-            }
-            catch (Exception ex)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-
-            var permissions = (await roleQuery.PermissionsAsync(new RoleSpecification().AddId(id).AddPermissionIds(identifiers.Values))).ToList();
+            var permissions = (await roleQuery.PermissionsAsync(new Query.Role.Specification().AddId(id).AddPermissionIds(identifiers.Values))).ToList();
 
             var result = from permissionId in identifiers.Values
                 select new IdentifierAvailability<Guid>
@@ -269,36 +283,25 @@ public static class RoleEndpoints
             return Results.Ok(result);
         }
 
-    private static async Task<IResult> PatchPermissions(Guid id, [FromBody] SetRolePermissionStatus message, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> PatchPermissions(Guid id, [FromBody] Contracts.v1.SetRolePermissionStatus message, ISessionContext sessionContext, [FromServices] IBus bus)
     {
-        try
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetRolePermissionStatus
         {
-            message.RoleId = id;
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        await bus.SendAsync(sessionContext.Audit(message));
+            RoleId = id,
+            PermissionId = message.PermissionId,
+            Active = message.Active
+        }));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] SetRoleName message, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] Contracts.v1.SetRoleName message, ISessionContext sessionContext, [FromServices] IBus bus)
     {
-        try
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetRoleName
         {
-            message.Id = id;
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        await bus.SendAsync(sessionContext.Audit(message));
+            Id = id,
+            Name = message.Name
+        }));
 
         return Results.Accepted();
     }

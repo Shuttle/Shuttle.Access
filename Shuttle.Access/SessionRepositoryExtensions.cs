@@ -1,5 +1,4 @@
-﻿using Shuttle.Access.Query;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
 
@@ -7,7 +6,7 @@ public static class SessionRepositoryExtensions
 {
     extension(ISessionRepository sessionRepository)
     {
-        public async Task<Session?> FindAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
+        public async Task<Session?> FindAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default)
         {
             var sessions = (await Guard.AgainstNull(sessionRepository).SearchAsync(specification, cancellationToken)).ToList();
 

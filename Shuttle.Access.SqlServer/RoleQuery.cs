@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
@@ -8,28 +7,47 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(Query.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification).CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Models.Permission>> PermissionsAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Query.Permission>> PermissionsAsync(Query.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         var model = await GetQueryable(specification)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
 
-        return model == null ? [] : model.RolePermissions.Select(e => e.Permission).ToList();
+        return model == null ? [] : model.RolePermissions.Select(e => e.Permission).Select(e=> new Query.Permission
+        {
+            Id = e.Id,
+            Name = e.Name,
+            Description = e.Description,
+            Status = (PermissionStatus)e.Status
+        }).ToList();
     }
 
-    public async Task<IEnumerable<Models.Role>> SearchAsync(RoleSpecification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Query.Role>> SearchAsync(Query.Role.Specification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(specification)
+        return (await GetQueryable(specification)
             .OrderBy(e => e.Name)
             .Distinct()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken))
+            .Select(e => new Query.Role
+            {
+                Id = e.Id,
+                Name = e.Name,
+                TenantId = e.TenantId,
+                Permissions = e.RolePermissions.Select(e => e.Permission).Select(e => new Query.Permission
+                {
+                    Id = e.Id,
+                    Name = e.Name,
+                    Description = e.Description,
+                    Status = (PermissionStatus)e.Status
+                }).ToList()
+            });
     }
 
-    private IQueryable<Models.Role> GetQueryable(RoleSpecification specification)
+    private IQueryable<Models.Role> GetQueryable(Query.Role.Specification specification)
     {
         var queryable = _accessDbContext.Roles
             .Include(item => item.RolePermissions)

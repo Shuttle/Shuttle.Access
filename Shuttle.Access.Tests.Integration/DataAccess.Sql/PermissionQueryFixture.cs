@@ -1,6 +1,5 @@
 ﻿using NUnit.Framework;
 using Shuttle.Access.Query;
-using Shuttle.Access.SqlServer;
 
 namespace Shuttle.Access.Tests.Integration.DataAccess.Sql;
 
@@ -13,7 +12,7 @@ public class PermissionQueryFixture : DataAccessFixture
 
         using (TransactionScopeFactory.Create())
         {
-            await Assert.ThatAsync(() => query.SearchAsync(new PermissionSpecification().AddId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED"))), Throws.Nothing);
+            await Assert.ThatAsync(() => query.SearchAsync(new Query.Permission.Specification().AddId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED"))), Throws.Nothing);
         }
     }
 }

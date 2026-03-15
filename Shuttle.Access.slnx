@@ -28,6 +28,7 @@
   <Project Path="Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj" />
   <Project Path="Shuttle.Access.Tests.Integration/Shuttle.Access.Tests.Integration.csproj" />
   <Project Path="Shuttle.Access.Tests/Shuttle.Access.Tests.csproj" />
+  <Project Path="Shuttle.Access.WebApi.Contracts/Shuttle.Access.WebApi.Contracts.csproj" Id="a2094662-7af7-46b0-bd89-b4d6899c0c7a" />
   <Project Path="Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj" />
   <Project Path="Shuttle.Access/Shuttle.Access.csproj" />
 </Solution>

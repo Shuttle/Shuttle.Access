@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
@@ -8,20 +7,28 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(TenantSpecification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(Query.Tenant.Specification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification).CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Models.Tenant>> SearchAsync(TenantSpecification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Query.Tenant>> SearchAsync(Query.Tenant.Specification specification, CancellationToken cancellationToken = default)
     {
-        return await GetQueryable(specification)
+        return (await GetQueryable(specification)
             .OrderBy(e => e.Name)
             .Distinct()
-            .ToListAsync(cancellationToken);
+            .ToListAsync(cancellationToken))
+            .Select(e => new Query.Tenant
+            {
+                Id = e.Id,
+                Name = e.Name,
+                Status = (TenantStatus) e.Status,
+                LogoUrl = e.LogoUrl,
+                LogoSvg = e.LogoSvg
+            });
     }
 
-    private IQueryable<Models.Tenant> GetQueryable(TenantSpecification specification)
+    private IQueryable<Models.Tenant> GetQueryable(Query.Tenant.Specification specification)
     {
         var queryable = _accessDbContext.Tenants
             .AsNoTracking()

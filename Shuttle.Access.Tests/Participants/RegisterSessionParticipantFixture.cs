@@ -2,8 +2,6 @@
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.Query;
-using Shuttle.Access.SqlServer;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -52,11 +50,11 @@ public class RegisterSessionParticipantFixture
 
         var now = DateTimeOffset.UtcNow;
         var session = new Session( Guid.NewGuid(), sessionTokenHash, Guid.NewGuid(), IdentityName, now, now.AddMinutes(1))
-            .AddPermission(new(Guid.NewGuid(), AccessPermissions.Sessions.Register)).WithTenantId(_tenantId, "system");
+            .AddPermission(new(Guid.NewGuid(), AccessPermissions.Sessions.Register, string.Empty, PermissionStatus.Active)).WithTenantId(_tenantId);
 
-        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
+        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Query.Session { IdentityId = sessionToken } }.AsEnumerable()));
 
-        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).ReturnsAsync([session]);
+        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).ReturnsAsync([session]);
 
         var identityQuery = MockIdentitySearchAsync();
 
@@ -81,9 +79,9 @@ public class RegisterSessionParticipantFixture
         var sessionRepository = new Mock<ISessionRepository>();
         var sessionQuery = new Mock<ISessionQuery>();
 
-        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
+        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Query.Session { IdentityId = sessionToken } }.AsEnumerable()));
 
-        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).ReturnsAsync([new Session(Guid.NewGuid(), sessionTokenHash, Guid.NewGuid(), IdentityName, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(1)).WithTenantId(_tenantId, "system")]);
+        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).ReturnsAsync([new Session(Guid.NewGuid(), sessionTokenHash, Guid.NewGuid(), IdentityName, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddMinutes(1)).WithTenantId(_tenantId)]);
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, hashingService, sessionRepository.Object, identityQuery.Object);
 
@@ -95,16 +93,12 @@ public class RegisterSessionParticipantFixture
     {
         var result = new Mock<IIdentityQuery>();
 
-        result.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new[] { new SqlServer.Models.Identity()
+        result.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new[] { new Query.Identity
         {
-            IdentityTenants = [new()
+            Tenants = [new()
             {
-                TenantId = _tenantId,
-                Tenant = new()
-                {
-                    Id = _tenantId,
-                    Status = 1
-                }
+                Id = _tenantId,
+                Status = TenantStatus.Active
             }]
         } }.AsEnumerable()));
 
@@ -158,11 +152,11 @@ public class RegisterSessionParticipantFixture
 
         var now = DateTimeOffset.UtcNow;
         var sessionToken = Guid.NewGuid();
-        var session = new Session( Guid.NewGuid(), sessionToken.ToByteArray(), Guid.NewGuid(), IdentityName, now, now.AddMinutes(-5)).WithTenantId(_tenantId, "system");
+        var session = new Session(Guid.NewGuid(), sessionToken.ToByteArray(), Guid.NewGuid(), IdentityName, now, now.AddMinutes(-5)).WithTenantId(_tenantId);
 
-        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new SqlServer.Models.Session { IdentityId = sessionToken } }.AsEnumerable()));
+        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new[] { new Query.Session { IdentityId = sessionToken } }.AsEnumerable()));
 
-        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), CancellationToken.None)).ReturnsAsync([session]);
+        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).ReturnsAsync([session]);
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new Mock<IAuthorizationService>().Object, new HashingService(), sessionRepository.Object, identityQuery.Object);
 

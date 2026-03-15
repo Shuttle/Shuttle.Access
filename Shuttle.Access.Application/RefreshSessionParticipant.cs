@@ -1,6 +1,4 @@
-﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
 
@@ -18,7 +16,7 @@ public class RefreshSessionParticipant(IBus bus, ISessionCache sessionCache, IAu
     {
         Guard.AgainstNull(message);
 
-        var session = await _sessionRepository.FindAsync(new SessionSpecification().AddId(message.Id), cancellationToken);
+        var session = await _sessionRepository.FindAsync(new Query.Session.Specification().AddId(message.Id), cancellationToken);
 
         if (session is not { TenantId: not null })
         {
@@ -29,19 +27,11 @@ public class RefreshSessionParticipant(IBus bus, ISessionCache sessionCache, IAu
 
         foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, session.TenantId.Value, cancellationToken))
         {
-            session.AddPermission(new(permission.Id, permission.Name));
+            session.AddPermission(new(permission.Id, permission.Name, permission.Description, permission.Status));
         }
 
         await _sessionRepository.SaveAsync(session, cancellationToken);
 
         _sessionCache.Flush(session.IdentityId);
-
-        await _bus.PublishAsync(new SessionRefreshed
-        {
-            Id = session.Id,
-            TenantId = session.TenantId.Value,
-            IdentityId = session.IdentityId,
-            IdentityName = session.IdentityName
-        }, cancellationToken: cancellationToken);
     }
 }

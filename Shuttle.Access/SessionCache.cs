@@ -1,11 +1,11 @@
 ﻿namespace Shuttle.Access;
 
-public class SessionCache : ISessionCache
+public class SessionCache(IHashingService hashingService) : ISessionCache
 {
     private readonly Lock _lock = new();
     private readonly List<SessionEntry> _sessionEntries = [];
 
-    private Messages.v1.Session? ActiveSessionOnly(Messages.v1.Session? session)
+    private Query.Session? ActiveSessionOnly(Query.Session? session)
     {
         if (session == null || DateTimeOffset.UtcNow <= session.ExpiryDate)
         {
@@ -17,7 +17,7 @@ public class SessionCache : ISessionCache
         return null;
     }
 
-    public Messages.v1.Session? Find(Messages.v1.Session.Specification specification)
+    public Query.Session? Find(Query.Session.Specification specification)
     {
         lock (_lock)
         {
@@ -25,7 +25,12 @@ public class SessionCache : ISessionCache
 
             if (specification.Token.HasValue)
             {
-                query = query.Where(e => e.Token.HasValue && e.Token.Value == specification.Token.Value);
+                specification.WithTokenHash(hashingService.Sha256($"{specification.Token.Value:D}"));
+            }
+
+            if (specification.TokenHash != null)
+            {
+                query = query.Where(e => e.Session.TokenHash == specification.TokenHash);
             }
 
             if (specification.TenantId.HasValue || specification.HasNullTenantId)
@@ -58,12 +63,12 @@ public class SessionCache : ISessionCache
         }
     }
 
-    public Messages.v1.Session Add(Guid? token, Messages.v1.Session session)
+    public Query.Session Add(Query.Session session)
     {
         lock (_lock)
         {
             _sessionEntries.RemoveAll(item => item.Session.TenantId == session.TenantId && item.Session.IdentityId.Equals(session.IdentityId));
-            _sessionEntries.Add(new(token, session));
+            _sessionEntries.Add(new(session));
 
             return session;
         }
@@ -85,10 +90,9 @@ public class SessionCache : ISessionCache
         }
     }
 
-    private class SessionEntry(Guid? token, Messages.v1.Session session)
+    private class SessionEntry(Query.Session session)
     {
-        public Messages.v1.Session Session { get; } = session;
-        public Guid? Token { get; } = token;
+        public Query.Session Session { get; } = session;
         public DateTimeOffset ExpiryDate { get; } = DateTimeOffset.UtcNow.AddMinutes(5);
     }
 }

@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using System.Net;
+using Shuttle.Access.Query;
 
 namespace Shuttle.Access.AspNetCore;
 
@@ -20,22 +20,18 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
 
         if (identityId != null)
         {
-            var specification = new Messages.v1.Session.Specification()
-            {
-                TenantId = tenantId,
-                IdentityId = identityId.Value
-            };
+            var specification = new Query.Session.Specification().WithIdentityId(identityId.Value);
 
             if (!tenantId.HasValue)
             {
-                specification.HasNullTenantId = true;
+                specification.WithoutTenantId();
             }
 
             sessionContext.Session = await Guard.AgainstNull(sessionService).FindAsync(specification);
 
             if (sessionContext.Session == null)
             {
-                LogMessage.NoActiveSession(logger, identityId.Value, tenantId);
+                LogMessage.NoActiveSession(_logger, identityId.Value, tenantId);
             }
         }
 
@@ -67,7 +63,7 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
             sessionContext.Session != null &&
             !sessionContext.Session.HasPermission(permissionRequirement.Permission))
         {
-            LogMessage.PermissionDenied(logger, sessionContext.Session.IdentityName, sessionContext.Session.TenantName, permissionRequirement.Permission);
+            LogMessage.PermissionDenied(_logger, sessionContext.Session.IdentityName, sessionContext.Session.TenantName, permissionRequirement.Permission);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }

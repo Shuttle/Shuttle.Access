@@ -26,11 +26,7 @@ public class RequireSessionAttribute : TypeFilterAttribute
                 return;
             }
 
-            if (_sessionService.FindAsync(new()
-                {
-                    TenantId = tenantId.Value,
-                    IdentityId = identityId.Value
-                }).GetAwaiter().GetResult() == null)
+            if (_sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value)).GetAwaiter().GetResult() == null)
             {
                 SetUnauthorized(context);
             }

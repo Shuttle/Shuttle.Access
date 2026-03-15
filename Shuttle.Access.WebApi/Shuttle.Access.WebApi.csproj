@@ -31,6 +31,8 @@
     <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
     <ProjectReference Include="..\Shuttle.Access.AspNetCore\Shuttle.Access.AspNetCore.csproj" />
     <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
+    <ProjectReference Include="..\Shuttle.Access.SqlServer\Shuttle.Access.SqlServer.csproj" />
+    <ProjectReference Include="..\Shuttle.Access.WebApi.Contracts\Shuttle.Access.WebApi.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

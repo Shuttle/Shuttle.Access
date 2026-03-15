@@ -2,5 +2,5 @@
 
 public interface ISessionService
 {
-    Task<Messages.v1.Session?> FindAsync(Messages.v1.Session.Specification specification, CancellationToken cancellationToken = default);
+    Task<Query.Session?> FindAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default);
 }

@@ -4,7 +4,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Messages.v1;
+using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.RestClient;
@@ -142,7 +142,7 @@ public class BearerAuthenticationInterceptor : IAuthenticationInterceptor
             }
 
             _token = $"token={sessionResponse.Token:D}";
-            _tokenExpiryDate = sessionResponse.ExpiryDate;
+            _tokenExpiryDate = sessionResponse.Session.ExpiryDate;
 
             httpRequestMessage.Headers.Add("Shuttle.Access", _token);
         }

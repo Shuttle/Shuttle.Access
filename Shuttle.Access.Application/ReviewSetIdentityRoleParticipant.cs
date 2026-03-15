@@ -1,6 +1,4 @@
-﻿using Shuttle.Access.Query;
-using Shuttle.Access.SqlServer;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
@@ -14,7 +12,7 @@ public class ReviewIdentityRoleRemovalParticipant(IRoleQuery roleQuery, IIdentit
     {
         Guard.AgainstNull(message);
 
-        var roles = (await _roleQuery.SearchAsync(new RoleSpecification()
+        var roles = (await _roleQuery.SearchAsync(new Query.Role.Specification()
             .WithTenantId(message.TenantId)
             .AddName("Access Administrator"), cancellationToken)).ToList();
 

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.SqlServer;
 using Shuttle.Access.WebApi;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -39,17 +38,17 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
         
         webHostBuilder?.Invoke(builder);
 
-        var session = new Messages.v1.Session
+        var session = new Query.Session
         {
             IdentityId = Guid.NewGuid(),
             IdentityName = "identity-name",
-            Permissions = ["*"],
+            Permissions = [new() { Name = "*" }],
             DateRegistered = DateTimeOffset.UtcNow,
             ExpiryDate = DateTimeOffset.UtcNow.Add(TimeSpan.FromHours(1)),
             TenantId = Guid.NewGuid()
         };
 
-        SessionService.Setup(m => m.FindAsync(It.IsAny<Messages.v1.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(session)!);
+        SessionService.Setup(m => m.FindAsync(It.IsAny<Query.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(session)!);
 
         SessionContext.Setup(m => m.Session).Returns(session);
         SessionContext.Setup(m => m.IsAuthorized).Returns(true);

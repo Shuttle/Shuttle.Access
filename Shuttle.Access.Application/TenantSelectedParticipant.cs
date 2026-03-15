@@ -1,33 +1,29 @@
 ﻿using Microsoft.Extensions.Options;
-using Shuttle.Access.Query;
-using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class TenantSelectedParticipant(IOptions<AccessOptions> accessOptions, ISessionRepository sessionRepository, ITenantQuery tenantQuery, IAuthorizationService authorizationService, ISessionCache sessionCache) : IParticipant<TenantSelected>
+public class TenantSelectedParticipant(IOptions<AccessOptions> accessOptions, ISessionRepository sessionRepository, ISessionQuery sessionQuery, IAuthorizationService authorizationService, ISessionCache sessionCache) : IParticipant<TenantSelected>
 {
     public async Task HandleAsync(TenantSelected message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
 
-        var tenant = (await Guard.AgainstNull(tenantQuery).SearchAsync(new TenantSpecification().AddId(message.TenantId), cancellationToken)).FirstOrDefault().GuardAgainstRecordNotFound(message.TenantId);
-
         var session = await Guard.AgainstNull(sessionRepository).GetAsync(message.SessionId, cancellationToken);
 
-        session.WithTenantId(message.TenantId, tenant.Name);
+        session.WithTenantId(message.TenantId);
 
         foreach (var permission in await Guard.AgainstNull(authorizationService).GetPermissionsAsync(session.IdentityName, message.TenantId, cancellationToken))
         {
-            session.AddPermission(new(permission.Id, permission.Name));
+            session.AddPermission(new(permission.Id, permission.Name, permission.Description, permission.Status));
         }
 
         session.Renew(DateTimeOffset.UtcNow.Add(accessOptions.Value.SessionDuration));
 
         await sessionRepository.SaveAsync(session, cancellationToken);
 
-        message.WithSession(session);
+        message.WithSession((await sessionQuery.SearchAsync(new Query.Session.Specification().AddId(session.Id), cancellationToken)).First());
 
         sessionCache.Flush(session.IdentityId);
     }

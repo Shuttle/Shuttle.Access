@@ -10,12 +10,7 @@ public static class EventStreamBuilderExtensions
         public EventStreamBuilder Audit(IAuditInformation auditInformation)
         {
             Guard.AgainstNull(auditInformation);
-            return eventStreamBuilder.Audit(auditInformation.TenantId, auditInformation.IdentityName);
-        }
-        public EventStreamBuilder Audit(Messages.v1.AuditMessage auditMessage)
-        {
-            Guard.AgainstNull(auditMessage);
-            return eventStreamBuilder.Audit(auditMessage.AuditTenantId, auditMessage.AuditIdentityName);
+            return eventStreamBuilder.Audit(auditInformation.AuditTenantId, auditInformation.AuditIdentityName);
         }
 
         public EventStreamBuilder Audit(Guid auditTenantId, string auditIdentityName)

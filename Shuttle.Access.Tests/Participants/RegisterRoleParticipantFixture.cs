@@ -1,9 +1,8 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.SqlServer;
+using Shuttle.Access.Events.Role.v2;
 using Shuttle.Recall.SqlServer.Storage;
-using RegisterRole = Shuttle.Access.Application.RegisterRole;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -18,12 +17,17 @@ public class RegisterRoleParticipantFixture
 
         idKeyRepository.Setup(m => m.ContainsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(await ValueTask.FromResult(false));
 
-        var participant =
-            new RegisterRoleParticipant(eventStore, idKeyRepository.Object, new Mock<IPermissionQuery>().Object);
+        var participant = new RegisterRoleParticipant(eventStore, idKeyRepository.Object);
 
         var tenantId = Guid.NewGuid();
-        var addRole = new RegisterRole(Guid.NewGuid(), "role-name", tenantId, new AuditInformation(tenantId, "test"));
+        var registerRole = new RegisterRole(Guid.NewGuid(), tenantId, "role-name", tenantId, "test");
 
-        await participant.HandleAsync(addRole, CancellationToken.None);
+        await participant.HandleAsync(registerRole, CancellationToken.None);
+
+        var @event = eventStore.FindEvent<Registered>(registerRole.Id);
+
+        Assert.That(@event, Is.Not.Null);
+
+        Assert.That(registerRole.Name, Is.EqualTo(registerRole.Name));
     }
 }

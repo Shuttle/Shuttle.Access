@@ -38,10 +38,7 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
             return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
         }
 
-        var session = await _sessionService.FindAsync(new()
-        {
-            Token = sessionToken
-        });
+        var session = await _sessionService.FindAsync(new Query.Session.Specification().WithToken(sessionToken));
 
         if (session == null)
         {

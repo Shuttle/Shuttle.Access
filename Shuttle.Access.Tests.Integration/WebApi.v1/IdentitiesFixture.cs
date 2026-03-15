@@ -3,13 +3,13 @@ using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
+using RegisterIdentity = Shuttle.Access.Application.RegisterIdentity;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
 public class IdentitiesFixture
 {
-    private static SqlServer.Models.Identity CreateIdentity()
+    private static Query.Identity CreateIdentity()
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -21,15 +21,12 @@ public class IdentitiesFixture
             DateActivated = now,
             GeneratedPassword = "generated-password",
             RegisteredBy = "system",
-            IdentityRoles =
+            Roles =
             [
                 new()
                 {
-                    RoleId = Guid.NewGuid(),
-                    Role = new()
-                    {
-                        Name = "role"
-                    }
+                    Id = Guid.NewGuid(),
+                    Name = "role"
                 }
             ]
         };
@@ -42,9 +39,9 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), It.IsAny<CancellationToken>())).Returns(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(
             Task.FromResult(
-                new List<SqlServer.Models.Identity>
+                new List<Query.Identity>
                 {
                     identity
                 }.AsEnumerable()));
@@ -107,8 +104,8 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(
-            Task.FromResult(new List<SqlServer.Models.Identity>
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), CancellationToken.None)).Returns(
+            Task.FromResult(new List<Query.Identity>
             {
                 identity
             }.AsEnumerable()));
@@ -124,7 +121,7 @@ public class IdentitiesFixture
         Assert.That(response.Content.DateActivated, Is.EqualTo(identity.DateActivated));
         Assert.That(response.Content.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
         Assert.That(response.Content.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
-        Assert.That(response.Content.Roles.Find(item => item.Id == identity.IdentityRoles.First().RoleId), Is.Not.Null);
+        Assert.That(response.Content.Roles.Find(item => item.Id == identity.Roles.First().Id), Is.Not.Null);
     }
 
     [Test]
@@ -141,7 +138,7 @@ public class IdentitiesFixture
                 ((GetPasswordResetToken)message).WithPasswordResetToken(token);
             });
 
-        var response = await factory.GetAccessClient().Identities.GetPasswordResetTokenAsync("identity");
+        var response = await factory.GetAccessClient().Identities.GetPasswordResetTokenAsync(Guid.NewGuid());
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
@@ -159,7 +156,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Query.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
                 new List<Guid>
                 {
@@ -197,11 +194,7 @@ public class IdentitiesFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestIdentityRegistration>(), CancellationToken.None))
-            .Callback<object, CancellationToken>((message, _) =>
-            {
-                ((RequestIdentityRegistration)message).Allowed("test", true);
-            });
+        factory.Bus.Setup(m => m.SendAsync(It.IsAny<Messages.v1.RegisterIdentity>(), null, It.IsAny<CancellationToken>()));
 
         var response = await factory.GetAccessClient().Identities.RegisterAsync(new()
         {
@@ -212,7 +205,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RequestIdentityRegistration>(), CancellationToken.None), Times.Once);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<Messages.v1.RegisterIdentity>(), null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
@@ -245,8 +238,8 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<IdentitySpecification>(), CancellationToken.None)).Returns(Task.FromResult(
-            new List<SqlServer.Models.Identity>
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
+            new List<Query.Identity>
             {
                 identity
             }.AsEnumerable()));
@@ -267,7 +260,7 @@ public class IdentitiesFixture
         Assert.That(responseIdentity.DateActivated, Is.EqualTo(identity.DateActivated));
         Assert.That(responseIdentity.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
         Assert.That(responseIdentity.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
-        Assert.That(responseIdentity.Roles.Find(item => item.Id == identity.IdentityRoles.First().RoleId), Is.Not.Null);
+        Assert.That(responseIdentity.Roles.Find(item => item.Id == identity.Roles.First().Id), Is.Not.Null);
     }
 
     [Test]
@@ -382,7 +375,7 @@ public class IdentitiesFixture
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<GetPasswordResetToken>(), CancellationToken.None))
             .Callback<object, CancellationToken>((_, _) => throw new ApplicationException("reason"));
 
-        var response = await factory.GetAccessClient().Identities.GetPasswordResetTokenAsync("identity");
+        var response = await factory.GetAccessClient().Identities.GetPasswordResetTokenAsync(Guid.NewGuid());
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.False);
@@ -448,7 +441,7 @@ public class IdentitiesFixture
         var factory = new FixtureWebApplicationFactory();
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<ReviewIdentityRoleRemoval>(), It.IsAny<CancellationToken>()))
-            .Callback<object, CancellationToken>((message, _) => ((ReviewIdentityRoleRemoval)message).LastAdministrator()); 
+            .Callback<object, CancellationToken>((message, _) => ((ReviewIdentityRoleRemoval)message).LastAdministrator());
 
         var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
         {

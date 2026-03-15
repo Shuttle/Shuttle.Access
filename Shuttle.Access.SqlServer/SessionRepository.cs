@@ -1,15 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer.Models;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.SqlServer;
 
-public class SessionRepository(AccessDbContext accessDbContext) : ISessionRepository
+public class SessionRepository(AccessDbContext accessDbContext, IHashingService hashingService) : ISessionRepository
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async Task<IEnumerable<Session>> SearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Session>> SearchAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 
@@ -29,25 +28,25 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
 
         if (model.TenantId.HasValue)
         {
-            session.WithTenantId(model.TenantId.Value, model.Tenant?.Name ?? string.Empty);
+            session.WithTenantId(model.TenantId.Value);
         }
 
         foreach (var sessionPermission in model.SessionPermissions)
         {
-            session.AddPermission(new(sessionPermission.PermissionId, sessionPermission.Permission.Name));
+            session.AddPermission(new(sessionPermission.PermissionId, sessionPermission.Permission.Name, sessionPermission.Permission.Description, (PermissionStatus)sessionPermission.Permission.Status));
         }
 
         return session;
     }
 
-    public async ValueTask<int> RemoveAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> RemoveAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(specification);
 
         var hasCriteria =
             specification.TenantId.HasValue ||
             specification.IdentityId.HasValue ||
-            specification.Token != null ||
+            specification.TokenHash != null ||
             !string.IsNullOrWhiteSpace(specification.IdentityName);
 
         if (!hasCriteria)
@@ -113,7 +112,7 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
         return GetSession((await _accessDbContext.Sessions.FirstOrDefaultAsync(e => e.Id == id, cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(id));
     }
 
-    private async Task<IEnumerable<Models.Session>> ModelSearchAsync(SessionSpecification specification, CancellationToken cancellationToken = default)
+    private async Task<IEnumerable<Models.Session>> ModelSearchAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default)
     {
         var queryable = _accessDbContext.Sessions
             .Include(item => item.Tenant)
@@ -127,9 +126,14 @@ public class SessionRepository(AccessDbContext accessDbContext) : ISessionReposi
             queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
         }
 
-        if (specification.Token != null)
+        if (specification.Token.HasValue)
         {
-            queryable = queryable.Where(e => e.Token == specification.Token);
+            specification.WithTokenHash(hashingService.Sha256($"{specification.Token.Value:D}"));
+        }
+
+        if (specification.TokenHash != null)
+        {
+            queryable = queryable.Where(e => e.Token == specification.TokenHash);
         }
 
         if (!string.IsNullOrWhiteSpace(specification.IdentityName))

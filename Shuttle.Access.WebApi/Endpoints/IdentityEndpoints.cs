@@ -3,10 +3,9 @@ using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.SqlServer;
-using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
+using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Core.TransactionScope;
@@ -16,30 +15,6 @@ namespace Shuttle.Access.WebApi;
 
 public static class IdentityEndpoints
 {
-    private static Messages.v1.Identity Map(SqlServer.Models.Identity identity)
-    {
-        return new()
-        {
-            Id = identity.Id,
-            Name = identity.Name,
-            Description = identity.Description,
-            DateRegistered = identity.DateRegistered,
-            DateActivated = identity.DateActivated,
-            GeneratedPassword = identity.GeneratedPassword ?? string.Empty,
-            RegisteredBy = identity.RegisteredBy,
-            Roles = identity.IdentityRoles.Select(item => new Messages.v1.Identity.Role
-            {
-                Id = item.RoleId,
-                Name = item.Role.Name
-            }).ToList(),
-            Tenants = identity.IdentityTenants.Select(item => new Messages.v1.Identity.Tenant
-            {
-                Id = item.TenantId,
-                Name = item.Tenant.Name
-            }).ToList()
-        };
-    }
-
     public static WebApplication MapIdentityEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
@@ -116,7 +91,7 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapGet("/v{version:apiVersion}/identities/{name}/password/reset-token", GetPasswordResetToken)
+        app.MapGet("/v{version:apiVersion}/identities/{id:Guid}/password/reset-token", GetPasswordResetToken)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -125,100 +100,66 @@ public static class IdentityEndpoints
         app.MapPost("/v{version:apiVersion}/identities/", Post)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1);
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Identities.Register);
 
         return app;
     }
 
     private static async Task<IResult> PostRoleAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
     {
-        try
-        {
-            identifiers.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        var roles = (await identityQuery.RoleIdsAsync(new IdentitySpecification().AddId(id))).ToList();
+        var roles = (await identityQuery.RoleIdsAsync(new Query.Identity.Specification().AddId(id))).ToList();
 
         return Results.Ok(from roleId in identifiers.Values select new IdentifierAvailability<Guid> { Id = roleId, Active = roles.Any(item => item.Equals(roleId)) });
     }
 
     private static async Task<IResult> PostTenantAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
     {
-        try
-        {
-            identifiers.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        var tenants = (await identityQuery.TenantIdsAsync(new IdentitySpecification().AddId(id))).ToList();
+        var tenants = (await identityQuery.TenantIdsAsync(new Query.Identity.Specification().AddId(id))).ToList();
 
         return Results.Ok(from tenantId in identifiers.Values select new IdentifierAvailability<Guid> { Id = tenantId, Active = tenants.Any(item => item.Equals(tenantId)) });
     }
 
-    private static async Task<IResult> Post([FromBody] RegisterIdentity message, ISessionContext sessionContext, IMediator mediator, ITransactionScopeFactory transactionScopeFactory)
+    private static async Task<IResult> Post(IBus bus, ISessionContext sessionContext, IMediator mediator, ITransactionScopeFactory transactionScopeFactory, [FromBody] Contracts.v1.RegisterIdentity message, CancellationToken cancellationToken)
     {
         Guard.AgainstNull(message);
 
-        try
+        if (string.IsNullOrWhiteSpace(message.Name))
         {
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
+            return Results.BadRequest($"'{nameof(message.Name)}' is required.");
         }
 
-        var requestIdentityRegistration = new RequestIdentityRegistration(message);
-
-        if (sessionContext.Session is { TenantId: not null })
+        if (!sessionContext.IsAuthorized)
         {
-            requestIdentityRegistration.Authorized(sessionContext.Session.TenantId.Value, sessionContext.Session.IdentityId);
+            return Results.Unauthorized();
         }
 
-        using var scope = transactionScopeFactory.Create();
-        await mediator.SendAsync(requestIdentityRegistration);
-        scope.Complete();
+        await bus.SendAsync(new Messages.v1.RegisterIdentity
+        {
+            Id = Guid.NewGuid(),
+            Name = message.Name,
+            Description = message.Description,
+            RegisteredBy = sessionContext.Session.IdentityName,
+            AuditTenantId = sessionContext.Session.TenantId!.Value,
+            AuditIdentityName = "system",
+            Activated = true
+        }, cancellationToken);
 
-        return !requestIdentityRegistration.IsAllowed ? Results.Unauthorized() : Results.Accepted();
+        return Results.Accepted();
     }
 
-    private static async Task<IResult> GetPasswordResetToken(string name, IMediator mediator)
+    private static async Task<IResult> GetPasswordResetToken(IMediator mediator, Guid id)
     {
-        var message = new GetPasswordResetToken { Name = name };
-
-        try
-        {
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
+        var message = new GetPasswordResetToken(id);
 
         await mediator.SendAsync(message);
 
         return Results.Ok(message.PasswordResetToken);
     }
 
-    private static async Task<IResult> PatchActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
+    private static async Task<IResult> PatchActivate([FromBody] Contracts.v1.ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
     {
-        try
-        {
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        var specification = new IdentitySpecification();
+        var specification = new Query.Identity.Specification();
 
         if (message.Id.HasValue)
         {
@@ -236,69 +177,51 @@ public static class IdentityEndpoints
             return Results.BadRequest();
         }
 
-        await bus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.ActivateIdentity
+        {
+            Id = message.Id,
+            Name = message.Name
+        }));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchPasswordReset([FromBody] ResetPassword message, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
+    private static async Task<IResult> PatchPasswordReset([FromBody] Contracts.v1.ResetPassword message, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
     {
         if (!sessionContext.IsAuthorized)
         {
             return Results.Unauthorized();
         }
 
-        try
-        {
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        await mediator.SendAsync(sessionContext.Audit(message));
+        await mediator.SendAsync(new Application.ResetPassword(message.Name, message.Password, message.PasswordResetToken, sessionContext.Session.TenantId!.Value, sessionContext.Session.IdentityName));
 
         return Results.Ok();
     }
 
-    private static async Task<IResult> PatchPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository)
+    private static async Task<IResult> PatchPassword([FromBody] Contracts.v1.ChangePassword message, ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository)
     {
-        try
-        {
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
         if (sessionContext.Session is not { TenantId: not null } || message.Id.HasValue && !(sessionContext.Session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
         {
             return Results.Unauthorized();
         }
 
-        await mediator.SendAsync(sessionContext.Audit(message));
+        if (!message.Id.HasValue && !message.Token.HasValue)
+        {
+            return Results.BadRequest();
+        }
+
+        await mediator.SendAsync(message.Id.HasValue 
+        ? Application.ChangePassword.UseId(message.Id.Value, message.NewPassword, sessionContext.Session.TenantId!.Value, sessionContext.Session.IdentityName)
+        : Application.ChangePassword.UseToken(message.Token!.Value, message.NewPassword, sessionContext.Session.TenantId!.Value, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchRole(Guid id, Guid roleId, [FromBody] SetIdentityRoleStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    private static async Task<IResult> PatchRole(Guid id, Guid roleId, [FromBody] Contracts.v1.SetIdentityRoleStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
     {
-        try
-        {
-            message.ApplyInvariants();
-            message.IdentityId = id;
-            message.RoleId = roleId;
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
         if (!message.Active)
         {
-            var reviewIdentityRoleRemoval = new ReviewIdentityRoleRemoval(sessionContext.Session!.TenantId!.Value, message.RoleId);
+            var reviewIdentityRoleRemoval = new ReviewIdentityRoleRemoval(sessionContext.Session!.TenantId!.Value, roleId);
 
             await mediator.SendAsync(reviewIdentityRoleRemoval);
 
@@ -308,25 +231,24 @@ public static class IdentityEndpoints
             }
         }
 
-        await bus.SendAsync(sessionContext.Audit(message));
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityRoleStatus
+        {
+            IdentityId = id,
+            RoleId = roleId,
+            Active = message.Active,
+        }));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchTenant(Guid id, Guid tenantId, [FromBody] SetIdentityTenantStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    private static async Task<IResult> PatchTenant(Guid id, Guid tenantId, [FromBody] Contracts.v1.SetIdentityTenantStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
     {
-        try
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityTenantStatus
         {
-            message.ApplyInvariants();
-            message.IdentityId = id;
-            message.TenantId = tenantId;
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        await bus.SendAsync(sessionContext.Audit(message));
+            IdentityId = id,
+            TenantId = tenantId,
+            Active = message.Active
+        }));
 
         return Results.Accepted();
     }
@@ -340,7 +262,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> Get(IIdentityQuery identityQuery, string value)
     {
-        var specification = new IdentitySpecification().IncludeRoles();
+        var specification = new Query.Identity.Specification().IncludeRoles();
 
         if (Guid.TryParse(value, out var id))
         {
@@ -354,13 +276,13 @@ public static class IdentityEndpoints
         var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
 
         return identity != null
-            ? Results.Ok(Map(identity))
+            ? Results.Ok(identity)
             : Results.BadRequest();
     }
 
-    private static async Task<IResult> Search(IIdentityQuery identityQuery, [FromBody] Messages.v1.Identity.Specification specification)
+    private static async Task<IResult> Search(IIdentityQuery identityQuery, [FromBody] Contracts.v1.Identity.Specification specification)
     {
-        var search = new IdentitySpecification();
+        var search = new Query.Identity.Specification();
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {
@@ -372,39 +294,27 @@ public static class IdentityEndpoints
             search.IncludeRoles();
         }
 
-        return Results.Ok((await identityQuery.SearchAsync(search)).Select(Map).ToList());
+        return Results.Ok((await identityQuery.SearchAsync(search)).ToList());
     }
 
-    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetIdentityDescription message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] Contracts.v1.SetIdentityDescription message, ISessionContext sessionContext, IBus bus)
     {
-        try
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityDescription
         {
-            message.Id = id;
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        await bus.SendAsync(sessionContext.Audit(message));
+            Id = id,
+            Description = message.Description
+        }));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] SetIdentityName message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] Contracts.v1.SetIdentityName message, ISessionContext sessionContext, IBus bus)
     {
-        try
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityName
         {
-            message.Id = id;
-            message.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
-        await bus.SendAsync(sessionContext.Audit(message));
+            Id = id,
+            Name = message.Name
+        }));
 
         return Results.Accepted();
     }

@@ -1,6 +1,4 @@
-﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
@@ -15,13 +13,11 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
 
     public async Task HandleAsync(ChangePassword message, CancellationToken cancellationToken = default)
     {
-        var request = Guard.AgainstNull(message).ApplyInvariants();
-
         var id = Guid.Empty;
 
-        if (request.Token.HasValue)
+        if (message.Token.HasValue)
         {
-            var session = await _sessionRepository.FindAsync(new SessionSpecification().WithToken(_hashingService.Sha256(request.Token.Value.ToString("D"))), cancellationToken);
+            var session = await _sessionRepository.FindAsync(new Query.Session.Specification().WithTokenHash(_hashingService.Sha256(message.Token.Value.ToString("D"))), cancellationToken);
 
             if (session == null)
             {
@@ -31,9 +27,9 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
             id = session.IdentityId;
         }
 
-        if (request.Id.HasValue)
+        if (message.Id.HasValue)
         {
-            id = request.Id.Value;
+            id = message.Id.Value;
         }
 
         var user = new Identity();
@@ -45,7 +41,7 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
         }
 
         stream.Apply(user);
-        stream.Add(user.SetPassword(_hashingService.Sha256(request.NewPassword)));
+        stream.Add(user.SetPassword(_hashingService.Sha256(message.NewPassword)));
 
         await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken).ConfigureAwait(false);
     }

@@ -7,7 +7,6 @@ using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
-using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -21,7 +20,7 @@ public static class SessionEndpoints
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var specification = new SessionSpecification().AddId(sessionId);
+            var specification = new Query.Session.Specification().AddId(sessionId);
             var session = await sessionRepository.FindAsync(specification);
 
             if (session != null && await sessionRepository.RemoveAsync(specification) > 0)
@@ -61,11 +60,11 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = await sessionRepository.FindAsync(new SessionSpecification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value));
+            var session = await sessionRepository.FindAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value));
 
             if (session != null)
             {
-                if (await sessionRepository.RemoveAsync(new SessionSpecification().AddId(session.Id)) > 0)
+                if (await sessionRepository.RemoveAsync(new Query.Session.Specification().AddId(session.Id)) > 0)
                 {
                     await bus.PublishAsync(new SessionDeleted
                     {
@@ -103,23 +102,7 @@ public static class SessionEndpoints
                 return Results.NotFound();
             }
 
-            return Results.Ok(new Messages.v1.Session
-            {
-                DateRegistered = registerSession.Session!.DateRegistered,
-                ExpiryDate = registerSession.Session.ExpiryDate,
-                IdentityId = registerSession.Session.IdentityId,
-                IdentityName = identityName,
-                Permissions = registerSession.Session.Permissions.Select(item => item.Name).OrderBy(item => item).ToList(),
-                Tenants = registerSession.Identity.IdentityTenants
-                    .Where(item => item.Tenant.Status == 1)
-                    .Select(item => new SessionTenants.Tenant
-                {
-                    Id = item.Tenant.Id,
-                    Name = item.Tenant.Name,
-                    LogoSvg = item.Tenant.LogoSvg,
-                    LogoUrl = item.Tenant.LogoUrl
-                }).ToList()
-            });
+            return Results.Ok(Map(registerSession.Session));
         }
 
         var identityId = httpContext.FindIdentityId();
@@ -130,19 +113,11 @@ public static class SessionEndpoints
             return await AttemptRegistration(tenantId);
         }
 
-        var session = (await sessionQuery.SearchAsync(new SessionSpecification().WithTenantId(tenantId).WithIdentityId(identityId.Value).IncludePermissions())).FirstOrDefault();
+        var session = (await sessionQuery.SearchAsync(new Query.Session.Specification().WithTenantId(tenantId).WithIdentityId(identityId.Value))).FirstOrDefault();
 
         if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
         {
-            return Results.Ok(new Messages.v1.Session
-            {
-                DateRegistered = session.DateRegistered,
-                ExpiryDate = session.ExpiryDate,
-                IdentityId = session.IdentityId,
-                IdentityName = session.IdentityName,
-                Permissions = session.SessionPermissions.Select(item => item.Permission.Name).OrderBy(item => item).ToList(),
-                TenantId = session.TenantId
-            });
+            return Results.Ok(Map(session));
         }
 
         sessionCache.Flush(identityId.Value);
@@ -150,13 +125,18 @@ public static class SessionEndpoints
         return await AttemptRegistration(tenantId);
     }
 
-    private static SessionSpecification GetSpecification(Messages.v1.Session.Specification model, IHashingService hashingService)
+    private static Query.Session.Specification GetSpecification(Contracts.v1.Session.Specification model, IHashingService hashingService)
     {
-        var specification = new SessionSpecification();
+        var specification = new Query.Session.Specification();
 
         if (model.Token != null)
         {
-            specification.WithToken(hashingService.Sha256(model.Token.Value.ToString("D")));
+            specification.WithTokenHash(hashingService.Sha256(model.Token.Value.ToString("D")));
+        }
+
+        if (model.TokenHash != null)
+        {
+            specification.WithTokenHash(model.TokenHash);
         }
 
         if (model.IdentityId.HasValue)
@@ -174,47 +154,50 @@ public static class SessionEndpoints
             specification.WithIdentityNameMatch(model.IdentityNameMatch);
         }
 
-        if (model.ShouldIncludePermissions)
-        {
-            specification.IncludePermissions();
-        }
-
         return specification;
     }
 
-    private static Messages.v1.Session Map(SqlServer.Models.Session session)
+    private static Contracts.v1.Session Map(Session session)
     {
         return new()
         {
+            Id = session.Id,
             TenantId = session.TenantId,
-            TenantName = session.Tenant?.Name ?? string.Empty,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName,
-            IdentityDescription = session.Identity.Description,
             DateRegistered = session.DateRegistered,
             ExpiryDate = session.ExpiryDate,
-            Permissions = session.SessionPermissions.Select(item => item.Permission.Name).ToList()
+            Permissions = session.Permissions.Select(item => new Contracts.v1.Permission
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                Status = (int)item.Status,
+                StatusName = item.Status.ToString()
+            }).ToList()
         };
     }
 
-    private static SessionData MapData(SqlServer.Models.Session session)
+    private static Contracts.v1.Session Map(Query.Session session)
     {
         return new()
         {
+            Id = session.Id,
             TenantId = session.TenantId,
-            TenantName = session.Tenant?.Name ?? string.Empty,
+            TenantName = session.TenantName,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName,
-            IdentityDescription = session.Identity.Description,
             DateRegistered = session.DateRegistered,
             ExpiryDate = session.ExpiryDate,
-            Permissions = session.SessionPermissions.Select(item => new Messages.v1.Permission
+            Permissions = session.Permissions.Select(item => new Contracts.v1.Permission
             {
-                Id = item.PermissionId,
-                Name = item.Permission.Name,
-                Description = item.Permission.Description,
-                Status = item.Permission.Status
+                Id = item.Id,
+                Name = item.Name,
+                Description = item.Description,
+                Status = (int)item.Status,
+                StatusName = item.Status.ToString()
             }).ToList()
+
         };
     }
 
@@ -227,14 +210,7 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Sessions.View)
-            .Produces<List<Messages.v1.Session>>();
-
-        app.MapPost("/v{version:apiVersion}/sessions/search/data", PostSearchData)
-            .WithTags("Sessions")
-            .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Sessions.View)
-            .Produces<List<SessionData>>();
+            .Produces<List<Contracts.v1.Session>>();
 
         app.MapPost("/v{version:apiVersion}/sessions", Post)
             .WithTags("Sessions")
@@ -293,19 +269,10 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        return Results.Ok(new SessionResponse
-        {
-            IdentityId = message.Session.IdentityId,
-            IdentityName = message.Session!.IdentityName,
-            ExpiryDate = message.Session.ExpiryDate,
-            Permissions = message.Session.Permissions.Select(item => item.Name).ToList(),
-            DateRegistered = message.Session.DateRegistered,
-            TenantId = message.Session.TenantId!.Value,
-            TenantName = message.Session.TenantName
-        });
+        return Results.Ok(Map(message.Session));
     }
 
-    private static async Task<IResult> Post([FromBody] Messages.v1.RegisterSession message, ILogger<RegisterSession> logger, IOptions<ApiOptions> apiOptions, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
+    private static async Task<IResult> Post(ILogger<RegisterSession> logger, IOptions<ApiOptions> apiOptions, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext, [FromBody] Contracts.v1.RegisterSession message)
     {
         var options = Guard.AgainstNull(apiOptions.Value);
 
@@ -348,14 +315,14 @@ public static class SessionEndpoints
                         return Results.BadRequest(Resources.HttpContextIdentityNotFound);
                     }
 
-                    logger.LogDebug($"[BAD REQUEST] : requested identity = '{message.IdentityName}' / http context identity = '{identityName}'");
+                    LogMessage.RegisterSessionIdentityMismatch(logger, identityName, message.IdentityName);
 
-                    return Results.BadRequest();
+                    return Results.BadRequest($"The identity determined from the HTTP Context is '{identityName}' but the session registration request is for '{message.IdentityName}'.");
                 }
 
                 if (!sessionContext.Session.HasPermission(AccessPermissions.Sessions.Register))
                 {
-                    logger.LogDebug($"[UNAUTHORIZED] : identity id = '{sessionContext.Session.IdentityId}' / permission = '{AccessPermissions.Sessions.Register}'");
+                    LogMessage.RegisterSessionUnauthorized(logger, sessionContext.Session.IdentityName);
 
                     return Results.Unauthorized();
                 }
@@ -369,7 +336,7 @@ public static class SessionEndpoints
         return Results.Ok(registerSession.GetSessionResponse(false));
     }
 
-    private static async Task<IResult> PostDelegated(IMediator mediator, RegisterDelegatedSession message, HttpContext httpContext)
+    private static async Task<IResult> PostDelegated(IMediator mediator, Contracts.v1.RegisterDelegatedSession message, HttpContext httpContext)
     {
         if (string.IsNullOrEmpty(message.IdentityName))
         {
@@ -390,17 +357,10 @@ public static class SessionEndpoints
         return Results.Ok(registerSession.GetSessionResponse(false));
     }
 
-    private static async Task<IResult> PostSearch([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
+    private static async Task<IResult> PostSearch([FromBody] Contracts.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
     {
         var specification = GetSpecification(model, hashingService);
 
         return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(Map).ToList());
-    }
-
-    private static async Task<IResult> PostSearchData([FromBody] Messages.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
-    {
-        var specification = GetSpecification(model, hashingService);
-
-        return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(MapData).ToList());
     }
 }

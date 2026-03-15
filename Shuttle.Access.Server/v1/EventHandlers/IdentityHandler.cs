@@ -1,9 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.Extensions.Logging;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Hopper;
@@ -25,8 +23,8 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         IEventHandler<NameSet>,
         IEventHandler<DescriptionSet>
 {
-    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
+    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly ILogger<IdentityHandler> _logger = Guard.AgainstNull(logger);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
     private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
@@ -125,7 +123,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
     {
         Guard.AgainstNull(context);
 
-        await _sessionRepository.RemoveAsync(new SessionSpecification().AddId(context.PrimitiveEvent.Id), cancellationToken);
+        await _sessionRepository.RemoveAsync(new Query.Session.Specification().AddId(context.PrimitiveEvent.Id), cancellationToken);
 
         var model = await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken);
 
@@ -151,10 +149,10 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
     {
         Guard.AgainstNull(context);
 
-        var roleModel = (await _roleQuery.SearchAsync(new RoleSpecification().AddId(context.Event.RoleId), cancellationToken)).FirstOrDefault();
+        var roleModel = (await _roleQuery.SearchAsync(new Query.Role.Specification().AddId(context.Event.RoleId), cancellationToken)).FirstOrDefault();
 
         if (roleModel == null ||
-            !await _tenantQuery.ContainsAsync(new TenantSpecification().AddId(roleModel.TenantId), cancellationToken))
+            !await _tenantQuery.ContainsAsync(new Query.Tenant.Specification().AddId(roleModel.TenantId), cancellationToken))
         {
             context.Defer();
             return;
@@ -194,7 +192,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _bus.PublishAsync(new IdentityRoleAdded
         {
             IdentityId = model.IdentityId,
-            RoleId = model.RoleId,
+            RoleId = model.RoleId
         }, cancellationToken: cancellationToken);
     }
 
@@ -218,7 +216,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         await _bus.PublishAsync(new IdentityRoleRemoved
         {
             IdentityId = model.IdentityId,
-            RoleId = model.RoleId,
+            RoleId = model.RoleId
         }, cancellationToken: cancellationToken);
     }
 
@@ -226,7 +224,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
     {
         Guard.AgainstNull(context);
 
-        var tenantModel = (await _tenantQuery.SearchAsync(new TenantSpecification().AddId(context.Event.TenantId), cancellationToken)).FirstOrDefault();
+        var tenantModel = (await _tenantQuery.SearchAsync(new Query.Tenant.Specification().AddId(context.Event.TenantId), cancellationToken)).FirstOrDefault();
 
         if (tenantModel == null)
         {

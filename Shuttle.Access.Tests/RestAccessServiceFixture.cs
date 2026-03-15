@@ -18,12 +18,12 @@ public class RestAccessServiceFixture
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
 
-        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<Messages.v1.Session>>(new(HttpStatusCode.BadRequest), null, new()));
+        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<WebApi.Contracts.v1.Session.Specification>()).Result).Returns(new ApiResponse<IEnumerable<WebApi.Contracts.v1.Session>>(new(HttpStatusCode.BadRequest), null, new()));
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
         var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), new NullSessionCache(), accessClient.Object);
 
-        Assert.That(await service.FindAsync(new Messages.v1.Session.Specification()), Is.Null);
+        Assert.That(await service.FindAsync(new Query.Session.Specification()), Is.Null);
     }
 
     [Test]
@@ -33,21 +33,21 @@ public class RestAccessServiceFixture
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
 
-        var response = new Mock<IApiResponse<IEnumerable<Messages.v1.Session>>>();
+        var response = new Mock<IApiResponse<IEnumerable<WebApi.Contracts.v1.Session>>>();
 
         response.Setup(m => m.IsSuccessStatusCode).Returns(true);
         response.Setup(m => m.Content).Returns([new() { IdentityId = identityId, Permissions = [], ExpiryDate = DateTimeOffset.UtcNow.AddMinutes(5) }]);
         response.Setup(m => m.StatusCode).Returns(HttpStatusCode.OK);
 
-        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync(response.Object);
+        sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<WebApi.Contracts.v1.Session.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync(response.Object);
 
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-        var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions { PassThrough = false }), new SessionCache(), accessClient.Object);
+        var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions { PassThrough = false }), new SessionCache(new HashingService()), accessClient.Object);
 
-        Assert.That(await service.FindAsync(new Messages.v1.Session.Specification { IdentityId = identityId }), Is.Not.Null);
-        Assert.That(await service.FindAsync(new Messages.v1.Session.Specification { IdentityId = identityId }), Is.Not.Null); // returned from cache
+        Assert.That(await service.FindAsync(new Query.Session.Specification().WithId(identityId)), Is.Not.Null);
+        Assert.That(await service.FindAsync(new Query.Session.Specification().WithId(identityId)), Is.Not.Null); // returned from cache
 
-        accessClient.Verify(m => m.Sessions.PostSearchAsync(It.IsAny<Messages.v1.Session.Specification>(), It.IsAny<CancellationToken>()).Result, Times.Exactly(1));
+        accessClient.Verify(m => m.Sessions.PostSearchAsync(It.IsAny<WebApi.Contracts.v1.Session.Specification>(), It.IsAny<CancellationToken>()).Result, Times.Exactly(1));
     }
 }

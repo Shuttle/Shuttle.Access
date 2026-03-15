@@ -104,11 +104,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             new(ClaimTypes.Name, identityName)
         ];
 
-        var session = await _sessionService.FindAsync(new()
-        {
-            TenantId = tenantId ?? _accessOptions.SystemTenantId,
-            IdentityName = identityName
-        });
+        var session = await _sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId ?? _accessOptions.SystemTenantId).WithIdentityName(identityName));
 
         if (session != null)
         {

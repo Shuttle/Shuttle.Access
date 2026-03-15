@@ -1,6 +1,4 @@
 ﻿using NUnit.Framework;
-using Shuttle.Access.Query;
-using Shuttle.Access.SqlServer;
 
 namespace Shuttle.Access.Tests.Integration.DataAccess.Sql;
 
@@ -13,7 +11,7 @@ public class IdentityQueryFixture : DataAccessFixture
 
         using (TransactionScopeFactory.Create())
         {
-            await Assert.ThatAsync(async () => await query.SearchAsync(new IdentitySpecification().AddId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED")).IncludeRoles()), Throws.Nothing);
+            await Assert.ThatAsync(async () => await query.SearchAsync(new Query.Identity.Specification().AddId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED")).IncludeRoles()), Throws.Nothing);
         }
     }
 }

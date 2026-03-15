@@ -1,7 +1,6 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -30,16 +29,16 @@ public class PermissionsFixture
     [Test]
     public async Task Should_be_able_to_search_permissions_async()
     {
-        var permission = new SqlServer.Models.Permission
+        var permission = new Query.Permission
         {
             Id = Guid.NewGuid(),
             Name = "integration://available-permission",
-            Status = (int)PermissionStatus.Active
+            Status = PermissionStatus.Active
         };
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<PermissionSpecification>(), CancellationToken.None)).Returns(Task.FromResult(new List<SqlServer.Models.Permission> { permission }.AsEnumerable()));
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Permission.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Query.Permission> { permission }.AsEnumerable()));
 
         var response = await factory.GetAccessClient().Permissions.SearchAsync(new());
 

@@ -165,8 +165,7 @@ public class Program
                 webApplicationBuilder.Configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);
 
                 builder.UseInMemoryOAuthGrantRepository();
-            })
-            .AddHostedService<LoggingHostedService>();
+            });
 
         var app = webApplicationBuilder.Build();
 

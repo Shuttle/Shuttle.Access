@@ -1,40 +1,26 @@
-﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterRole(Guid id, string name, Guid tenantId, IAuditInformation auditInformation)
+public class RegisterRole(Guid id, Guid tenantId, string name, Guid auditTenantId, string auditIdentityName)
+: IAuditInformation
 {
-    private readonly List<RegisterPermission> _permissions = [];
-    public IAuditInformation AuditInformation { get; } = Guard.AgainstNull(auditInformation);
-    public bool HasMissingPermissions { get; private set; }
+    private readonly List<Guid> _permissionIds = [];
+
     public Guid Id { get; } = Guard.AgainstEmpty(id);
-    public string Name { get; } = Guard.AgainstEmpty(name);
     public Guid TenantId { get; } = Guard.AgainstEmpty(tenantId);
+    public string Name { get; } = Guard.AgainstEmpty(name);
+    public IEnumerable<Guid> PermissionIds => _permissionIds.AsReadOnly();
+    public Guid AuditTenantId { get; } = Guard.AgainstEmpty(auditTenantId);
+    public string AuditIdentityName { get; } = Guard.AgainstEmpty(auditIdentityName);
 
-    public RegisterRole AddPermissions(IEnumerable<RegisterPermission> permissions)
+    public RegisterRole AddPermissionId(Guid permissionId)
     {
-        Guard.AgainstNull(permissions);
-
-        foreach (var permission in permissions)
+        if (!_permissionIds.Contains(permissionId))
         {
-            if (_permissions.All(item => !item.Name.Equals(permission.Name, StringComparison.InvariantCultureIgnoreCase)))
-            {
-                _permissions.Add(permission);
-            }
+            _permissionIds.Add(permissionId);
         }
 
-        return this;
-    }
-
-    public IEnumerable<RegisterPermission> GetPermissions()
-    {
-        return _permissions.AsReadOnly();
-    }
-
-    public RegisterRole MissingPermissions()
-    {
-        HasMissingPermissions = true;
         return this;
     }
 }

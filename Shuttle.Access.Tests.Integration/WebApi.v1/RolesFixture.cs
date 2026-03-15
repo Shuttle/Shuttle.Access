@@ -2,36 +2,31 @@
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
 [TestFixture]
 public class RolesFixture
 {
-    private static SqlServer.Models.Role CreateRole()
+    private static Query.Role CreateRole()
     {
         return new()
         {
             Id = Guid.NewGuid(),
             Name = "name",
-            RolePermissions =
+            Permissions =
             [
                 new()
                 {
-                    PermissionId = Guid.NewGuid(),
-                    Permission = new()
-                    {
-                        Name = "system://permission-a"
-                    }
+                    Id = Guid.NewGuid(),
+                        Name = "system://permission-a",
+                        Status = PermissionStatus.Active
                 },
                 new()
                 {
-                    PermissionId = Guid.NewGuid(),
-                    Permission = new()
-                    {
-                        Name = "system://permission-b"
-                    }
+                    Id = Guid.NewGuid(),
+                        Name = "system://permission-b",
+                        Status = PermissionStatus.Active
                 }
             ]
         };
@@ -44,8 +39,8 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(
-            Task.FromResult(new List<SqlServer.Models.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<Query.Role>
             {
                 role
             }.AsEnumerable()));
@@ -63,8 +58,8 @@ public class RolesFixture
 
         Assert.That(responseRole.Id, Is.EqualTo(role.Id));
         Assert.That(responseRole.Name, Is.EqualTo(role.Name));
-        Assert.That(responseRole.Permissions.Find(item => item.Id == role.RolePermissions.ElementAt(0).PermissionId), Is.Not.Null);
-        Assert.That(responseRole.Permissions.Find(item => item.Id == role.RolePermissions.ElementAt(1).PermissionId), Is.Not.Null);
+        Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions.ElementAt(0).Id), Is.Not.Null);
+        Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions.ElementAt(1).Id), Is.Not.Null);
     }
 
     [Test]
@@ -74,8 +69,8 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(
-            Task.FromResult(new List<SqlServer.Models.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<Query.Role>
             {
                 role
             }.AsEnumerable()));
@@ -89,8 +84,8 @@ public class RolesFixture
         Assert.That(response.Content, Is.Not.Null);
         Assert.That(response.Content!.Id, Is.EqualTo(role.Id));
         Assert.That(response.Content.Name, Is.EqualTo(role.Name));
-        Assert.That(response.Content.Permissions.Find(item => item.Id == role.RolePermissions.ElementAt(0).PermissionId), Is.Not.Null);
-        Assert.That(response.Content.Permissions.Find(item => item.Id == role.RolePermissions.ElementAt(1).PermissionId), Is.Not.Null);
+        Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions.ElementAt(0).Id), Is.Not.Null);
+        Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions.ElementAt(1).Id), Is.Not.Null);
     }
 
     [Test]
@@ -142,8 +137,8 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(
-            Task.FromResult(new List<SqlServer.Models.Permission>
+        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<Query.Permission>
             {
                 new()
                 {

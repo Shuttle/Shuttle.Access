@@ -3,12 +3,18 @@ using Shuttle.Core.Contract;
 
 namespace Shuttle.Access;
 
+public enum TenantStatus
+{
+    Active = 1,
+    Disabled = 2
+}
+
 public class Tenant
 {
     public string LogoSvg { get; private set; } = string.Empty;
     public string LogoUrl { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
-    public int Status { get; private set; }
+    public TenantStatus Status { get; private set; }
 
     public static string Key(string name)
     {
@@ -58,7 +64,7 @@ public class Tenant
         return On(new Removed());
     }
 
-    public StatusSet SetStatus(int status)
+    public StatusSet SetStatus(TenantStatus status)
     {
         if (Status == status)
         {

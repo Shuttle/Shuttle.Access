@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Events.Role.v1;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Core.Contract;
 using Shuttle.Hopper;
@@ -13,16 +12,16 @@ namespace Shuttle.Access.Server.v1.EventHandlers;
 
 public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> accessOptions, AccessDbContext accessDbContext, IPermissionQuery permissionQuery, IBus bus) :
     IEventHandler<Registered>,
-    IEventHandler<Shuttle.Access.Events.Role.v2.Registered>,
+    IEventHandler<Events.Role.v2.Registered>,
     IEventHandler<Removed>,
     IEventHandler<PermissionAdded>,
     IEventHandler<PermissionRemoved>,
     IEventHandler<NameSet>
 {
+    private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
+    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly ILogger<RoleHandler> _logger = Guard.AgainstNull(logger);
-    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
-    private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
     private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
 
     public async Task HandleAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
@@ -41,7 +40,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
         await _bus.PublishAsync(new RoleNameSet
         {
             Id = model.Id,
-            Name = model.Name,
+            Name = model.Name
         }, cancellationToken: cancellationToken);
     }
 
@@ -49,7 +48,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
     {
         Guard.AgainstNull(context);
 
-        if (!await _permissionQuery.ContainsAsync(new PermissionSpecification().AddId(context.Event.PermissionId), cancellationToken: cancellationToken))
+        if (!await _permissionQuery.ContainsAsync(new Query.Permission.Specification().AddId(context.Event.PermissionId), cancellationToken))
         {
             context.Defer();
             return;
@@ -63,7 +62,7 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
             return;
         }
 
-        var roleModel = await _accessDbContext.Roles.FirstAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken: cancellationToken);
+        var roleModel = await _accessDbContext.Roles.FirstAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken);
 
         model = new()
         {
@@ -131,30 +130,6 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
         }, cancellationToken);
     }
 
-    public async Task HandleAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
-    {
-        Guard.AgainstNull(context);
-
-        var model = await _accessDbContext.Roles.AsNoTracking().FirstOrDefaultAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken);
-
-        if (model == null)
-        {
-            return;
-        }
-
-        _accessDbContext.Roles.Remove(model);
-
-        await _accessDbContext.SaveChangesAsync(cancellationToken);
-
-        _logger.LogDebug("[Removed] : id = '{PrimitiveEventId}'", context.PrimitiveEvent.Id);
-
-        await _bus.PublishAsync(new RoleRemoved
-        {
-            Id = model.Id,
-            Name = model.Name,
-        }, cancellationToken: cancellationToken);
-    }
-
     public async Task HandleAsync(IEventHandlerContext<Events.Role.v2.Registered> context, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(context);
@@ -176,5 +151,29 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
             Name = context.Event.Name,
             TenantId = context.Event.TenantId
         }, cancellationToken);
+    }
+
+    public async Task HandleAsync(IEventHandlerContext<Removed> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        var model = await _accessDbContext.Roles.AsNoTracking().FirstOrDefaultAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        _accessDbContext.Roles.Remove(model);
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogDebug("[Removed] : id = '{PrimitiveEventId}'", context.PrimitiveEvent.Id);
+
+        await _bus.PublishAsync(new RoleRemoved
+        {
+            Id = model.Id,
+            Name = model.Name
+        }, cancellationToken: cancellationToken);
     }
 }

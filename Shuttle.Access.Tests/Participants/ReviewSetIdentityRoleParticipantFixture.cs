@@ -1,8 +1,6 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.Query;
-using Shuttle.Access.SqlServer;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -14,7 +12,7 @@ public class ReviewSetIdentityRoleParticipantFixture
     {
         var roleQuery = new Mock<IRoleQuery>();
 
-        roleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(Enumerable.Empty<SqlServer.Models.Role>()));
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(Enumerable.Empty<Query.Role>()));
 
         var participant = new ReviewIdentityRoleRemovalParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
         var reviewRequest = new ReviewIdentityRoleRemoval(Guid.NewGuid(), Guid.NewGuid());
@@ -28,7 +26,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         var roleId = Guid.NewGuid();
         var roleQuery = new Mock<IRoleQuery>();
 
-        roleQuery.Setup(m => m.SearchAsync(It.IsAny<RoleSpecification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<SqlServer.Models.Role>
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<Query.Role>
         {
             new()
             {

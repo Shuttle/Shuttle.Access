@@ -2,6 +2,6 @@
 
 public interface IAuditInformation
 {
-    public string IdentityName { get; }
-    public Guid TenantId { get; }
+    public string AuditIdentityName { get; }
+    public Guid AuditTenantId { get; }
 }

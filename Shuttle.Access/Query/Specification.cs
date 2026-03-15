@@ -1,4 +1,4 @@
-﻿namespace Shuttle.Access.SqlServer.Models;
+﻿namespace Shuttle.Access.Query;
 
 public class Specification<T> where T : class
 {

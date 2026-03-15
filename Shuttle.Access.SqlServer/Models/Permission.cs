@@ -19,7 +19,6 @@ public class Permission
     public string Name { get; set; } = string.Empty;
 
     public ICollection<RolePermission> RolePermissions { get; set; } = [];
-    public ICollection<PermissionTenant> PermissionTenants { get; set; } = [];
 
     [Required]
     public int Status { get; set; }

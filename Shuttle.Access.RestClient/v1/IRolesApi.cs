@@ -1,6 +1,4 @@
 ﻿using Refit;
-using Shuttle.Access.Messages;
-using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access.RestClient.v1;
 
@@ -10,17 +8,17 @@ public interface IRolesApi
     Task<IApiResponse> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 
     [Get("/v1/roles/{value}")]
-    Task<IApiResponse<Messages.v1.Role>> GetAsync(string value, CancellationToken cancellationToken = default);
+    Task<IApiResponse<WebApi.Contracts.v1.Role>> GetAsync(string value, CancellationToken cancellationToken = default);
 
     [Post("/v1/roles/{id}/permissions/availability")]
-    Task<IApiResponse<List<IdentifierAvailability<Guid>>>> PermissionAvailabilityAsync(Guid id, Identifiers<Guid> identifiers, CancellationToken cancellationToken = default);
+    Task<IApiResponse<List<WebApi.Contracts.v1.IdentifierAvailability<Guid>>>> PermissionAvailabilityAsync(Guid id, WebApi.Contracts.v1.Identifiers<Guid> identifiers, CancellationToken cancellationToken = default);
 
     [Post("/v1/roles")]
-    Task<IApiResponse> RegisterAsync(RegisterRole message, CancellationToken cancellationToken = default);
+    Task<IApiResponse> RegisterAsync(WebApi.Contracts.v1.RegisterRole message, CancellationToken cancellationToken = default);
 
     [Post("/v1/roles/search")]
-    Task<IApiResponse<List<Messages.v1.Role>>> SearchAsync(Messages.v1.Role.Specification specification, CancellationToken cancellationToken = default);
+    Task<IApiResponse<List<WebApi.Contracts.v1.Role>>> SearchAsync(WebApi.Contracts.v1.Role.Specification specification, CancellationToken cancellationToken = default);
 
     [Patch("/v1/roles/{id}/permissions")]
-    Task<IApiResponse> SetPermissionAsync(Guid id, SetRolePermissionStatus message, CancellationToken cancellationToken = default);
+    Task<IApiResponse> SetPermissionAsync(Guid id, WebApi.Contracts.v1.SetRolePermissionStatus message, CancellationToken cancellationToken = default);
 }

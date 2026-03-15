@@ -3,6 +3,7 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Messages.v1;
+using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.WebApi;

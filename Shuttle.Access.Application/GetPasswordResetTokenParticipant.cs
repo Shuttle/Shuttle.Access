@@ -1,7 +1,4 @@
-﻿using Shuttle.Access.SqlServer;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Recall;
 
@@ -16,15 +13,14 @@ public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEve
     {
         Guard.AgainstNull(message);
 
-        var identityName = message.Name;
-        var query = (await _identityQuery.SearchAsync(new IdentitySpecification().WithName(identityName), cancellationToken)).SingleOrDefault();
+        var model = (await _identityQuery.SearchAsync(new Query.Identity.Specification().AddId(message.IdentityId), cancellationToken)).SingleOrDefault();
 
-        if (query == null)
+        if (model == null)
         {
-            throw new ApplicationException(string.Format(Access.Resources.UnknownIdentityException, identityName));
+            throw new ApplicationException(string.Format(Access.Resources.UnknownIdentityIdException, message.IdentityId));
         }
 
-        var stream = await _eventStore.GetAsync(query.Id, cancellationToken: cancellationToken);
+        var stream = await _eventStore.GetAsync(model.Id, cancellationToken: cancellationToken);
         var identity = new Identity();
 
         stream.Apply(identity);
@@ -42,7 +38,7 @@ public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEve
         }
         else
         {
-            throw new ApplicationException(string.Format(Access.Resources.IdentityInactiveException, identityName));
+            throw new ApplicationException(string.Format(Access.Resources.IdentityInactiveException, model.Name));
         }
     }
 }

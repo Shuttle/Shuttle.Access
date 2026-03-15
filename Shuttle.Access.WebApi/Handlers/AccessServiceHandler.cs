@@ -1,8 +1,6 @@
 ﻿using System.Transactions;
 using Shuttle.Access.Application;
-using Shuttle.Access.SqlServer;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
@@ -36,7 +34,7 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
             return;
         }
 
-        await RefreshAsync(new SessionSpecification().WithIdentityId(message.IdentityId));
+        await RefreshAsync(new Query.Session.Specification().WithIdentityId(message.IdentityId), cancellationToken);
     }
 
     private async Task<bool> ShouldDeferAsync(CancellationToken cancellationToken)
@@ -60,7 +58,7 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
             return;
         }
 
-        await RefreshAsync(new SessionSpecification().AddPermission(message.Name));
+        await RefreshAsync(new Query.Session.Specification().AddPermission(message.Name), cancellationToken);
     }
 
     public async Task HandleAsync(RolePermissionAdded message, CancellationToken cancellationToken = default)
@@ -74,14 +72,22 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
             return;
         }
 
-        await RefreshAsync(new SessionSpecification().WithRoleId(message.RoleId));
+        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
     }
 
-    private async Task RefreshAsync(SessionSpecification sessionSpecification)
+    private async Task RefreshAsync(Query.Session.Specification sessionSpecification, CancellationToken cancellationToken)
     {
-        foreach (var session in await _sessionQuery.SearchAsync(sessionSpecification))
+        foreach (var session in await _sessionQuery.SearchAsync(sessionSpecification, cancellationToken))
         {
-            await _mediator.SendAsync(new RefreshSession(session.Id));
+            await _mediator.SendAsync(new RefreshSession(session.Id), cancellationToken);
+
+            await _bus.PublishAsync(new SessionRefreshed
+            {
+                Id = session.Id,
+                TenantId = session.TenantId,
+                IdentityId = session.IdentityId,
+                IdentityName = session.IdentityName
+            }, cancellationToken);
         }
     }
 
@@ -96,7 +102,7 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
             return;
         }
 
-        await RefreshAsync(new SessionSpecification().WithRoleId(message.RoleId));
+        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
     }
 
     public async Task HandleAsync(RolePermissionRemoved message, CancellationToken cancellationToken = default)
@@ -110,6 +116,6 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
             return;
         }
 
-        await RefreshAsync(new SessionSpecification().WithRoleId(message.RoleId));
+        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
     }
 }

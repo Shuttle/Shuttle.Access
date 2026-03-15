@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using Shuttle.Access.Messages.v1;
 
 namespace Shuttle.Access;
 

@@ -304,6 +304,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find an identity with id &apos;{0}&apos;..
+        /// </summary>
+        public static string UnknownIdentityIdException {
+            get {
+                return ResourceManager.GetString("UnknownIdentityIdException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;{0}&apos; is already set to &apos;{1}&apos;..
         /// </summary>
         public static string ValueAlreadySetException {

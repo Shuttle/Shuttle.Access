@@ -212,4 +212,8 @@
     <value>The '{0}' is already set to '{1}'.</value>
     <comment>0 = name of the value, 1 = the value</comment>
   </data>
+  <data name="UnknownIdentityIdException" xml:space="preserve">
+    <value>Could not find an identity with id '{0}'.</value>
+    <comment>0 = identity id</comment>
+  </data>
 </root>

@@ -1,7 +1,6 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.Query;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -14,27 +13,22 @@ public class SessionsFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var session = new SqlServer.Models.Session
+        var session = new Query.Session
         {
+            Id = Guid.NewGuid(),
             IdentityId = Guid.NewGuid(),
-            Identity = new()
-            {
-                Name = "identity",
-                Description = "identity-description"
-            },
-            SessionPermissions =
+            IdentityName = "identity",
+            IdentityDescription = "identity-description",
+            Permissions =
             [
                 new()
                 {
-                    Permission = new()
-                    {
-                        Name = "permission"
-                    }
+                    Name = "permission"
                 }
             ]
         };
 
-        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<SessionSpecification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<SqlServer.Models.Session> { session }.AsEnumerable()));
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<Query.Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 
@@ -55,7 +49,7 @@ public class SessionsFixture
 
         var sessionToken = Guid.NewGuid();
         var session = new Session(Guid.NewGuid(), sessionToken.ToByteArray(), identityId, "identity-name", DateTimeOffset.Now, DateTimeOffset.Now)
-            .WithTenantId(Guid.NewGuid(), "system");
+            .WithTenantId(Guid.NewGuid());
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>
@@ -66,18 +60,15 @@ public class SessionsFixture
                 {
                     Id = identityId,
                     Name = "identity-name",
-                    IdentityTenants = [
-                    new ()
-                    {
-                        IdentityId = identityId,
-                        TenantId = tenantId,
-                        Tenant = new()
+                    Tenants =
+                    [
+                        new()
                         {
                             Id = tenantId,
                             Name = "System",
-                            Status = 1
+                            Status = TenantStatus.Active
                         }
-                    }]
+                    ]
                 });
 
                 registerSession.Registered(sessionToken, session);
@@ -86,7 +77,7 @@ public class SessionsFixture
         var client = factory.GetAccessClient();
 
         var sessionResponse = await client.Sessions.PostAsync(
-            new Messages.v1.RegisterSession
+            new Access.WebApi.Contracts.v1.RegisterSession
             {
                 IdentityName = "identity-name",
                 Password = "password"
@@ -96,7 +87,7 @@ public class SessionsFixture
         Assert.That(sessionResponse.IsSuccessStatusCode, Is.True);
         Assert.That(sessionResponse.Content, Is.Not.Null);
         Assert.That(sessionResponse.Content!.Token, Is.EqualTo(sessionToken));
-        Assert.That(sessionResponse.Content.IdentityName, Is.EqualTo(session.IdentityName));
+        Assert.That(sessionResponse.Content.Session.IdentityName, Is.EqualTo(session.IdentityName));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()), Times.Once);
     }

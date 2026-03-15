@@ -8,7 +8,6 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
     public DbSet<Models.IdentityTenant> IdentityTenants { get; set; } = null!;
     public DbSet<Models.IdentityRole> IdentityRoles { get; set; } = null!;
     public DbSet<Models.Permission> Permissions { get; set; } = null!;
-    public DbSet<Models.PermissionTenant> PermissionTenants { get; set; } = null!;
     public DbSet<Models.Role> Roles { get; set; } = null!;
     public DbSet<Models.RolePermission> RolePermissions { get; set; } = null!;
     public DbSet<Models.Session> Sessions { get; set; } = null!;
@@ -30,10 +29,6 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
             .WithMany()
             .HasForeignKey(f => new { f.TenantId, f.RoleId })
             .HasPrincipalKey(p => new { p.TenantId, p.Id });
-
-        modelBuilder.Entity<Models.Permission>()
-            .HasMany(p => p.PermissionTenants)
-            .WithOne(f => f.Permission);
 
         modelBuilder.Entity<Models.Role>()
             .HasMany(p => p.RolePermissions)

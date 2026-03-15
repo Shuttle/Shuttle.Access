@@ -6,9 +6,9 @@ public class TenantSelected(Guid sessionId, Guid tenantId)
 {
     public Guid SessionId { get; } = Guard.AgainstEmpty(sessionId);
     public Guid TenantId { get; } = Guard.AgainstEmpty(tenantId);
-    public Session? Session { get; private set; }
+    public Query.Session? Session { get; private set; }
 
-    public TenantSelected WithSession(Session session)
+    public TenantSelected WithSession(Query.Session session)
     {
         Session = Guard.AgainstNull(session);
         return this;

@@ -7,7 +7,9 @@ using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
+using Shuttle.Hopper;
 using Shuttle.OAuth;
+using RegisterIdentity = Shuttle.Access.Messages.v1.RegisterIdentity;
 using RegisterSession = Shuttle.Access.Application.RegisterSession;
 
 namespace Shuttle.Access.WebApi;
@@ -36,7 +38,7 @@ public static class OAuthEndpoints
         return app;
     }
 
-    private static async Task<IResult> GetSessionStateCode(ILogger<OAuthService> logger, IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IMediator mediator, string state, string code)
+    private static async Task<IResult> GetSessionStateCode(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IBus bus, IMediator mediator, string state, string code, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var requestId))
         {
@@ -68,15 +70,21 @@ public static class OAuthEndpoints
 
         var registerSession = new RegisterSession(identityName).UseDirect();
 
-        await mediator.SendAsync(registerSession);
+        await mediator.SendAsync(registerSession, cancellationToken);
 
         var requestRegistration = registerSession.Result == SessionRegistrationResult.UnknownIdentity && apiOptions.Value.OAuthRegisterUnknownIdentities;
 
         if (requestRegistration)
         {
-            var requestIdentityRegistration = new RequestIdentityRegistration(new() { Name = identityName, Activated = true }).Allowed(grant.ProviderName);
-
-            await mediator.SendAsync(requestIdentityRegistration);
+            await bus.SendAsync(new RegisterIdentity
+            {
+                Id = Guid.NewGuid(),
+                Name = identityName,
+                RegisteredBy = grant.ProviderName,
+                AuditTenantId = accessOptions.Value.SystemTenantId,
+                AuditIdentityName = "system",
+                Activated = true
+            }, cancellationToken);
         }
 
         return Results.Ok(registerSession.GetSessionResponse(requestRegistration));
