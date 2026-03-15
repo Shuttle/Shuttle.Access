@@ -25,14 +25,14 @@ public interface IIdentitiesApi
     [Patch("/v1/identities/password/reset")]
     Task<IApiResponse> ResetPasswordAsync(WebApi.Contracts.v1.ResetPassword message, CancellationToken cancellationToken = default);
 
-    [Patch("/v1/identities/{id}/roles/{roleId}")]
-    Task<IApiResponse> SetRoleAsync(Guid id, Guid roleId, WebApi.Contracts.v1.SetIdentityRoleStatus message, CancellationToken cancellationToken = default);
+    [Patch("/v1/identities/{id}/roles/{roleId}/status")]
+    Task<IApiResponse> SetRoleStatusAsync(Guid id, Guid roleId, WebApi.Contracts.v1.SetActiveStatus message, CancellationToken cancellationToken = default);
 
     [Post("/v1/identities/{id}/roles/availability")]
     Task<IApiResponse<List<WebApi.Contracts.v1.IdentifierAvailability<Guid>>>> RoleAvailabilityAsync(Guid id, WebApi.Contracts.v1.Identifiers<Guid> identifiers, CancellationToken cancellationToken = default);
 
-    [Patch("/v1/identities/{id}/tenants/{tenantId}")]
-    Task<IApiResponse> SetTenantAsync(Guid id, Guid tenantId, WebApi.Contracts.v1.SetIdentityTenantStatus message, CancellationToken cancellationToken = default);
+    [Patch("/v1/identities/{id}/tenants/{tenantId}/status")]
+    Task<IApiResponse> SetTenantAsync(Guid id, Guid tenantId, WebApi.Contracts.v1.SetActiveStatus message, CancellationToken cancellationToken = default);
 
     [Post("/v1/identities/{id}/tenants/availability")]
     Task<IApiResponse<List<WebApi.Contracts.v1.IdentifierAvailability<Guid>>>> TenantAvailabilityAsync(Guid id, WebApi.Contracts.v1.Identifiers<Guid> identifiers, CancellationToken cancellationToken = default);

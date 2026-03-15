@@ -32,7 +32,7 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequireSession();
 
-        app.MapGet("/v{version:apiVersion}/permissions/{id:guid}", Get)
+        app.MapGet("/v{version:apiVersion}/permissions/{id:Guid}", Get)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -62,19 +62,19 @@ public static class PermissionEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/name", PatchName)
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:Guid}/name", PatchName)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Permissions.Register);
 
-        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}/description", PatchDescription)
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:Guid}/description", PatchDescription)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPatch("/v{version:apiVersion}/permissions/{id:guid}", PatchStatus)
+        app.MapPatch("/v{version:apiVersion}/permissions/{id:Guid}/status", PatchStatus)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -83,35 +83,33 @@ public static class PermissionEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchStatus(Guid id, Contracts.v1.SetPermissionStatus message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchStatus(Guid id, Contracts.v1.SetStatus message, ISessionContext sessionContext, IBus bus)
     {
-        message.Id = id;
-
         await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetPermissionStatus
         {
-            Id = message.Id,
+            Id = id,
             Status = message.Status
         }));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchDescription(Guid id, [FromBody] Contracts.v1.SetPermissionDescription message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] Contracts.v1.SetDescription message, ISessionContext sessionContext, IBus bus)
     {
         await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetPermissionDescription
         {
-            Id = message.Id,
+            Id = id,
             Description = message.Description
         }));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, Contracts.v1.SetPermissionName message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchName(Guid id, Contracts.v1.SetName message, ISessionContext sessionContext, IBus bus)
     {
         await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetPermissionName
         {
-            Id = message.Id,
+            Id = id,
             Name = message.Name
         }));
 

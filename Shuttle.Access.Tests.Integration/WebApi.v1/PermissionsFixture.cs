@@ -59,7 +59,6 @@ public class PermissionsFixture
 
         var response = await factory.GetAccessClient().Permissions.SetStatusAsync(permissionId, new()
         {
-            Id = permissionId,
             Status = (int)PermissionStatus.Deactivated
         });
 

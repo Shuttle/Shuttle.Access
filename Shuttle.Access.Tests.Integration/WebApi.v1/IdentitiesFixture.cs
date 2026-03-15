@@ -272,7 +272,7 @@ public class IdentitiesFixture
 
         factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
 
-        var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
+        var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(Guid.NewGuid(), roleId, new()
         {
             Active = true
         });
@@ -443,9 +443,9 @@ public class IdentitiesFixture
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<ReviewIdentityRoleRemoval>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) => ((ReviewIdentityRoleRemoval)message).LastAdministrator());
 
-        var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
+        var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(Guid.NewGuid(), roleId, new()
         {
-            IdentityId = Guid.NewGuid()
+            Active = false
         });
 
         Assert.That(response, Is.Not.Null);

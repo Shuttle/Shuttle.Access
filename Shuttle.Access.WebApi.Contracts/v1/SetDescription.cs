@@ -1,7 +1,6 @@
 ﻿namespace Shuttle.Access.WebApi.Contracts.v1;
 
-public class SetIdentityDescription
+public class SetDescription
 {
     public string Description { get; set; } = string.Empty;
-    public Guid Id { get; set; }
 }

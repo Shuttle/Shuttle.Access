@@ -116,9 +116,8 @@ public class RolesFixture
                 m.SendAsync(It.Is<SetRolePermissionStatus>(message => message.PermissionId.Equals(permissionId)), null))
             .Verifiable();
 
-        var response = await factory.GetAccessClient().Roles.SetPermissionAsync(Guid.NewGuid(), new()
+        var response = await factory.GetAccessClient().Roles.SetPermissionStatusAsync(Guid.NewGuid(), new()
         {
-            PermissionId = permissionId,
             Active = true
         });
 

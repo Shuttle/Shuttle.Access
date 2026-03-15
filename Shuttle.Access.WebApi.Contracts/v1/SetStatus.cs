@@ -1,7 +1,6 @@
 namespace Shuttle.Access.WebApi.Contracts.v1;
 
-public class SetTenantStatus
+public class SetStatus
 {
-    public Guid Id { get; set; }
     public int Status { get; set; }
 }

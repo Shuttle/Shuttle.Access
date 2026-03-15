@@ -86,17 +86,8 @@ public static class TenantEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchStatus(Guid id, [FromBody] Contracts.v1.SetTenantStatus message, ISessionContext sessionContext, IBus bus, CancellationToken cancellationToken)
+    private static async Task<IResult> PatchStatus(Guid id, [FromBody] Contracts.v1.SetStatus message, ISessionContext sessionContext, IBus bus, CancellationToken cancellationToken)
     {
-        try
-        {
-            message.Id = id;
-        }
-        catch (Exception ex)
-        {
-            return Results.BadRequest(ex.Message);
-        }
-
         await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetTenantStatus
         {
             Id = id,

@@ -19,6 +19,6 @@ public interface IRolesApi
     [Post("/v1/roles/search")]
     Task<IApiResponse<List<WebApi.Contracts.v1.Role>>> SearchAsync(WebApi.Contracts.v1.Role.Specification specification, CancellationToken cancellationToken = default);
 
-    [Patch("/v1/roles/{id}/permissions")]
-    Task<IApiResponse> SetPermissionAsync(Guid id, WebApi.Contracts.v1.SetRolePermissionStatus message, CancellationToken cancellationToken = default);
+    [Patch("/v1/roles/{id}/permissions/{permissionId}/status")]
+    Task<IApiResponse> SetPermissionStatusAsync(Guid id, WebApi.Contracts.v1.SetActiveStatus message, CancellationToken cancellationToken = default);
 }

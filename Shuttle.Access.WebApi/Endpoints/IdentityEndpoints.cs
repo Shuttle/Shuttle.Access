@@ -19,13 +19,13 @@ public static class IdentityEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPatch("/v{version:apiVersion}/identities/{id}/name", PatchName)
+        app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/name", PatchName)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPatch("/v{version:apiVersion}/identities/{id:guid}/description", PatchDescription)
+        app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/description", PatchDescription)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -43,31 +43,31 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.View);
 
-        app.MapDelete("/v{version:apiVersion}/identities/{id}", Delete)
+        app.MapDelete("/v{version:apiVersion}/identities/{id:Guid}", Delete)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Remove);
 
-        app.MapPatch("/v{version:apiVersion}/identities/{id}/roles/{roleId}", PatchRole)
+        app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/roles/{roleId:Guid}/status", PatchRoleStatus)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPost("/v{version:apiVersion}/identities/{id}/roles/availability", PostRoleAvailability)
+        app.MapPost("/v{version:apiVersion}/identities/{id:Guid}/roles/availability", PostRoleAvailability)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPatch("/v{version:apiVersion}/identities/{id}/tenants/{tenantId}", PatchTenant)
+        app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/tenants/{tenantId:Guid}/status", PatchTenantStatus)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.Register);
 
-        app.MapPost("/v{version:apiVersion}/identities/{id}/tenants/availability", PostTenantAvailability)
+        app.MapPost("/v{version:apiVersion}/identities/{id:Guid}/tenants/availability", PostTenantAvailability)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -217,7 +217,7 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchRole(Guid id, Guid roleId, [FromBody] Contracts.v1.SetIdentityRoleStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
     {
         if (!message.Active)
         {
@@ -231,7 +231,7 @@ public static class IdentityEndpoints
             }
         }
 
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityRoleStatus
+        await bus.SendAsync(sessionContext.Audit(new SetIdentityRoleStatus
         {
             IdentityId = id,
             RoleId = roleId,
@@ -241,9 +241,9 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchTenant(Guid id, Guid tenantId, [FromBody] Contracts.v1.SetIdentityTenantStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    private static async Task<IResult> PatchTenantStatus(Guid id, Guid tenantId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityTenantStatus
+        await bus.SendAsync(sessionContext.Audit(new SetIdentityTenantStatus
         {
             IdentityId = id,
             TenantId = tenantId,
@@ -297,9 +297,9 @@ public static class IdentityEndpoints
         return Results.Ok((await identityQuery.SearchAsync(search)).ToList());
     }
 
-    private static async Task<IResult> PatchDescription(Guid id, [FromBody] Contracts.v1.SetIdentityDescription message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetDescription message, ISessionContext sessionContext, IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityDescription
+        await bus.SendAsync(sessionContext.Audit(new SetIdentityDescription
         {
             Id = id,
             Description = message.Description
@@ -308,7 +308,7 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] Contracts.v1.SetIdentityName message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] Contracts.v1.SetName message, ISessionContext sessionContext, IBus bus)
     {
         await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityName
         {

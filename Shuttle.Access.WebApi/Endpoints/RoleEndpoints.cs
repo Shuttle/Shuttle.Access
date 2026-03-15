@@ -4,7 +4,6 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Access.Messages;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Access.WebApi.Contracts.v1;
@@ -34,19 +33,19 @@ public static class RoleEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapPatch("/v{version:apiVersion}/roles/{id}/name", PatchName)
+        app.MapPatch("/v{version:apiVersion}/roles/{id:Guid}/name", PatchName)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPatch("/v{version:apiVersion}/roles/{id}/permissions", PatchPermissions)
+        app.MapPatch("/v{version:apiVersion}/roles/{id:Guid}/permissions/{permissionId:Guid}/status", PatchPermissionStatus)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/roles/{id}/permissions/availability", PostPermissionsAvailability)
+        app.MapPost("/v{version:apiVersion}/roles/{id:Guid}/permissions/availability", PostPermissionsAvailability)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -283,21 +282,21 @@ public static class RoleEndpoints
             return Results.Ok(result);
         }
 
-    private static async Task<IResult> PatchPermissions(Guid id, [FromBody] Contracts.v1.SetRolePermissionStatus message, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> PatchPermissionStatus(Guid id, Guid permissionId, [FromBody] Contracts.v1.SetActiveStatus message, ISessionContext sessionContext, [FromServices] IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetRolePermissionStatus
+        await bus.SendAsync(sessionContext.Audit(new SetRolePermissionStatus
         {
             RoleId = id,
-            PermissionId = message.PermissionId,
+            PermissionId = permissionId,
             Active = message.Active
         }));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] Contracts.v1.SetRoleName message, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, [FromServices] IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetRoleName
+        await bus.SendAsync(sessionContext.Audit(new SetRoleName
         {
             Id = id,
             Name = message.Name
