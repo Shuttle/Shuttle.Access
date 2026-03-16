@@ -15,9 +15,9 @@ public static class AccessPermissions
 
     public static class IdentityTenants
     {
-        public const string Manage = "access://identities/manage";
-        public const string Remove = "access://identities/remove";
-        public const string View = "access://identities/view";
+        public const string Manage = "access://identity-tenants/manage";
+        public const string Remove = "access://identity-tenants/remove";
+        public const string View = "access://identity-tenants/view";
     }
 
     public static class Permissions

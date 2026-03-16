@@ -7,10 +7,4 @@ public class SessionResponse
     public string Result { get; set; } = string.Empty;
     public Guid? Token { get; set; }
     public List<Tenant> Tenants { get; set; } = [];
-
-    public class Tenant
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-    }
 }

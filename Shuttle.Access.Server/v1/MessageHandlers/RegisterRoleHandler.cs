@@ -50,12 +50,5 @@ public class RegisterRoleHandler(IBus bus, IMediator mediator, IPermissionQuery 
         }
 
         await mediator.SendAsync(registerRole, cancellationToken);
-
-        await bus.PublishAsync(new RoleRegistered
-        {
-            Id = message.Id,
-            Name = message.Name,
-            TenantId = message.TenantId
-        }, cancellationToken);
     }
 }

@@ -6,7 +6,7 @@ using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class RegisterTenantHandler(IBus bus, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, IMediator mediator) :  IMessageHandler<RegisterTenant>
+public class RegisterTenantHandler(ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, IMediator mediator) :  IMessageHandler<RegisterTenant>
 {
     private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
@@ -95,11 +95,5 @@ public class RegisterTenantHandler(IBus bus, ITenantQuery tenantQuery, IRoleQuer
         };
 
         await _mediator.SendAsync(setIdentityRoleMessage, cancellationToken);
-
-        await bus.PublishAsync(new TenantRegistered
-        {
-            Id = message.Id,
-            Name = message.Name
-        }, cancellationToken);
     }
 }

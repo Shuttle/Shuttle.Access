@@ -205,8 +205,7 @@ const toggle = async (item: PermissionItem) => {
   item.working = true;
   item.activeOnToggle = !item.active;
 
-  await api.patch(`v1/roles/${props.id}/permissions`, {
-    permissionId: item.id,
+  await api.patch(`v1/roles/${props.id}/permissions/${item.id}/status`, {
     active: item.active,
   });
 

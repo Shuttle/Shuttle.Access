@@ -41,10 +41,14 @@ public static class RegisterSessionExtensions
                         StatusName = item.Status.ToString()
                     }).ToList()
                 },
-                Tenants = registerSession.Tenants.Select(item => new SessionResponse.Tenant
+                Tenants = registerSession.Tenants.Select(item => new Contracts.v1.Tenant
                 {
                     Id = item.Id,
-                    Name = item.Name
+                    Name = item.Name,
+                    Status = (int)item.Status,
+                    StatusName = item.Status.ToString(),
+                    LogoUrl = item.LogoUrl,
+                    LogoSvg = item.LogoSvg
                 }).ToList()
             };
         }

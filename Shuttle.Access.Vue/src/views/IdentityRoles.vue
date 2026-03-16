@@ -151,7 +151,7 @@ const toggle = async (item: RoleItem) => {
   item.working = true;
   item.activeOnToggle = !item.active;
 
-  await api.patch(`v1/identities/${id.value}/roles/${item.roleId}`, {
+  await api.patch(`v1/identities/${id.value}/roles/${item.roleId}/status`, {
     active: item.active,
   });
 

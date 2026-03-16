@@ -157,12 +157,16 @@ export type ServerConfiguration = {
 };
 
 export type Session = {
+  id: string;
   identityId: string;
   identityName: string;
   identityDescription: string;
-  permissions: string[];
+  permissions: Permission[];
   expiryDate?: Date;
   dateRegistered?: Date;
+  tenantId?: string;
+  tenantName?: string;
+  tokenHash?: number[];
 };
 
 export type SessionData = {
@@ -175,15 +179,11 @@ export type SessionData = {
 };
 
 export type SessionResponse = {
-  identityId: string;
-  identityName: string;
+  session: Session;
   registrationRequested: boolean;
   result: string;
-  token: string;
-  sessionTokenExchangeUrl?: string;
-  tenantId: string;
-  tenants?: Tenant[];
-  permissions: string[];
+  token: string | null;
+  tenants: Tenant[];
 };
 
 export type Tenant = {

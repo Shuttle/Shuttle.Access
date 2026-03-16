@@ -45,12 +45,7 @@ onMounted(async () => {
       code: code
     });
 
-    const params = { identityName: sessionResponse.identityName };
-
-    if (sessionResponse.sessionTokenExchangeUrl) {
-      window.location.replace(sessionResponse.sessionTokenExchangeUrl);
-      return;
-    }
+    const params = { identityName: sessionResponse.session.identityName };
 
     if (sessionResponse.result === "UnknownIdentity") {
       alertStore.add({

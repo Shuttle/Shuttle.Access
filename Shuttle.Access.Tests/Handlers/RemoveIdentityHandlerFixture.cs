@@ -3,7 +3,6 @@ using NUnit.Framework;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Server.v1.MessageHandlers;
-using Shuttle.Hopper;
 using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Handlers;
@@ -20,7 +19,7 @@ public class RemoveIdentityHandlerFixture
             Id = Guid.NewGuid()
         };
 
-        var handler = new RemoveIdentityHandler(new Mock<IBus>().Object, eventStore, new Mock<IIdKeyRepository>().Object);
+        var handler = new RemoveIdentityHandler(eventStore, new Mock<IIdKeyRepository>().Object);
 
         await handler.HandleAsync(removeIdentity, CancellationToken.None);
 

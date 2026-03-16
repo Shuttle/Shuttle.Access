@@ -5,12 +5,11 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class RemoveIdentityHandler(IBus bus, IEventStore eventStore, IIdKeyRepository idKeyRepository) : IMessageHandler<RemoveIdentity>
+public class RemoveIdentityHandler(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IMessageHandler<RemoveIdentity>
 {
     public async Task HandleAsync(RemoveIdentity message, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(message);
-        ArgumentNullException.ThrowIfNull(bus);
         ArgumentNullException.ThrowIfNull(eventStore);
         ArgumentNullException.ThrowIfNull(idKeyRepository);
 
@@ -25,11 +24,5 @@ public class RemoveIdentityHandler(IBus bus, IEventStore eventStore, IIdKeyRepos
         await idKeyRepository.RemoveAsync(id, cancellationToken);
 
         await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
-
-        await bus.PublishAsync(new IdentityRemoved
-        {
-            Id = id,
-            Name = identity.Name
-        }, cancellationToken);
     }
 }

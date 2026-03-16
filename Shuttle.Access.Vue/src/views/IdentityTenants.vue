@@ -151,7 +151,7 @@ const toggle = async (item: TenantItem) => {
   item.working = true;
   item.activeOnToggle = !item.active;
 
-  await api.patch(`v1/identities/${id.value}/tenants/${item.tenantId}`, {
+  await api.patch(`v1/identities/${id.value}/tenants/${item.tenantId}/status`, {
     active: item.active,
   });
 

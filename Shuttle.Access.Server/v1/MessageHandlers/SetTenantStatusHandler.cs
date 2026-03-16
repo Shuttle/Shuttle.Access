@@ -5,7 +5,7 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class SetTenantStatusHandler(IBus bus, IEventStore eventStore) :
+public class SetTenantStatusHandler(IEventStore eventStore) :
     IMessageHandler<SetTenantStatus>
 {
     public async Task HandleAsync(SetTenantStatus message, CancellationToken cancellationToken = default)
@@ -25,12 +25,5 @@ public class SetTenantStatusHandler(IBus bus, IEventStore eventStore) :
         stream.Add(aggregate.SetStatus(status));
 
         await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
-
-        await bus.PublishAsync(new TenantStatusSet
-        {
-            Id = message.Id,
-            Name = aggregate.Name,
-            Status = (int)status
-        }, cancellationToken);
     }
 }

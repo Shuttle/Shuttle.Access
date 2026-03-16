@@ -110,9 +110,7 @@ const refresh = () => {
   busy.value = true;
 
   api
-    .post("v1/sessions/search/data", {
-      shouldIncludePermissions: true,
-    })
+    .post("v1/sessions/search", {})
     .then(function (response: AxiosResponse<SessionData[]>) {
       if (!response || !response.data) {
         return;

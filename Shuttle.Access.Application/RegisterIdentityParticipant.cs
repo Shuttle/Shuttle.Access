@@ -34,6 +34,11 @@ public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepositor
             stream.Add(aggregate.Activate(registered.DateRegistered));
         }
 
+        foreach (var roleId in message.RoleIds)
+        {
+            stream.Add(aggregate.AddRole(roleId));
+        }
+
         await eventStore.SaveAsync(stream, cancellationToken);
     }
 }

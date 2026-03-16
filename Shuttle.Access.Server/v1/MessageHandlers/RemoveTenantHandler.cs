@@ -6,7 +6,7 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class RemoveTenantHandler(IBus bus, IEventStore eventStore, IIdKeyRepository idKeyRepository) :
+public class RemoveTenantHandler(IEventStore eventStore, IIdKeyRepository idKeyRepository) :
     IMessageHandler<RemoveTenant>
 {
     public async Task HandleAsync(RemoveTenant message, CancellationToken cancellationToken = default)
@@ -29,11 +29,5 @@ public class RemoveTenantHandler(IBus bus, IEventStore eventStore, IIdKeyReposit
         await idKeyRepository.RemoveAsync(message.Id, cancellationToken);
 
         await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
-
-        await bus.PublishAsync(new TenantRemoved
-        {
-            Id = message.Id,
-            Name = aggregate.Name
-        }, cancellationToken);
     }
 }

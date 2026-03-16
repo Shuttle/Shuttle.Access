@@ -57,8 +57,7 @@ export const useSessionStore = defineStore("session", () => {
   const register = (sessionResponse: SessionResponse) => {
     if (
       !sessionResponse ||
-      !sessionResponse.identityId ||
-      !sessionResponse.identityName ||
+      !sessionResponse.session ||
       !sessionResponse.token
     ) {
       throw Error(i18n.global.t("messages.invalid-session"));
@@ -66,16 +65,18 @@ export const useSessionStore = defineStore("session", () => {
 
     localStorage.setItem(
       "shuttle-access.identityName",
-      sessionResponse.identityName,
+      sessionResponse.session.identityName,
     );
     localStorage.setItem("shuttle-access.token", sessionResponse.token);
 
-    identityName.value = sessionResponse.identityName;
+    identityName.value = sessionResponse.session.identityName;
     token.value = sessionResponse.token;
-    tenantId.value = sessionResponse.tenantId;
+    tenantId.value = sessionResponse.session.tenantId;
 
     removePermissions();
-    sessionResponse.permissions.forEach((item) => addPermission(item));
+    sessionResponse.session.permissions.forEach((item) =>
+      addPermission(item.name),
+    );
 
     isAuthenticated.value = true;
   };
@@ -85,10 +86,12 @@ export const useSessionStore = defineStore("session", () => {
       throw Error(i18n.global.t("messages.invalid-session"));
     }
 
-    tenantId.value = sessionResponse.tenantId;
+    tenantId.value = sessionResponse.session.tenantId;
 
     removePermissions();
-    sessionResponse.permissions.forEach((item) => addPermission(item));
+    sessionResponse.session.permissions.forEach((item) =>
+      addPermission(item.name),
+    );
   };
 
   const signIn = async (credentials: Credentials): Promise<SessionResponse> => {

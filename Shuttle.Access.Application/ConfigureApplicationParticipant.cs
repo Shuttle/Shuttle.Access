@@ -57,14 +57,14 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
             }
         }
 
-        var timeout = DateTimeOffset.Now.Add(message.Timeout);
-
         var permissionSpecification = new Query.Permission.Specification();
 
         foreach (var permission in _permissions)
         {
             permissionSpecification.AddName(permission);
         }
+
+        var timeout = DateTimeOffset.Now.Add(message.Timeout);
 
         while (await permissionQuery.CountAsync(permissionSpecification, cancellationToken) != _permissions.Count && DateTimeOffset.Now < timeout)
         {
@@ -104,6 +104,13 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                 await mediator.SendAsync(registerTenant, cancellationToken);
 
                 scope.Complete();
+            }
+
+            timeout = DateTimeOffset.Now.Add(message.Timeout);
+
+            while (await tenantQuery.CountAsync(tenantSpecification, cancellationToken) == 0 && DateTimeOffset.Now < timeout)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).WaitAsync(cancellationToken);
             }
 
             if (await tenantQuery.CountAsync(tenantSpecification, cancellationToken) == 0)
@@ -151,7 +158,9 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                 await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).WaitAsync(cancellationToken);
             }
 
-            if (await roleQuery.CountAsync(roleSpecification, cancellationToken) == 0)
+            administratorRole = (await roleQuery.SearchAsync(roleSpecification, cancellationToken)).FirstOrDefault();
+
+            if (administratorRole == null)
             {
                 throw new ApplicationException(Resources.AdministratorRoleException);
             }
@@ -166,7 +175,8 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
         if (await identityQuery.CountAsync(new Query.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken) == 0)
         {
-            var registerIdentityMessage = new RegisterIdentity(Guid.NewGuid(), message.AdministratorIdentityName, string.Empty, string.Empty, hashingService.Sha256(message.AdministratorPassword), "system://access", true, accessOptions.Value.SystemTenantId, "system");
+            var registerIdentityMessage = new RegisterIdentity(Guid.NewGuid(), message.AdministratorIdentityName, string.Empty, string.Empty, hashingService.Sha256(message.AdministratorPassword), "system://access", true, accessOptions.Value.SystemTenantId, "system")
+                .AddRoleId(administratorRole.Id);
 
             await mediator.SendAsync(registerIdentityMessage, cancellationToken);
         }
