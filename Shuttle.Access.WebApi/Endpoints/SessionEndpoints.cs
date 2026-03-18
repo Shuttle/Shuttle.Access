@@ -16,12 +16,12 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
-    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionRepository sessionRepository)
+    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionRepository sessionRepository, ISessionQuery sessionQuery)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             var specification = new Query.Session.Specification().AddId(sessionId);
-            var session = await sessionRepository.FindAsync(specification);
+            var session = (await sessionQuery.SearchAsync(specification)).FirstOrDefault();
 
             if (session != null && await sessionRepository.RemoveAsync(specification) > 0)
             {
@@ -48,7 +48,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteSelf(IBus bus, ISessionRepository sessionRepository, HttpContext httpContext)
+    private static async Task<IResult> DeleteSelf(IBus bus, ISessionRepository sessionRepository, ISessionQuery sessionQuery, HttpContext httpContext)
     {
         var identityId = httpContext.FindIdentityId();
         var tenantId = httpContext.FindTenantId();
@@ -60,7 +60,7 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = await sessionRepository.FindAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value));
+            var session = (await sessionQuery.SearchAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value))).FirstOrDefault();
 
             if (session != null)
             {
@@ -84,45 +84,35 @@ public static class SessionEndpoints
 
     private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
     {
-        async Task<IResult> AttemptRegistration(Guid tenantId)
+        var identityName = httpContext.FindIdentityName();
+
+        if (string.IsNullOrWhiteSpace(identityName))
         {
-            var identityName = httpContext.FindIdentityName();
-
-            if (string.IsNullOrWhiteSpace(identityName))
-            {
-                return Results.BadRequest();
-            }
-
-            var registerSession = new RegisterSession(identityName).WithTenantId(tenantId).UseDirect();
-
-            await mediator.SendAsync(registerSession);
-
-            if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession || registerSession.Identity == null)
-            {
-                return Results.NotFound();
-            }
-
-            return Results.Ok(Map(registerSession.Session));
+            return Results.BadRequest();
         }
 
-        var identityId = httpContext.FindIdentityId();
-        var tenantId = httpContext.FindTenantId() ?? accessOptions.Value.SystemTenantId;
+        var registerSession = new RegisterSession(identityName).UseDirect();
 
-        if (identityId == null)
+        var tenantId = httpContext.FindTenantId();
+
+        if (tenantId.HasValue)
         {
-            return await AttemptRegistration(tenantId);
+            registerSession.WithTenantId(tenantId.Value);
         }
 
-        var session = (await sessionQuery.SearchAsync(new Query.Session.Specification().WithTenantId(tenantId).WithIdentityId(identityId.Value))).FirstOrDefault();
+        await mediator.SendAsync(registerSession);
 
-        if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
+        if (registerSession.Result == SessionRegistrationResult.Forbidden)
         {
-            return Results.Ok(Map(session));
+            return Results.Forbid();
         }
 
-        sessionCache.Flush(identityId.Value);
+        if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession)
+        {
+            return Results.NotFound();
+        }
 
-        return await AttemptRegistration(tenantId);
+        return Results.Ok(Map(registerSession.Session));
     }
 
     private static Query.Session.Specification GetSpecification(Contracts.v1.Session.Specification model, IHashingService hashingService)
@@ -155,27 +145,6 @@ public static class SessionEndpoints
         }
 
         return specification;
-    }
-
-    private static Contracts.v1.Session Map(Session session)
-    {
-        return new()
-        {
-            Id = session.Id,
-            TenantId = session.TenantId,
-            IdentityId = session.IdentityId,
-            IdentityName = session.IdentityName,
-            DateRegistered = session.DateRegistered,
-            ExpiryDate = session.ExpiryDate,
-            Permissions = session.Permissions.Select(item => new Contracts.v1.Permission
-            {
-                Id = item.Id,
-                Name = item.Name,
-                Description = item.Description,
-                Status = (int)item.Status,
-                StatusName = item.Status.ToString()
-            }).ToList()
-        };
     }
 
     private static Contracts.v1.Session Map(Query.Session session)

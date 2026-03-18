@@ -79,15 +79,6 @@ namespace Shuttle.Access.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Identity &apos;{0}&apos; has not been associated with any active tenants..
-        /// </summary>
-        public static string IdentityHasNoTenantsException {
-            get {
-                return ResourceManager.GetString("IdentityHasNoTenantsException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Could not register/find all required permissions.  Please restart the server to try again..
         /// </summary>
         public static string PermissionsException {

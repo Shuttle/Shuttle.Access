@@ -81,7 +81,16 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
                 {
                     Id = item.RoleId,
                     Name = item.Role.Name,
-                    TenantId = item.Role.TenantId
+                    TenantId = item.Role.TenantId,
+                    Permissions = specification.ShouldIncludePermissions
+                        ? item.Role.RolePermissions.Select(rp => new Query.Permission
+                        {
+                            Id = rp.Permission.Id,
+                            Name = rp.Permission.Name,
+                            Status = (PermissionStatus)rp.Permission.Status,
+                            Description = rp.Permission.Description
+                        }).ToList()
+                        : []
                 }).ToList()
             });
     }
@@ -91,10 +100,18 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
         var queryable = _accessDbContext.Identities
             .Include(item => item.IdentityTenants)
             .ThenInclude(item => item.Tenant)
-            .Include(item => item.IdentityRoles)
-            .ThenInclude(item => item.Role)
             .AsNoTracking()
             .AsQueryable();
+
+        var rolesInclude = queryable
+                .Include(item => item.IdentityRoles)
+                .ThenInclude(item => item.Role);
+
+        queryable = identitySpecification.ShouldIncludePermissions
+            ? rolesInclude
+                .ThenInclude(item => item.RolePermissions)
+                .ThenInclude(item => item.Permission)
+            : rolesInclude;
 
         if (!string.IsNullOrEmpty(identitySpecification.NameMatch))
         {

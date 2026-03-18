@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
@@ -120,7 +121,7 @@ public static class IdentityEndpoints
         return Results.Ok(from tenantId in identifiers.Values select new IdentifierAvailability<Guid> { Id = tenantId, Active = tenants.Any(item => item.Equals(tenantId)) });
     }
 
-    private static async Task<IResult> Post(IBus bus, ISessionContext sessionContext, IMediator mediator, ITransactionScopeFactory transactionScopeFactory, [FromBody] Contracts.v1.RegisterIdentity message, CancellationToken cancellationToken)
+    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, IBus bus, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, ITransactionScopeFactory transactionScopeFactory, [FromBody] Contracts.v1.RegisterIdentity message, CancellationToken cancellationToken)
     {
         Guard.AgainstNull(message);
 
@@ -134,6 +135,58 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
+        var roleIds= new List<Guid>();
+        var tenantIds= new List<Guid>();
+
+        if (message.RoleIds.Count > 0 || message.TenantIds.Count > 0)
+        {
+            var identity = (await identityQuery.SearchAsync(new Query.Identity.Specification().AddId(sessionContext.Session.IdentityId).IncludePermissions(), cancellationToken)).FirstOrDefault();
+
+            if (identity == null)
+            {
+                return Results.Unauthorized();
+            }
+
+            if (message.RoleIds.Count > 0)
+            {
+                var roles = (await roleQuery.SearchAsync(new Query.Role.Specification().AddIds(message.RoleIds), cancellationToken)).ToList();
+
+                roleIds.AddRange(roles.Select(item => item.Id));
+                tenantIds.AddRange(roles.Select(item => item.TenantId).Distinct());
+            }
+
+            List<Query.Tenant> tenants = [];
+
+            if (message.TenantIds.Count > 0)
+            {
+                tenants = (await tenantQuery.SearchAsync(new Query.Tenant.Specification().AddIds(message.TenantIds), cancellationToken)).ToList();
+
+                foreach (var tenantId in tenants.Select(item => item.Id).Distinct())
+                {
+                    if (!tenantIds.Contains(tenantId))
+                    {
+                        tenantIds.Add(tenantId);
+                    }
+                }
+            }
+
+            var hasSystemAccess = identity.HasPermission(accessOptions.Value.SystemTenantId, AccessPermissions.Identities.Register);
+
+            if (!hasSystemAccess)
+            {
+                foreach (var tenantId in tenantIds)
+                {
+                    if (!identity.HasPermission(tenantId, AccessPermissions.Identities.Register))
+                    {
+                        return Results.Problem(
+                            title: "Forbidden",
+                            detail: $"You do not have permission to register identities in tenant '{tenants.FirstOrDefault(item => item.Id == tenantId)?.Name ?? "(unknown)"}'.",
+                            statusCode: StatusCodes.Status403Forbidden);
+                    }
+                }
+            }
+        }
+
         await bus.SendAsync(new Messages.v1.RegisterIdentity
         {
             Id = Guid.NewGuid(),
@@ -141,8 +194,10 @@ public static class IdentityEndpoints
             Description = message.Description,
             RegisteredBy = sessionContext.Session.IdentityName,
             AuditTenantId = sessionContext.Session.TenantId!.Value,
-            AuditIdentityName = "system",
-            Activated = true
+            AuditIdentityName = sessionContext.Session.IdentityName,
+            Activated = true,
+            RoleIds = roleIds,
+            TenantIds = tenantIds
         }, cancellationToken);
 
         return Results.Accepted();
@@ -308,9 +363,9 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] Contracts.v1.SetName message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityName
+        await bus.SendAsync(sessionContext.Audit(new SetIdentityName
         {
             Id = id,
             Name = message.Name

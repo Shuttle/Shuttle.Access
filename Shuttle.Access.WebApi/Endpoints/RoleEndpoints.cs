@@ -282,7 +282,7 @@ public static class RoleEndpoints
             return Results.Ok(result);
         }
 
-    private static async Task<IResult> PatchPermissionStatus(Guid id, Guid permissionId, [FromBody] Contracts.v1.SetActiveStatus message, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> PatchPermissionStatus(Guid id, Guid permissionId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IBus bus)
     {
         await bus.SendAsync(sessionContext.Audit(new SetRolePermissionStatus
         {

@@ -22,7 +22,7 @@ public class RegisterIdentityParticipantFixture
 
         idKeyRepository.Setup(m => m.FindAsync(Identity.Key(identity.Name), CancellationToken.None)).ReturnsAsync(await ValueTask.FromResult((Guid?)null));
 
-        var participant = new RegisterIdentityParticipant(eventStore, idKeyRepository.Object);
+        var participant = new RegisterIdentityParticipant(eventStore, idKeyRepository.Object, new Mock<ITenantQuery>().Object);
 
         var registerIdentity = new RegisterIdentity(Guid.NewGuid(), "name", "description", string.Empty, [], "registered-by", true, Guid.NewGuid(), "audit-identity-name");
 

@@ -54,6 +54,11 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
             queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
         }
 
+        if (specification.ShouldIncludeActiveOnly)
+        {
+            queryable = queryable.Where(e => e.Status == (int)TenantStatus.Active);
+        }
+
         if (specification.MaximumRows > 0)
         {
             queryable = queryable.Take(specification.MaximumRows);

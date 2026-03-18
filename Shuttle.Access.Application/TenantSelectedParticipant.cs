@@ -4,7 +4,7 @@ using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class TenantSelectedParticipant(IOptions<AccessOptions> accessOptions, ISessionRepository sessionRepository, ISessionQuery sessionQuery, IAuthorizationService authorizationService, ISessionCache sessionCache) : IParticipant<TenantSelected>
+public class TenantSelectedParticipant(IOptions<AccessOptions> accessOptions, ISessionRepository sessionRepository, ISessionQuery sessionQuery, IIdentityQuery identityQuery, ISessionCache sessionCache) : IParticipant<TenantSelected>
 {
     public async Task HandleAsync(TenantSelected message, CancellationToken cancellationToken = default)
     {
@@ -13,8 +13,9 @@ public class TenantSelectedParticipant(IOptions<AccessOptions> accessOptions, IS
         var session = await Guard.AgainstNull(sessionRepository).GetAsync(message.SessionId, cancellationToken);
 
         session.WithTenantId(message.TenantId);
+        session.ClearPermissions();
 
-        foreach (var permission in await Guard.AgainstNull(authorizationService).GetPermissionsAsync(session.IdentityName, message.TenantId, cancellationToken))
+        foreach (var permission in await identityQuery.PermissionsAsync(session.IdentityId, message.TenantId, cancellationToken))
         {
             session.AddPermission(new(permission.Id, permission.Name, permission.Description, permission.Status));
         }

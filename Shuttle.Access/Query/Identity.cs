@@ -24,6 +24,7 @@ public class Identity
         public string RoleName { get; private set; } = string.Empty;
         public bool RolesIncluded { get; private set; }
         public Guid? TenantId { get; private set; }
+        public bool ShouldIncludePermissions { get; private set; }
 
         public Specification IncludeRoles()
         {
@@ -76,6 +77,13 @@ public class Identity
         public Specification WithTenantId(Guid tenantId)
         {
             TenantId = Guard.AgainstEmpty(tenantId);
+
+            return this;
+        }
+
+        public Specification IncludePermissions()
+        {
+            ShouldIncludePermissions = true;
 
             return this;
         }

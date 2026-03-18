@@ -11,9 +11,7 @@ public static class SessionExtensions
             ArgumentNullException.ThrowIfNull(session);
             ArgumentException.ThrowIfNullOrWhiteSpace(requiredPermission);
 
-            return session.Permissions
-                .Any(permission =>
-                    Regex.IsMatch(requiredPermission, $"^{Regex.Escape(permission.Name).Replace(@"\*", ".*")}$", RegexOptions.IgnoreCase));
+            return session.Permissions.Any(permission => permission.IsSatisfiedBy(requiredPermission));
         }
     }
 }

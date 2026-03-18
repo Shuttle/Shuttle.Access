@@ -1,37 +1,34 @@
 ﻿using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
-using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
-public class RefreshSessionParticipant(IBus bus, ISessionCache sessionCache, IAuthorizationService authorizationService, ISessionRepository sessionRepository)
+public class RefreshSessionParticipant(ISessionCache sessionCache, ISessionRepository sessionRepository, IIdentityQuery identityQuery)
     : IParticipant<RefreshSession>
 {
-    private readonly IAuthorizationService _authorizationService = Guard.AgainstNull(authorizationService);
-    private readonly IBus _bus = Guard.AgainstNull(bus);
-    private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
-    private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
-
     public async Task HandleAsync(RefreshSession message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
+        Guard.AgainstNull(sessionCache);
+        Guard.AgainstNull(sessionRepository);
+        Guard.AgainstNull(identityQuery);
 
-        var session = await _sessionRepository.FindAsync(new Query.Session.Specification().AddId(message.Id), cancellationToken);
+        var session = await sessionRepository.FindAsync(new Query.Session.Specification().AddId(message.Id), cancellationToken);
 
-        if (session is not { TenantId: not null })
+        if (session == null)
         {
             return;
         }
 
         session.ClearPermissions();
 
-        foreach (var permission in await _authorizationService.GetPermissionsAsync(session.IdentityName, session.TenantId.Value, cancellationToken))
+        foreach (var permission in await identityQuery.PermissionsAsync(session.IdentityId, session.TenantId, cancellationToken))
         {
             session.AddPermission(new(permission.Id, permission.Name, permission.Description, permission.Status));
         }
 
-        await _sessionRepository.SaveAsync(session, cancellationToken);
+        await sessionRepository.SaveAsync(session, cancellationToken);
 
-        _sessionCache.Flush(session.IdentityId);
+        sessionCache.Flush(session.IdentityId);
     }
 }

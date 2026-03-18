@@ -10,4 +10,6 @@ public class RegisterIdentity : AuditMessage
     public string Password { get; set; } = string.Empty;
     public byte[] PasswordHash { get; set; } = [];
     public string RegisteredBy { get; set; } = string.Empty;
+    public List<Guid> RoleIds { get; set; } = [];
+    public List<Guid> TenantIds { get; set; } = [];
 }

@@ -24,12 +24,7 @@ public class SessionRepository(AccessDbContext accessDbContext, IHashingService 
 
     private static Session GetSession(Models.Session model)
     {
-        var session = new Session(model.Id, model.Token, model.IdentityId, model.IdentityName, model.DateRegistered, model.ExpiryDate);
-
-        if (model.TenantId.HasValue)
-        {
-            session.WithTenantId(model.TenantId.Value);
-        }
+        var session = new Session(model.Id, model.Token, model.TenantId, model.IdentityId, model.DateRegistered, model.ExpiryDate);
 
         foreach (var sessionPermission in model.SessionPermissions)
         {
@@ -65,18 +60,17 @@ public class SessionRepository(AccessDbContext accessDbContext, IHashingService 
 
         var model = await _accessDbContext.Sessions
             .Include(item => item.SessionPermissions)
-            .SingleOrDefaultAsync(item => item.IdentityName == session.IdentityName, cancellationToken);
+            .SingleOrDefaultAsync(item => item.Id == session.Id, cancellationToken);
 
         if (model == null)
         {
             _accessDbContext.Sessions.Add(new()
             {
                 Id = session.Id,
-                IdentityName = session.IdentityName,
+                TenantId = session.TenantId,
+                IdentityId = session.IdentityId,
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
-                IdentityId = session.IdentityId,
-                TenantId = session.TenantId,
                 Token = session.Token,
                 SessionPermissions = session.Permissions.Select(p => new SessionPermission
                 {
@@ -138,7 +132,7 @@ public class SessionRepository(AccessDbContext accessDbContext, IHashingService 
 
         if (!string.IsNullOrWhiteSpace(specification.IdentityName))
         {
-            queryable = queryable.Where(e => e.IdentityName == specification.IdentityName);
+            queryable = queryable.Where(e => e.Identity.Name == specification.IdentityName);
         }
 
         if (specification.TenantId.HasValue)

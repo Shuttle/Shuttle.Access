@@ -6,8 +6,6 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
 public class SessionsFixture
 {
-    private const string Permission = "integration://system-permission";
-
     [Test]
     public async Task Should_be_able_to_get_a_session_using_the_token_async()
     {
@@ -48,8 +46,15 @@ public class SessionsFixture
         var factory = new FixtureWebApplicationFactory();
 
         var sessionToken = Guid.NewGuid();
-        var session = new Session(Guid.NewGuid(), sessionToken.ToByteArray(), identityId, "identity-name", DateTimeOffset.Now, DateTimeOffset.Now)
-            .WithTenantId(Guid.NewGuid());
+        var session = new Query.Session
+            {
+                Id = Guid.NewGuid(),
+                TokenHash = sessionToken.ToByteArray(),
+                TenantId = tenantId,
+                IdentityId = identityId,
+                DateRegistered = DateTimeOffset.Now,
+                ExpiryDate = DateTimeOffset.Now.AddMinutes(5)
+            };
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>
@@ -69,7 +74,7 @@ public class SessionsFixture
                             Status = TenantStatus.Active
                         }
                     ]
-                });
+                }, tenantId);
 
                 registerSession.Registered(sessionToken, session);
             });

@@ -41,7 +41,6 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
     {
         return new() {
             Id = session.Id,
-            TokenHash = session.TokenHash, 
             IdentityId = session.IdentityId, 
             IdentityName = session.IdentityName, 
             IdentityDescription = session.IdentityDescription,

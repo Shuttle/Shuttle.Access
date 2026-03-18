@@ -48,7 +48,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
     {
         var authorizationHeader = Request.Headers.Authorization.FirstOrDefault();
         var tenantIdHeader = Request.Headers["Shuttle-Access-Tenant-Id"].FirstOrDefault();
-        Guid? tenantId = null;
+        Guid tenantId;
 
         if (authorizationHeader == null)
         {
@@ -58,6 +58,10 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
         if (tenantIdHeader != null && Guid.TryParse(tenantIdHeader, out var id))
         {
             tenantId = id;
+        }
+        else
+        {
+            tenantId = _accessOptions.SystemTenantId;
         }
 
         if (_accessAuthorizationOptions.PassThrough)
@@ -101,10 +105,11 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, identityName),
-            new(ClaimTypes.Name, identityName)
+            new(ClaimTypes.Name, identityName),
+            new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}")
         ];
 
-        var session = await _sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId ?? _accessOptions.SystemTenantId).WithIdentityName(identityName));
+        var session = await _sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId).WithIdentityName(identityName));
 
         if (session != null)
         {

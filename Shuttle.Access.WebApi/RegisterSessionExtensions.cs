@@ -11,7 +11,7 @@ public static class RegisterSessionExtensions
         {
             ArgumentNullException.ThrowIfNull(registerSession);
 
-            if (registerSession.Identity == null || registerSession.Session == null)
+            if (registerSession.Session == null)
             {
                 return new()
                 {
