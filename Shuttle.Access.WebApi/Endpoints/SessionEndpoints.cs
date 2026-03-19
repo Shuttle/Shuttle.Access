@@ -156,8 +156,10 @@ public static class SessionEndpoints
             TenantName = session.TenantName,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName,
+            IdentityDescription = session.IdentityDescription,
             DateRegistered = session.DateRegistered,
             ExpiryDate = session.ExpiryDate,
+            TokenHash = session.TokenHash,
             Permissions = session.Permissions.Select(item => new Contracts.v1.Permission
             {
                 Id = item.Id,

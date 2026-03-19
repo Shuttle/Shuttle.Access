@@ -139,7 +139,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             var now = DateTimeOffset.UtcNow;
             var token = Guid.NewGuid();
 
-            session = new( Guid.NewGuid(), hashingService.Sha256(token.ToString("D")), message.TenantId.Value, identity.Id, now, now.Add(accessOptions.Value.SessionDuration));
+            session = new(session?.Id ?? Guid.NewGuid(), hashingService.Sha256(token.ToString("D")), message.TenantId.Value, identity.Id, now, now.Add(accessOptions.Value.SessionDuration));
 
             await SaveAsync(token);
         }
