@@ -38,7 +38,6 @@ public static class ServiceCollectionExtensions
             services
                 .AddSingleton<IValidateOptions<AccessAuthorizationOptions>, AccessAuthorizationOptionsValidator>()
                 .AddScoped<AccessAuthorizationMiddleware>()
-                .AddScoped<IHttpContextSessionService, HttpContextSessionService>()
                 .AddScoped<ISessionContext, SessionContext>()
                 .AddAuthentication(options =>
                 {

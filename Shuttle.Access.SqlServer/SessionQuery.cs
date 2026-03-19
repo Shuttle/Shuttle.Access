@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Access.SqlServer.Models;
 using Shuttle.Core.Contract;
+using Session = Shuttle.Access.Query.Session;
 
 namespace Shuttle.Access.SqlServer;
 
@@ -7,21 +9,21 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
 
-    public async ValueTask<int> CountAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async ValueTask<int> CountAsync(Session.Specification specification, CancellationToken cancellationToken = default)
     {
         return await GetQueryable(specification).CountAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<Query.Session>> SearchAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Session>> SearchAsync(Session.Specification specification, CancellationToken cancellationToken = default)
     {
         return (await GetQueryable(specification)
-            .Include(e => e.Tenant)
-            .Include(e => e.Identity).ThenInclude(e => e.IdentityRoles)
-            .Include(e => e.SessionPermissions).ThenInclude(e => e.Permission)
-            .OrderBy(e => e.Identity.Name)
-            .Distinct()
-            .ToListAsync(cancellationToken))
-            .Select(e => new Query.Session
+                .Include(e => e.Tenant)
+                .Include(e => e.Identity).ThenInclude(e => e.IdentityRoles)
+                .Include(e => e.SessionPermissions).ThenInclude(e => e.Permission)
+                .OrderBy(e => e.Identity.Name)
+                .Distinct()
+                .ToListAsync(cancellationToken))
+            .Select(e => new Session
             {
                 Id = e.Id,
                 DateRegistered = e.DateRegistered,
@@ -43,14 +45,64 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
             ;
     }
 
-    private IQueryable<Models.Session> GetQueryable(Query.Session.Specification specification)
+    public async ValueTask<int> RemoveAsync(Session.Specification specification, CancellationToken cancellationToken = default)
+    {
+        if (!specification.HasCriteria)
+        {
+            return await _accessDbContext.Database.ExecuteSqlAsync($"DELETE FROM [access].[Session]", cancellationToken);
+        }
+
+        return await GetQueryable(specification).ExecuteDeleteAsync(cancellationToken);
+    }
+
+    public async Task SaveAsync(Session session, CancellationToken cancellationToken = default)
+    {
+        var model = await _accessDbContext.Sessions
+            .Include(item => item.SessionPermissions)
+            .SingleOrDefaultAsync(item => item.Id == session.Id, cancellationToken);
+
+        if (model == null)
+        {
+            _accessDbContext.Sessions.Add(new()
+            {
+                Id = session.Id,
+                TenantId = session.TenantId,
+                IdentityId = session.IdentityId,
+                DateRegistered = session.DateRegistered,
+                ExpiryDate = session.ExpiryDate,
+                Token = session.TokenHash,
+                SessionPermissions = session.Permissions.Select(p => new SessionPermission
+                {
+                    SessionId = session.Id,
+                    PermissionId = p.Id
+                }).ToList()
+            });
+        }
+        else
+        {
+            model.Token = session.TokenHash;
+            model.ExpiryDate = session.ExpiryDate;
+            model.TenantId = session.TenantId;
+
+            _accessDbContext.SessionPermissions.RemoveRange(model.SessionPermissions);
+
+            model.SessionPermissions.Clear();
+
+            await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+            model.SessionPermissions = session.Permissions.Select(p => new SessionPermission
+            {
+                SessionId = session.Id,
+                PermissionId = p.Id
+            }).ToList();
+        }
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private IQueryable<Models.Session> GetQueryable(Session.Specification specification)
     {
         var queryable = _accessDbContext.Sessions.AsQueryable();
-
-        if (specification.HasNullTenantId || specification.TenantId.HasValue)
-        {
-            queryable = queryable.Where(e => e.TenantId == specification.TenantId);
-        }
 
         if (specification.Token.HasValue)
         {

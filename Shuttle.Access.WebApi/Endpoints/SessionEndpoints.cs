@@ -7,23 +7,25 @@ using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
+using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 using Shuttle.Hopper;
 using RegisterSession = Shuttle.Access.Application.RegisterSession;
+using Session = Shuttle.Access.Query.Session;
 
 namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
-    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionRepository sessionRepository, ISessionQuery sessionQuery)
+    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var specification = new Query.Session.Specification().AddId(sessionId);
+            var specification = new Session.Specification().AddId(sessionId);
             var session = (await sessionQuery.SearchAsync(specification)).FirstOrDefault();
 
-            if (session != null && await sessionRepository.RemoveAsync(specification) > 0)
+            if (session != null && await sessionQuery.RemoveAsync(specification) > 0)
             {
                 await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
             }
@@ -34,11 +36,11 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteAll(IBus bus, ISessionRepository sessionRepository)
+    private static async Task<IResult> DeleteAll(IBus bus, ISessionQuery sessionQuery)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            await sessionRepository.RemoveAsync(new());
+            await sessionQuery.RemoveAsync(new());
 
             await bus.PublishAsync(new AllSessionsDeleted());
 
@@ -48,7 +50,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteSelf(IBus bus, ISessionRepository sessionRepository, ISessionQuery sessionQuery, HttpContext httpContext)
+    private static async Task<IResult> DeleteSelf(IBus bus, ISessionQuery sessionQuery, HttpContext httpContext)
     {
         var identityId = httpContext.FindIdentityId();
         var tenantId = httpContext.FindTenantId();
@@ -60,16 +62,16 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = (await sessionQuery.SearchAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value))).FirstOrDefault();
+            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value))).FirstOrDefault();
 
             if (session != null)
             {
-                if (await sessionRepository.RemoveAsync(new Query.Session.Specification().AddId(session.Id)) > 0)
+                if (await sessionQuery.RemoveAsync(new Session.Specification().AddId(session.Id)) > 0)
                 {
                     await bus.PublishAsync(new SessionDeleted
                     {
                         Id = session.Id,
-                        IdentityId = session.IdentityId, 
+                        IdentityId = session.IdentityId,
                         IdentityName = session.IdentityName,
                         TenantId = session.TenantId
                     });
@@ -115,9 +117,9 @@ public static class SessionEndpoints
         return Results.Ok(Map(registerSession.Session));
     }
 
-    private static Query.Session.Specification GetSpecification(Contracts.v1.Session.Specification model, IHashingService hashingService)
+    private static Session.Specification GetSpecification(Contracts.v1.Session.Specification model, IHashingService hashingService)
     {
-        var specification = new Query.Session.Specification();
+        var specification = new Session.Specification();
 
         if (model.Token != null)
         {
@@ -147,7 +149,7 @@ public static class SessionEndpoints
         return specification;
     }
 
-    private static Contracts.v1.Session Map(Query.Session session)
+    private static Contracts.v1.Session Map(Session session)
     {
         return new()
         {
@@ -168,7 +170,6 @@ public static class SessionEndpoints
                 Status = (int)item.Status,
                 StatusName = item.Status.ToString()
             }).ToList()
-
         };
     }
 
@@ -231,7 +232,7 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        var message = new TenantSelected(sessionContext.Session.Id, selectTenant.TenantId);
+        var message = new SessionTenantSelected(sessionContext.Session.Id, selectTenant.TenantId);
 
         await Guard.AgainstNull(mediator).SendAsync(message, cancellationToken);
 
@@ -307,7 +308,7 @@ public static class SessionEndpoints
         return Results.Ok(registerSession.GetSessionResponse(false));
     }
 
-    private static async Task<IResult> PostDelegated(IMediator mediator, Contracts.v1.RegisterDelegatedSession message, HttpContext httpContext)
+    private static async Task<IResult> PostDelegated(IMediator mediator, RegisterDelegatedSession message, HttpContext httpContext)
     {
         if (string.IsNullOrEmpty(message.IdentityName))
         {

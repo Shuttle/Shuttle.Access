@@ -1,26 +1,25 @@
-﻿using Shuttle.Access.Query;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class RefreshSessionParticipant(ISessionCache sessionCache, ISessionQuery sessionQuery, IIdentityQuery identityQuery)
-    : IParticipant<RefreshSession>
+public class SessionTenantSelectedParticipant(IOptions<AccessOptions> accessOptions, ISessionQuery sessionQuery, IIdentityQuery identityQuery, ISessionCache sessionCache) : IParticipant<SessionTenantSelected>
 {
-    public async Task HandleAsync(RefreshSession message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(SessionTenantSelected message, CancellationToken cancellationToken = default)
     {
         Guard.AgainstNull(message);
-        Guard.AgainstNull(sessionCache);
-        Guard.AgainstNull(sessionQuery);
-        Guard.AgainstNull(identityQuery);
 
-        var session = (await sessionQuery.SearchAsync(new Session.Specification().AddId(message.Id), cancellationToken)).FirstOrDefault();
+        var session = (await Guard.AgainstNull(sessionQuery).SearchAsync(new Session.Specification().WithId(message.SessionId), cancellationToken)).FirstOrDefault();
 
         if (session == null)
         {
             return;
         }
 
+        session.TenantId = message.TenantId;
+        session.ExpiryDate = DateTime.UtcNow.Add(accessOptions.Value.SessionDuration);
         session.Permissions = (await identityQuery.PermissionsAsync(session.IdentityId, session.TenantId, cancellationToken))
             .Select(permission => new Query.Permission
             {
@@ -32,6 +31,8 @@ public class RefreshSessionParticipant(ISessionCache sessionCache, ISessionQuery
             .ToList();
 
         await sessionQuery.SaveAsync(session, cancellationToken);
+
+        message.WithSession(session);
 
         sessionCache.Flush(session.IdentityId);
     }

@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Shuttle.Core.Contract;
-using System.Net;
 using Shuttle.Access.Query;
+using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
@@ -15,17 +15,17 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
+        if (context.Response.StatusCode == (int)HttpStatusCode.Unauthorized)
+        {
+            return;
+        }
+
         var identityId = context.FindIdentityId();
         var tenantId = context.FindTenantId();
 
-        if (identityId != null)
+        if (tenantId != null && identityId != null)
         {
-            var specification = new Query.Session.Specification().WithIdentityId(identityId.Value);
-
-            if (!tenantId.HasValue)
-            {
-                specification.WithoutTenantId();
-            }
+            var specification = new Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value);
 
             sessionContext.Session = await Guard.AgainstNull(sessionService).FindAsync(specification);
 
@@ -33,11 +33,6 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
             {
                 LogMessage.NoActiveSession(_logger, identityId.Value, tenantId);
             }
-        }
-
-        if (context.Response.StatusCode == (int)HttpStatusCode.Unauthorized)
-        {
-            return;
         }
 
         var endpoint = context.GetEndpoint();

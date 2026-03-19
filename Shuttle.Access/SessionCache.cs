@@ -33,7 +33,7 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
                 query = query.Where(e => e.Session.TokenHash == specification.TokenHash);
             }
 
-            if (specification.TenantId.HasValue || specification.HasNullTenantId)
+            if (specification.TenantId.HasValue)
             {
                 query = query.Where(e => e.Session.TenantId == specification.TenantId);
             }

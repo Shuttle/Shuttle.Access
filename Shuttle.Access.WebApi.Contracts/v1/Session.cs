@@ -8,7 +8,7 @@ public class Session
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
     public List<Permission> Permissions { get; set; } = [];
-    public Guid? TenantId { get; set; }
+    public Guid TenantId { get; set; }
     public string TenantName { get; set; } = string.Empty;
     public Guid Id { get; set; }
     public byte[] TokenHash { get; set; } = [];
@@ -20,7 +20,6 @@ public class Session
         public Guid? IdentityId { get; set; }
         public string IdentityName { get; set; } = string.Empty;
         public string IdentityNameMatch { get; set; } = string.Empty;
-        public bool HasNullTenantId { get; set; }
         public Guid? Token { get; set; }
         public byte[]? TokenHash { get; set; }
     }

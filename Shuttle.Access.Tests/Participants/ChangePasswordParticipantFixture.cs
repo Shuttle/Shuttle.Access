@@ -12,19 +12,18 @@ public class ChangePasswordParticipantFixture
     [Test]
     public async Task Should_be_able_to_change_password_async()
     {
-        var now = DateTimeOffset.UtcNow;
         var changePassword = ChangePassword.UseToken(Guid.NewGuid(), "new-password", Guid.NewGuid(), "audit-identity-name");
         var eventStore = new FixtureEventStore();
-        var sessionRepository = new Mock<ISessionRepository>();
+        var sessionQuery = new Mock<ISessionQuery>();
         var hashingService = new HashingService();
         var sessionTokenHash = hashingService.Sha256(changePassword.Token!.Value.ToString("D"));
         var passwordHash = hashingService.Sha256(changePassword.NewPassword);
 
-        var session = new Session(Guid.NewGuid(), sessionTokenHash, Guid.NewGuid(), Guid.NewGuid(), now, now.AddSeconds(5));
+        var session = new Query.Session { TokenHash = sessionTokenHash };
 
-        sessionRepository.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).ReturnsAsync([session]);
+        sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).ReturnsAsync([session]);
 
-        var participant = new ChangePasswordParticipant(hashingService, sessionRepository.Object, eventStore);
+        var participant = new ChangePasswordParticipant(hashingService, sessionQuery.Object, eventStore);
 
         (await eventStore.GetAsync(session.IdentityId)).Add(new Registered
         {

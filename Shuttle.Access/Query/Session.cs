@@ -4,30 +4,41 @@ namespace Shuttle.Access.Query;
 
 public class Session
 {
-    public Guid Id { get; set; }
     public DateTimeOffset DateRegistered { get; set; }
     public DateTimeOffset ExpiryDate { get; set; }
+    public Guid Id { get; set; }
+    public string IdentityDescription { get; set; } = string.Empty;
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
-    public string IdentityDescription { get; set; } = string.Empty;
-    public Guid? TenantId { get; set; }
+    public List<Permission> Permissions { get; set; } = [];
+    public Guid TenantId { get; set; }
     public string TenantName { get; set; } = string.Empty;
     public byte[] TokenHash { get; set; } = new byte[32];
-    public List<Permission> Permissions { get; set; } = [];
 
     public class Specification : Specification<Specification>
     {
         private readonly List<string> _permissions = [];
+
+        public bool HasCriteria =>
+            Id != null ||
+            IdentityId != null ||
+            RoleId != null ||
+            !string.IsNullOrWhiteSpace(IdentityName) ||
+            !string.IsNullOrWhiteSpace(IdentityNameMatch) ||
+            _permissions.Count > 0 ||
+            TenantId != null ||
+            TokenHash != null ||
+            Token != null;
+
         public Guid? Id { get; private set; }
         public Guid? IdentityId { get; private set; }
-        public Guid? RoleId { get; private set; }
         public string? IdentityName { get; private set; }
         public string? IdentityNameMatch { get; private set; }
         public IEnumerable<string> Permissions => _permissions.AsReadOnly();
-        public bool HasNullTenantId { get; private set; }
+        public Guid? RoleId { get; private set; }
         public Guid? TenantId { get; private set; }
-        public byte[]? TokenHash { get; private set; }
         public Guid? Token { get; private set; }
+        public byte[]? TokenHash { get; private set; }
 
         public Specification AddPermission(string permission)
         {
@@ -65,12 +76,6 @@ public class Session
             return this;
         }
 
-        public Specification WithRoleId(Guid roleId)
-        {
-            RoleId = roleId;
-            return this;
-        }
-
         public Specification WithIdentityName(string identityName)
         {
             IdentityName = Guard.AgainstEmpty(identityName);
@@ -84,28 +89,28 @@ public class Session
             return this;
         }
 
+        public Specification WithRoleId(Guid roleId)
+        {
+            RoleId = roleId;
+            return this;
+        }
+
         public Specification WithTenantId(Guid tenantId)
         {
             TenantId = Guard.AgainstEmpty(tenantId);
             return this;
         }
 
-        public Specification WithoutTenantId()
+        public Specification WithToken(Guid token)
         {
-            HasNullTenantId = true;
+            Token = Guard.AgainstEmpty(token);
+            WithMaximumRows(1);
             return this;
         }
 
         public Specification WithTokenHash(byte[] tokenHash)
         {
             TokenHash = Guard.AgainstNull(tokenHash);
-            WithMaximumRows(1);
-            return this;
-        }
-
-        public Specification WithToken(Guid token)
-        {
-            Token = Guard.AgainstEmpty(token);
             WithMaximumRows(1);
             return this;
         }

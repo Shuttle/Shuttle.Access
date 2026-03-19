@@ -34,7 +34,6 @@ public static class AccessBuilderExtensions
             services.AddScoped<IPermissionQuery, PermissionQuery>();
             services.AddScoped<IRoleQuery, RoleQuery>();
             services.AddScoped<ISessionQuery, SessionQuery>();
-            services.AddScoped<ISessionRepository, SessionRepository>();
             services.AddScoped<ISessionService, SessionService>();
             services.AddScoped<ITenantQuery, TenantQuery>();
 

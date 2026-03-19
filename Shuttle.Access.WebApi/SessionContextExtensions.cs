@@ -12,7 +12,7 @@ public static class SessionContextExtensions
         {
             Guard.AgainstNull(sessionContext).AuthenticationInvariants();
 
-            message.AuditTenantId = sessionContext.Session!.TenantId!.Value;
+            message.AuditTenantId = sessionContext.Session!.TenantId;
             message.AuditIdentityName = sessionContext.Session!.IdentityName;
 
             return message;
@@ -20,8 +20,7 @@ public static class SessionContextExtensions
 
         public ISessionContext AuthenticationInvariants()
         {
-            if (sessionContext.Session is not { TenantId: not null } ||
-                string.IsNullOrWhiteSpace(sessionContext.Session.IdentityName))
+            if (sessionContext.Session == null || string.IsNullOrWhiteSpace(sessionContext.Session.IdentityName))
             {
                 throw new ApplicationException("There is no authenticated session.");
             }
@@ -33,7 +32,7 @@ public static class SessionContextExtensions
         {
             Guard.AgainstNull(sessionContext).AuthenticationInvariants();
 
-            return new AuditInformation(sessionContext.Session!.TenantId!.Value, sessionContext.Session!.IdentityName);
+            return new AuditInformation(sessionContext.Session!.TenantId, sessionContext.Session!.IdentityName);
         }
     }
 }

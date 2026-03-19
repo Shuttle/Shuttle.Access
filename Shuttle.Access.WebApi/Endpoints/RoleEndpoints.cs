@@ -191,7 +191,7 @@ public static class RoleEndpoints
 
         if (Guid.Empty.Equals(message.TenantId))
         {
-            message.TenantId = sessionContext.Session!.TenantId!.Value;
+            message.TenantId = sessionContext.Session!.TenantId;
         }
         else
         {
@@ -247,13 +247,12 @@ public static class RoleEndpoints
 
     private static async Task<IResult> PostSearch(ISessionContext sessionContext, [FromServices] IRoleQuery roleQuery, [FromBody] Contracts.v1.Role.Specification specification)
     {
-        if (sessionContext.Session == null ||
-            sessionContext.Session.TenantId == null)
+        if (sessionContext.Session == null)
         {
             return Results.BadRequest();
         }
 
-        var search = new Query.Role.Specification().WithTenantId(sessionContext.Session.TenantId.Value);
+        var search = new Query.Role.Specification().WithTenantId(sessionContext.Session.TenantId);
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {

@@ -4,12 +4,12 @@ using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class ChangePasswordParticipant(IHashingService hashingService, ISessionRepository sessionRepository, IEventStore eventStore)
+public class ChangePasswordParticipant(IHashingService hashingService, ISessionQuery sessionQuery, IEventStore eventStore)
     : IParticipant<ChangePassword>
 {
     private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
     private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
-    private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
+    private readonly ISessionQuery _sessionRepository = Guard.AgainstNull(sessionQuery);
 
     public async Task HandleAsync(ChangePassword message, CancellationToken cancellationToken = default)
     {
@@ -17,7 +17,7 @@ public class ChangePasswordParticipant(IHashingService hashingService, ISessionR
 
         if (message.Token.HasValue)
         {
-            var session = await _sessionRepository.FindAsync(new Query.Session.Specification().WithTokenHash(_hashingService.Sha256(message.Token.Value.ToString("D"))), cancellationToken);
+            var session = (await _sessionRepository.SearchAsync(new Query.Session.Specification().WithTokenHash(_hashingService.Sha256(message.Token.Value.ToString("D"))), cancellationToken)).FirstOrDefault();
 
             if (session == null)
             {

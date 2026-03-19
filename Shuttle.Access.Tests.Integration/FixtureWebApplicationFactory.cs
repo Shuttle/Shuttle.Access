@@ -19,7 +19,6 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
     public Mock<IRoleQuery> RoleQuery { get; } = new();
     public Mock<IBus> Bus { get; } = new();
     public Mock<ISessionQuery> SessionQuery { get; } = new();
-    public Mock<ISessionRepository> SessionRepository { get; } = new();
     public Mock<ISessionService> SessionService { get; } = new();
     public Mock<ISessionContext> SessionContext { get; } = new();
 
@@ -74,7 +73,6 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
             services.AddSingleton(RoleQuery.Object);
             services.AddSingleton(SessionQuery.Object);
             services.AddSingleton(Bus.Object);
-            services.AddSingleton(SessionRepository.Object);
             services.AddSingleton(SessionContext.Object);
         });
     }

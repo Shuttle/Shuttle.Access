@@ -11,7 +11,7 @@ using TenantRemoved = Shuttle.Access.Events.Identity.v1.TenantRemoved;
 
 namespace Shuttle.Access.Server.v1.EventHandlers;
 
-public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext accessDbContext, IRoleQuery roleQuery, ITenantQuery tenantQuery, ISessionRepository sessionRepository, IBus bus)
+public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext accessDbContext, IRoleQuery roleQuery, ITenantQuery tenantQuery, ISessionQuery sessionQuery, IBus bus)
     :
         IEventHandler<Registered>,
         IEventHandler<RoleAdded>,
@@ -27,7 +27,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
     private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly ILogger<IdentityHandler> _logger = Guard.AgainstNull(logger);
     private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
-    private readonly ISessionRepository _sessionRepository = Guard.AgainstNull(sessionRepository);
+    private readonly ISessionQuery _sessionQuery = Guard.AgainstNull(sessionQuery);
     private readonly ITenantQuery _tenantQuery = Guard.AgainstNull(tenantQuery);
 
     public async Task HandleAsync(IEventHandlerContext<Activated> context, CancellationToken cancellationToken = default)
@@ -123,7 +123,7 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
     {
         Guard.AgainstNull(context);
 
-        await _sessionRepository.RemoveAsync(new Query.Session.Specification().AddId(context.PrimitiveEvent.Id), cancellationToken);
+        await _sessionQuery.RemoveAsync(new Query.Session.Specification().WithIdentityId(context.PrimitiveEvent.Id), cancellationToken);
 
         var model = await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Id == context.PrimitiveEvent.Id, cancellationToken);
 

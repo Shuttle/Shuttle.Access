@@ -4,18 +4,19 @@ using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Core.Contract;
+using Session = Shuttle.Access.Query.Session;
 
 namespace Shuttle.Access.RestClient;
 
 public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionCache sessionCache, IAccessClient accessClient, ILogger<RestSessionService>? logger = null)
     : ISessionService, IContextSessionService
 {
-    private readonly ILogger<RestSessionService> _logger = logger ?? NullLogger<RestSessionService>.Instance;
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
     private readonly IAccessClient _accessClient = Guard.AgainstNull(accessClient);
+    private readonly ILogger<RestSessionService> _logger = logger ?? NullLogger<RestSessionService>.Instance;
     private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
 
-    public async Task<Query.Session?> FindAsync(CancellationToken cancellationToken = default)
+    public async Task<Session?> FindAsync(CancellationToken cancellationToken = default)
     {
         var sessionResponse = await _accessClient.Sessions.GetSelfAsync(cancellationToken);
 
@@ -29,7 +30,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         }
         else
         {
-            LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId ?? Guid.Empty);
+            LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId);
 
             await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
         }
@@ -37,35 +38,14 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         return result;
     }
 
-    private static Query.Session GetSession(WebApi.Contracts.v1.Session session)
-    {
-        return new() {
-            Id = session.Id,
-            IdentityId = session.IdentityId, 
-            IdentityName = session.IdentityName, 
-            IdentityDescription = session.IdentityDescription,
-            DateRegistered = session.DateRegistered,
-            ExpiryDate = session.ExpiryDate,
-            TenantId = session.TenantId,
-            TenantName = session.TenantName,
-            Permissions = session.Permissions.Select(e => new Query.Permission
-            {
-                Id = e.Id,
-                Name = e.Name,
-                Description = e.Description,
-                Status = (PermissionStatus)e.Status
-            }).ToList()
-        };
-    }
-
-    public async Task<Query.Session?> FindAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<Session?> FindAsync(Session.Specification specification, CancellationToken cancellationToken = default)
     {
         var session = _sessionCache.Find(specification);
 
         if (session != null)
         {
-            LogMessage.SessionAvailable(_logger, session.IdentityName, session.TenantId ?? Guid.Empty);
-            
+            LogMessage.SessionAvailable(_logger, session.IdentityName, session.TenantId);
+
             await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
 
             return session;
@@ -85,13 +65,12 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         var messageSpecification = new WebApi.Contracts.v1.Session.Specification
         {
-            HasNullTenantId= specification.HasNullTenantId,
             Id = specification.Id,
             IdentityId = specification.IdentityId,
             IdentityName = specification.IdentityName ?? string.Empty,
             IdentityNameMatch = specification.IdentityNameMatch ?? string.Empty,
             TenantId = specification.TenantId,
-            TokenHash = specification.TokenHash,
+            TokenHash = specification.TokenHash
         };
 
         var sessionResponse = await _accessClient.Sessions.PostSearchAsync(messageSpecification, cancellationToken);
@@ -104,7 +83,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 {
                     var result = _sessionCache.Add(GetSession(sessionResponse.Content.Single()));
 
-                    LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId ?? Guid.Empty);
+                    LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId);
 
                     await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
@@ -138,7 +117,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
                 var result = GetSession(content.Session);
 
-                LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId ?? Guid.Empty);
+                LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId);
 
                 await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
@@ -163,5 +142,27 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         }
 
         return null;
+    }
+
+    private static Session GetSession(WebApi.Contracts.v1.Session session)
+    {
+        return new()
+        {
+            Id = session.Id,
+            IdentityId = session.IdentityId,
+            IdentityName = session.IdentityName,
+            IdentityDescription = session.IdentityDescription,
+            DateRegistered = session.DateRegistered,
+            ExpiryDate = session.ExpiryDate,
+            TenantId = session.TenantId,
+            TenantName = session.TenantName,
+            Permissions = session.Permissions.Select(e => new Query.Permission
+            {
+                Id = e.Id,
+                Name = e.Name,
+                Description = e.Description,
+                Status = (PermissionStatus)e.Status
+            }).ToList()
+        };
     }
 }

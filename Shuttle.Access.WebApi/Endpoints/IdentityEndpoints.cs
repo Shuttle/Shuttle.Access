@@ -193,7 +193,7 @@ public static class IdentityEndpoints
             Name = message.Name,
             Description = message.Description,
             RegisteredBy = sessionContext.Session.IdentityName,
-            AuditTenantId = sessionContext.Session.TenantId!.Value,
+            AuditTenantId = sessionContext.Session.TenantId,
             AuditIdentityName = sessionContext.Session.IdentityName,
             Activated = true,
             RoleIds = roleIds,
@@ -248,14 +248,14 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
-        await mediator.SendAsync(new Application.ResetPassword(message.Name, message.Password, message.PasswordResetToken, sessionContext.Session.TenantId!.Value, sessionContext.Session.IdentityName));
+        await mediator.SendAsync(new Application.ResetPassword(message.Name, message.Password, message.PasswordResetToken, sessionContext.Session.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Ok();
     }
 
-    private static async Task<IResult> PatchPassword([FromBody] Contracts.v1.ChangePassword message, ISessionContext sessionContext, IMediator mediator, ISessionRepository sessionRepository)
+    private static async Task<IResult> PatchPassword([FromBody] Contracts.v1.ChangePassword message, ISessionContext sessionContext, IMediator mediator)
     {
-        if (sessionContext.Session is not { TenantId: not null } || message.Id.HasValue && !(sessionContext.Session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
+        if (sessionContext.Session == null || message.Id.HasValue && !(sessionContext.Session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
         {
             return Results.Unauthorized();
         }
@@ -266,8 +266,8 @@ public static class IdentityEndpoints
         }
 
         await mediator.SendAsync(message.Id.HasValue 
-        ? Application.ChangePassword.UseId(message.Id.Value, message.NewPassword, sessionContext.Session.TenantId!.Value, sessionContext.Session.IdentityName)
-        : Application.ChangePassword.UseToken(message.Token!.Value, message.NewPassword, sessionContext.Session.TenantId!.Value, sessionContext.Session.IdentityName));
+        ? Application.ChangePassword.UseId(message.Id.Value, message.NewPassword, sessionContext.Session.TenantId, sessionContext.Session.IdentityName)
+        : Application.ChangePassword.UseToken(message.Token!.Value, message.NewPassword, sessionContext.Session.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
@@ -276,7 +276,7 @@ public static class IdentityEndpoints
     {
         if (!message.Active)
         {
-            var reviewIdentityRoleRemoval = new ReviewIdentityRoleRemoval(sessionContext.Session!.TenantId!.Value, roleId);
+            var reviewIdentityRoleRemoval = new ReviewIdentityRoleRemoval(sessionContext.Session!.TenantId, roleId);
 
             await mediator.SendAsync(reviewIdentityRoleRemoval);
 
