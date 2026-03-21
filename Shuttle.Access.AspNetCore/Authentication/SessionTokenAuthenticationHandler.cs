@@ -27,6 +27,7 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
 
         if (header == null || !header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
         {
+            LogMessage.AuthenticationFailed(_logger, "Shuttle.Access", "The 'Authorization' header does not start with 'Shuttle.Access'.");
             return AuthenticateResult.NoResult();
         }
 
@@ -35,14 +36,15 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
         if (!match.Success ||
             !Guid.TryParse(match.Groups["token"].Value, out var sessionToken))
         {
-            return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
+            LogMessage.AuthenticationFailed(_logger, "Shuttle.Access", $"The 'token' value '{match.Groups["token"].Value}' provided is not a valid GUID.");
+            return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
         }
 
         var session = await _sessionService.FindAsync(new Query.Session.Specification().WithToken(sessionToken));
 
         if (session == null)
         {
-            return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
+            return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
         }
 
         List<Claim> claims =

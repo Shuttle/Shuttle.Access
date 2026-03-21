@@ -1,4 +1,3 @@
-using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -55,23 +54,50 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             return AuthenticateResult.NoResult();
         }
 
-        if (tenantIdHeader != null && Guid.TryParse(tenantIdHeader, out var id))
+        if (tenantIdHeader != null)
         {
-            tenantId = id;
+            LogMessage.TenantIdHeader(_logger, "Found 'Shuttle-Access-Tenant-Id' header.", tenantIdHeader);
+
+            if (Guid.TryParse(tenantIdHeader, out var id))
+            {
+                tenantId = id;
+                LogMessage.TenantId(_logger, "Parsed tenant id.", id);
+            }
+            else
+            {
+                var failureMessage = $"Invalid GUID '{tenantIdHeader}' passed as header 'Shuttle-Access-Tenant-Id'.";
+
+                LogMessage.InvalidTenantIdHeader(_logger, failureMessage);
+
+                Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+                await Response.WriteAsJsonAsync(new ProblemDetails
+                {
+                    Type = Type,
+                    Title = "Unauthorized",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Detail = failureMessage
+                });
+
+                return AuthenticateResult.Fail(failureMessage);
+            }
         }
         else
         {
             tenantId = _accessOptions.SystemTenantId;
+            LogMessage.TenantId(_logger, "No 'Shuttle-Access-Tenant-Id' header found.  Using system tenant id.", tenantId);
         }
-
+        
         if (_accessAuthorizationOptions.PassThrough)
         {
+            LogMessage.PassThrough(_logger);
             return await GetContextAuthenticateResultAsync();
         }
 
         if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
             authorizationHeader.Length < 8)
         {
+            LogMessage.InvalidAuthorizationHeader(_logger, "Bearer");
             return AuthenticateResult.NoResult();
         }
 
@@ -80,6 +106,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
 
         if (string.IsNullOrWhiteSpace(identityName))
         {
+            LogMessage.IdentityNameClaimNotFound(_logger);
             return AuthenticateResult.Fail(Access.Resources.IdentityNameClaimNotFound);
         }
 
@@ -87,7 +114,9 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
 
         if (!tokenValidationResult.IsValid)
         {
-            var failureMessage = (tokenValidationResult.Exception ?? new AuthenticationException(Access.Resources.InvalidAuthenticationHeader)).Message;
+            LogMessage.InvalidAuthorizationHeader(_logger, "Bearer");
+
+            var failureMessage = tokenValidationResult.Exception?.Message ?? Access.Resources.InvalidAuthorizationHeader;
 
             Response.StatusCode = StatusCodes.Status401Unauthorized;
 

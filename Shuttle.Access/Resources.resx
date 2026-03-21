@@ -152,7 +152,7 @@
   <data name="IdentityNameClaimNotFound" xml:space="preserve">
     <value>The JWT token provided does not contain a claim type representing the identity name.</value>
   </data>
-  <data name="InvalidAuthenticationHeader" xml:space="preserve">
+  <data name="InvalidAuthorizationHeader" xml:space="preserve">
     <value>The 'Authorization' header contains a valid scheme but either has an invalid token, or there is no issuer configuration matching that of the token.</value>
   </data>
   <data name="InvalidCredentialsException" xml:space="preserve">

@@ -21,7 +21,7 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
                 .Include(e => e.Identity).ThenInclude(e => e.IdentityRoles)
                 .Include(e => e.SessionPermissions).ThenInclude(e => e.Permission)
                 .OrderBy(e => e.Identity.Name)
-                .Distinct()
+                .AsSplitQuery()
                 .ToListAsync(cancellationToken))
             .Select(e => new Session
             {
@@ -41,8 +41,7 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
                     Description = item.Permission.Description,
                     Status = (PermissionStatus)item.Permission.Status
                 }).ToList()
-            })
-            ;
+            });
     }
 
     public async ValueTask<int> RemoveAsync(Session.Specification specification, CancellationToken cancellationToken = default)

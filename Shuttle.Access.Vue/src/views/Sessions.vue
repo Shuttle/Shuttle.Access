@@ -72,6 +72,10 @@ const headers = useSecureTableHeaders([
     value: "identityDescription",
   },
   {
+    title: t("tenant"),
+    value: "tenantName",
+  },
+  {
     title: t("date-registered"),
     key: "item.dateRegistered",
     value: (item: any) => {

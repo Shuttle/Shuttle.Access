@@ -24,14 +24,10 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         if (result == null)
         {
-            LogMessage.SessionUnavailable(_logger, "Pass-Through", "(self)");
-
             await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"), cancellationToken);
         }
         else
         {
-            LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId);
-
             await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
         }
 
@@ -44,7 +40,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         if (session != null)
         {
-            LogMessage.SessionAvailable(_logger, session.IdentityName, session.TenantId);
+            LogMessage.SessionAvailable(_logger, session.IdentityName, session.TenantId, true);
 
             await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
 
@@ -57,7 +53,13 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
             if (session != null)
             {
+                LogMessage.SessionAvailable(_logger, session.IdentityName, session.TenantId, false);
+
                 _sessionCache.Add(session);
+            }
+            else
+            {
+                LogMessage.SessionUnavailable(_logger, "Pass-Through", "(self)");
             }
 
             return session;
@@ -83,7 +85,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 {
                     var result = _sessionCache.Add(GetSession(sessionResponse.Content.Single()));
 
-                    LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId);
+                    LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId, false);
 
                     await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
@@ -117,7 +119,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
                 var result = GetSession(content.Session);
 
-                LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId);
+                LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId, false);
 
                 await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 

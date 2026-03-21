@@ -30,19 +30,18 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
     {
         return (await GetQueryable(specification)
             .OrderBy(e => e.Name)
-            .Distinct()
             .ToListAsync(cancellationToken))
             .Select(e => new Query.Role
             {
                 Id = e.Id,
                 Name = e.Name,
                 TenantId = e.TenantId,
-                Permissions = e.RolePermissions.Select(e => e.Permission).Select(e => new Query.Permission
+                Permissions = e.RolePermissions.Select(rolePermission => rolePermission.Permission).Select(permission => new Query.Permission
                 {
-                    Id = e.Id,
-                    Name = e.Name,
-                    Description = e.Description,
-                    Status = (PermissionStatus)e.Status
+                    Id = permission.Id,
+                    Name = permission.Name,
+                    Description = permission.Description,
+                    Status = (PermissionStatus)permission.Status
                 }).ToList()
             });
     }
@@ -50,10 +49,10 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
     private IQueryable<Models.Role> GetQueryable(Query.Role.Specification specification)
     {
         var queryable = _accessDbContext.Roles
+            .AsNoTracking()
             .Include(item => item.RolePermissions)
             .ThenInclude(item => item.Permission)
-            .AsNoTracking()
-            .AsQueryable();
+            .AsSplitQuery();
 
         if (specification.TenantId.HasValue)
         {

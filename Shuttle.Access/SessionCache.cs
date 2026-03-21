@@ -30,7 +30,7 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
 
             if (specification.TokenHash != null)
             {
-                query = query.Where(e => e.Session.TokenHash == specification.TokenHash);
+                query = query.Where(e => e.Session.TokenHash.SequenceEqual(specification.TokenHash));
             }
 
             if (specification.TenantId.HasValue)

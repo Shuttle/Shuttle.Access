@@ -35,6 +35,7 @@ public static class ServiceCollectionExtensions
                 })
                 .AddHttpMessageHandler<AccessHttpMessageHandler>();
 
+            services.TryAddSingleton<IHashingService, HashingService>();
             services.TryAddSingleton<ISessionCache, SessionCache>();
             
             services

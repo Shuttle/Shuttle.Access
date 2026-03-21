@@ -16,7 +16,6 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
     {
         return (await GetQueryable(specification)
             .OrderBy(e => e.Name)
-            .Distinct()
             .ToListAsync(cancellationToken))
             .Select(e => new Query.Tenant
             {

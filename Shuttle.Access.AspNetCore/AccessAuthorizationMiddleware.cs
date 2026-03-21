@@ -31,7 +31,7 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
 
             if (sessionContext.Session == null)
             {
-                LogMessage.NoActiveSession(_logger, identityId.Value, tenantId);
+                LogMessage.SessionUnavailable(_logger, identityId.Value, tenantId);
             }
         }
 

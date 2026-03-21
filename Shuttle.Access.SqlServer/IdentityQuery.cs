@@ -24,22 +24,19 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
 
     public async Task<IEnumerable<Query.Permission>> PermissionsAsync(Guid id, Guid tenantId, CancellationToken cancellationToken = default)
     {
-        return (await _accessDbContext.Identities.AsNoTracking()
-                .Include(e => e.IdentityRoles)
-                .ThenInclude(e => e.Role)
-                .ThenInclude(e => e.RolePermissions)
-                .ThenInclude(e => e.Permission)
-                .FirstOrDefaultAsync(item => item.Id == id, cancellationToken))
-            .GuardAgainstRecordNotFound(id)
-            .IdentityRoles
-            .Where(e => e.TenantId == tenantId)
-            .SelectMany(role => role.Role.RolePermissions.Select(permission => permission.Permission))
-            .ToList()
-            .Select(e => new Query.Permission
+        return await _accessDbContext.Identities.AsNoTracking()
+            .Where(identity => identity.Id == id)
+            .SelectMany(identity => identity.IdentityRoles
+                .Where(identityRole => identityRole.TenantId == tenantId)
+                .SelectMany(identityRole => identityRole.Role.RolePermissions
+                    .Select(rolePermission => rolePermission.Permission)))
+            .Select(permission => new Query.Permission
             {
-                Id = e.Id,
-                Name = e.Name,
-            });
+                Id = permission.Id,
+                Name = permission.Name,
+            })
+            .AsSplitQuery()
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<Guid>> RoleIdsAsync(Query.Identity.Specification specification, CancellationToken cancellationToken = default)
@@ -98,10 +95,10 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
     private IQueryable<Models.Identity> GetQueryable(Query.Identity.Specification identitySpecification)
     {
         var queryable = _accessDbContext.Identities
+            .AsNoTracking()
             .Include(item => item.IdentityTenants)
             .ThenInclude(item => item.Tenant)
-            .AsNoTracking()
-            .AsQueryable();
+            .AsSplitQuery();
 
         var rolesInclude = queryable
                 .Include(item => item.IdentityRoles)

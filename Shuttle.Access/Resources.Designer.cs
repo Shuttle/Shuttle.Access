@@ -171,9 +171,9 @@ namespace Shuttle.Access {
         /// <summary>
         ///   Looks up a localized string similar to The &apos;Authorization&apos; header contains a valid scheme but either has an invalid token, or there is no issuer configuration matching that of the token..
         /// </summary>
-        public static string InvalidAuthenticationHeader {
+        public static string InvalidAuthorizationHeader {
             get {
-                return ResourceManager.GetString("InvalidAuthenticationHeader", resourceCulture);
+                return ResourceManager.GetString("InvalidAuthorizationHeader", resourceCulture);
             }
         }
         

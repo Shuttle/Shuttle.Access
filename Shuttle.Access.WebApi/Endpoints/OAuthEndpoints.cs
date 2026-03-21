@@ -38,18 +38,14 @@ public static class OAuthEndpoints
         return app;
     }
 
-    private static async Task<IResult> GetSessionStateCode(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IBus bus, IMediator mediator, string state, string code, CancellationToken cancellationToken)
+    private static async Task<IResult> GetSessionStateCode(IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IBus bus, IMediator mediator, string state, string code, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var requestId))
+        if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var grantId))
         {
             return Results.BadRequest();
         }
 
-        logger.LogDebug($"[oauth/retrieve] : grant id = '{requestId}'");
-
-        var grant = await oauthGrantRepository.GetAsync(requestId);
-
-        logger.LogDebug($"[oauth/identity request] : grant id = '{requestId}'");
+        var grant = await oauthGrantRepository.GetAsync(grantId);
 
         var data = await oauthService.GetDataAsync(grant, code);
         var oauthProviderOptions = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value).GetProviderOptions(grant.ProviderName);
@@ -65,8 +61,6 @@ public static class OAuthEndpoints
         {
             return Results.BadRequest($"No identity property '{oauthProviderOptions.Data.IdentityPropertyName}' was returned from the data endpoint provider.");
         }
-
-        logger.LogDebug($"[oauth/identity] : grant id = '{requestId}' / identity = '{identityName}'");
 
         var registerSession = new RegisterSession(identityName).UseDirect();
 
@@ -90,14 +84,12 @@ public static class OAuthEndpoints
         return Results.Ok(registerSession.GetSessionResponse(requestRegistration));
     }
 
-    private static async Task<IResult> GetAuthenticateProvider(ILogger<OAuthService> logger, IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string provider, [FromQuery] string? redirectUri)
+    private static async Task<IResult> GetAuthenticateProvider(IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string provider, [FromQuery] string? redirectUri)
     {
         if (string.IsNullOrWhiteSpace(provider))
         {
             return Results.BadRequest("No provider name has been specified.");
         }
-
-        logger.LogDebug($"[oauth/register] : provider = '{provider}'");
 
         var data = new Dictionary<string, string>();
 
@@ -109,8 +101,6 @@ public static class OAuthEndpoints
         }
 
         var grant = await oauthService.RegisterAsync(provider, data);
-
-        logger.LogDebug($"[oauth/registered] : grant id = '{grant.Id}' / provider = '{provider}'");
 
         var oauthOptionsValue = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
         var oauthProviderOptions = oauthOptionsValue.GetProviderOptions(provider);
@@ -127,8 +117,6 @@ public static class OAuthEndpoints
             {
                 return Results.BadRequest($"No 'CodeChallenge' has been generated for code challenge method '{oauthProviderOptions.Authorize.CodeChallengeMethod}'.");
             }
-
-            logger.LogDebug($"[oauth/code challenge] : grant id = '{grant.Id}' / provider = '{provider}'");
 
             authorizationUrl.Append($"&code_challenge_method={oauthProviderOptions.Authorize.CodeChallengeMethod}&code_challenge={grant.CodeChallenge}");
         }

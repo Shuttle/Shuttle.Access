@@ -107,27 +107,22 @@ const signIn = () => {
   router.push({ name: 'sign-in' })
 }
 
-const signOut = () => {
-  axios.delete("v1/sessions/self", {
-    baseURL: configuration.getUrl(),
-    headers: {
-      "Authorization": `Shuttle.Access token=${sessionStore.token}`
-    }
-  })
-    .then(() => {
-      sessionStore.signOut()
-      drawerStore.showNavigationDrawer = false;
-      drawerStore.showProfileDrawer = false;
-
-      signIn();
+const signOut = async () => {
+  try {
+    await axios.delete("v1/sessions/self", {
+      baseURL: configuration.getUrl(),
+      headers: {
+        "Authorization": `Shuttle.Access token=${sessionStore.token}`
+      }
     })
-    .catch((error) => {
-      alertStore.add({
-        message: error.toString(),
-        type: "error",
-        name: "sign-out-exception"
-      });
-    });
-}
+  } catch {
+    // ignore
+  }
 
+  sessionStore.signOut()
+  drawerStore.showNavigationDrawer = false
+  drawerStore.showProfileDrawer = false;
+
+  signIn();
+}
 </script>
