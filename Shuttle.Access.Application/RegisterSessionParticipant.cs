@@ -2,7 +2,6 @@
 using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
-using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
