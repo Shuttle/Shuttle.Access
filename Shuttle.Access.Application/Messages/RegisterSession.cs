@@ -1,25 +1,34 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 
 namespace Shuttle.Access.Application;
 
 public class RegisterSession(string identityName)
 {
-    private Guid? _authenticationToken;
-    private string _password = string.Empty;
+    private readonly List<Session> _sessionsRemoved = [];
     private readonly List<Query.Tenant> _tenants = [];
-
-    public IEnumerable<Query.Tenant> Tenants => _tenants.AsReadOnly();
+    private string _password = string.Empty;
+    private Guid? _sessionToken;
 
     [MemberNotNullWhen(true, nameof(Session), nameof(SessionToken))]
-    public bool HasSession => Session != null && SessionToken.HasValue;
+    public bool HasSession => Session != null;
+
     public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
     public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;
-    public Guid? SessionToken { get; private set; }
 
+    public Session? Session { get; private set; }
+
+    public IEnumerable<Session> SessionsRemoved => _sessionsRemoved.AsReadOnly();
+    public Guid? SessionToken { get; private set; }
+    public bool ShouldRefresh { get; private set; }
     public Guid? TenantId { get; private set; }
+
+    public IEnumerable<Query.Tenant> Tenants => _tenants.AsReadOnly();
+
+
     public RegisterSession DelegationSessionInvalid()
     {
         Result = SessionRegistrationResult.DelegationSessionInvalid;
@@ -32,11 +41,6 @@ public class RegisterSession(string identityName)
         return this;
     }
 
-    public Guid GetAuthenticationToken()
-    {
-        return _authenticationToken ?? throw new InvalidOperationException(Resources.RegisterSessionTokenNotSetException);
-    }
-
     public string GetPassword()
     {
         return string.IsNullOrWhiteSpace(_password)
@@ -44,7 +48,23 @@ public class RegisterSession(string identityName)
             : _password;
     }
 
-    public RegisterSession Registered(Guid sessionToken, Query.Session session)
+    public Guid GetSessionToken()
+    {
+        return _sessionToken ?? throw new InvalidOperationException(Resources.RegisterSessionTokenNotSetException);
+    }
+
+    public RegisterSession Refresh()
+    {
+        if (RegistrationType == SessionRegistrationType.Token)
+        {
+            throw new InvalidOperationException(Resources.SessionRefreshException);
+        }
+
+        ShouldRefresh = true;
+        return this;
+    }
+
+    public RegisterSession Registered(Guid sessionToken, Session session)
     {
         SessionToken = Guard.AgainstEmpty(sessionToken);
         Session = session;
@@ -54,7 +74,14 @@ public class RegisterSession(string identityName)
         return this;
     }
 
-    public Query.Session? Session { get; private set; }
+    public RegisterSession Renewed(Session session)
+    {
+        Session = session;
+
+        Result = SessionRegistrationResult.Renewed;
+
+        return this;
+    }
 
     private void SetRegistrationType(SessionRegistrationType type)
     {
@@ -73,21 +100,12 @@ public class RegisterSession(string identityName)
         return this;
     }
 
-    public RegisterSession UseAuthenticationToken(Guid authenticationToken)
-    {
-        SetRegistrationType(SessionRegistrationType.Token);
-
-        _authenticationToken = authenticationToken;
-
-        return this;
-    }
-
-    public RegisterSession UseDelegation(Guid tenantId, Guid registrationToken)
+    public RegisterSession UseDelegation(Guid tenantId, Guid delegatedSessionToken)
     {
         SetRegistrationType(SessionRegistrationType.Delegation);
 
         TenantId = Guard.AgainstEmpty(tenantId);
-        _authenticationToken = Guard.AgainstEmpty(registrationToken);
+        _sessionToken = Guard.AgainstEmpty(delegatedSessionToken);
 
         return this;
     }
@@ -108,10 +126,31 @@ public class RegisterSession(string identityName)
         return this;
     }
 
+    public RegisterSession UseSessionToken(Guid authenticationToken)
+    {
+        if (ShouldRefresh)
+        {
+            throw new InvalidOperationException(Resources.SessionRefreshException);
+        }
+
+        SetRegistrationType(SessionRegistrationType.Token);
+
+        _sessionToken = authenticationToken;
+
+        return this;
+    }
+
     public RegisterSession WithIdentity(Query.Identity identity, Guid systemTenantId)
     {
         Guard.AgainstEmpty(systemTenantId);
 
+        return this;
+    }
+
+    public RegisterSession WithSessionsRemoved(IEnumerable<Session> sessions)
+    {
+        _sessionsRemoved.Clear();
+        _sessionsRemoved.AddRange(Guard.AgainstEmpty(sessions));
         return this;
     }
 

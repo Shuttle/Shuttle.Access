@@ -2,8 +2,9 @@
 
 public enum SessionRegistrationResult
 {
-    Forbidden,
-    Registered,
-    DelegationSessionInvalid,
-    UnknownIdentity
+    Forbidden = 0,
+    Registered = 1,
+    DelegationSessionInvalid = 2,
+    UnknownIdentity = 3,
+    Renewed = 4
 }

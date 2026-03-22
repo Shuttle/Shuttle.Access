@@ -62,9 +62,20 @@ public static class OAuthEndpoints
             return Results.BadRequest($"No identity property '{oauthProviderOptions.Data.IdentityPropertyName}' was returned from the data endpoint provider.");
         }
 
-        var registerSession = new RegisterSession(identityName).UseDirect();
+        var registerSession = new RegisterSession(identityName).Refresh().UseDirect();
 
         await mediator.SendAsync(registerSession, cancellationToken);
+
+        foreach (var session in registerSession.SessionsRemoved)
+        {
+            await bus.PublishAsync(new SessionDeleted
+            {
+                Id = session.Id,
+                IdentityId = session.IdentityId,
+                IdentityName = session.IdentityName,
+                TenantId = session.TenantId
+            }, cancellationToken);
+        }
 
         var requestRegistration = registerSession.Result == SessionRegistrationResult.UnknownIdentity && apiOptions.Value.OAuthRegisterUnknownIdentities;
 

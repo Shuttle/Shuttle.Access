@@ -142,4 +142,7 @@
   <data name="SystemTenantException" xml:space="preserve">
     <value>Timed out waiting for the system tenant to be registered.</value>
   </data>
+  <data name="SessionRefreshException" xml:space="preserve">
+    <value>Cannot refresh (remove) sessions when using a token to register a session.</value>
+  </data>
 </root>

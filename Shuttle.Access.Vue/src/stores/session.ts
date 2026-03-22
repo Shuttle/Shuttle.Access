@@ -58,7 +58,7 @@ export const useSessionStore = defineStore("session", () => {
     if (
       !sessionResponse ||
       !sessionResponse.session ||
-      !sessionResponse.token
+      (!sessionResponse.token && sessionResponse.result !== "Renewed")
     ) {
       throw Error(i18n.global.t("messages.invalid-session"));
     }
@@ -67,10 +67,13 @@ export const useSessionStore = defineStore("session", () => {
       "shuttle-access.identityName",
       sessionResponse.session.identityName,
     );
-    localStorage.setItem("shuttle-access.token", sessionResponse.token);
+
+    if (sessionResponse.token) {
+      localStorage.setItem("shuttle-access.token", sessionResponse.token);
+      token.value = sessionResponse.token;
+    }
 
     identityName.value = sessionResponse.session.identityName;
-    token.value = sessionResponse.token;
     tenantId.value = sessionResponse.session.tenantId;
 
     removePermissions();
@@ -79,19 +82,6 @@ export const useSessionStore = defineStore("session", () => {
     );
 
     isAuthenticated.value = true;
-  };
-
-  const tenantSelected = (sessionResponse: SessionResponse) => {
-    if (!sessionResponse) {
-      throw Error(i18n.global.t("messages.invalid-session"));
-    }
-
-    tenantId.value = sessionResponse.session.tenantId;
-
-    removePermissions();
-    sessionResponse.session.permissions.forEach((item) =>
-      addPermission(item.name),
-    );
   };
 
   const signIn = async (credentials: Credentials): Promise<SessionResponse> => {
@@ -116,11 +106,24 @@ export const useSessionStore = defineStore("session", () => {
       throw new Error("Invalid response data.");
     }
 
-    if (sessionResponse.result === "Registered") {
+    if (sessionResponse.session) {
       register(sessionResponse);
     }
 
     return sessionResponse;
+  };
+
+  const tenantSelected = (sessionResponse: SessionResponse) => {
+    if (!sessionResponse) {
+      throw Error(i18n.global.t("messages.invalid-session"));
+    }
+
+    tenantId.value = sessionResponse.session.tenantId;
+
+    removePermissions();
+    sessionResponse.session.permissions.forEach((item) =>
+      addPermission(item.name),
+    );
   };
 
   const oauth = async (oauthData: OAuthData): Promise<SessionResponse> => {

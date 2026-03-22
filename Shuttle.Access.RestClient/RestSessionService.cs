@@ -158,6 +158,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             ExpiryDate = session.ExpiryDate,
             TenantId = session.TenantId,
             TenantName = session.TenantName,
+            TokenHash = session.TokenHash,
             Permissions = session.Permissions.Select(e => new Query.Permission
             {
                 Id = e.Id,

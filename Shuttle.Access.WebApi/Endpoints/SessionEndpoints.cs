@@ -18,16 +18,22 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
-    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery)
+    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery, CancellationToken cancellationToken)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             var specification = new Session.Specification().AddId(sessionId);
-            var session = (await sessionQuery.SearchAsync(specification)).FirstOrDefault();
+            var session = (await sessionQuery.SearchAsync(specification, cancellationToken)).FirstOrDefault();
 
-            if (session != null && await sessionQuery.RemoveAsync(specification) > 0)
+            if (session != null && await sessionQuery.RemoveAsync(specification, cancellationToken) > 0)
             {
-                await bus.PublishAsync(new SessionDeleted { IdentityId = session.IdentityId, IdentityName = session.IdentityName });
+                await bus.PublishAsync(new SessionDeleted
+                {
+                    Id = session.Id,
+                    IdentityId = session.IdentityId,
+                    IdentityName = session.IdentityName,
+                    TenantId = session.TenantId
+                }, cancellationToken);
             }
 
             tx.Complete();
@@ -36,13 +42,13 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteAll(IBus bus, ISessionQuery sessionQuery)
+    private static async Task<IResult> DeleteAll(IBus bus, ISessionQuery sessionQuery, CancellationToken cancellationToken)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            await sessionQuery.RemoveAsync(new());
+            await sessionQuery.RemoveAsync(new(), cancellationToken);
 
-            await bus.PublishAsync(new AllSessionsDeleted());
+            await bus.PublishAsync(new AllSessionsDeleted(), cancellationToken);
 
             tx.Complete();
         }
@@ -50,7 +56,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteSelf(IBus bus, ISessionQuery sessionQuery, HttpContext httpContext)
+    private static async Task<IResult> DeleteSelf(IBus bus, ISessionQuery sessionQuery, HttpContext httpContext, CancellationToken cancellationToken)
     {
         var identityId = httpContext.FindIdentityId();
         var tenantId = httpContext.FindTenantId();
@@ -62,11 +68,11 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value))).FirstOrDefault();
+            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value), cancellationToken)).FirstOrDefault();
 
             if (session != null)
             {
-                if (await sessionQuery.RemoveAsync(new Session.Specification().AddId(session.Id)) > 0)
+                if (await sessionQuery.RemoveAsync(new Session.Specification().AddId(session.Id), cancellationToken) > 0)
                 {
                     await bus.PublishAsync(new SessionDeleted
                     {
@@ -74,7 +80,7 @@ public static class SessionEndpoints
                         IdentityId = session.IdentityId,
                         IdentityName = session.IdentityName,
                         TenantId = session.TenantId
-                    });
+                    }, cancellationToken);
                 }
             }
 
@@ -84,16 +90,26 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext)
+    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext, CancellationToken cancellationToken)
     {
         var identityName = httpContext.FindIdentityName();
+        var token = httpContext.FindToken();
 
         if (string.IsNullOrWhiteSpace(identityName))
         {
             return Results.BadRequest();
         }
 
-        var registerSession = new RegisterSession(identityName).UseDirect();
+        var registerSession = new RegisterSession(identityName);
+
+        if (token.HasValue)
+        {
+            registerSession.UseSessionToken(token.Value);
+        }
+        else
+        {
+            registerSession.UseDirect();
+        }
 
         var tenantId = httpContext.FindTenantId();
 
@@ -102,19 +118,14 @@ public static class SessionEndpoints
             registerSession.WithTenantId(tenantId.Value);
         }
 
-        await mediator.SendAsync(registerSession);
+        await mediator.SendAsync(registerSession, cancellationToken);
 
         if (registerSession.Result == SessionRegistrationResult.Forbidden)
         {
             return Results.Forbid();
         }
 
-        if (registerSession.Result != SessionRegistrationResult.Registered || !registerSession.HasSession)
-        {
-            return Results.NotFound();
-        }
-
-        return Results.Ok(Map(registerSession.Session));
+        return !registerSession.HasSession ? Results.NotFound() : Results.Ok(registerSession.Session.Map());
     }
 
     private static Session.Specification GetSpecification(Contracts.v1.Session.Specification model, IHashingService hashingService)
@@ -147,30 +158,6 @@ public static class SessionEndpoints
         }
 
         return specification;
-    }
-
-    private static Contracts.v1.Session Map(Session session)
-    {
-        return new()
-        {
-            Id = session.Id,
-            TenantId = session.TenantId,
-            TenantName = session.TenantName,
-            IdentityId = session.IdentityId,
-            IdentityName = session.IdentityName,
-            IdentityDescription = session.IdentityDescription,
-            DateRegistered = session.DateRegistered,
-            ExpiryDate = session.ExpiryDate,
-            TokenHash = session.TokenHash,
-            Permissions = session.Permissions.Select(item => new Contracts.v1.Permission
-            {
-                Id = item.Id,
-                Name = item.Name,
-                Description = item.Description,
-                Status = (int)item.Status,
-                StatusName = item.Status.ToString()
-            }).ToList()
-        };
     }
 
     public static WebApplication MapSessionEndpoints(this WebApplication app, ApiVersionSet versionSet)
@@ -241,10 +228,10 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        return Results.Ok(Map(message.Session));
+        return Results.Ok(message.Session.Map());
     }
 
-    private static async Task<IResult> Post(ILogger<RegisterSession> logger, IOptions<ApiOptions> apiOptions, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext, [FromBody] Contracts.v1.RegisterSession message)
+    private static async Task<IResult> Post(ILogger<RegisterSession> logger, IOptions<ApiOptions> apiOptions, IBus bus, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext, [FromBody] Contracts.v1.RegisterSession message, CancellationToken cancellationToken)
     {
         var options = Guard.AgainstNull(apiOptions.Value);
 
@@ -267,11 +254,11 @@ public static class SessionEndpoints
 
         if (!string.IsNullOrWhiteSpace(message.Password))
         {
-            registerSession.UsePassword(message.Password);
+            registerSession.Refresh().UsePassword(message.Password);
         }
         else if (!Guid.Empty.Equals(message.Token))
         {
-            registerSession.UseAuthenticationToken(message.Token);
+            registerSession.UseSessionToken(message.Token);
         }
         else
         {
@@ -303,7 +290,18 @@ public static class SessionEndpoints
             registerSession.UseDirect();
         }
 
-        await mediator.SendAsync(registerSession);
+        await mediator.SendAsync(registerSession, cancellationToken);
+
+        foreach (var session in registerSession.SessionsRemoved)
+        {
+            await bus.PublishAsync(new SessionDeleted
+            {
+                Id = session.Id,
+                IdentityId = session.IdentityId,
+                IdentityName = session.IdentityName,
+                TenantId = session.TenantId
+            }, cancellationToken);
+        }
 
         return Results.Ok(registerSession.GetSessionResponse(false));
     }
@@ -333,6 +331,6 @@ public static class SessionEndpoints
     {
         var specification = GetSpecification(model, hashingService);
 
-        return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(Map).ToList());
+        return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(session => session.Map()).ToList());
     }
 }

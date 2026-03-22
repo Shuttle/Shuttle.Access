@@ -106,6 +106,15 @@ namespace Shuttle.Access.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot refresh (remove) sessions when using a token to register a session..
+        /// </summary>
+        public static string SessionRefreshException {
+            get {
+                return ResourceManager.GetString("SessionRefreshException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Registration type already set to &apos;{0}&apos;..
         /// </summary>
         public static string SessionRegistrationTypeException {

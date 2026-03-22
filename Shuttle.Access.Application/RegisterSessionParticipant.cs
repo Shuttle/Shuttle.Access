@@ -2,6 +2,7 @@
 using Shuttle.Access.Query;
 using Shuttle.Core.Contract;
 using Shuttle.Core.Mediator;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.Application;
 
@@ -16,6 +17,21 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
         Guard.AgainstNull(hashingService);
         Guard.AgainstNull(sessionQuery);
         Guard.AgainstNull(identityQuery);
+
+        Session? session;
+
+        if (message.ShouldRefresh)
+        {
+            var specification = new Session.Specification().WithIdentityName(message.IdentityName);
+
+            var sessions = await sessionQuery.SearchAsync(specification, cancellationToken);
+
+            if (sessions.Any())
+            {
+                await sessionQuery.RemoveAsync(specification, cancellationToken);
+                message.WithSessionsRemoved(sessions);
+            }
+        }
 
         switch (message.RegistrationType)
         {
@@ -33,7 +49,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             }
             case SessionRegistrationType.Delegation:
             {
-                var requesterSession = (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetAuthenticationToken().ToString("D"))), cancellationToken)).FirstOrDefault();
+                var requesterSession = (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetSessionToken().ToString("D"))), cancellationToken)).FirstOrDefault();
 
                 if (requesterSession == null || DateTimeOffset.UtcNow > requesterSession.ExpiryDate || !requesterSession.HasPermission(AccessPermissions.Sessions.Register))
                 {
@@ -45,6 +61,20 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
                 break;
             }
             case SessionRegistrationType.Token:
+            {
+                session = (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetSessionToken().ToString("D"))), cancellationToken)).FirstOrDefault();
+
+                if (session != null)
+                {
+                    await SaveAsync();
+                }
+                else
+                {
+                    message.Forbidden();
+                }
+
+                return;
+            }
             case SessionRegistrationType.Direct:
             {
                 break;
@@ -74,30 +104,35 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             })
             .ToList();
 
-        if (message.TenantId.HasValue && tenants.All(item => item.Id != message.TenantId.Value))
+        if (message.TenantId.HasValue)
         {
-            message.Forbidden();
-            return;
-        }
-
-        switch (tenants.Count)
-        {
-            case 0:
+            if (tenants.All(item => item.Id != message.TenantId.Value))
             {
                 message.Forbidden();
                 return;
             }
-            case 1:
+        }
+        else
+        {
+            switch (tenants.Count)
             {
-                message.WithTenantId(tenants[0].Id);
-                break;
-            }
-            case > 1:
-            {
-                message.WithTenantId(tenants.Any(item => item.Id == accessOptions.Value.SystemTenantId)
-                    ? accessOptions.Value.SystemTenantId
-                    : tenants.First().Id);
-                break;
+                case 0:
+                {
+                    message.Forbidden();
+                    return;
+                }
+                case 1:
+                {
+                    message.WithTenantId(tenants[0].Id);
+                    break;
+                }
+                case > 1:
+                {
+                    message.WithTenantId(tenants.Any(item => item.Id == accessOptions.Value.SystemTenantId)
+                        ? accessOptions.Value.SystemTenantId
+                        : tenants.First().Id);
+                    break;
+                }
             }
         }
 
@@ -109,52 +144,41 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
         message.WithTenants(tenants);
 
-        var session = message.RegistrationType == SessionRegistrationType.Token
-            ? (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetAuthenticationToken().ToString("D"))), cancellationToken)).FirstOrDefault()
-            : (await sessionQuery.SearchAsync(new Session.Specification().WithTenantId(message.TenantId.Value).WithIdentityName(message.IdentityName), cancellationToken)).FirstOrDefault();
+        session = (await sessionQuery.SearchAsync(new Session.Specification().WithTenantId(message.TenantId.Value).WithIdentityName(message.IdentityName), cancellationToken)).FirstOrDefault();
 
         if (session != null)
         {
-            if (DateTimeOffset.UtcNow <= session.ExpiryDate)
-            {
-                var token = message.RegistrationType == SessionRegistrationType.Token
-                    ? message.GetAuthenticationToken()
-                    : Guid.NewGuid();
+            await SaveAsync();
 
-                await SaveAsync(token);
-
-                return;
-            }
-
-            if (session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
-            {
-                await SaveAsync(Guid.NewGuid());
-
-                return;
-            }
+            return;
         }
 
-        if (message.RegistrationType != SessionRegistrationType.Token)
+        var now = DateTimeOffset.UtcNow;
+
+        session = new()
         {
-            var now = DateTimeOffset.UtcNow;
-            var token = Guid.NewGuid();
+            Id = session?.Id ?? Guid.NewGuid(),
+            TenantId = message.TenantId.Value,
+            TenantName = tenants.FirstOrDefault(item => item.Id == message.TenantId.Value)?.Name ?? string.Empty,
+            IdentityId = identity.Id,
+            IdentityName = identity.Name,
+            IdentityDescription = identity.Description,
+            DateRegistered = now,
+        };
 
-            session = new()
-            {
-                Id = session?.Id ?? Guid.NewGuid(),
-                TenantId = message.TenantId.Value,
-                IdentityId = identity.Id,
-                DateRegistered = now
-            };
-
-            await SaveAsync(token);
-        }
+        await SaveAsync();
 
         return;
 
-        async Task SaveAsync(Guid token)
+        async Task SaveAsync()
         {
-            session.TokenHash = hashingService.Sha256(token.ToString("D"));
+            Guid? token = session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow ? null : Guid.NewGuid();
+
+            if (token.HasValue)
+            {
+                session.TokenHash = hashingService.Sha256(token.Value.ToString("D"));
+            }
+
             session.ExpiryDate = DateTime.UtcNow.Add(accessOptions.Value.SessionDuration);
             session.Permissions = (await identityQuery.PermissionsAsync(session.IdentityId, session.TenantId, cancellationToken))
                 .Select(permission => new Query.Permission
@@ -168,7 +192,14 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
             await sessionQuery.SaveAsync(session, cancellationToken);
 
-            message.Registered(token, session);
+            if (token.HasValue)
+            {
+                message.Registered(token.Value, session);
+            }
+            else
+            {
+                message.Renewed(session);
+            }
         }
     }
 }

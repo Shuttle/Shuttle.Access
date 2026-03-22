@@ -36,6 +36,7 @@ import { useI18n } from "vue-i18n";
 import router from "@/router";
 import api from "@/api";
 import configuration from "@/configuration";
+import { useDrawerStore } from '@/stores/drawer';
 
 type OAuthProvider = {
   name: string;
@@ -44,6 +45,7 @@ type OAuthProvider = {
 
 const { t } = useI18n({ useScope: 'global' });
 const alertStore = useAlertStore();
+const drawerStore = useDrawerStore();
 const sessionStore = useSessionStore();
 
 const busy = ref(false);
@@ -138,6 +140,9 @@ const refreshOAuthProviders = async () => {
 }
 
 onMounted(async () => {
+  drawerStore.showNavigationDrawer = false;
+  drawerStore.showProfileDrawer = false;
+
   if (!configuration.isOk()) {
     return;
   }

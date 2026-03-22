@@ -169,17 +169,8 @@ export type Session = {
   tokenHash?: number[];
 };
 
-export type SessionData = {
-  identityId: string;
-  identityName: string;
-  identityDescription: string;
-  permissions: Permission[];
-  expiryDate?: Date;
-  dateRegistered?: Date;
-};
-
 export type SessionResponse = {
-  session: Session;
+  session?: Session;
   registrationRequested: boolean;
   result: string;
   token: string | null;

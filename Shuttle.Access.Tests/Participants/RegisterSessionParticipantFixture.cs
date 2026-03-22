@@ -66,7 +66,7 @@ public class RegisterSessionParticipantFixture
     {
         var hashingService = new HashingService();
         var sessionToken = Guid.NewGuid();
-        var message = new RegisterSession(IdentityName).UseAuthenticationToken(sessionToken);
+        var message = new RegisterSession(IdentityName).UseSessionToken(sessionToken);
 
         var identityQuery = MockIdentitySearchAsync();
         var sessionQuery = MockSessionSearchAsync(out _);
