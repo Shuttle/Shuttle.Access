@@ -41,7 +41,7 @@ import { mdiDelete, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from '@mdi/j
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
-import type { SessionData } from "@/access";
+import type { Session } from "@/access";
 import type { AxiosResponse } from "axios";
 import { useDateFormatter } from "@/composables/DateFormatter";
 import { useSessionStore } from "@/stores/session";
@@ -108,14 +108,14 @@ const permissionHeaders = useSecureTableHeaders([
   }
 ]);
 
-const items: Ref<SessionData[]> = ref([]);
+const items: Ref<Session[]> = ref([]);
 
 const refresh = () => {
   busy.value = true;
 
   api
     .post("v1/sessions/search", {})
-    .then(function (response: AxiosResponse<SessionData[]>) {
+    .then(function (response: AxiosResponse<Session[]>) {
       if (!response || !response.data) {
         return;
       }
@@ -127,7 +127,7 @@ const refresh = () => {
     });
 }
 
-const remove = async (item: SessionData) => {
+const remove = async (item: Session) => {
   if (!(await confirmationStore.show({ messageKey: '_confirmation.remove' })).confirmed) {
     return;
   }

@@ -45,7 +45,7 @@ onMounted(async () => {
       code: code
     });
 
-    const params = { identityName: sessionResponse.session.identityName };
+    const params = { identityName: sessionResponse.session?.identityName };
 
     if (sessionResponse.result === "UnknownIdentity") {
       alertStore.add({

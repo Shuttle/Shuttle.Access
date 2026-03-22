@@ -118,10 +118,10 @@ export const useSessionStore = defineStore("session", () => {
       throw Error(i18n.global.t("messages.invalid-session"));
     }
 
-    tenantId.value = sessionResponse.session.tenantId;
+    tenantId.value = sessionResponse.session?.tenantId;
 
     removePermissions();
-    sessionResponse.session.permissions.forEach((item) =>
+    sessionResponse.session?.permissions.forEach((item) =>
       addPermission(item.name),
     );
   };
