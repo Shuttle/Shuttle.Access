@@ -337,16 +337,26 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> Search(IIdentityQuery identityQuery, [FromBody] Contracts.v1.Identity.Specification specification)
     {
-        var search = new Query.Identity.Specification();
+        var search = new Query.Identity.Specification().AddIds(specification.Ids);
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {
             search.WithNameMatch(specification.NameMatch);
         }
 
+        if (specification.ShouldIncludePermissions)
+        {
+            search.IncludePermissions();
+        }
+
         if (specification.ShouldIncludeRoles)
         {
             search.IncludeRoles();
+        }
+
+        if (specification.ShouldIncludeTenants)
+        {
+            search.IncludeTenants();
         }
 
         return Results.Ok((await identityQuery.SearchAsync(search)).ToList());

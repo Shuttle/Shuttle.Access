@@ -53,7 +53,6 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
                 if (requesterSession == null || DateTimeOffset.UtcNow > requesterSession.ExpiryDate || !requesterSession.HasPermission(AccessPermissions.Sessions.Register))
                 {
                     message.DelegationSessionInvalid();
-
                     return;
                 }
 
@@ -65,14 +64,16 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
                 if (session != null)
                 {
-                    await SaveAsync();
+                    message.WithTenantId(session.TenantId);
+                    await SaveAsync(message, session, cancellationToken);
                 }
                 else
                 {
                     message.Forbidden();
+                    return;
                 }
 
-                return;
+                break;
             }
             case SessionRegistrationType.Direct:
             {
@@ -84,7 +85,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             }
         }
 
-        var identity = (await identityQuery.SearchAsync(new Query.Identity.Specification().WithName(message.IdentityName), cancellationToken)).SingleOrDefault();
+        var identity = (await identityQuery.SearchAsync(new Query.Identity.Specification().WithName(message.IdentityName).IncludeTenants(), cancellationToken)).SingleOrDefault();
 
         if (identity == null)
         {
@@ -102,6 +103,8 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
                 LogoUrl = item.LogoUrl
             })
             .ToList();
+
+        message.WithTenants(tenants);
 
         if (message.TenantId.HasValue)
         {
@@ -141,13 +144,16 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             return;
         }
 
-        message.WithTenants(tenants);
+        if (message.RegistrationType == SessionRegistrationType.Token)
+        {
+            return;
+        }
 
         session = (await sessionQuery.SearchAsync(new Session.Specification().WithTenantId(message.TenantId.Value).WithIdentityName(message.IdentityName), cancellationToken)).FirstOrDefault();
 
         if (session != null)
         {
-            await SaveAsync();
+            await SaveAsync(message, session, cancellationToken);
 
             return;
         }
@@ -165,40 +171,37 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             DateRegistered = now,
         };
 
-        await SaveAsync();
+        await SaveAsync(message, session, cancellationToken);
+    }
+    private async Task SaveAsync(RegisterSession message, Session session, CancellationToken cancellationToken)
+    {
+        Guid? token = session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow ? null : Guid.NewGuid();
 
-        return;
-
-        async Task SaveAsync()
+        if (token.HasValue)
         {
-            Guid? token = session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow ? null : Guid.NewGuid();
+            session.TokenHash = hashingService.Sha256(token.Value.ToString("D"));
+        }
 
-            if (token.HasValue)
+        session.ExpiryDate = DateTime.UtcNow.Add(accessOptions.Value.SessionDuration);
+        session.Permissions = (await identityQuery.PermissionsAsync(session.IdentityId, session.TenantId, cancellationToken))
+            .Select(permission => new Query.Permission
             {
-                session.TokenHash = hashingService.Sha256(token.Value.ToString("D"));
-            }
+                Id = permission.Id,
+                Name = permission.Name,
+                Description = permission.Description,
+                Status = permission.Status
+            })
+            .ToList();
 
-            session.ExpiryDate = DateTime.UtcNow.Add(accessOptions.Value.SessionDuration);
-            session.Permissions = (await identityQuery.PermissionsAsync(session.IdentityId, session.TenantId, cancellationToken))
-                .Select(permission => new Query.Permission
-                {
-                    Id = permission.Id,
-                    Name = permission.Name,
-                    Description = permission.Description,
-                    Status = permission.Status
-                })
-                .ToList();
+        await sessionQuery.SaveAsync(session, cancellationToken);
 
-            await sessionQuery.SaveAsync(session, cancellationToken);
-
-            if (token.HasValue)
-            {
-                message.Registered(token.Value, session);
-            }
-            else
-            {
-                message.Renewed(session);
-            }
+        if (token.HasValue)
+        {
+            message.Registered(token.Value, session);
+        }
+        else
+        {
+            message.Renewed(session);
         }
     }
 }

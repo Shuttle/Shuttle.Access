@@ -17,7 +17,7 @@ import { useAlertStore } from "@/stores/alert";
 import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";
 import api from "@/api";
-import type { Tenant } from "@/access";
+import type { Session, Tenant } from "@/access";
 import router from "@/router";
 
 const { t } = useI18n({ useScope: 'global' });
@@ -29,12 +29,11 @@ const select = async (tenant: Tenant) => {
   busy.value = true;
 
   try {
-    const { data: sessionResponse } = await api.patch(`/v1/sessions/tenant`, {
+    const { data: session } = await api.patch<Session>(`/v1/sessions/tenant`, {
       tenantId: tenant.id
     })
 
-    sessionStore.tenantSelected(sessionResponse);
-    router.push({ name: "dashboard" });
+    sessionStore.tenantSelected(session);
   } catch {
     useAlertStore().add({
       message: t("exceptions.tenant-selection"),
@@ -44,6 +43,9 @@ const select = async (tenant: Tenant) => {
 
     sessionStore.signOut();
     router.push({ name: 'sign-in' })
+    return
   }
+
+  router.push({ name: "dashboard" });
 }
 </script>

@@ -95,20 +95,19 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
     private IQueryable<Models.Identity> GetQueryable(Query.Identity.Specification identitySpecification)
     {
         var queryable = _accessDbContext.Identities
-            .AsNoTracking()
-            .Include(item => item.IdentityTenants)
-            .ThenInclude(item => item.Tenant)
-            .AsSplitQuery();
+            .AsNoTracking();
 
-        var rolesInclude = queryable
-                .Include(item => item.IdentityRoles)
-                .ThenInclude(item => item.Role);
+        queryable = identitySpecification.ShouldIncludeTenants
+            ? queryable.Include(item => item.IdentityTenants).ThenInclude(item => item.Tenant)
+            : queryable;
+
+        queryable = identitySpecification is { ShouldIncludeRoles: true, ShouldIncludePermissions: false }
+            ? queryable.Include(item => item.IdentityRoles).ThenInclude(item => item.Role)
+            : queryable;
 
         queryable = identitySpecification.ShouldIncludePermissions
-            ? rolesInclude
-                .ThenInclude(item => item.RolePermissions)
-                .ThenInclude(item => item.Permission)
-            : rolesInclude;
+            ? queryable.Include(item => item.IdentityRoles).ThenInclude(item => item.Role).ThenInclude(item => item.RolePermissions).ThenInclude(item => item.Permission) 
+            : queryable;
 
         if (!string.IsNullOrEmpty(identitySpecification.NameMatch))
         {
@@ -155,6 +154,6 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             queryable = queryable.Take(identitySpecification.MaximumRows);
         }
 
-        return queryable;
+        return queryable.AsSplitQuery();
     }
 }

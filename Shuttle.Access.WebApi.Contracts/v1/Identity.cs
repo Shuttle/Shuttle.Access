@@ -27,7 +27,10 @@ public class Identity
 
     public class Specification
     {
+        public List<Guid> Ids { get; set; } = [];
         public string NameMatch { get; set; } = string.Empty;
+        public bool ShouldIncludePermissions { get; set; }
         public bool ShouldIncludeRoles { get; set; }
+        public bool ShouldIncludeTenants { get; set; }
     }
 }

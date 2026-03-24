@@ -30,6 +30,12 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
             .HasForeignKey(f => new { f.TenantId, f.RoleId })
             .HasPrincipalKey(p => new { p.TenantId, p.Id });
 
+        modelBuilder.Entity<Models.IdentityRole>()
+            .HasOne(ir => ir.Role)
+            .WithMany(r => r.IdentityRoles)
+            .HasForeignKey(ir => ir.RoleId)
+            .HasPrincipalKey(r => r.Id);
+
         modelBuilder.Entity<Models.Role>()
             .HasMany(p => p.RolePermissions)
             .WithOne(f => f.Role)

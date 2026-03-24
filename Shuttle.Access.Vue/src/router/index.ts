@@ -106,14 +106,6 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
-        path: "permission/json",
-        name: "permission-json",
-        component: () => import("../views/PermissionJson.vue"),
-        meta: {
-          permission: Permissions.Permissions.Manage,
-        },
-      },
-      {
         path: ":id/rename",
         name: "permission-rename",
         component: () => import("../views/PermissionRename.vue"),
@@ -158,18 +150,19 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
-        path: "role/json",
-        name: "role-json",
-        component: () => import("../views/RoleJson.vue"),
+        path: "role/:id/rename",
+        name: "role-rename",
+        component: () => import("../views/RoleRename.vue"),
+        props: true,
         meta: {
           permission: Permissions.Roles.Manage,
         },
       },
       {
-        path: "role/:id/rename",
-        name: "role-rename",
-        component: () => import("../views/RoleRename.vue"),
+        path: "roles/:id/identities",
+        name: "role-identities",
         props: true,
+        component: () => import("../views/RoleIdentities.vue"),
         meta: {
           permission: Permissions.Roles.Manage,
         },

@@ -14,7 +14,6 @@
       <template v-slot:header.action="">
         <div class="flex flex-row items-center gap-2" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
           <v-btn-primary :icon="mdiPlus" size="x-small" @click="add"></v-btn-primary>
-          <v-btn v-if="false" :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
           <v-btn :icon="mdiUpload" size="x-small" @click="upload"></v-btn>
           <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
@@ -52,7 +51,7 @@
 import api from "@/api";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiCodeJson, mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil, mdiDownload, mdiUpload } from '@mdi/js';
+import { mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil, mdiDownload, mdiUpload } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
@@ -182,10 +181,6 @@ const add = () => {
   router.push({ name: "permission" })
 }
 
-const json = () => {
-  router.push({ name: "permission-json" })
-}
-
 const upload = () => {
   router.push({ name: "permission-upload" })
 }
@@ -203,7 +198,7 @@ const download = async () => {
     return;
   }
 
-  const response = await api.post("v1/permissions/bulk-download", selected.value, { responseType: 'blob' });
+  const response = await api.post("v1/permissions/download", selected.value, { responseType: 'blob' });
 
   const blob = new Blob([response.data], { type: 'application/json' });
   const url = window.URL.createObjectURL(blob);

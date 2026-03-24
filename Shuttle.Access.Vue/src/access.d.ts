@@ -105,6 +105,14 @@ export type IdentityRole = {
   name: string;
 };
 
+export type IdentitySpecification = {
+  ids: string[];
+  nameMatch: string;
+  shouldIncludePermissions: boolean;
+  shouldIncludeRoles: boolean;
+  shouldIncludeTenants: boolean;
+};
+
 export type IdentityTenant = {
   id: string;
   name: string;
@@ -135,9 +143,17 @@ export type Status = {
 };
 
 export type Role = {
+  tab?: string;
   id: string;
   name: string;
   permissions?: Permission[];
+  identities?: RoleIdentity[];
+};
+
+export type RoleIdentity = {
+  id: string;
+  name: string;
+  description?: string;
 };
 
 export type RegisterIdentity = {

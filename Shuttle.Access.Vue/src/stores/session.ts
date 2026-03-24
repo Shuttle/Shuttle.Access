@@ -3,16 +3,22 @@ import { ref, computed } from "vue";
 import axios from "axios";
 import configuration from "@/configuration";
 import { i18n } from "@/i18n";
-import type { Credentials, OAuthData, SessionResponse, Tenant } from "@/access";
+import type {
+  Credentials,
+  OAuthData,
+  Session,
+  SessionResponse,
+  Tenant,
+} from "@/access";
 
 export const useSessionStore = defineStore("session", () => {
   const isAuthenticated = ref(false);
   const isInitialized = ref(false);
-  const identityName = ref<string | undefined>("");
-  const token = ref<string | undefined>("");
-  const tenantId = ref<string | undefined>("");
+  const identityName = ref<string | null>();
+  const token = ref<string | null>();
+  const tenantId = ref<string | null>();
   const permissions = ref<string[]>([]);
-  const tenants = ref<Tenant[] | undefined>([]);
+  const tenants = ref<Tenant[]>([]);
 
   const status = computed(() => {
     return !token.value ? "not-signed-in" : "signed-in";
@@ -23,23 +29,19 @@ export const useSessionStore = defineStore("session", () => {
       return;
     }
 
-    const storedIdentityName = localStorage.getItem(
-      "shuttle-access.identityName",
-    );
-    const storedToken = localStorage.getItem("shuttle-access.token");
+    identityName.value = localStorage.getItem("shuttle-access.identityName");
+    token.value = localStorage.getItem("shuttle-access.token");
 
     try {
-      if (storedIdentityName && storedToken) {
+      if (identityName.value && token.value) {
         return await signIn({
-          identityName: storedIdentityName,
-          token: storedToken,
+          identityName: identityName.value,
+          token: token.value,
         });
       }
     } finally {
       isInitialized.value = true;
     }
-
-    return Promise.resolve();
   };
 
   const addPermission = (permission: string) => {
@@ -75,6 +77,7 @@ export const useSessionStore = defineStore("session", () => {
 
     identityName.value = sessionResponse.session.identityName;
     tenantId.value = sessionResponse.session.tenantId;
+    tenants.value = sessionResponse.tenants;
 
     removePermissions();
     sessionResponse.session.permissions.forEach((item) =>
@@ -113,17 +116,15 @@ export const useSessionStore = defineStore("session", () => {
     return sessionResponse;
   };
 
-  const tenantSelected = (sessionResponse: SessionResponse) => {
-    if (!sessionResponse) {
+  const sessionTenantSelected = (session: Session) => {
+    if (!session) {
       throw Error(i18n.global.t("messages.invalid-session"));
     }
 
-    tenantId.value = sessionResponse.session?.tenantId;
+    tenantId.value = session.tenantId;
 
     removePermissions();
-    sessionResponse.session?.permissions.forEach((item) =>
-      addPermission(item.name),
-    );
+    session.permissions.forEach((item) => addPermission(item.name));
   };
 
   const oauth = async (oauthData: OAuthData): Promise<SessionResponse> => {
@@ -143,7 +144,6 @@ export const useSessionStore = defineStore("session", () => {
 
     register(sessionResponse);
 
-    tenants.value = sessionResponse.tenants;
     isInitialized.value = true;
 
     return sessionResponse;
@@ -214,6 +214,6 @@ export const useSessionStore = defineStore("session", () => {
     oauth,
     hasSession,
     hasPermission,
-    tenantSelected,
+    tenantSelected: sessionTenantSelected,
   };
 });

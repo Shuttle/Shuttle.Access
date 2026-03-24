@@ -22,13 +22,14 @@ public class Identity
         public Guid? PermissionId { get; private set; }
         public Guid? RoleId { get; private set; }
         public string RoleName { get; private set; } = string.Empty;
-        public bool RolesIncluded { get; private set; }
+        public bool ShouldIncludeRoles { get; private set; }
         public Guid? TenantId { get; private set; }
         public bool ShouldIncludePermissions { get; private set; }
+        public bool ShouldIncludeTenants { get; private set; }
 
         public Specification IncludeRoles()
         {
-            RolesIncluded = true;
+            ShouldIncludeRoles = true;
 
             return this;
         }
@@ -84,6 +85,13 @@ public class Identity
         public Specification IncludePermissions()
         {
             ShouldIncludePermissions = true;
+
+            return this;
+        }
+
+        public Specification IncludeTenants()
+        {
+            ShouldIncludeTenants = true;
 
             return this;
         }

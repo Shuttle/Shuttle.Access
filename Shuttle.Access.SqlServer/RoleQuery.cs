@@ -15,22 +15,24 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
     public async Task<IEnumerable<Query.Permission>> PermissionsAsync(Query.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         var model = await GetQueryable(specification)
-            .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
-        return model == null ? [] : model.RolePermissions.Select(e => e.Permission).Select(e=> new Query.Permission
-        {
-            Id = e.Id,
-            Name = e.Name,
-            Description = e.Description,
-            Status = (PermissionStatus)e.Status
-        }).ToList();
+        return model == null
+            ? []
+            : model.RolePermissions.Select(e => e.Permission).Select(e => new Query.Permission
+            {
+                Id = e.Id,
+                Name = e.Name,
+                Description = e.Description,
+                Status = (PermissionStatus)e.Status
+            }).ToList();
     }
 
     public async Task<IEnumerable<Query.Role>> SearchAsync(Query.Role.Specification specification, CancellationToken cancellationToken = default)
     {
         return (await GetQueryable(specification)
-            .OrderBy(e => e.Name)
-            .ToListAsync(cancellationToken))
+                .OrderBy(e => e.Name)
+                .ToListAsync(cancellationToken))
             .Select(e => new Query.Role
             {
                 Id = e.Id,
@@ -42,6 +44,12 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
                     Name = permission.Name,
                     Description = permission.Description,
                     Status = (PermissionStatus)permission.Status
+                }).ToList(),
+                Identities = e.IdentityRoles.Select(identityRole => identityRole.Identity).Select(identity => new Query.Role.Identity
+                {
+                    Id = identity.Id,
+                    Name = identity.Name,
+                    Description = identity.Description
                 }).ToList()
             });
     }
@@ -50,8 +58,8 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
     {
         var queryable = _accessDbContext.Roles
             .AsNoTracking()
-            .Include(item => item.RolePermissions)
-            .ThenInclude(item => item.Permission)
+            .Include(item => item.RolePermissions).ThenInclude(item => item.Permission)
+            .Include(item => item.IdentityRoles).ThenInclude(item => item.Identity)
             .AsSplitQuery();
 
         if (specification.TenantId.HasValue)
