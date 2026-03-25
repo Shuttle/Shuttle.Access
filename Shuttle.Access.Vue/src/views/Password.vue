@@ -118,7 +118,7 @@ onMounted(() => {
   if (props.id === "token") {
     const sessionStore = useSessionStore();
 
-    state.identityName = sessionStore.identityName;
+    state.identityName = sessionStore.identityName ?? '';
 
     return;
   }

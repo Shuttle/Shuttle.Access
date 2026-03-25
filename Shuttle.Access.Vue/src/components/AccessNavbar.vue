@@ -33,7 +33,7 @@
   </v-app-bar>
   <v-navigation-drawer v-model="drawerStore.showProfileDrawer" location="right" temporary>
     <v-list>
-      <v-list-item :title="sessionStore.identityName" class="select-none"></v-list-item>
+      <v-list-item :title="sessionStore.identityName ?? ''" class="select-none"></v-list-item>
       <v-divider></v-divider>
       <v-list-item :prepend-icon="mdiShieldAccountOutline" to="/password/token"
         :title="t('change-password')"></v-list-item>
@@ -51,7 +51,6 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useTheme } from 'vuetify';
 import type { NavigationItem } from "@/access";
-import { useAlertStore } from "@/stores/alert";
 import configuration from "@/configuration";
 import axios from "axios";
 import { useDrawerStore } from "@/stores/drawer";
@@ -62,8 +61,6 @@ const drawerStore = useDrawerStore();
 const sessionStore = useSessionStore();
 const router = useRouter();
 const theme = useTheme();
-const alertStore = useAlertStore();
-
 const storedTheme = localStorage.getItem('app-theme') || theme.global.name.value;
 const isDarkTheme: Ref<boolean> = ref(storedTheme === 'dark');
 
