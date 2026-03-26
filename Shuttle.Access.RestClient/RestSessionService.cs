@@ -67,7 +67,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         var messageSpecification = new WebApi.Contracts.v1.Session.Specification
         {
-            Id = specification.Id,
+            Ids = specification.Ids.ToList(),
             IdentityId = specification.IdentityId,
             IdentityName = specification.IdentityName ?? string.Empty,
             IdentityNameMatch = specification.IdentityNameMatch ?? string.Empty,
@@ -108,7 +108,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
                 var content = registrationResponse.Content;
 
-                if (!registrationResponse.IsSuccessStatusCode || content == null || !content.IsSuccessResult())
+                if (!registrationResponse.IsSuccessStatusCode || content == null || content.Session == null || !content.IsSuccessResult())
                 {
                     LogMessage.SessionUnavailable(_logger, "IdentityName", specification.IdentityName);
 

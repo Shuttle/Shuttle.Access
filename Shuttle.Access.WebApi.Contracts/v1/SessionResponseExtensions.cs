@@ -6,7 +6,8 @@ public static class SessionResponseExtensions
     {
         public bool IsSuccessResult()
         {
-            return sessionResponse.Result.Equals("Registered", StringComparison.InvariantCultureIgnoreCase);
+            return sessionResponse.Result.Equals("Registered", StringComparison.InvariantCultureIgnoreCase) ||
+                   sessionResponse.Result.Equals("Renewed", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

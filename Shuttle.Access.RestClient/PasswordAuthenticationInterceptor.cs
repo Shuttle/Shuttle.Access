@@ -64,7 +64,7 @@ public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
 
             var sessionResponse = JsonSerializer.Deserialize<SessionResponse>(responseString, _jsonSerializerOptions);
 
-            if (sessionResponse == null || !sessionResponse.IsSuccessResult())
+            if (sessionResponse?.Session == null || !sessionResponse.IsSuccessResult())
             {
                 throw new AuthenticationException(sessionResponse == null ? null : string.Format(Resources.SessionResponseException, sessionResponse.Result));
             }

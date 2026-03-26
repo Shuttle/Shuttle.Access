@@ -21,6 +21,7 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
                 .Include(e => e.Identity).ThenInclude(e => e.IdentityRoles)
                 .Include(e => e.SessionPermissions).ThenInclude(e => e.Permission)
                 .OrderBy(e => e.Identity.Name)
+                .AsNoTracking()
                 .AsSplitQuery()
                 .ToListAsync(cancellationToken))
             .Select(e => new Session
@@ -102,6 +103,16 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
     private IQueryable<Models.Session> GetQueryable(Session.Specification specification)
     {
         var queryable = _accessDbContext.Sessions.AsQueryable();
+
+        if (specification.HasIds)
+        {
+            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
+        }
+
+        if (specification.HasExcludedIds)
+        {
+            queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
+        }
 
         if (specification.Token.HasValue)
         {

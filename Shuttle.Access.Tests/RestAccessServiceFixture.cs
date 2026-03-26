@@ -45,8 +45,8 @@ public class RestAccessServiceFixture
 
         var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions { PassThrough = false }), new SessionCache(new HashingService()), accessClient.Object);
 
-        Assert.That(await service.FindAsync(new Query.Session.Specification().WithId(identityId)), Is.Not.Null);
-        Assert.That(await service.FindAsync(new Query.Session.Specification().WithId(identityId)), Is.Not.Null); // returned from cache
+        Assert.That(await service.FindAsync(new Query.Session.Specification().AddId(identityId)), Is.Not.Null);
+        Assert.That(await service.FindAsync(new Query.Session.Specification().AddId(identityId)), Is.Not.Null); // returned from cache
 
         accessClient.Verify(m => m.Sessions.PostSearchAsync(It.IsAny<WebApi.Contracts.v1.Session.Specification>(), It.IsAny<CancellationToken>()).Result, Times.Exactly(1));
     }

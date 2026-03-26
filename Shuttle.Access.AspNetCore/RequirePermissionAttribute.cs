@@ -28,7 +28,7 @@ public class RequirePermissionAttribute : TypeFilterAttribute
                 return;
             }
             
-            if (!_sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).WithId(identityId.Value)).GetAwaiter().GetResult()?.HasPermission(_permission) ?? false)
+            if (!_sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).AddId(identityId.Value)).GetAwaiter().GetResult()?.HasPermission(_permission) ?? false)
             {
                 SetUnauthorized(context);
             }

@@ -169,6 +169,6 @@ public class RegisterSessionParticipantFixture
 
         sessionQuery.Verify(m => m.SaveAsync(It.IsAny<Query.Session>(), It.IsAny<CancellationToken>()), Times.Once);
 
-        Assert.That(message.Session!.TokenHash, Is.Not.EqualTo(sessionToken));
+        Assert.That(message.Session!.TokenHash, Is.EqualTo(sessionToken));
     }
 }

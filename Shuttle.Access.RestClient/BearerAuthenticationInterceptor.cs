@@ -136,7 +136,7 @@ public class BearerAuthenticationInterceptor : IAuthenticationInterceptor
 
             var sessionResponse = JsonSerializer.Deserialize<SessionResponse>(responseString, _jsonSerializerOptions);
 
-            if (sessionResponse == null)
+            if (sessionResponse?.Session == null)
             {
                 throw new AuthenticationException();
             }

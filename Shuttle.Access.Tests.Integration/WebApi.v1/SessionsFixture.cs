@@ -92,7 +92,7 @@ public class SessionsFixture
         Assert.That(sessionResponse.IsSuccessStatusCode, Is.True);
         Assert.That(sessionResponse.Content, Is.Not.Null);
         Assert.That(sessionResponse.Content!.Token, Is.EqualTo(sessionToken));
-        Assert.That(sessionResponse.Content.Session.IdentityName, Is.EqualTo(session.IdentityName));
+        Assert.That(sessionResponse.Content.Session!.IdentityName, Is.EqualTo(session.IdentityName));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()), Times.Once);
     }

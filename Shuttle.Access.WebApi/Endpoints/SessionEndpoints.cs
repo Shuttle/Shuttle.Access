@@ -223,12 +223,7 @@ public static class SessionEndpoints
 
         await Guard.AgainstNull(mediator).SendAsync(message, cancellationToken);
 
-        if (message.Session == null)
-        {
-            return Results.BadRequest();
-        }
-
-        return Results.Ok(message.Session.Map());
+        return message.Session == null ? Results.BadRequest() : Results.Ok(message.Session.Map());
     }
 
     private static async Task<IResult> Post(ILogger<RegisterSession> logger, IOptions<ApiOptions> apiOptions, IBus bus, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext, [FromBody] Contracts.v1.RegisterSession message, CancellationToken cancellationToken)

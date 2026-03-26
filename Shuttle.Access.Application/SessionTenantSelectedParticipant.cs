@@ -11,7 +11,7 @@ public class SessionTenantSelectedParticipant(IOptions<AccessOptions> accessOpti
     {
         Guard.AgainstNull(message);
 
-        var session = (await Guard.AgainstNull(sessionQuery).SearchAsync(new Session.Specification().WithId(message.SessionId), cancellationToken)).FirstOrDefault();
+        var session = (await Guard.AgainstNull(sessionQuery).SearchAsync(new Session.Specification().AddId(message.SessionId), cancellationToken)).FirstOrDefault();
 
         if (session == null)
         {

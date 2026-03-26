@@ -15,7 +15,7 @@ public class Session
 
     public class Specification
     {
-        public Guid? Id { get; set; }
+        public List<Guid> Ids { get; set; } = [];
         public Guid? TenantId { get; set; }
         public Guid? IdentityId { get; set; }
         public string IdentityName { get; set; } = string.Empty;

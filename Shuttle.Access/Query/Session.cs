@@ -20,7 +20,8 @@ public class Session
         private readonly List<string> _permissions = [];
 
         public bool HasCriteria =>
-            Id != null ||
+            HasIds ||
+            HasExcludedIds ||
             IdentityId != null ||
             RoleId != null ||
             !string.IsNullOrWhiteSpace(IdentityName) ||
@@ -30,7 +31,6 @@ public class Session
             TokenHash != null ||
             Token != null;
 
-        public Guid? Id { get; private set; }
         public Guid? IdentityId { get; private set; }
         public string? IdentityName { get; private set; }
         public string? IdentityNameMatch { get; private set; }
@@ -61,12 +61,6 @@ public class Session
                 AddPermission(permission);
             }
 
-            return this;
-        }
-
-        public Specification WithId(Guid id)
-        {
-            Id = Guard.AgainstEmpty(id);
             return this;
         }
 
