@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Shuttle.Access.Server.v1.MessageHandlers;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Pipelines;
+using Shuttle.Contract;
+using Shuttle.Pipelines;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server;

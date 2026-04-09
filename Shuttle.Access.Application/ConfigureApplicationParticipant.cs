@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Transactions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
-using Shuttle.Core.TransactionScope;
+using Shuttle.Contract;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IOptions<AccessOptions> accessOptions, ITransactionScopeFactory transactionScopeFactory, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, IHashingService hashingService)
+public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IOptions<AccessOptions> accessOptions, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, IHashingService hashingService)
     : IParticipant<ConfigureApplication>
 {
     private readonly List<string> _permissions =
@@ -40,21 +40,20 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
         foreach (var permission in _permissions)
         {
-            using (var scope = transactionScopeFactory.Create())
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            if (await permissionQuery.ContainsAsync(new Query.Permission.Specification().AddName(permission), cancellationToken))
             {
-                if (await permissionQuery.ContainsAsync(new Query.Permission.Specification().AddName(permission), cancellationToken))
-                {
-                    continue;
-                }
-
-                logger.LogDebug($"Registering permission '{permission}'.");
-
-                var registerPermissionMessage = new RegisterPermission(Guid.NewGuid(), permission, string.Empty, PermissionStatus.Active, accessOptions.Value.SystemTenantId, "system");
-
-                await mediator.SendAsync(registerPermissionMessage, cancellationToken);
-
-                scope.Complete();
+                continue;
             }
+
+            logger.LogDebug($"Registering permission '{permission}'.");
+
+            var registerPermissionMessage = new RegisterPermission(Guid.NewGuid(), permission, string.Empty, PermissionStatus.Active, accessOptions.Value.SystemTenantId, "system");
+
+            await mediator.SendAsync(registerPermissionMessage, cancellationToken);
+
+            scope.Complete();
         }
 
         var permissionSpecification = new Query.Permission.Specification();
@@ -97,14 +96,13 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
         {
             logger.LogInformation("Registering system tenant '{SystemTenantName}' with id '{SystemTenantId}'.", accessOptions.Value.SystemTenantName, accessOptions.Value.SystemTenantId);
 
-            using (var scope = transactionScopeFactory.Create())
-            {
-                var registerTenant = new RegisterTenant(accessOptions.Value.SystemTenantId, accessOptions.Value.SystemTenantName, TenantStatus.Active, accessOptions.Value.SystemTenantId, "system");
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+            
+            var registerTenant = new RegisterTenant(accessOptions.Value.SystemTenantId, accessOptions.Value.SystemTenantName, TenantStatus.Active, accessOptions.Value.SystemTenantId, "system");
 
-                await mediator.SendAsync(registerTenant, cancellationToken);
+            await mediator.SendAsync(registerTenant, cancellationToken);
 
-                scope.Complete();
-            }
+            scope.Complete();
 
             timeout = DateTimeOffset.Now.Add(message.Timeout);
 
@@ -144,12 +142,11 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                 throw new ApplicationException(Resources.AdministratorPermissionException);
             }
 
-            using (var scope = transactionScopeFactory.Create())
-            {
-                await mediator.SendAsync(new RegisterRole(Guid.NewGuid(), accessOptions.Value.SystemTenantId, "Access Administrator", accessOptions.Value.SystemTenantId, "system").AddPermissionId(administratorPermission.Id), cancellationToken);
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-                scope.Complete();
-            }
+            await mediator.SendAsync(new RegisterRole(Guid.NewGuid(), accessOptions.Value.SystemTenantId, "Access Administrator", accessOptions.Value.SystemTenantId, "system").AddPermissionId(administratorPermission.Id), cancellationToken);
+
+            scope.Complete();
 
             timeout = DateTimeOffset.Now.Add(message.Timeout);
 

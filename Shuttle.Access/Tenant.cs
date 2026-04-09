@@ -1,5 +1,5 @@
 ﻿using Shuttle.Access.Events.Tenant.v1;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access;
 

@@ -2,7 +2,7 @@ using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Core.Mediator;
+using Shuttle.Mediator;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;

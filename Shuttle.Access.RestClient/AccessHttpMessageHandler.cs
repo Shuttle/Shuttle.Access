@@ -3,7 +3,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
 

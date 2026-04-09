@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 

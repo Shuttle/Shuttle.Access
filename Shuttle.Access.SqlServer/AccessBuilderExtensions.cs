@@ -37,9 +37,9 @@ public static class AccessBuilderExtensions
             services.AddScoped<ISessionService, SessionService>();
             services.AddScoped<ITenantQuery, TenantQuery>();
 
-            services.AddKeyedScoped<DbConnection>("AccessDbConnection", (sp, _) =>
+            services.AddKeyedScoped<DbConnection>("AccessDbConnection", (serviceProvider, _) =>
             {
-                var options = sp.GetRequiredService<IOptions<AccessSqlServerOptions>>().Value;
+                var options = serviceProvider.GetRequiredService<IOptions<AccessSqlServerOptions>>().Value;
                 return new SqlConnection(options.ConnectionString);
             });
             

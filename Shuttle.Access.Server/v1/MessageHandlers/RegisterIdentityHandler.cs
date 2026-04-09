@@ -1,5 +1,5 @@
 ﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
+using Shuttle.Mediator;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;

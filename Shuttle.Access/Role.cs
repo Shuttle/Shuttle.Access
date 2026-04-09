@@ -1,5 +1,5 @@
 ﻿using Shuttle.Access.Events.Role.v1;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access;
 

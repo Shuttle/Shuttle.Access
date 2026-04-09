@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 

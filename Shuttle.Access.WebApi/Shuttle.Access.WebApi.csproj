@@ -11,15 +11,15 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Http" Version="8.1.1" />
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
-    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.16.0" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.16.0" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.12.47" />
-    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.1-rc2" />
-    <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.1-rc2" />
-    <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.1-rc2" />
-    <PackageReference Include="Shuttle.OAuth" Version="21.0.2-rc2" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.2-rc2" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.5" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.17.0" />
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.17.0" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.13.20" />
+    <PackageReference Include="Shuttle.Mediator" Version="21.0.1-rc3" />
+    <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.1-rc3" />
+    <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.1-rc3" />
+    <PackageReference Include="Shuttle.OAuth" Version="21.0.2-rc3" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.2-rc3" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />

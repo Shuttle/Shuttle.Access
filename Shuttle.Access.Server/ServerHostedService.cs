@@ -2,9 +2,9 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
-using Shuttle.Core.Pipelines;
+using Shuttle.Contract;
+using Shuttle.Mediator;
+using Shuttle.Pipelines;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server;

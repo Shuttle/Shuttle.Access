@@ -3,7 +3,7 @@ using Asp.Versioning.Builder;
 using Microsoft.EntityFrameworkCore;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.WebApi;
 

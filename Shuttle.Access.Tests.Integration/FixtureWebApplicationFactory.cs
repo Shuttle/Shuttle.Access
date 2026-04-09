@@ -2,7 +2,7 @@
 using Moq;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.WebApi;
-using Shuttle.Core.Mediator;
+using Shuttle.Mediator;
 using Shuttle.Hopper;
 using Shuttle.OAuth;
 using Shuttle.Recall.SqlServer.EventProcessing;
@@ -55,11 +55,6 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
         builder.ConfigureServices(services =>
         {
             services.AddOptions<SqlServerStorageOptions>().Configure(options =>
-            {
-                options.ConfigureDatabase = false;
-            });
-
-            services.AddOptions<SqlServerEventProcessingOptions>().Configure(options =>
             {
                 options.ConfigureDatabase = false;
             });

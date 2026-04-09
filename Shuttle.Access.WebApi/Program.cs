@@ -1,13 +1,13 @@
 using System.Data.Common;
-using System.Reflection;
 using Asp.Versioning;
 using Microsoft.Data.SqlClient;
 using Scalar.AspNetCore;
 using Serilog;
+using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Mediator;
+using Shuttle.Mediator;
 using Shuttle.Hopper;
 using Shuttle.Hopper.AzureStorageQueues;
 using Shuttle.Hopper.SqlServer.Subscription;
@@ -44,20 +44,23 @@ public class Program
 
         webApplicationBuilder.Host.UseSerilog();
 
-        webApplicationBuilder.Configuration
+        var configuration = webApplicationBuilder.Configuration;
+        var services = webApplicationBuilder.Services;
+
+        configuration
             .AddJsonFile(appsettingsPath)
             .AddUserSecrets<Program>()
             .AddEnvironmentVariables();
 
-        var accessConnectionString = webApplicationBuilder.Configuration.GetConnectionString("Access") ?? "Missing connection string 'Access'.";
+        var accessConnectionString = configuration.GetConnectionString("Access") ?? "Missing connection string 'Access'.";
 
         Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(webApplicationBuilder.Configuration)
+            .ReadFrom.Configuration(configuration)
             .CreateLogger();
 
         var apiVersion1 = new ApiVersion(1, 0);
 
-        webApplicationBuilder.Services
+        services
             .AddApiVersioning(options =>
             {
                 options.DefaultApiVersion = apiVersion1;
@@ -70,7 +73,7 @@ public class Program
                 options.SubstituteApiVersionInUrl = true;
             });
 
-        webApplicationBuilder.Services
+        services
             .AddCors(options =>
             {
                 options.AddDefaultPolicy(builder =>
@@ -91,14 +94,14 @@ public class Program
                 });
             });
 
-        webApplicationBuilder.Services
-            .Configure<ApiOptions>(webApplicationBuilder.Configuration.GetSection(ApiOptions.SectionName))
+        services
+            .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
             .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
             .AddAccess(accessBuilder =>
             {
-                webApplicationBuilder.Configuration.GetSection(AccessOptions.SectionName).Bind(accessBuilder.Options);
+                configuration.GetSection(AccessOptions.SectionName).Bind(accessBuilder.Options);
 
                 accessBuilder
                     .UseSqlServer(builder =>
@@ -106,63 +109,53 @@ public class Program
                         builder.Options.ConnectionString = accessConnectionString;
                     });
             })
-            .AddHopper(hopperBuilder =>
+            .AddHopper(options =>
             {
-                webApplicationBuilder.Configuration.GetSection(HopperOptions.SectionName).Bind(hopperBuilder.Options);
-
-                hopperBuilder
-                    .UseAzureStorageQueues(builder =>
-                    {
-                        var queueOptions = webApplicationBuilder.Configuration.GetSection($"{AzureStorageQueueOptions.SectionName}:Access").Get<AzureStorageQueueOptions>() ?? new();
-
-                        if (string.IsNullOrWhiteSpace(queueOptions.StorageAccount))
-                        {
-                            queueOptions.ConnectionString = webApplicationBuilder.Configuration.GetConnectionString("azure") ?? string.Empty;
-                        }
-
-                        builder.AddOptions("azure", queueOptions);
-                    })
-                    .UseSqlServerSubscription(builder =>
-                    {
-                        builder.Options.ConnectionString = accessConnectionString;
-                        builder.Options.Schema = "access";
-                    })
-                    .AddSubscription<IdentityRoleAdded>()
-                    .AddSubscription<IdentityRoleRemoved>()
-                    .AddSubscription<RolePermissionAdded>()
-                    .AddSubscription<RolePermissionRemoved>()
-                    .AddSubscription<PermissionStatusSet>();
+                configuration.GetSection(HopperOptions.SectionName).Bind(options);
             })
-            .AddRecall(recallBuilder =>
+            .UseAzureStorageQueues(builder =>
             {
-                recallBuilder
-                    .UseSqlServerEventStorage(builder =>
-                    {
-                        builder.Options.ConnectionString = accessConnectionString;
-                        builder.Options.Schema = "access";
-                    })
-                    .UseSqlServerEventProcessing(builder =>
-                    {
-                        builder.Options.ConnectionString = accessConnectionString;
-                        builder.Options.Schema = "access";
-                    });
+                builder.Configure("azure", options =>
+                {
+                    configuration.GetSection($"{AzureStorageQueueOptions.SectionName}:Access").Bind(options);
 
-                recallBuilder.SuppressEventProcessorHostedService();
-                recallBuilder.SuppressPrimitiveEventSequencerHostedService();
+                    if (string.IsNullOrWhiteSpace(options.StorageAccount))
+                    {
+                        options.ConnectionString = configuration.GetConnectionString("azure") ?? string.Empty;
+                    }
+                });
             })
-            .AddMediator(builder =>
+            .UseSqlServerSubscription(sqlServerSubscriptionOptions =>
             {
-                builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
+                sqlServerSubscriptionOptions.ConnectionString = accessConnectionString;
+                sqlServerSubscriptionOptions.Schema = "access";
             })
+            .AddSubscription<IdentityRoleAdded>()
+            .AddSubscription<IdentityRoleRemoved>()
+            .AddSubscription<RolePermissionAdded>()
+            .AddSubscription<RolePermissionRemoved>()
+            .AddSubscription<PermissionStatusSet>()
+            .Services
+            .AddRecall()
+            .UseSqlServerEventStorage(options =>
+            {
+                options.ConnectionString = accessConnectionString;
+                options.Schema = "access";
+            })
+            .UseSqlServerEventProcessing()
+            .Services
+            .AddMediator()
+            .AddParticipantsFrom(typeof(ConfigureApplication).Assembly)
+            .Services
             .AddAccessAuthorization(builder =>
             {
-                webApplicationBuilder.Configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(builder.Options);
+                configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(builder.Options);
 
                 builder.Options.PassThrough = false;
             })
             .AddOAuth(builder =>
             {
-                webApplicationBuilder.Configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);
+                configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);
 
                 builder.UseInMemoryOAuthGrantRepository();
             });

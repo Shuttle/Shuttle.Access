@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Shuttle.Access.Events.Role.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 using Shuttle.Hopper;
 using Shuttle.Recall;
 

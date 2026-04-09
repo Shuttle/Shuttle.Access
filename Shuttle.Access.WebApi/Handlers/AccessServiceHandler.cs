@@ -1,8 +1,8 @@
 ﻿using System.Transactions;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+using Shuttle.Contract;
+using Shuttle.Mediator;
 using Shuttle.Hopper;
 using Shuttle.Recall.SqlServer.EventProcessing;
 using Shuttle.Recall.SqlServer.Storage;

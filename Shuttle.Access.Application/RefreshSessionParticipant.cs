@@ -1,6 +1,6 @@
 ﻿using Shuttle.Access.Query;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+using Shuttle.Contract;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Application;
 

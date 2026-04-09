@@ -1,4 +1,4 @@
-﻿using Shuttle.Core.Mediator;
+﻿using Shuttle.Mediator;
 using Shuttle.Recall;
 using Shuttle.Recall.SqlServer.Storage;
 

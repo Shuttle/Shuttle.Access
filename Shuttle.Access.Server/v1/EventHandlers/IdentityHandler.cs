@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Shuttle.Access.Events.Identity.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 using Shuttle.Hopper;
 using Shuttle.Recall;
 using RoleRemoved = Shuttle.Access.Events.Identity.v1.RoleRemoved;

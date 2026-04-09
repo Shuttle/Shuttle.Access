@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Shuttle.Access.Query;
+using System.Transactions;
 
 namespace Shuttle.Access.Tests.Integration.DataAccess.Sql;
 
@@ -10,7 +10,7 @@ public class PermissionQueryFixture : DataAccessFixture
     {
         var query = ServiceProvider.GetRequiredService<IPermissionQuery>();
 
-        using (TransactionScopeFactory.Create())
+        using (new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             await Assert.ThatAsync(() => query.SearchAsync(new Query.Permission.Specification().AddId(new("4ECABE84-D8A9-4CE3-AC40-BE3ED06DCBED"))), Throws.Nothing);
         }

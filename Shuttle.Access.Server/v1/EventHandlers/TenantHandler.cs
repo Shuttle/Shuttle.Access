@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Shuttle.Access.Events.Tenant.v1;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 using Shuttle.Hopper;
 using Shuttle.Recall;
 namespace Shuttle.Access.Server.v1.EventHandlers;

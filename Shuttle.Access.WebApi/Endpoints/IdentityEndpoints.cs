@@ -7,9 +7,8 @@ using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Access.WebApi.Contracts.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
-using Shuttle.Core.TransactionScope;
+using Shuttle.Contract;
+using Shuttle.Mediator;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
@@ -121,7 +120,7 @@ public static class IdentityEndpoints
         return Results.Ok(from tenantId in identifiers.Values select new IdentifierAvailability<Guid> { Id = tenantId, Active = tenants.Any(item => item.Equals(tenantId)) });
     }
 
-    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, IBus bus, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, ITransactionScopeFactory transactionScopeFactory, [FromBody] Contracts.v1.RegisterIdentity message, CancellationToken cancellationToken)
+    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, IBus bus, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, [FromBody] Contracts.v1.RegisterIdentity message, CancellationToken cancellationToken)
     {
         Guard.AgainstNull(message);
 

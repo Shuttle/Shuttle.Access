@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Shuttle.Access.Query;
+using System.Transactions;
 
 namespace Shuttle.Access.Tests.Integration.DataAccess.Sql;
 
@@ -10,7 +10,7 @@ public class RoleQueryFixture : DataAccessFixture
     {
         var query = ServiceProvider.GetRequiredService<IRoleQuery>();
 
-        using (TransactionScopeFactory.Create())
+        using (new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             await Assert.ThatAsync(() => query.SearchAsync(new()), Throws.Nothing);
             Assert.That((await query.SearchAsync(new Query.Role.Specification()

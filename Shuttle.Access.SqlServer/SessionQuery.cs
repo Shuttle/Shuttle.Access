@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shuttle.Access.SqlServer.Models;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 using Session = Shuttle.Access.Query.Session;
 
 namespace Shuttle.Access.SqlServer;

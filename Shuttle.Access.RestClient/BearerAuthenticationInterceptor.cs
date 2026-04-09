@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.WebApi.Contracts.v1;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
 

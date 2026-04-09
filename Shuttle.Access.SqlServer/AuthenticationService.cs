@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 using Shuttle.Recall;
 using Shuttle.Recall.SqlServer.Storage;
 

@@ -7,11 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shuttle.Core.Contract" Version="21.0.1-rc2" />
-    <PackageReference Include="Shuttle.Core.Mediator" Version="21.0.1-rc2" />
-    <PackageReference Include="Shuttle.Hopper" Version="21.0.1-rc2" />
-    <PackageReference Include="Shuttle.Recall" Version="21.0.2-rc2" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.2-rc2" />
+    <PackageReference Include="Shuttle.Contract" Version="21.0.1-rc3" />
+    <PackageReference Include="Shuttle.Mediator" Version="21.0.1-rc3" />
+    <PackageReference Include="Shuttle.Hopper" Version="21.0.1-rc3" />
+    <PackageReference Include="Shuttle.Recall" Version="21.0.2-rc3" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.2-rc3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <Description>Application concern implementations such as Shuttle.Core.Mediator participants.</Description>
-    <Version>9.0.0-rc7</Version>
+    <Description>Application concern implementations such as Shuttle.Mediator participants.</Description>
+    <Version>9.0.0-rc8</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

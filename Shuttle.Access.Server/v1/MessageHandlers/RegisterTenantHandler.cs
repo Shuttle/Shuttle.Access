@@ -1,7 +1,7 @@
 ﻿using System.Transactions;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+using Shuttle.Contract;
+using Shuttle.Mediator;
 using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
