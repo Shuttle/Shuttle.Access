@@ -27,7 +27,7 @@
 
   <PropertyGroup>
     <Description>Messages for use in Shuttle.Access implementations.</Description>
-    <Version>9.0.0-rc8</Version>
+    <Version>9.0.0-rc9</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

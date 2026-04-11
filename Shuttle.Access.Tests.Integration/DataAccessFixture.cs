@@ -15,14 +15,12 @@ public class DataAccessFixture
             .Build();
 
         ServiceProvider = new ServiceCollection()
-            .AddAccess(accessBuilder =>
+            .AddAccess()
+            .UseSqlServer(builder =>
             {
-                accessBuilder
-                    .UseSqlServer(builder =>
-                    {
-                        builder.Options.ConnectionString = configuration.GetConnectionString("Access") ?? throw new ApplicationException("Missing connection string 'Access'.");
-                    });
+                builder.Options.ConnectionString = configuration.GetConnectionString("Access") ?? throw new ApplicationException("Missing connection string 'Access'.");
             })
+            .Services
             .BuildServiceProvider();
     }
 

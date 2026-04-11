@@ -12,7 +12,7 @@ public static class AccessBuilderExtensions
 {
     extension(AccessBuilder accessBuilder)
     {
-        public IServiceCollection UseSqlServer(Action<AccessSqlServerBuilder>? builder = null)
+        public AccessBuilder UseSqlServer(Action<AccessSqlServerBuilder>? builder = null)
         {
             var services = accessBuilder.Services;
             var accessSqlServerBuilder = new AccessSqlServerBuilder(services);
@@ -57,7 +57,7 @@ public static class AccessBuilderExtensions
                 }
             });
 
-            return services;
+            return accessBuilder;
 
             void Configure(SqlServerDbContextOptionsBuilder sqlServerOptions)
             {

@@ -7,10 +7,10 @@ using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
-using Shuttle.Mediator;
 using Shuttle.Hopper;
 using Shuttle.Hopper.AzureStorageQueues;
 using Shuttle.Hopper.SqlServer.Subscription;
+using Shuttle.Mediator;
 using Shuttle.OAuth;
 using Shuttle.Recall;
 using Shuttle.Recall.SqlServer.EventProcessing;
@@ -99,16 +99,15 @@ public class Program
             .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
-            .AddAccess(accessBuilder =>
+            .AddAccess(options =>
             {
-                configuration.GetSection(AccessOptions.SectionName).Bind(accessBuilder.Options);
-
-                accessBuilder
-                    .UseSqlServer(builder =>
-                    {
-                        builder.Options.ConnectionString = accessConnectionString;
-                    });
+                configuration.GetSection(AccessOptions.SectionName).Bind(options);
             })
+            .UseSqlServer(builder =>
+            {
+                builder.Options.ConnectionString = accessConnectionString;
+            })
+            .Services
             .AddHopper(options =>
             {
                 configuration.GetSection(HopperOptions.SectionName).Bind(options);
@@ -125,6 +124,7 @@ public class Program
                     }
                 });
             })
+            .AddMessageHandlersFrom(typeof(Program).Assembly)
             .UseSqlServerSubscription(sqlServerSubscriptionOptions =>
             {
                 sqlServerSubscriptionOptions.ConnectionString = accessConnectionString;
@@ -147,12 +147,13 @@ public class Program
             .AddMediator()
             .AddParticipantsFrom(typeof(ConfigureApplication).Assembly)
             .Services
-            .AddAccessAuthorization(builder =>
+            .AddAccessAuthorization(options =>
             {
-                configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(builder.Options);
+                configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(options);
 
-                builder.Options.PassThrough = false;
+                options.PassThrough = false;
             })
+            .Services
             .AddOAuth(builder =>
             {
                 configuration.GetSection(OAuthOptions.SectionName).Bind(builder.Options);

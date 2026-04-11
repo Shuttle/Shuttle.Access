@@ -190,6 +190,7 @@ public static class PermissionEndpoints
     {
         await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterPermission
         {
+            Id = message.Id ?? Guid.NewGuid(),
             Name = message.Name,
             Description = message.Description,
             Status = message.Status

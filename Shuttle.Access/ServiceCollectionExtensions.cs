@@ -8,25 +8,20 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddAccess(Action<AccessBuilder>? builder = null)
+        public AccessBuilder AddAccess(Action<AccessOptions>? configureOptions = null)
         {
             Guard.AgainstNull(services);
 
-            var accessBuilder = new AccessBuilder(services);
-
-            builder?.Invoke(accessBuilder);
-
-            services.AddSingleton<IValidateOptions<AccessOptions>, AccessOptionsValidator>();
+            var builder = new AccessBuilder(services);
 
             services.AddOptions<AccessOptions>().Configure(options =>
             {
-                options.SystemTenantId = accessBuilder.Options.SystemTenantId;
-                options.SystemTenantName = accessBuilder.Options.SystemTenantName;
-                options.SessionDuration = accessBuilder.Options.SessionDuration;
-                options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
+                configureOptions?.Invoke(options);
             });
 
-            return services;
+            services.AddSingleton<IValidateOptions<AccessOptions>, AccessOptionsValidator>();
+
+            return builder;
         }
     }
 }

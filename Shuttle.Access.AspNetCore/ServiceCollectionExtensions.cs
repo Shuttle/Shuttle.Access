@@ -11,25 +11,15 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddAccessAuthorization(Action<AccessAuthorizationBuilder>? builder = null)
+        public AccessAuthorizationBuilder AddAccessAuthorization(Action<AccessAuthorizationOptions>? configureOptions= null)
         {
             Guard.AgainstNull(services);
 
-            var accessAuthorizationBuilder = new AccessAuthorizationBuilder(services);
+            var builder = new AccessAuthorizationBuilder(services);
 
-            builder?.Invoke(accessAuthorizationBuilder);
-
-            services.Configure<AccessAuthorizationOptions>(options =>
+            services.AddOptions<AccessAuthorizationOptions>().Configure(options =>
             {
-                options.AuthorizationHeaderAvailable = accessAuthorizationBuilder.Options.AuthorizationHeaderAvailable;
-                options.InsecureModeEnabled = accessAuthorizationBuilder.Options.InsecureModeEnabled;
-                options.Issuers = accessAuthorizationBuilder.Options.Issuers;
-                options.JwtIssuerOptionsAvailable = accessAuthorizationBuilder.Options.JwtIssuerOptionsAvailable;
-                options.JwtIssuerOptionsUnavailable = accessAuthorizationBuilder.Options.JwtIssuerOptionsUnavailable;
-                options.PassThrough = accessAuthorizationBuilder.Options.PassThrough;
-                options.SessionAvailable = accessAuthorizationBuilder.Options.SessionAvailable;
-                options.SessionUnavailable = accessAuthorizationBuilder.Options.SessionUnavailable;
-                options.Realm = accessAuthorizationBuilder.Options.Realm;
+                configureOptions?.Invoke(options);
             });
 
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -43,17 +33,11 @@ public static class ServiceCollectionExtensions
                 {
                     options.DefaultScheme = "Routing";
                 })
-                .AddScheme<AuthenticationSchemeOptions, RoutingAuthenticationHandler>(RoutingAuthenticationHandler.AuthenticationScheme, _ =>
-                {
-                })
-                .AddScheme<AuthenticationSchemeOptions, JwtBearerAuthenticationHandler>(JwtBearerAuthenticationHandler.AuthenticationScheme, _ =>
-                {
-                })
-                .AddScheme<AuthenticationSchemeOptions, SessionTokenAuthenticationHandler>(SessionTokenAuthenticationHandler.AuthenticationScheme, _ =>
-                {
-                });
+                .AddScheme<AuthenticationSchemeOptions, RoutingAuthenticationHandler>(RoutingAuthenticationHandler.AuthenticationScheme, null)
+                .AddScheme<AuthenticationSchemeOptions, JwtBearerAuthenticationHandler>(JwtBearerAuthenticationHandler.AuthenticationScheme, null)
+                .AddScheme<AuthenticationSchemeOptions, SessionTokenAuthenticationHandler>(SessionTokenAuthenticationHandler.AuthenticationScheme, null);
 
-            return services;
+            return builder;
         }
     }
 }

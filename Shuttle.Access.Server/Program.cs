@@ -62,13 +62,12 @@ internal class Program
                     .AddSingleton<IConfiguration>(configuration)
                     .AddSingleton<IKeepAliveContext, KeepAliveContext>()
                     .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
-                    .AddAccess(accessBuilder =>
+                    .AddAccess()
+                    .UseSqlServer(builder =>
                     {
-                        accessBuilder.UseSqlServer(builder =>
-                        {
-                            builder.Options.ConnectionString = accessConnectionString;
-                        });
+                        builder.Options.ConnectionString = accessConnectionString;
                     })
+                    .Services
                     .AddPipelines(options =>
                     {
                         options.PipelineFailed += (eventArgs, _) =>
@@ -102,6 +101,7 @@ internal class Program
                         options.ConnectionString = accessConnectionString;
                         options.Schema = "access";
                     })
+                    .AddMessageHandlersFrom(typeof(Program).Assembly)
                     .Services
                     .AddRecall(options =>
                     {
@@ -114,6 +114,7 @@ internal class Program
                         options.ConnectionString = accessConnectionString;
                         options.Schema = "access";
                     })
+                    .RegisterPrimitiveEventSequencing()
                     .UseSqlServerEventProcessing()
                     .AddProjection<IdentityHandler>(ProjectionNames.Identity)
                     .AddProjection<PermissionHandler>(ProjectionNames.Permission)

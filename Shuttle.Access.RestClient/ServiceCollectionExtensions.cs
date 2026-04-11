@@ -11,20 +11,17 @@ public static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection AddAccessClient(Action<AccessClientBuilder>? builder = null)
+        public AccessClientBuilder AddAccessClient(Action<AccessClientOptions>? configureOptions = null)
         {
             Guard.AgainstNull(services);
 
-            var accessClientBuilder = new AccessClientBuilder(services);
+            var builder = new AccessClientBuilder(services);
 
-            builder?.Invoke(accessClientBuilder);
-
-            services.Configure<AccessClientOptions>(options =>
+            services.AddOptions<AccessClientOptions>().Configure(options =>
             {
-                options.BaseAddress = accessClientBuilder.Options.BaseAddress;
-                options.RenewToleranceTimeSpan = accessClientBuilder.Options.RenewToleranceTimeSpan;
-                options.ConfigureHttpRequestAsync = accessClientBuilder.Options.ConfigureHttpRequestAsync;
+                configureOptions?.Invoke(options);
             });
+
 
             services.AddSingleton<IValidateOptions<AccessClientOptions>, AccessClientOptionsValidator>();
 
@@ -45,7 +42,7 @@ public static class ServiceCollectionExtensions
 
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            return services;
+            return builder;
         }
     }
 
