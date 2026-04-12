@@ -12,20 +12,16 @@ public static class AccessBuilderExtensions
 {
     extension(AccessBuilder accessBuilder)
     {
-        public AccessBuilder UseSqlServer(Action<AccessSqlServerBuilder>? builder = null)
+        public AccessBuilder UseSqlServer(Action<AccessSqlServerOptions>? configureOptions = null)
         {
             var services = accessBuilder.Services;
-            var accessSqlServerBuilder = new AccessSqlServerBuilder(services);
-
-            builder?.Invoke(accessSqlServerBuilder);
-
-            services.AddSingleton<IValidateOptions<AccessSqlServerOptions>, AccessSqlServerOptionsValidator>();
 
             services.AddOptions<AccessSqlServerOptions>().Configure(options =>
             {
-                options.ConnectionString = accessSqlServerBuilder.Options.ConnectionString;
-                options.CommandTimeout = accessSqlServerBuilder.Options.CommandTimeout;
+                configureOptions?.Invoke(options);
             });
+
+            services.AddSingleton<IValidateOptions<AccessSqlServerOptions>, AccessSqlServerOptionsValidator>();
 
             services.TryAddSingleton<ISessionCache, SessionCache>();
 
@@ -46,6 +42,7 @@ public static class AccessBuilderExtensions
             services.AddDbContext<AccessDbContext>((serviceProvider, options) =>
             {
                 var dbConnection = serviceProvider.GetKeyedService<DbConnection>("AccessDbConnection");
+                var accessSqlServerOptions = serviceProvider.GetRequiredService<IOptions<AccessSqlServerOptions>>();
 
                 if (dbConnection != null)
                 {
@@ -53,16 +50,18 @@ public static class AccessBuilderExtensions
                 }
                 else
                 {
-                    options.UseSqlServer(accessSqlServerBuilder.Options.ConnectionString, Configure);
+                    options.UseSqlServer(accessSqlServerOptions.Value.ConnectionString, Configure);
+                }
+
+                return;
+
+                void Configure(SqlServerDbContextOptionsBuilder sqlServerOptions)
+                {
+                    sqlServerOptions.CommandTimeout(accessSqlServerOptions.Value.CommandTimeout.Seconds);
                 }
             });
 
             return accessBuilder;
-
-            void Configure(SqlServerDbContextOptionsBuilder sqlServerOptions)
-            {
-                sqlServerOptions.CommandTimeout(accessSqlServerBuilder.Options.CommandTimeout.Seconds);
-            }
         }
     }
 }

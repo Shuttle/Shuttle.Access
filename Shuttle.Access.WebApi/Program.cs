@@ -103,9 +103,9 @@ public class Program
             {
                 configuration.GetSection(AccessOptions.SectionName).Bind(options);
             })
-            .UseSqlServer(builder =>
+            .UseSqlServer(options =>
             {
-                builder.Options.ConnectionString = accessConnectionString;
+                options.ConnectionString = accessConnectionString;
             })
             .Services
             .AddHopper(options =>

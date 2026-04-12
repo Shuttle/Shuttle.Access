@@ -63,9 +63,9 @@ internal class Program
                     .AddSingleton<IKeepAliveContext, KeepAliveContext>()
                     .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
                     .AddAccess()
-                    .UseSqlServer(builder =>
+                    .UseSqlServer(options =>
                     {
-                        builder.Options.ConnectionString = accessConnectionString;
+                        options.ConnectionString = accessConnectionString;
                     })
                     .Services
                     .AddPipelines(options =>

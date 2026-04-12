@@ -16,9 +16,9 @@ public class DataAccessFixture
 
         ServiceProvider = new ServiceCollection()
             .AddAccess()
-            .UseSqlServer(builder =>
+            .UseSqlServer(options =>
             {
-                builder.Options.ConnectionString = configuration.GetConnectionString("Access") ?? throw new ApplicationException("Missing connection string 'Access'.");
+                options.ConnectionString = configuration.GetConnectionString("Access") ?? throw new ApplicationException("Missing connection string 'Access'.");
             })
             .Services
             .BuildServiceProvider();

@@ -8,7 +8,7 @@
 
   <PropertyGroup>
     <Description>Shuttle.Access web API contracts.</Description>
-    <Version>9.0.0-rc9</Version>
+    <Version>9.0.0-rc10</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
@@ -21,8 +20,7 @@ public static class ServiceCollectionExtensions
             {
                 configureOptions?.Invoke(options);
             });
-
-
+            
             services.AddSingleton<IValidateOptions<AccessClientOptions>, AccessClientOptionsValidator>();
 
             services.AddTransient<AccessHttpMessageHandler>();
@@ -43,74 +41,6 @@ public static class ServiceCollectionExtensions
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             return builder;
-        }
-    }
-
-    extension(AccessClientBuilder accessClientBuilder)
-    {
-        public AccessClientBuilder UseBearerAuthenticationProvider(Action<BearerAuthenticationInterceptorBuilder>? builder = null)
-        {
-            Guard.AgainstNull(accessClientBuilder);
-
-            accessClientBuilder.Services.TryAddSingleton<IJwtService, JwtService>();
-            accessClientBuilder.Services.AddHttpClient<IAuthenticationInterceptor, BearerAuthenticationInterceptor>("BearerAuthenticationProvider");
-
-            var bearerAuthenticationProviderBuilder = new BearerAuthenticationInterceptorBuilder(accessClientBuilder.Services);
-
-            builder?.Invoke(bearerAuthenticationProviderBuilder);
-
-            bearerAuthenticationProviderBuilder.Services
-                .Configure<BearerAuthenticationInterceptorOptions>(options =>
-                {
-                    options.GetBearerAuthenticationContextAsync = bearerAuthenticationProviderBuilder.Options.GetBearerAuthenticationContextAsync;
-                });
-
-            accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
-            {
-                var authenticationInterceptor = serviceProvider.GetService<IAuthenticationInterceptor>();
-
-                if (authenticationInterceptor == null)
-                {
-                    throw new InvalidOperationException(Resources.AuthenticationInterceptorException);
-                }
-
-                await authenticationInterceptor.ConfigureAsync(httpRequestMessage);
-            };
-
-            return accessClientBuilder;
-        }
-
-        public AccessClientBuilder UsePasswordAuthenticationProvider(Action<PasswordAuthenticationInterceptorBuilder>? builder = null)
-        {
-            Guard.AgainstNull(accessClientBuilder).Services
-                .AddHttpClient<IAuthenticationInterceptor, PasswordAuthenticationInterceptor>("PasswordAuthenticationProvider");
-
-            var passwordAuthenticationProviderBuilder = new PasswordAuthenticationInterceptorBuilder(accessClientBuilder.Services);
-
-            builder?.Invoke(passwordAuthenticationProviderBuilder);
-
-            passwordAuthenticationProviderBuilder.Services
-                .Configure<PasswordAuthenticationInterceptorOptions>(options =>
-                {
-                    options.IdentityName = passwordAuthenticationProviderBuilder.Options.IdentityName;
-                    options.Password = passwordAuthenticationProviderBuilder.Options.Password;
-                });
-
-            passwordAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<PasswordAuthenticationInterceptorOptions>, PasswordAuthenticationInterceptorOptionsValidator>();
-
-            accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
-            {
-                var authenticationInterceptor = serviceProvider.GetService<IAuthenticationInterceptor>();
-
-                if (authenticationInterceptor == null)
-                {
-                    throw new InvalidOperationException(Resources.AuthenticationInterceptorException);
-                }
-
-                await authenticationInterceptor.ConfigureAsync(httpRequestMessage);
-            };
-
-            return accessClientBuilder;
         }
     }
 }
