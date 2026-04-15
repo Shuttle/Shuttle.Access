@@ -1,6 +1,4 @@
-﻿using Shuttle.Contract;
-
-namespace Shuttle.Access.WebApi;
+﻿namespace Shuttle.Access.WebApi;
 
 public static class SessionExtensions
 {
@@ -14,8 +12,10 @@ public static class SessionExtensions
             {
                 Id = session.Id,
                 TenantId = session.TenantId,
+                TenantName = session.TenantName,
                 IdentityId = session.IdentityId,
                 IdentityName = session.IdentityName,
+                IdentityDescription = session.IdentityDescription,
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
                 TokenHash = session.TokenHash,

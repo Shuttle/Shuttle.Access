@@ -34,6 +34,8 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             {
                 Id = permission.Id,
                 Name = permission.Name,
+                Description = permission.Description,
+                Status = (PermissionStatus)permission.Status
             })
             .AsSplitQuery()
             .ToListAsync(cancellationToken);

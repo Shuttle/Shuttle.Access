@@ -99,6 +99,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             {
                 Id = item.Id,
                 Name = item.Name,
+                Status = item.Status,
                 LogoSvg = item.LogoSvg,
                 LogoUrl = item.LogoUrl
             })
