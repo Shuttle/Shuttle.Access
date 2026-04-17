@@ -2,9 +2,9 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
+using Shuttle.Access.WebApi.Contracts.v1;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.WebApi;
 
@@ -14,15 +14,15 @@ public static class ServerEndpoints
     {
         var apiVersion1 = new ApiVersion(1, 0);
 
-        app.MapGet("/v{version:apiVersion}/server/configuration", (IOptions<AccessOptions> accessOptions) =>
+        app.MapGet("/v{version:apiVersion}/server/configuration", (IOptions<ApiOptions> apiOptions) =>
             {
-                var options = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+                var options = Guard.AgainstNull(Guard.AgainstNull(apiOptions).Value);
 
                 var version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 
                 return new ServerConfiguration
                 {
-                    Version = $"{version.Major}.{version.Minor}.{version.Build}", 
+                    Version = $"{version.Major}.{version.Minor}.{version.Build}",
                     AllowPasswordAuthentication = options.AllowPasswordAuthentication
                 };
             })

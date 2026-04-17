@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <sv-title :title="$t('roles')" />
+      <a-title :title="$t('roles')" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -9,45 +9,61 @@
       </div>
     </v-card-title>
     <v-divider></v-divider>
-    <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
+    <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" expand-on-click show-select v-model="selected">
       <template v-slot:header.action="">
         <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
           <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
-          <v-btn v-if="false" :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
           <v-btn :icon="mdiUpload" size="x-small" @click="upload"></v-btn>
           <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
       </template>
       <template v-slot:item.action="{ item }">
         <div class="sv-strip">
-          <v-btn :icon="mdiShieldOutline" size="x-small" @click.stop="permissions(item)" />
+          <v-btn :icon="mdiShield" size="x-small" @click.stop="permissions(item)" />
+          <v-btn :icon="mdiAccount" size="x-small" @click.stop="identities(item)" />
           <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" />
-          <v-btn :icon="mdiDeleteOutline" size="x-small"
-            @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+          <v-btn :icon="mdiDelete" size="x-small" @click.stop="remove(item)" />
         </div>
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
-            <div class="sv-table-container">
-              <v-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
-                mobile-breakpoint="md">
-              </v-data-table>
-            </div>
+            <a-container show-border>
+              <v-tabs v-model="item.tab">
+                <v-tab value="permissions">
+                  {{ $t('permissions') }}
+                </v-tab>
+                <v-tab value="identities">
+                  {{ $t('identities') }}
+                </v-tab>
+              </v-tabs>
+              <v-divider></v-divider>
+              <v-tabs-window v-model="item.tab">
+                <v-tabs-window-item value="permissions">
+                  <a-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
+                    mobile-breakpoint="md">
+                  </a-data-table>
+                </v-tabs-window-item>
+                <v-tabs-window-item value="identities">
+                  <a-data-table :items="item.identities" :headers="identityHeaders" hide-default-header>
+                  </a-data-table>
+                </v-tabs-window-item>
+              </v-tabs-window>
+            </a-container>
           </td>
         </tr>
       </template>
-    </v-data-table>
+    </a-data-table>
   </v-card>
-  <sv-form-drawer></sv-form-drawer>
+  <a-drawer></a-drawer>
 </template>
 
 <script setup lang="ts">
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiDownload, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiShieldOutline, mdiCodeJson, mdiUpload } from '@mdi/js';
+import { mdiDelete, mdiDownload, mdiMagnify, mdiPlus, mdiRefresh, mdiPencil, mdiUpload, mdiShield, mdiAccount } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
@@ -110,21 +126,45 @@ const permissionHeaders = useSecureTableHeaders([
   },
 ]);
 
+const identityHeaders = useSecureTableHeaders([
+  {
+    headerProps: {
+      class: "w-96",
+    },
+    title: t("name"),
+    value: "name",
+  },
+  {
+    headerProps: {
+      class: "w-96",
+    },
+    title: t("description"),
+    value: "description",
+  },
+]);
+
+const getSelectedTab = (id: string) => {
+  return items.value.find((item) => item.id === id)?.tab || 'permissions'
+}
+
 const refresh = async () => {
   busy.value = true;
 
   try {
-    const response = await api.post("v1/roles/search", {
+    const { data } = await api.post<Role[]>("v1/roles/search", {
       shouldIncludePermissions: true,
     });
-    items.value = response.data;
+    data.forEach((item: Role) => { item.tab = getSelectedTab(item.id); })
+    items.value = data;
   } finally {
     busy.value = false;
   }
 }
 
 const remove = async (item: Role) => {
-  confirmationStore.close();
+  if (!(await confirmationStore.show({ messageKey: '_confirmation.remove' })).confirmed) {
+    return;
+  }
 
   busy.value = true;
 
@@ -143,12 +183,12 @@ const add = () => {
   router.push({ name: "role" })
 }
 
-const json = () => {
-  router.push({ name: "role-json" })
-}
-
 const upload = () => {
   router.push({ name: "role-upload" })
+}
+
+const identities = (item: Role) => {
+  router.push({ name: "role-identities", params: { id: item.id } });
 }
 
 const permissions = (item: Role) => {
@@ -164,7 +204,7 @@ const download = async () => {
     return;
   }
 
-  const response = await api.post("v1/roles/bulk-download", selected.value, { responseType: 'blob' });
+  const response = await api.post("v1/roles/download", selected.value, { responseType: 'blob' });
 
   const blob = new Blob([response.data], { type: 'application/json' });
   const url = window.URL.createObjectURL(blob);

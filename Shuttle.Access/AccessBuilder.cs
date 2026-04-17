@@ -1,25 +1,9 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
-using Shuttle.Core.Contract;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Shuttle.Contract;
 
 namespace Shuttle.Access;
 
-public class AccessBuilder
+public class AccessBuilder(IServiceCollection services)
 {
-    private AccessOptions _accessOptions = new();
-
-    public AccessBuilder(IServiceCollection services)
-    {
-        Guard.AgainstNull(services);
-
-        Services = services;
-    }
-
-    public AccessOptions Options
-    {
-        get => _accessOptions;
-        set => _accessOptions = value ?? throw new ArgumentNullException(nameof(value));
-    }
-
-    public IServiceCollection Services { get; }
+    public IServiceCollection Services { get; } = Guard.AgainstNull(services);
 }

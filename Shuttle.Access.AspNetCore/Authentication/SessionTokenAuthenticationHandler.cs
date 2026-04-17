@@ -8,33 +8,26 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
-namespace Shuttle.Access.AspNetCore.Authentication;
+namespace Shuttle.Access.AspNetCore;
 
-public class SessionTokenAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder, ISessionService sessionService)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
-    private readonly ISessionService _sessionService;
-    public static readonly string AuthenticationScheme = "Shuttle.Access";
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
+    public static readonly string AuthenticationScheme = "Shuttle.Access";
     public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
-
-    public SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISessionService sessionService) : base(options, logger, encoder)
-    {
-        _sessionService = Guard.AgainstNull(sessionService);
-    }
+    private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
+    private readonly ILogger _logger = Guard.AgainstNull(loggerFactory).CreateLogger<JwtBearerAuthenticationHandler>();
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var header = Request.Headers["Authorization"].FirstOrDefault();
+        var header = Request.Headers.Authorization.FirstOrDefault();
 
-        if (header == null)
+        if (header == null || !header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
         {
-            return AuthenticateResult.NoResult();
-        }
-
-        if (!header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
-        {
+            LogMessage.AuthenticationFailed(_logger, "Shuttle.Access", "The 'Authorization' header does not start with 'Shuttle.Access'.");
             return AuthenticateResult.NoResult();
         }
 
@@ -43,21 +36,24 @@ public class SessionTokenAuthenticationHandler : AuthenticationHandler<Authentic
         if (!match.Success ||
             !Guid.TryParse(match.Groups["token"].Value, out var sessionToken))
         {
-            return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
+            LogMessage.AuthenticationFailed(_logger, "Shuttle.Access", $"The 'token' value '{match.Groups["token"].Value}' provided is not a valid GUID.");
+            return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
         }
 
-        var session = await _sessionService.FindByTokenAsync(sessionToken);
+        var session = await _sessionService.FindAsync(new Query.Session.Specification().WithToken(sessionToken));
 
         if (session == null)
         {
-            return AuthenticateResult.Fail(Access.Resources.InvalidAuthenticationHeader);
+            return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
         }
 
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
-            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
+            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
+            new(HttpContextExtensions.SessionTenantIdClaimType, $"{session.TenantId:D}"),
+            new(HttpContextExtensions.SessionTokenClaimType, $"{sessionToken:D}")
         ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
@@ -71,7 +67,7 @@ public class SessionTokenAuthenticationHandler : AuthenticationHandler<Authentic
         {
             return;
         }
-        
+
         Response.StatusCode = StatusCodes.Status401Unauthorized;
         Response.Headers.WWWAuthenticate = "Shuttle.Access";
 
@@ -82,6 +78,8 @@ public class SessionTokenAuthenticationHandler : AuthenticationHandler<Authentic
             Status = StatusCodes.Status401Unauthorized,
             Detail = authenticateResult.Failure?.Message
         };
+
+        LogMessage.AuthenticationFailed(_logger, AuthenticationScheme, authenticateResult.Failure?.Message ?? "Unknown authentication failure.");
 
         await Response.WriteAsJsonAsync(problemDetails, (JsonSerializerOptions?)null, "application/problem+json");
     }

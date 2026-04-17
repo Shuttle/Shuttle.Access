@@ -1,0 +1,26 @@
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Shuttle.Access.SqlServer.Models;
+
+[Table(nameof(Tenant), Schema = "access")]
+[Index(nameof(Name), IsUnique = true, Name = $"UX_{nameof(Tenant)}_{nameof(Name)}")]
+public class Tenant
+{
+    [Key]
+    public Guid Id { get; set; }
+
+    [Required]
+    [StringLength(320)]
+    public string Name { get; set; } = string.Empty;
+
+    [Required]
+    public int Status { get; set; }
+
+    [StringLength(int.MaxValue)]
+    public string LogoSvg { get; set; } = string.Empty;
+
+    [StringLength(2048)]
+    public string LogoUrl { get; set; } = string.Empty;
+}

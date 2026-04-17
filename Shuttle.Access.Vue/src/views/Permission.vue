@@ -1,7 +1,7 @@
 <template>
   <div>
     <form @submit.prevent="submit" class="sv-form">
-      <sv-title :title="$t('permission')" close-path="/permissions" />
+      <a-title :title="$t('permission')" close-path="/permissions" />
       <v-text-field v-model="state.name" :label="$t('name')" class="mb-2" :error-messages="validation.message('name')">
       </v-text-field>
       <v-text-field v-model="state.description" :label="$t('description')" class="mb-2">

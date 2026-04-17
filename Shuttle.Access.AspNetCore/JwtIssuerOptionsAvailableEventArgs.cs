@@ -1,5 +1,5 @@
 ﻿using Microsoft.IdentityModel.JsonWebTokens;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 

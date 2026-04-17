@@ -1,11 +1,9 @@
-﻿using System.Threading.Tasks;
-using Refit;
-using Shuttle.Access.Messages.v1;
+﻿using Refit;
 
 namespace Shuttle.Access.RestClient.v1;
 
 public interface IServerApi
 {
     [Get("/v1/server/configuration")]
-    Task<IApiResponse<ServerConfiguration>> ConfigurationAsync();
+    Task<IApiResponse<WebApi.Contracts.v1.ServerConfiguration>> ConfigurationAsync(CancellationToken cancellationToken = default);
 }

@@ -16,7 +16,7 @@
           </v-alert>
         </div>
       </div>
-      <Navbar />
+      <AccessNavbar />
       <v-main>
         <div class="p-2">
           <RouterView />
@@ -31,10 +31,15 @@
         </v-snackbar>
       </v-main>
       <v-dialog v-model="confirmationStore.isOpen"
-        class="flex flex-row items-center justify-end mt-4 lg:w-2/4 md:w-3/4lg:w-1/4 md:w-2/4">
-        <v-card :title="$t(confirmationStore.options?.title || 'confirmation-remove.title')">
+        class="flex flex-row items-start mt-16 lg:w-2/4 md:w-3/4lg:w-1/4 md:w-2/4">
+        <v-card :title="confirmationStore.options?.titleText ||
+          $t(confirmationStore.options?.titleKey || '_confirmation.title')
+          ">
           <v-card-text>
-            {{ $t(confirmationStore.options?.message || "confirmation-remove.message") }}
+            {{
+              confirmationStore.options.messageText ||
+              $t(confirmationStore.options?.messageKey || '_exceptions.confirmation-message-missing')
+            }}
           </v-card-text>
           <v-spacer></v-spacer>
           <v-card-actions>
@@ -48,7 +53,7 @@
 </template>
 
 <script lang="ts" setup>
-import Navbar from "@/components/Navbar.vue";
+import AccessNavbar from "@/components/AccessNavbar.vue";
 import { mdiCloseCircleOutline } from '@mdi/js';
 import { useAlertStore } from "@/stores/alert";
 import { RouterView } from "vue-router";

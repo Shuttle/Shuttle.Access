@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <sv-title :title="`${t('roles')} - ${name}`" close-drawer type="borderless"></sv-title>
+      <a-title :title="`${t('roles')} - ${name}`" close-drawer type="borderless"></a-title>
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -9,13 +9,13 @@
       </div>
     </v-card-title>
     <v-divider></v-divider>
-    <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
+    <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy">
       <template v-slot:item.active="{ item }">
         <v-icon v-if="item.working" :icon="mdiTimerSand"></v-icon>
         <v-checkbox-btn v-else v-model="item.active" @update:model-value="toggle(item)" />
       </template>
-    </v-data-table>
+    </a-data-table>
   </v-card>
 </template>
 
@@ -37,6 +37,7 @@ const identityRoles: Ref = ref([]);
 const roles: Ref = ref([]);
 const busy: Ref<boolean> = ref(false);
 const search = ref('');
+let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
 const headers: any = [
   {
@@ -136,12 +137,12 @@ const getWorkingRoles = async () => {
     roleItem.working = roleItem.activeOnToggle ? availability.active : !availability.active;
   });
 
-  setTimeout(async () => {
+  timeoutId = setTimeout(async () => {
     await getWorkingRoles();
   }, 1000);
 };
 
-const toggle = (item: RoleItem) => {
+const toggle = async (item: RoleItem) => {
   if (item.working) {
     snackbarStore.working();
     return;
@@ -150,10 +151,9 @@ const toggle = (item: RoleItem) => {
   item.working = true;
   item.activeOnToggle = !item.active;
 
-  api
-    .patch(`v1/identities/${id.value}/roles/${item.roleId}`, {
-      active: item.active,
-    });
+  await api.patch(`v1/identities/${id.value}/roles/${item.roleId}/status`, {
+    active: item.active,
+  });
 
   getWorkingRoles();
 }
@@ -161,4 +161,11 @@ const toggle = (item: RoleItem) => {
 onMounted(() => {
   refresh();
 })
+
+onBeforeUnmount(() => {
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+    timeoutId = undefined;
+  }
+});
 </script>

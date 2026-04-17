@@ -1,13 +1,8 @@
-﻿using System;
+﻿using Shuttle.Contract;
 
 namespace Shuttle.Access.Application;
 
-public class RefreshSession
+public class RefreshSession(Guid id)
 {
-    public Guid IdentityId { get; } 
-
-    public RefreshSession(Guid identityId)
-    {
-        IdentityId = identityId;
-    }
+    public Guid Id { get; } = Guard.AgainstEmpty(id);
 }

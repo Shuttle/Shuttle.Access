@@ -1,10 +1,9 @@
 <Solution>
   <Folder Name="/.package/">
     <File Path=".package/data-appsettings.json" />
-    <File Path=".package/docker-compose-otel.yml" />
     <File Path=".package/docker-compose.yml" />
     <File Path=".package/docker-pull.cmd" />
-    <File Path=".package/docker-push.cmd" />
+    <File Path=".package/docker-push.ps1" />
     <File Path=".package/dockerfile-linux-sqlserver-demo" />
     <File Path=".package/dockerfile-server" />
     <File Path=".package/dockerfile-webapi" />
@@ -23,13 +22,13 @@
   </Folder>
   <Project Path="Shuttle.Access.Application/Shuttle.Access.Application.csproj" />
   <Project Path="Shuttle.Access.AspNetCore/Shuttle.Access.AspNetCore.csproj" />
-  <Project Path="Shuttle.Access.Data/Shuttle.Access.Data.csproj" />
   <Project Path="Shuttle.Access.Messages/Shuttle.Access.Messages.csproj" />
   <Project Path="Shuttle.Access.RestClient/Shuttle.Access.RestClient.csproj" />
   <Project Path="Shuttle.Access.Server/Shuttle.Access.Server.csproj" />
-  <Project Path="Shuttle.Access.Sql/Shuttle.Access.Sql.csproj" />
+  <Project Path="Shuttle.Access.SqlServer/Shuttle.Access.SqlServer.csproj" />
   <Project Path="Shuttle.Access.Tests.Integration/Shuttle.Access.Tests.Integration.csproj" />
   <Project Path="Shuttle.Access.Tests/Shuttle.Access.Tests.csproj" />
+  <Project Path="Shuttle.Access.WebApi.Contracts/Shuttle.Access.WebApi.Contracts.csproj" Id="a2094662-7af7-46b0-bd89-b4d6899c0c7a" />
   <Project Path="Shuttle.Access.WebApi/Shuttle.Access.WebApi.csproj" />
   <Project Path="Shuttle.Access/Shuttle.Access.csproj" />
 </Solution>

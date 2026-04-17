@@ -1,6 +1,6 @@
 <template>
   <div
-    class="lg:w-2/4 md:w-3/4 p-6 mx-auto bg-zinc-800 text-zinc-300 border border-zinc-400 text-lg flex flex-col justify-center items-center">
+    class="lg:w-2/4 md:w-3/4 mt-6 p-6 mx-auto bg-zinc-800 text-zinc-300 border border-zinc-400 text-lg flex flex-col justify-center items-center">
     <v-progress-circular indeterminate></v-progress-circular>
     <span>{{ $t("signing-in") }}</span>
   </div>
@@ -40,28 +40,26 @@ onMounted(async () => {
   const code = (route.query.code?.toString() || "");
 
   try {
-    const response = await sessionStore.oauth({
+    const sessionResponse = await sessionStore.oauth({
       state: state,
       code: code
     });
 
-    const params = { identityName: response.identityName };
+    const params = { identityName: sessionResponse.session?.identityName };
 
-    if (response.sessionTokenExchangeUrl) {
-      window.location.replace(response.sessionTokenExchangeUrl);
-
-      return;
-    }
-
-    if (response.result === "UnknownIdentity") {
+    if (sessionResponse.result === "UnknownIdentity") {
       alertStore.add({
-        message: response.registrationRequested ? t("messages.oauth-unknown-identity-registered", params) : t("messages.oauth-unknown-identity", params),
+        message: sessionResponse.registrationRequested ? t("messages.oauth-unknown-identity-registered", params) : t("messages.oauth-unknown-identity", params),
         type: "error",
         name: "oauth-unknown-identity"
       });
 
       router.push({ name: "sign-in" });
+      return;
+    }
 
+    if ((sessionResponse.tenants?.length ?? 0) > 1) {
+      router.push({ name: "tenant-selection" });
       return;
     }
 

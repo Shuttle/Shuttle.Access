@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿namespace Shuttle.Access.Messages.v1;
 
-namespace Shuttle.Access.Messages.v1;
-
-public class RegisterRole
+public class RegisterRole : AuditMessage
 {
-    public string Name { get; set; } = default!;
+    public Guid Id { get; set; }
+    public Guid TenantId { get; set; }
+    public string Name { get; set; } = string.Empty;
     public List<RegisterPermission> Permissions { get; set; } = [];
     public int WaitCount { get; set; }
 }

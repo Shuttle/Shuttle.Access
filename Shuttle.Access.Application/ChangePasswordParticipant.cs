@@ -1,64 +1,39 @@
-﻿using System;
-using System.Threading.Tasks;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+﻿using Shuttle.Contract;
+using Shuttle.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class ChangePasswordParticipant : IParticipant<RequestMessage<ChangePassword>>
+public class ChangePasswordParticipant(IHashingService hashingService, ISessionQuery sessionQuery, IEventStore eventStore)
+    : IParticipant<ChangePassword>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IHashingService _hashingService;
-    private readonly ISessionRepository _sessionRepository;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
+    private readonly ISessionQuery _sessionRepository = Guard.AgainstNull(sessionQuery);
 
-    public ChangePasswordParticipant(IHashingService hashingService, ISessionRepository sessionRepository, IEventStore eventStore)
+    public async Task HandleAsync(ChangePassword message, CancellationToken cancellationToken = default)
     {
-        _hashingService = Guard.AgainstNull(hashingService);
-        _sessionRepository = Guard.AgainstNull(sessionRepository);
-        _eventStore = Guard.AgainstNull(eventStore);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<ChangePassword>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var request = context.Message.Request;
-
-        try
-        {
-            request.ApplyInvariants();
-        }
-        catch (Exception ex)
-        {
-            context.Message.Failed(ex.Message);
-            throw;
-        }
-
         var id = Guid.Empty;
 
-        if (request.Token.HasValue)
+        if (message.Token.HasValue)
         {
-            var session = await _sessionRepository.FindAsync(_hashingService.Sha256(request.Token.Value.ToString("D")));
+            var session = (await _sessionRepository.SearchAsync(new Query.Session.Specification().WithTokenHash(_hashingService.Sha256(message.Token.Value.ToString("D"))), cancellationToken)).FirstOrDefault();
 
             if (session == null)
             {
-                context.Message.Failed(Access.Resources.SessionTokenExpiredException);
-
-                return;
+                throw new ApplicationException(Access.Resources.SessionTokenExpiredException);
             }
 
             id = session.IdentityId;
         }
 
-        if (request.Id.HasValue)
+        if (message.Id.HasValue)
         {
-            id = request.Id.Value;
+            id = message.Id.Value;
         }
 
         var user = new Identity();
-        var stream = await _eventStore.GetAsync(id);
+        var stream = await _eventStore.GetAsync(id, cancellationToken: cancellationToken);
 
         if (stream.IsEmpty)
         {
@@ -66,8 +41,8 @@ public class ChangePasswordParticipant : IParticipant<RequestMessage<ChangePassw
         }
 
         stream.Apply(user);
-        stream.Add(user.SetPassword(_hashingService.Sha256(request.NewPassword)));
+        stream.Add(user.SetPassword(_hashingService.Sha256(message.NewPassword)));
 
-        await _eventStore.SaveAsync(stream);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken).ConfigureAwait(false);
     }
 }

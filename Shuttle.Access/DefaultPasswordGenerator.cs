@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Shuttle.Access;
+﻿namespace Shuttle.Access;
 
 public class DefaultPasswordGenerator : IPasswordGenerator
 {

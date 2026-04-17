@@ -68,6 +68,14 @@ const routes: Array<RouteRecordRaw> = [
           permission: Permissions.Identities.View,
         },
       },
+      {
+        path: "/identities/:id/tenants",
+        name: "identity-tenants",
+        component: () => import("../views/IdentityTenants.vue"),
+        meta: {
+          permission: Permissions.Identities.View,
+        },
+      },
     ],
   },
   {
@@ -93,14 +101,6 @@ const routes: Array<RouteRecordRaw> = [
         path: "permission",
         name: "permission",
         component: () => import("../views/Permission.vue"),
-        meta: {
-          permission: Permissions.Permissions.Manage,
-        },
-      },
-      {
-        path: "permission/json",
-        name: "permission-json",
-        component: () => import("../views/PermissionJson.vue"),
         meta: {
           permission: Permissions.Permissions.Manage,
         },
@@ -150,18 +150,19 @@ const routes: Array<RouteRecordRaw> = [
         },
       },
       {
-        path: "role/json",
-        name: "role-json",
-        component: () => import("../views/RoleJson.vue"),
+        path: "role/:id/rename",
+        name: "role-rename",
+        component: () => import("../views/RoleRename.vue"),
+        props: true,
         meta: {
           permission: Permissions.Roles.Manage,
         },
       },
       {
-        path: "role/:id/rename",
-        name: "role-rename",
-        component: () => import("../views/RoleRename.vue"),
+        path: "roles/:id/identities",
+        name: "role-identities",
         props: true,
+        component: () => import("../views/RoleIdentities.vue"),
         meta: {
           permission: Permissions.Roles.Manage,
         },
@@ -194,7 +195,30 @@ const routes: Array<RouteRecordRaw> = [
     },
   },
   {
-    path: "/signin/:applicationName?",
+    path: "/tenants",
+    name: "tenants",
+    component: () => import("../views/Tenants.vue"),
+    meta: {
+      permission: Permissions.Tenants.View,
+    },
+    children: [
+      {
+        path: "tenant",
+        name: "tenant",
+        component: () => import("../views/Tenant.vue"),
+        meta: {
+          permission: Permissions.Tenants.Manage,
+        },
+      },
+    ],
+  },
+  {
+    path: "/tenant-selection",
+    name: "tenant-selection",
+    component: () => import("../views/TenantSelection.vue"),
+  },
+  {
+    path: "/sign-in/:applicationName?",
     name: "sign-in",
     props: true,
     component: () => import("../views/SignIn.vue"),
@@ -209,7 +233,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const sessionStore = useSessionStore();
 
-  if (!sessionStore.initialized) {
+  if (!sessionStore.isInitialized) {
     return;
   }
 
@@ -228,10 +252,10 @@ router.beforeEach(async (to) => {
 
   if (
     !!to.meta.authenticated &&
-    !sessionStore.authenticated &&
-    to.name !== "signin"
+    !sessionStore.isAuthenticated &&
+    to.name !== "sign-in"
   ) {
-    return { name: "signin" };
+    return { name: "sign-in" };
   }
 });
 

@@ -1,20 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Net;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
+using RegisterIdentity = Shuttle.Access.Application.RegisterIdentity;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
 public class IdentitiesFixture
 {
-    private static Access.DataAccess.Identity CreateIdentity()
+    private static Query.Identity CreateIdentity()
     {
         var now = DateTimeOffset.UtcNow;
 
@@ -26,14 +21,14 @@ public class IdentitiesFixture
             DateActivated = now,
             GeneratedPassword = "generated-password",
             RegisteredBy = "system",
-            Roles = new()
-            {
+            Roles =
+            [
                 new()
                 {
                     Id = Guid.NewGuid(),
                     Name = "role"
                 }
-            }
+            ]
         };
     }
 
@@ -44,9 +39,9 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(
             Task.FromResult(
-                new List<Access.DataAccess.Identity>
+                new List<Query.Identity>
                 {
                     identity
                 }.AsEnumerable()));
@@ -60,7 +55,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<ActivateIdentity>(), null), Times.Once);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<ActivateIdentity>(), null), Times.Once);
     }
 
     [Test]
@@ -70,9 +65,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<ChangePassword>(message => message.Token.Equals(token)), null)).Verifiable();
-
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None)).Verifiable();
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None)).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.ChangePasswordAsync(new()
         {
@@ -84,8 +77,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Once);
     }
 
     [Test]
@@ -95,46 +87,14 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RemoveIdentity>(message => message.Id.Equals(id)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<RemoveIdentity>(message => message.Id.Equals(id)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.DeleteAsync(id);
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
 
-        factory.ServiceBus.VerifyAll();
-    }
-
-    [Test]
-    public async Task Should_be_able_to_search_identities_async()
-    {
-        var identity = CreateIdentity();
-
-        var factory = new FixtureWebApplicationFactory();
-
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
-            new List<Access.DataAccess.Identity>
-            {
-                identity
-            }.AsEnumerable()));
-
-        var response = await factory.GetAccessClient().Identities.SearchAsync(new());
-
-        Assert.That(response, Is.Not.Null);
-        Assert.That(response.IsSuccessStatusCode, Is.True);
-        Assert.That(response.Content, Is.Not.Null);
-
-        Assert.That(response.Content!.Count, Is.EqualTo(1));
-
-        var responseIdentity = response.Content[0];
-
-        Assert.That(responseIdentity.Id, Is.EqualTo(identity.Id));
-        Assert.That(responseIdentity.Name, Is.EqualTo(identity.Name));
-        Assert.That(responseIdentity.DateRegistered, Is.EqualTo(identity.DateRegistered));
-        Assert.That(responseIdentity.DateActivated, Is.EqualTo(identity.DateActivated));
-        Assert.That(responseIdentity.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
-        Assert.That(responseIdentity.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
-        Assert.That(responseIdentity.Roles.Find(item => item.Id == identity.Roles[0].Id), Is.Not.Null);
+        factory.Bus.VerifyAll();
     }
 
     [Test]
@@ -144,8 +104,8 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(
-            Task.FromResult(new List<Access.DataAccess.Identity>
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), CancellationToken.None)).Returns(
+            Task.FromResult(new List<Query.Identity>
             {
                 identity
             }.AsEnumerable()));
@@ -161,7 +121,7 @@ public class IdentitiesFixture
         Assert.That(response.Content.DateActivated, Is.EqualTo(identity.DateActivated));
         Assert.That(response.Content.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
         Assert.That(response.Content.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
-        Assert.That(response.Content.Roles.Find(item => item.Id == identity.Roles[0].Id), Is.Not.Null);
+        Assert.That(response.Content.Roles.Find(item => item.Id == identity.Roles.First().Id), Is.Not.Null);
     }
 
     [Test]
@@ -172,20 +132,20 @@ public class IdentitiesFixture
         var factory = new FixtureWebApplicationFactory();
 
         factory.Mediator.Setup(m =>
-                m.SendAsync(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), default))
+                m.SendAsync(It.IsAny<GetPasswordResetToken>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>
             {
-                ((RequestResponseMessage<GetPasswordResetToken, Guid>)message).WithResponse(token);
+                ((GetPasswordResetToken)message).WithPasswordResetToken(token);
             });
 
-        var response = await factory.GetAccessClient().Identities.GetPasswordResetTokenAsync("identity");
+        var response = await factory.GetAccessClient().Identities.GetPasswordResetTokenAsync(Guid.NewGuid());
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         Assert.That(response.Content, Is.EqualTo(token));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), CancellationToken.None), Times.Once);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<GetPasswordResetToken>(), CancellationToken.None), Times.Once);
     }
 
     [Test]
@@ -196,7 +156,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Access.DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(
+        factory.IdentityQuery.Setup(m => m.RoleIdsAsync(It.IsAny<Query.Identity.Specification>(), CancellationToken.None)).Returns(
             Task.FromResult(
                 new List<Guid>
                 {
@@ -234,11 +194,7 @@ public class IdentitiesFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestIdentityRegistration>(), CancellationToken.None))
-            .Callback<object, CancellationToken>((message, _) =>
-            {
-                ((RequestIdentityRegistration)message).Allowed("test", true);
-            });
+        factory.Bus.Setup(m => m.SendAsync(It.IsAny<Messages.v1.RegisterIdentity>(), null, It.IsAny<CancellationToken>()));
 
         var response = await factory.GetAccessClient().Identities.RegisterAsync(new()
         {
@@ -249,7 +205,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RequestIdentityRegistration>(), CancellationToken.None), Times.Once);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<Messages.v1.RegisterIdentity>(), null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
@@ -259,9 +215,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<ResetPassword>(message => message.PasswordResetToken.Equals(token)), null)).Verifiable();
-
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<ResetPassword>>(), CancellationToken.None)).Verifiable();
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None)).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.ResetPasswordAsync(new()
         {
@@ -274,8 +228,39 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Once);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_search_identities_async()
+    {
+        var identity = CreateIdentity();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), CancellationToken.None)).Returns(Task.FromResult(
+            new List<Query.Identity>
+            {
+                identity
+            }.AsEnumerable()));
+
+        var response = await factory.GetAccessClient().Identities.SearchAsync(new());
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.Content, Is.Not.Null);
+
+        Assert.That(response.Content!.Count, Is.EqualTo(1));
+
+        var responseIdentity = response.Content[0];
+
+        Assert.That(responseIdentity.Id, Is.EqualTo(identity.Id));
+        Assert.That(responseIdentity.Name, Is.EqualTo(identity.Name));
+        Assert.That(responseIdentity.DateRegistered, Is.EqualTo(identity.DateRegistered));
+        Assert.That(responseIdentity.DateActivated, Is.EqualTo(identity.DateActivated));
+        Assert.That(responseIdentity.GeneratedPassword, Is.EqualTo(identity.GeneratedPassword));
+        Assert.That(responseIdentity.RegisteredBy, Is.EqualTo(identity.RegisteredBy));
+        Assert.That(responseIdentity.Roles.Find(item => item.Id == identity.Roles.First().Id), Is.Not.Null);
     }
 
     [Test]
@@ -285,10 +270,9 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetIdentityRole>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<SetIdentityRole>>(), CancellationToken.None)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
 
-        var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
+        var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(Guid.NewGuid(), roleId, new()
         {
             Active = true
         });
@@ -297,8 +281,28 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.ServiceBus.VerifyAll();
-        factory.Mediator.VerifyAll();
+        factory.Bus.VerifyAll();
+    }
+
+    [Test]
+    public async Task Should_be_able_to_set_identity_tenant_status_async()
+    {
+        var tenantId = Guid.NewGuid();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityTenantStatus>(message => message.TenantId.Equals(tenantId)), null)).Verifiable();
+
+        var response = await factory.GetAccessClient().Identities.SetTenantAsync(Guid.NewGuid(), tenantId, new()
+        {
+            Active = true
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+        factory.Bus.VerifyAll();
     }
 
     [Test]
@@ -323,11 +327,8 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<ChangePassword>>(), CancellationToken.None))
-            .Callback<object, CancellationToken>((message, _) =>
-            {
-                ((RequestMessage<ChangePassword>)message).Failed("reason");
-            });
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None))
+            .Callback<object, CancellationToken>((_, _) => throw new ApplicationException("reason"));
 
         var response = await factory.GetAccessClient().Identities.ChangePasswordAsync(new()
         {
@@ -337,10 +338,9 @@ public class IdentitiesFixture
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.False);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Once);
     }
 
     [Test]
@@ -364,7 +364,7 @@ public class IdentitiesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ChangePassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 
     [Test]
@@ -372,19 +372,16 @@ public class IdentitiesFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), CancellationToken.None))
-            .Callback<object, CancellationToken>((message, _) =>
-            {
-                ((RequestResponseMessage<GetPasswordResetToken, Guid>)message).Failed("reason");
-            });
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<GetPasswordResetToken>(), CancellationToken.None))
+            .Callback<object, CancellationToken>((_, _) => throw new ApplicationException("reason"));
 
-        var response = await factory.GetAccessClient().Identities.GetPasswordResetTokenAsync("identity");
+        var response = await factory.GetAccessClient().Identities.GetPasswordResetTokenAsync(Guid.NewGuid());
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.False);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RequestResponseMessage<GetPasswordResetToken, Guid>>(), CancellationToken.None), Times.Once);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<GetPasswordResetToken>(), CancellationToken.None), Times.Once);
     }
 
     [Test]
@@ -394,11 +391,8 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<ResetPassword>>(), CancellationToken.None))
-            .Callback<object, CancellationToken>((message, _) =>
-            {
-                ((RequestMessage<ResetPassword>)message).Failed("reason");
-            });
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None))
+            .Callback<object, CancellationToken>((_, _) => throw new ApplicationException("reason"));
 
         var response = await factory.GetAccessClient().Identities.ResetPasswordAsync(new()
         {
@@ -409,10 +403,9 @@ public class IdentitiesFixture
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.False);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.InternalServerError));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Once);
     }
 
     [Test]
@@ -437,31 +430,28 @@ public class IdentitiesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
 
         factory.Mediator.Verify(m => m.SendAsync(It.IsAny<ResetPassword>(), CancellationToken.None), Times.Never);
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 
     [Test]
-    public async Task Should_not_be_able_to_set_identity_role_status_when_mediator_call_fails_async()
+    public async Task Should_not_be_able_to_set_identity_role_status_when_review_fails_async()
     {
         var roleId = Guid.NewGuid();
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RequestMessage<SetIdentityRole>>(), CancellationToken.None))
-            .Callback<object, CancellationToken>((message, _) =>
-            {
-                ((RequestMessage<SetIdentityRole>)message).Failed("reason");
-            });
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<ReviewIdentityRoleRemoval>(), It.IsAny<CancellationToken>()))
+            .Callback<object, CancellationToken>((message, _) => ((ReviewIdentityRoleRemoval)message).LastAdministrator());
 
-        var response = await factory.GetAccessClient().Identities.SetRoleAsync(Guid.NewGuid(), roleId, new()
+        var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(Guid.NewGuid(), roleId, new()
         {
-            IdentityId = Guid.NewGuid()
+            Active = false
         });
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.False);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
 
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
     }
 }

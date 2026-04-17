@@ -1,25 +1,9 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
-using Shuttle.Core.Contract;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class AccessClientBuilder
+public class AccessClientBuilder(IServiceCollection services)
 {
-    private AccessClientOptions _accessClientOptions = new();
-
-    public AccessClientBuilder(IServiceCollection services)
-    {
-        Guard.AgainstNull(services);
-
-        Services = services;
-    }
-
-    public AccessClientOptions Options
-    {
-        get => _accessClientOptions;
-        set => _accessClientOptions = value ?? throw new ArgumentNullException(nameof(value));
-    }
-
-    public IServiceCollection Services { get; }
+    public IServiceCollection Services { get; } = Guard.AgainstNull(services);
 }

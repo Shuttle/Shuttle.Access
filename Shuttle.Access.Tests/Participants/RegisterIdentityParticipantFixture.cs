@@ -1,14 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
 using Shuttle.Access.Events.Identity.v1;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -21,32 +15,23 @@ public class RegisterIdentityParticipantFixture
         var eventStore = new FixtureEventStore();
         var idKeyRepository = new Mock<IIdKeyRepository>();
         var identityQuery = new Mock<IIdentityQuery>();
-        var roleQuery = new Mock<IRoleQuery>();
 
-        var identity = new Messages.v1.Identity { Id = Guid.NewGuid(), Name = "name" };
+        var identity = new WebApi.Contracts.v1.Identity { Id = Guid.NewGuid(), Name = "name" };
 
-        identityQuery.Setup(m => m.CountAsync(It.IsAny<DataAccess.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
+        identityQuery.Setup(m => m.CountAsync(It.IsAny<Query.Identity.Specification>(), CancellationToken.None)).Returns(ValueTask.FromResult(1));
 
         idKeyRepository.Setup(m => m.FindAsync(Identity.Key(identity.Name), CancellationToken.None)).ReturnsAsync(await ValueTask.FromResult((Guid?)null));
 
-        var participant = new RegisterIdentityParticipant(eventStore, idKeyRepository.Object, identityQuery.Object, roleQuery.Object);
+        var participant = new RegisterIdentityParticipant(eventStore, idKeyRepository.Object, new Mock<ITenantQuery>().Object);
 
-        var registerIdentity = new RegisterIdentity
-        {
-            Name = "name"
-        };
+        var registerIdentity = new RegisterIdentity(Guid.NewGuid(), "name", "description", string.Empty, [], "registered-by", true, Guid.NewGuid(), "audit-identity-name");
 
-        var requestResponseMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(registerIdentity);
+        await participant.HandleAsync(registerIdentity, CancellationToken.None);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>(requestResponseMessage, CancellationToken.None));
-
-        Assert.That(requestResponseMessage.Ok, Is.True);
-        Assert.That(requestResponseMessage.Response, Is.Not.Null);
-
-        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response!.Id);
+        var @event = eventStore.FindEvent<Registered>(registerIdentity.Id);
 
         Assert.That(@event, Is.Not.Null);
 
-        Assert.That(requestResponseMessage.Response.Name, Is.EqualTo(identity.Name));
+        Assert.That(registerIdentity.Name, Is.EqualTo(identity.Name));
     }
 }

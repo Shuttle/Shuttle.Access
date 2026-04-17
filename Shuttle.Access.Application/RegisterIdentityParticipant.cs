@@ -1,100 +1,80 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+﻿using Shuttle.Mediator;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterIdentityParticipant : IParticipant<RequestResponseMessage<RegisterIdentity, IdentityRegistered>>
+public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, ITenantQuery tenantQuery) : IParticipant<RegisterIdentity>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IIdentityQuery _identityQuery;
-    private readonly  IIdKeyRepository _idKeyRepository;
-    private readonly IRoleQuery _roleQuery;
-
-    public RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IIdentityQuery identityQuery, IRoleQuery roleQuery)
+    public async Task HandleAsync(RegisterIdentity message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
-        _identityQuery = Guard.AgainstNull(identityQuery);
-        _roleQuery = Guard.AgainstNull(roleQuery);
-    }
-
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterIdentity, IdentityRegistered>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var message = context.Message.Request;
-
-        EventStream stream;
-        Identity identity;
+        ArgumentNullException.ThrowIfNull(message);
+        ArgumentNullException.ThrowIfNull(eventStore);
+        ArgumentNullException.ThrowIfNull(idKeyRepository);
+        ArgumentNullException.ThrowIfNull(tenantQuery);
 
         var key = Identity.Key(message.Name);
-        var id = await _idKeyRepository.FindAsync(key);
 
-        if (id.HasValue)
+        EventStream stream;
+        Identity aggregate;
+
+        if (!await idKeyRepository.ContainsAsync(key, cancellationToken))
         {
-            identity = new();
-            stream = await _eventStore.GetAsync(id.Value);
+            await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
 
-            stream.Apply(identity);
+            stream = (await eventStore.GetAsync(message.Id, cancellationToken)).MustBeEmpty();
+            aggregate = stream.Get<Identity>();
 
-            if (!identity.Removed)
-            {
-                return;
-            }
+            var registered = aggregate.Register(message.Name, message.Description, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
+
+            stream.Add(registered);
         }
         else
         {
-            id = Guid.NewGuid();
-            identity = new();
-
-            await _idKeyRepository.AddAsync(id.Value, key);
-
-            stream = await _eventStore.GetAsync(id.Value);
+            stream = (await eventStore.GetAsync(message.Id, cancellationToken));
+            aggregate = stream.Get<Identity>();
         }
 
-        var registered = identity.Register(message.Name, message.Description, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
-
-        stream.Add(registered);
-
-        var count = await _identityQuery.CountAsync(new DataAccess.Identity.Specification().WithRoleName("Access Administrator"));
-
-        if (count == 0)
+        if (message.Activated && !aggregate.Activated)
         {
-            var roles = (await _roleQuery.SearchAsync(new DataAccess.Role.Specification().AddName("Access Administrator"))).ToList();
+            stream.Add(aggregate.Activate(DateTimeOffset.UtcNow));
+        }
 
-            if (roles.Count != 1)
+        if (!message.HasTenantIds)
+        {
+            var specification = new Query.Tenant.Specification().IncludeActiveOnly();
+
+            if (await tenantQuery.CountAsync(specification, cancellationToken) == 1)
             {
-                throw new InvalidOperationException(Access.Resources.AdministratorRoleMissingException);
-            }
-
-            var role = roles[0];
-
-            if (role.Name.Equals("Access Administrator", StringComparison.InvariantCultureIgnoreCase))
-            {
-                stream.Add(identity.AddRole(role.Id));
+                message.AddTenantId((await tenantQuery.SearchAsync(specification, cancellationToken)).First().Id);
             }
         }
 
-        if (message.Activated)
+        foreach (var tenantId in message.TenantIds)
         {
-            stream.Add(identity.Activate(registered.DateRegistered));
+            if (aggregate.IsInTenant(tenantId))
+            {
+                continue;
+            }
+
+            stream.Add(aggregate.AddTenant(tenantId));
         }
 
-        context.Message.WithResponse(new()
+        foreach (var roleId in message.RoleIds)
         {
-            Id = id.Value,
-            Name = message.Name,
-            RegisteredBy = message.RegisteredBy,
-            GeneratedPassword = message.GeneratedPassword,
-            System = message.System,
-            SequenceNumber = await _eventStore.SaveAsync(stream)
-        });
+            if (aggregate.IsInRole(roleId))
+            {
+                continue;
+            }
+
+            stream.Add(aggregate.AddRole(roleId));
+        }
+
+        if (!stream.ShouldSave())
+        {
+            return;
+        }
+
+        await eventStore.SaveAsync(stream, cancellationToken);
     }
 }

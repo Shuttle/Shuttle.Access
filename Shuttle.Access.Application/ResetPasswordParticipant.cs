@@ -1,53 +1,39 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+﻿using Shuttle.Contract;
+using Shuttle.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class ResetPasswordParticipant : IParticipant<RequestMessage<ResetPassword>>
+public class ResetPasswordParticipant(IHashingService hashingService, IEventStore eventStore, IIdentityQuery identityQuery)
+    : IParticipant<ResetPassword>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IHashingService _hashingService;
-    private readonly IIdentityQuery _identityQuery;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IHashingService _hashingService = Guard.AgainstNull(hashingService);
+    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public ResetPasswordParticipant(IHashingService hashingService, IEventStore eventStore, IIdentityQuery identityQuery)
+    public async Task HandleAsync(ResetPassword message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _hashingService = Guard.AgainstNull(hashingService);
-        _identityQuery = Guard.AgainstNull(identityQuery);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<ResetPassword>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var queryIdentity = (await _identityQuery.SearchAsync(new DataAccess.Identity.Specification().WithName(context.Message.Request.Name))).SingleOrDefault();
+        var queryIdentity = (await _identityQuery.SearchAsync(new Query.Identity.Specification().WithName(message.IdentityName), cancellationToken)).SingleOrDefault();
 
         if (queryIdentity == null)
         {
-            context.Message.Failed(Access.Resources.InvalidCredentialsException);
-
-            return;
+            throw new ApplicationException(Access.Resources.InvalidCredentialsException);
         }
 
         var identity = new Identity();
-        var stream = await _eventStore.GetAsync(queryIdentity.Id);
+        var stream = await _eventStore.GetAsync(queryIdentity.Id, cancellationToken);
 
         stream.Apply(identity);
 
-        if (!identity.HasPasswordResetToken || identity.PasswordResetToken != context.Message.Request.PasswordResetToken)
+        if (!identity.HasPasswordResetToken || identity.PasswordResetToken != message.PasswordResetToken)
         {
-            context.Message.Failed(Access.Resources.InvalidCredentialsException);
-
-            return;
+            throw new ApplicationException(Access.Resources.InvalidCredentialsException);
         }
 
-        stream.Add(identity.SetPassword(_hashingService.Sha256(context.Message.Request.Password)));
+        stream.Add(identity.SetPassword(_hashingService.Sha256(message.Password)));
 
-        await _eventStore.SaveAsync(stream);
+        await _eventStore.SaveAsync(stream, builder => builder.Audit(message.AuditTenantId, message.AuditIdentityName), cancellationToken);
     }
 }

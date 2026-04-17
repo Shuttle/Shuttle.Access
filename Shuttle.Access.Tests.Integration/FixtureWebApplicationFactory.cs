@@ -1,40 +1,26 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
-using Shuttle.Access.DataAccess;
+using Shuttle.Access.AspNetCore;
 using Shuttle.Access.WebApi;
-using Shuttle.Core.Data;
-using Shuttle.Core.Mediator;
-using Shuttle.Esb;
+using Shuttle.Mediator;
+using Shuttle.Hopper;
 using Shuttle.OAuth;
-using Shuttle.Recall.Sql.EventProcessing;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.EventProcessing;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Integration;
 
-public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
+public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilder = null) : WebApplicationFactory<Program>
 {
-    private readonly Action<IWebHostBuilder>? _webHostBuilder;
-
-    public FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilder = null)
-    {
-        _webHostBuilder = webHostBuilder;
-    }
-
-    public Mock<ISessionService> SessionService { get; } = new();
-    public Mock<IDatabaseContextFactory> DatabaseContextFactory { get; } = new();
     public Mock<IIdentityQuery> IdentityQuery { get; } = new();
     public Mock<IMediator> Mediator { get; } = new();
     public Mock<IOAuthGrantRepository> OAuthGrantRepository { get; } = new();
     public Mock<IPermissionQuery> PermissionQuery { get; } = new();
     public Mock<IRoleQuery> RoleQuery { get; } = new();
-    public Mock<IServiceBus> ServiceBus { get; } = new();
+    public Mock<IBus> Bus { get; } = new();
     public Mock<ISessionQuery> SessionQuery { get; } = new();
-    public Mock<ISessionRepository> SessionRepository { get; } = new();
+    public Mock<ISessionService> SessionService { get; } = new();
+    public Mock<ISessionContext> SessionContext { get; } = new();
 
     protected override void ConfigureClient(HttpClient client)
     {
@@ -47,31 +33,28 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
     {
         base.ConfigureWebHost(builder);
 
-        _webHostBuilder?.Invoke(builder);
+        builder.UseSetting(WebHostDefaults.HostingStartupAssembliesKey, string.Empty); 
+        
+        webHostBuilder?.Invoke(builder);
 
-        SessionService.Setup(m => m.HasPermissionAsync(It.IsAny<Guid>(), It.IsAny<string>(), default)).Returns(ValueTask.FromResult(true));
-        SessionService.Setup(m => m.FindByTokenAsync(It.IsAny<Guid>(), default)).Returns(Task.FromResult(new Messages.v1.Session
+        var session = new Query.Session
         {
             IdentityId = Guid.NewGuid(),
             IdentityName = "identity-name",
-            Permissions = ["*"],
+            Permissions = [new() { Name = "*" }],
             DateRegistered = DateTimeOffset.UtcNow,
-            ExpiryDate = DateTimeOffset.UtcNow.Add(TimeSpan.FromHours(1))
-        })!);
+            ExpiryDate = DateTimeOffset.UtcNow.Add(TimeSpan.FromHours(1)),
+            TenantId = Guid.NewGuid()
+        };
 
-        var databaseContext = new Mock<IDatabaseContext>();
+        SessionService.Setup(m => m.FindAsync(It.IsAny<Query.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(session)!);
 
-        DatabaseContextFactory.Setup(m => m.Create()).Returns(databaseContext.Object);
-        DatabaseContextFactory.Setup(m => m.Create(It.IsAny<string>())).Returns(databaseContext.Object);
+        SessionContext.Setup(m => m.Session).Returns(session);
+        SessionContext.Setup(m => m.IsAuthorized).Returns(true);
 
         builder.ConfigureServices(services =>
         {
-            services.AddOptions<SqlStorageOptions>().Configure(options =>
-            {
-                options.ConfigureDatabase = false;
-            });
-
-            services.AddOptions<SqlEventProcessingOptions>().Configure(options =>
+            services.AddOptions<SqlServerStorageOptions>().Configure(options =>
             {
                 options.ConfigureDatabase = false;
             });
@@ -79,14 +62,13 @@ public class FixtureWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton(new Mock<ISubscriptionService>().Object);
             services.AddSingleton(SessionService.Object);
             services.AddSingleton(OAuthGrantRepository.Object);
-            services.AddSingleton(DatabaseContextFactory.Object);
             services.AddSingleton(IdentityQuery.Object);
             services.AddSingleton(Mediator.Object);
             services.AddSingleton(PermissionQuery.Object);
             services.AddSingleton(RoleQuery.Object);
             services.AddSingleton(SessionQuery.Object);
-            services.AddSingleton(ServiceBus.Object);
-            services.AddSingleton(SessionRepository.Object);
+            services.AddSingleton(Bus.Object);
+            services.AddSingleton(SessionContext.Object);
         });
     }
 }

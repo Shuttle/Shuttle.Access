@@ -1,24 +1,43 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
 public static class HttpContextExtensions
 {
     public const string SessionIdentityIdClaimType = "http://shuttle.org/claims/session/identity-id";
+    public const string SessionTenantIdClaimType = "http://shuttle.org/claims/session/tenant-id";
+    public const string SessionTokenClaimType = "http://shuttle.org/claims/session/token";
 
-    public static string? GetIdentityName(this HttpContext context)
+    extension(HttpContext httpContext)
     {
-        var identityNameValue = Guard.AgainstNull(context).User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+        public Guid? FindIdentityId()
+        {
+            var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == SessionIdentityIdClaimType)?.Value ?? string.Empty;
 
-        return string.IsNullOrWhiteSpace(identityNameValue) ? null : identityNameValue;
-    }
+            return string.IsNullOrWhiteSpace(value) || !Guid.TryParse(value, out var identityId) ? null : identityId;
+        }
 
-    public static Guid? GetIdentityId(this HttpContext context)
-    {
-        var identityIdValue = Guard.AgainstNull(context).User.Claims.FirstOrDefault(claim => claim.Type == SessionIdentityIdClaimType)?.Value ?? string.Empty;
+        public string? FindIdentityName()
+        {
+            var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
 
-        return string.IsNullOrWhiteSpace(identityIdValue) || !Guid.TryParse(identityIdValue, out var identityId) ? null : identityId;
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+
+        public Guid? FindTenantId()
+        {
+            var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == SessionTenantIdClaimType)?.Value ?? string.Empty;
+
+            return Guid.TryParse(value, out var result) ? result : null;
+        }
+
+        public Guid? FindToken()
+        {
+            var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == SessionTokenClaimType)?.Value ?? string.Empty;
+
+            return Guid.TryParse(value, out var result) ? result : null;
+        }
     }
 }

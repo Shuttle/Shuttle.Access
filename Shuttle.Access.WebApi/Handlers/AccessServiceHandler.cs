@@ -1,125 +1,121 @@
-﻿using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
+﻿using System.Transactions;
+using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
-using Shuttle.Core.Mediator;
-using Shuttle.Esb;
-using Shuttle.Recall.Sql.EventProcessing;
+using Shuttle.Contract;
+using Shuttle.Mediator;
+using Shuttle.Hopper;
+using Shuttle.Recall.SqlServer.EventProcessing;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.WebApi.Handlers;
 
-public class AccessServiceHandler(IDatabaseContextFactory databaseContextFactory, IIdentityQuery identityQuery, IProjectionRepository projectionRepository, IPermissionQuery permissionQuery, ISessionQuery sessionQuery, IMediator mediator)
+public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQuery, IProjectionQuery projectionQuery, ISessionQuery sessionQuery, IMediator mediator)
     :
-        IMessageHandler<IdentityRoleSet>,
-        IMessageHandler<RolePermissionSet>,
+        IMessageHandler<IdentityRoleAdded>,
+        IMessageHandler<IdentityRoleRemoved>,
+        IMessageHandler<RolePermissionAdded>,
+        IMessageHandler<RolePermissionRemoved>,
         IMessageHandler<PermissionStatusSet>
 {
+    private readonly IProjectionQuery _projectionQuery = Guard.AgainstNull(projectionQuery);
+    private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
-    private readonly IDatabaseContextFactory _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
-    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
-    private readonly IPermissionQuery _permissionQuery = Guard.AgainstNull(permissionQuery);
-    private readonly IProjectionRepository _projectionRepository = Guard.AgainstNull(projectionRepository);
+    private readonly IPrimitiveEventQuery _primitiveEventQuery = Guard.AgainstNull(primitiveEventQuery);
     private readonly ISessionQuery _sessionQuery = Guard.AgainstNull(sessionQuery);
 
-    public async Task ProcessMessageAsync(IHandlerContext<IdentityRoleSet> context)
+    public async Task HandleAsync(IdentityRoleAdded message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(message);
 
-        var message = context.Message;
-
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
+        if (await ShouldDeferAsync(cancellationToken))
         {
-            if ((await _projectionRepository.GetAsync(ProjectionNames.Identity)).SequenceNumber < message.SequenceNumber)
-            {
-                await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
+            await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
-                return;
-            }
+            return;
+        }
 
-            if (message.Active)
-            {
-                await RefreshAsync(new DataAccess.Identity.Specification().WithRoleId(message.RoleId));
-            }
-            else
-            {
-                await RefreshAsync(new DataAccess.Session.Specification().AddPermissions(
-                    (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddRoleId(message.RoleId)))
-                    .Select(item => item.Name)));
-            }
+        await RefreshAsync(new Query.Session.Specification().WithIdentityId(message.IdentityId), cancellationToken);
+    }
+
+    private async Task<bool> ShouldDeferAsync(CancellationToken cancellationToken)
+    {
+        using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+        {
+            var sequenceNumber = await _primitiveEventQuery.GetMaximumSequenceNumberAsync(new(), cancellationToken);
+
+            return sequenceNumber == null || await _projectionQuery.HasPendingProjectionsAsync(sequenceNumber.Value, cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<PermissionStatusSet> context)
+    public async Task HandleAsync(PermissionStatusSet message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(message);
 
-        var message = context.Message;
-
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
+        if (await ShouldDeferAsync(cancellationToken))
         {
-            if ((await _projectionRepository.GetAsync(ProjectionNames.Identity)).SequenceNumber < message.SequenceNumber)
-            {
-                await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
+            await _bus.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
-                return;
-            }
+            return;
+        }
 
-            if (message.Status == (int)PermissionStatus.Removed)
+        await RefreshAsync(new Query.Session.Specification().AddPermission(message.Name), cancellationToken);
+    }
+
+    public async Task HandleAsync(RolePermissionAdded message, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(message);
+
+        if (await ShouldDeferAsync(cancellationToken))
+        {
+            await _bus.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
+
+            return;
+        }
+
+        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
+    }
+
+    private async Task RefreshAsync(Query.Session.Specification sessionSpecification, CancellationToken cancellationToken)
+    {
+        foreach (var session in await _sessionQuery.SearchAsync(sessionSpecification, cancellationToken))
+        {
+            await _mediator.SendAsync(new RefreshSession(session.Id), cancellationToken);
+
+            await _bus.PublishAsync(new SessionRefreshed
             {
-                await RefreshAsync(new DataAccess.Session.Specification().AddPermission(message.Name));
-            }
-            else
-            {
-                await RefreshAsync(new DataAccess.Identity.Specification().WithPermissionId(message.Id));
-            }
+                Id = session.Id,
+                TenantId = session.TenantId,
+                IdentityId = session.IdentityId,
+                IdentityName = session.IdentityName
+            }, cancellationToken);
         }
     }
 
-    public async Task ProcessMessageAsync(IHandlerContext<RolePermissionSet> context)
+    public async Task HandleAsync(IdentityRoleRemoved message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(context);
+        Guard.AgainstNull(message);
 
-        var message = context.Message;
-
-        using (new DatabaseContextScope())
-        await using (_databaseContextFactory.Create())
+        if (await ShouldDeferAsync(cancellationToken))
         {
-            if ((await _projectionRepository.GetAsync(ProjectionNames.Identity)).SequenceNumber < message.SequenceNumber)
-            {
-                await context.SendAsync(message, c => c.Defer(DateTime.UtcNow.AddSeconds(5)).Local());
+            await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
 
-                return;
-            }
-
-            if (message.Active)
-            {
-                await RefreshAsync(new DataAccess.Identity.Specification().WithRoleId(message.RoleId));
-            }
-            else
-            { 
-                await RefreshAsync(new DataAccess.Session.Specification().AddPermissions(
-                    (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddId(message.PermissionId)))
-                    .Select(item => item.Name)));
-            }
+            return;
         }
+
+        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
     }
 
-    private async Task RefreshAsync(DataAccess.Session.Specification specification)
+    public async Task HandleAsync(RolePermissionRemoved message, CancellationToken cancellationToken = default)
     {
-        foreach (var session in await _sessionQuery.SearchAsync(specification))
-        {
-            await _mediator.SendAsync(new RefreshSession(session.IdentityId));
-        }
-    }
+        Guard.AgainstNull(message);
 
-    private async Task RefreshAsync(DataAccess.Identity.Specification specification)
-    {
-        foreach (var identity in await _identityQuery.SearchAsync(specification))
+        if (await ShouldDeferAsync(cancellationToken))
         {
-            await _mediator.SendAsync(new RefreshSession(identity.Id));
+            await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
+
+            return;
         }
+
+        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
     }
 }

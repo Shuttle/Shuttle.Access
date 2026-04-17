@@ -1,69 +1,51 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
-using Shuttle.Core.Mediator;
-using Shuttle.Core.Pipelines;
-using Shuttle.Esb;
+using Shuttle.Access.Application;
+using Shuttle.Contract;
+using Shuttle.Mediator;
+using Shuttle.Pipelines;
+using Shuttle.Hopper;
 
 namespace Shuttle.Access.Server;
 
-public class ServerHostedService : IHostedService
+public class ServerHostedService(IOptions<PipelineOptions> pipelineOptions, IOptions<ServerOptions> serverOptions, IServiceScopeFactory serviceScopeFactory)
+    : IHostedService
 {
-    private readonly IDatabaseContextFactory _databaseContextFactory;
     private readonly Type _inboxMessagePipeline = typeof(InboxMessagePipeline);
-    private readonly IMediator _mediator;
-    private readonly IPipelineFactory _pipelineFactory;
-    private readonly ServerOptions _serverOptions;
-
-    public ServerHostedService(IOptions<ServerOptions> serverOptions, IHostApplicationLifetime hostApplicationLifetime, IDatabaseContextFactory databaseContextFactory, IMediator mediator, IPipelineFactory pipelineFactory)
-    {
-        Guard.AgainstNull(hostApplicationLifetime).ApplicationStarted.Register(OnStarted);
-
-        _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
-        _databaseContextFactory = Guard.AgainstNull(databaseContextFactory);
-        _mediator = Guard.AgainstNull(mediator);
-        _pipelineFactory = Guard.AgainstNull(pipelineFactory);
-
-        _pipelineFactory.PipelineCreated += OnPipelineCreated;
-    }
+    private readonly PipelineOptions _pipelineOptions = Guard.AgainstNull(Guard.AgainstNull(pipelineOptions).Value);
+    private readonly ServerOptions _serverOptions = Guard.AgainstNull(Guard.AgainstNull(serverOptions).Value);
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await Task.CompletedTask;
+        _pipelineOptions.PipelineStarting += PipelineStarting;
+
+        using var scope = Guard.AgainstNull(serviceScopeFactory).CreateScope();
+
+        await scope.ServiceProvider.GetRequiredService<IMediator>().SendAsync(new ConfigureApplication
+        {
+            AdministratorIdentityName = serverOptions.Value.AdministratorIdentityName,
+            AdministratorPassword = serverOptions.Value.AdministratorPassword,
+            ShouldConfigure = serverOptions.Value.ShouldConfigure,
+            Timeout = serverOptions.Value.Timeout
+        }, cancellationToken);
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync(CancellationToken cancellationToken)
     {
-        _pipelineFactory.PipelineCreated -= OnPipelineCreated;
+        _pipelineOptions.PipelineStarting -= PipelineStarting;
 
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
-    private void OnPipelineCreated(object? sender, PipelineEventArgs e)
+    private Task PipelineStarting(PipelineEventArgs eventArgs, CancellationToken cancellationToken)
     {
-        if (_serverOptions.MonitorKeepAliveInterval.Equals(TimeSpan.Zero))
+        if (!_serverOptions.MonitorKeepAliveInterval.Equals(TimeSpan.Zero) &&
+            eventArgs.Pipeline.GetType() == _inboxMessagePipeline)
         {
-            return;
+            eventArgs.Pipeline.AddObserver<KeepAliveObserver>();
         }
 
-        var pipelineType = e.Pipeline.GetType();
-
-        if (pipelineType == _inboxMessagePipeline)
-        {
-            e.Pipeline.AddObserver<KeepAliveObserver>();
-        }
-    }
-
-    private void OnStarted()
-    {
-        using (_databaseContextFactory.Create())
-        {
-            _mediator.SendAsync(new ConfigureApplication()).GetAwaiter().GetResult();
-        }
+        return Task.CompletedTask;
     }
 }

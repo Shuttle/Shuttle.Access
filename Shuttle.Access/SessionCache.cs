@@ -1,13 +1,12 @@
-﻿using Shuttle.Access.Messages.v1;
+﻿namespace Shuttle.Access;
 
-namespace Shuttle.Access;
-
-public abstract class SessionCache
+public class SessionCache(IHashingService hashingService) : ISessionCache
 {
+    private readonly Lock _lock = new();
     private readonly List<SessionEntry> _sessionEntries = [];
     private readonly object _lock = new();
 
-    private Messages.v1.Session? ActiveSessionOnly(Messages.v1.Session? session)
+    private Query.Session? ActiveSessionOnly(Query.Session? session)
     {
         if (session == null || DateTimeOffset.UtcNow <= session.ExpiryDate)
         {
@@ -19,36 +18,58 @@ public abstract class SessionCache
         return null;
     }
 
-    protected Messages.v1.Session? FindByToken(Guid token)
+    public Query.Session? Find(Query.Session.Specification specification)
     {
         lock (_lock)
         {
-            return ActiveSessionOnly(_sessionEntries.FirstOrDefault(item => item.Token.HasValue && item.Token.Equals(token))?.Session);
+            var query = _sessionEntries.AsEnumerable();
+
+            if (specification.Token.HasValue)
+            {
+                specification.WithTokenHash(hashingService.Sha256($"{specification.Token.Value:D}"));
+            }
+
+            if (specification.TokenHash != null)
+            {
+                query = query.Where(e => e.Session.TokenHash.SequenceEqual(specification.TokenHash));
+            }
+
+            if (specification.TenantId.HasValue)
+            {
+                query = query.Where(e => e.Session.TenantId == specification.TenantId);
+            }
+
+            if (specification.IdentityId.HasValue)
+            {
+                query = query.Where(e => e.Session.IdentityId == specification.IdentityId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(specification.IdentityName))
+            {
+                query = query.Where(e => e.Session.IdentityName.Equals(specification.IdentityName, StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(specification.IdentityNameMatch))
+            {
+                query = query.Where(e => e.Session.IdentityName.Contains(specification.IdentityNameMatch, StringComparison.InvariantCultureIgnoreCase));
+            }
+
+            var sessions = query
+                .Where(e => e.ExpiryDate > DateTimeOffset.UtcNow)
+                .Select(e => e.Session).ToList();
+
+            return sessions.Count > 1
+                ? throw new ApplicationException(string.Format(Resources.SessionCountException, sessions.Count))
+                : ActiveSessionOnly(sessions.FirstOrDefault());
         }
     }
 
-    protected Messages.v1.Session? Find(Guid identityId)
+    public Query.Session Add(Query.Session session)
     {
         lock (_lock)
         {
-            return ActiveSessionOnly(_sessionEntries.FirstOrDefault(item => item.Session.IdentityId.Equals(identityId))?.Session);
-        }
-    }
-
-    protected Messages.v1.Session? Find(string identityName)
-    {
-        lock (_lock)
-        {
-            return ActiveSessionOnly(_sessionEntries.FirstOrDefault(item => item.Session.IdentityName.Equals(identityName, StringComparison.InvariantCultureIgnoreCase))?.Session);
-        }
-    }
-
-    protected Messages.v1.Session Add(Guid? token, Messages.v1.Session session)
-    {
-        lock (_lock)
-        {
-            _sessionEntries.RemoveAll(item => item.Session.IdentityId.Equals(session.IdentityId));
-            _sessionEntries.Add(new(token, session));
+            _sessionEntries.RemoveAll(item => item.Session.TenantId == session.TenantId && item.Session.IdentityId.Equals(session.IdentityId));
+            _sessionEntries.Add(new(session));
 
             return session;
         }
@@ -62,7 +83,7 @@ public abstract class SessionCache
         }
     }
 
-    protected void Flush(Guid identityId)
+    public void Flush(Guid identityId)
     {
         lock (_lock)
         {
@@ -70,19 +91,9 @@ public abstract class SessionCache
         }
     }
 
-    protected bool HasPermission(Guid identityId, string requiredPermission)
+    private class SessionEntry(Query.Session session)
     {
-        lock (_lock)
-        {
-            var sessionEntry = _sessionEntries.FirstOrDefault(item => item.Session.IdentityId.Equals(identityId));
-
-            return sessionEntry != null && sessionEntry.Session.HasPermission(requiredPermission);
-        }
-    }
-
-    private class SessionEntry(Guid? token, Messages.v1.Session session)
-    {
-        public Messages.v1.Session Session { get; } = session;
-        public Guid? Token { get; } = token;
+        public Query.Session Session { get; } = session;
+        public DateTimeOffset ExpiryDate { get; } = DateTimeOffset.UtcNow.AddMinutes(5);
     }
 }

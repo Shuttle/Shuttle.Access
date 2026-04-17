@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -20,14 +12,12 @@ public class ReviewSetIdentityRoleParticipantFixture
     {
         var roleQuery = new Mock<IRoleQuery>();
 
-        roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Role.Specification>(), default)).Returns(Task.FromResult(Enumerable.Empty<DataAccess.Role>()));
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(Enumerable.Empty<Query.Role>()));
 
-        var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
-        var reviewRequest = new RequestMessage<SetIdentityRole>(new());
+        var participant = new ReviewIdentityRoleRemovalParticipant(roleQuery.Object, new Mock<IIdentityQuery>().Object);
+        var reviewRequest = new ReviewIdentityRoleRemoval(Guid.NewGuid(), Guid.NewGuid());
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestMessage<SetIdentityRole>>(reviewRequest, new()));
-
-        Assert.That(reviewRequest.Ok, Is.True);
+        await Assert.ThatAsync(async () => await participant.HandleAsync(reviewRequest), Throws.Nothing);
     }
 
     [Test]
@@ -36,7 +26,7 @@ public class ReviewSetIdentityRoleParticipantFixture
         var roleId = Guid.NewGuid();
         var roleQuery = new Mock<IRoleQuery>();
 
-        roleQuery.Setup(m => m.SearchAsync(It.IsAny<DataAccess.Role.Specification>(), default)).Returns(Task.FromResult(new List<DataAccess.Role>
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<Query.Role>
         {
             new()
             {
@@ -47,14 +37,13 @@ public class ReviewSetIdentityRoleParticipantFixture
 
         var identityQuery = new Mock<IIdentityQuery>();
 
-        identityQuery.Setup(m => m.AdministratorCountAsync(CancellationToken.None)).Returns(ValueTask.FromResult(1));
+        identityQuery.Setup(m => m.AdministratorCountAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).Returns(ValueTask.FromResult(1));
 
-        var participant = new ReviewSetIdentityRoleParticipant(roleQuery.Object, identityQuery.Object);
-        var reviewRequest = new RequestMessage<SetIdentityRole>(new() { RoleId = roleId, IdentityId = Guid.NewGuid(), Active = false });
+        var participant = new ReviewIdentityRoleRemovalParticipant(roleQuery.Object, identityQuery.Object);
+        var reviewRequest = new ReviewIdentityRoleRemoval(Guid.NewGuid(), roleId);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestMessage<SetIdentityRole>>(reviewRequest, new()));
+        await participant.HandleAsync(reviewRequest);
 
-        Assert.That(reviewRequest.Ok, Is.False);
-        Assert.That(reviewRequest.Message, Is.EqualTo("last-administrator"));
+        Assert.That(reviewRequest.IsLastAdministrator, Is.True);
     }
 }

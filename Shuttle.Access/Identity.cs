@@ -1,21 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Shuttle.Access.Events.Identity.v1;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Access.Events.Identity.v1;
+using Shuttle.Contract;
 
 namespace Shuttle.Access;
 
 public class Identity
 {
-    private readonly List<Guid> _roles = [];
+    private readonly List<Guid> _tenantIds = [];
+    private readonly List<Guid> _roleIds = [];
     private byte[]? _passwordHash;
     public bool Activated => DateActivated.HasValue;
     public DateTimeOffset? DateActivated { get; private set; }
+    public string Description { get; private set; } = string.Empty;
     public bool HasPasswordResetToken => PasswordResetToken.HasValue;
 
     public string Name { get; private set; } = string.Empty;
-    public string Description { get; private set; } = string.Empty;
     public Guid? PasswordResetToken { get; private set; }
     public bool Removed { get; private set; }
 
@@ -29,17 +27,26 @@ public class Identity
 
     public RoleAdded AddRole(Guid roleId)
     {
-        if (IsInRole(roleId))
-        {
-            throw new ApplicationException(string.Format(Resources.DuplicateIdentityRoleException, Name, roleId));
-        }
-
-        return On(new RoleAdded { RoleId = roleId });
+        return IsInRole(roleId) 
+            ? throw new ApplicationException(string.Format(Resources.DuplicateIdentityRoleException, Name, roleId)) 
+            : On(new RoleAdded { RoleId = roleId });
     }
 
     public bool IsInRole(Guid roleId)
     {
-        return _roles.Contains(roleId);
+        return _roleIds.Contains(roleId);
+    }
+
+    public TenantAdded AddTenant(Guid tenantId)
+    {
+        return IsInTenant(tenantId) 
+            ? throw new ApplicationException(string.Format(Resources.DuplicateIdentityTenantException, Name, tenantId)) 
+            : On(new TenantAdded { TenantId = tenantId });
+    }
+
+    public bool IsInTenant(Guid tenantId)
+    {
+        return _tenantIds.Contains(tenantId);
     }
 
     public static string Key(string name)
@@ -110,18 +117,36 @@ public class Identity
     {
         Guard.AgainstNull(roleAdded);
 
-        _roles.Add(roleAdded.RoleId);
+        _roleIds.Add(roleAdded.RoleId);
 
         return roleAdded;
+    }
+
+    private TenantAdded On(TenantAdded tenantAdded)
+    {
+        Guard.AgainstNull(tenantAdded);
+
+        _tenantIds.Add(tenantAdded.TenantId);
+
+        return tenantAdded;
     }
 
     private RoleRemoved On(RoleRemoved roleRemoved)
     {
         Guard.AgainstNull(roleRemoved);
 
-        _roles.Remove(roleRemoved.RoleId);
+        _roleIds.Remove(roleRemoved.RoleId);
 
         return roleRemoved;
+    }
+
+    private TenantRemoved On(TenantRemoved tenantRemoved)
+    {
+        Guard.AgainstNull(tenantRemoved);
+
+        _tenantIds.Remove(tenantRemoved.TenantId);
+
+        return tenantRemoved;
     }
 
     private Removed On(Removed removed)
@@ -174,25 +199,16 @@ public class Identity
 
     public RoleRemoved RemoveRole(Guid roleId)
     {
-        if (!IsInRole(roleId))
-        {
-            throw new InvalidOperationException(string.Format(Resources.RoleNotFoundException, roleId, Name));
-        }
-
-        return On(new RoleRemoved { RoleId = roleId });
+        return !IsInRole(roleId) 
+            ? throw new InvalidOperationException(string.Format(Resources.IdentityRoleNotFoundException, roleId, Name)) 
+            : On(new RoleRemoved { RoleId = roleId });
     }
 
-    public NameSet SetName(string name)
+    public TenantRemoved RemoveTenant(Guid tenantId)
     {
-        if (name.Equals(Name))
-        {
-            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
-        }
-
-        return On(new NameSet
-        {
-            Name = name
-        });
+        return !IsInTenant(tenantId) 
+            ? throw new InvalidOperationException(string.Format(Resources.IdentityTenantNotFoundException, tenantId, Name)) 
+            : On(new TenantRemoved { TenantId = tenantId });
     }
 
     public DescriptionSet SetDescription(string description)
@@ -205,6 +221,19 @@ public class Identity
         return On(new DescriptionSet
         {
             Description = description
+        });
+    }
+
+    public NameSet SetName(string name)
+    {
+        if (name.Equals(Name))
+        {
+            throw new DomainException(string.Format(Resources.PropertyUnchangedException, "Name", Name));
+        }
+
+        return On(new NameSet
+        {
+            Name = name
         });
     }
 

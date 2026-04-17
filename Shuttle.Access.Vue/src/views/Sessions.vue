@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <sv-title :title="$t('sessions')" />
+      <a-title :title="$t('sessions')" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -9,28 +9,27 @@
       </div>
     </v-card-title>
     <v-divider></v-divider>
-    <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
+    <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-expand v-model:expanded="expanded" item-value="identityName" expand-on-click>
       <template v-slot:header.action="">
         <v-btn v-if="sessionStore.hasPermission(Permissions.Sessions.Manage)" :icon="mdiDeleteSweepOutline"
-          size="x-small" @click="confirmRemoveAll"></v-btn>
+          size="x-small" @click="removeAll()"></v-btn>
       </template>
       <template v-slot:item.action="{ item }">
-        <v-btn :icon="mdiDeleteOutline" size="x-small"
-          @click.stop="confirmationStore.show({ item: item, onConfirm: remove })" />
+        <v-btn :icon="mdiDelete" size="x-small" @click.stop="remove(item)" />
       </template>
       <template #expanded-row="{ columns, item }">
         <tr>
           <td :colspan="columns.length">
-            <div class="sv-table-container">
-              <v-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
+            <a-container show-border>
+              <a-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
                 mobile-breakpoint="md">
-              </v-data-table>
-            </div>
+              </a-data-table>
+            </a-container>
           </td>
         </tr>
       </template>
-    </v-data-table>
+    </a-data-table>
   </v-card>
 </template>
 
@@ -38,11 +37,11 @@
 import api from "@/api";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiDeleteOutline, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from '@mdi/js';
+import { mdiDelete, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from '@mdi/js';
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
-import type { SessionData } from "@/access";
+import type { Session } from "@/access";
 import type { AxiosResponse } from "axios";
 import { useDateFormatter } from "@/composables/DateFormatter";
 import { useSessionStore } from "@/stores/session";
@@ -71,6 +70,10 @@ const headers = useSecureTableHeaders([
   {
     title: t("description"),
     value: "identityDescription",
+  },
+  {
+    title: t("tenant"),
+    value: "tenantName",
   },
   {
     title: t("date-registered"),
@@ -105,16 +108,14 @@ const permissionHeaders = useSecureTableHeaders([
   }
 ]);
 
-const items: Ref<SessionData[]> = ref([]);
+const items: Ref<Session[]> = ref([]);
 
 const refresh = () => {
   busy.value = true;
 
   api
-    .post("v1/sessions/search/data", {
-      shouldIncludePermissions: true,
-    })
-    .then(function (response: AxiosResponse<SessionData[]>) {
+    .post("v1/sessions/search", {})
+    .then(function (response: AxiosResponse<Session[]>) {
       if (!response || !response.data) {
         return;
       }
@@ -126,8 +127,10 @@ const refresh = () => {
     });
 }
 
-const remove = (item: SessionData) => {
-  confirmationStore.close();
+const remove = async (item: Session) => {
+  if (!(await confirmationStore.show({ messageKey: '_confirmation.remove' })).confirmed) {
+    return;
+  }
 
   busy.value = true;
 
@@ -141,12 +144,10 @@ const remove = (item: SessionData) => {
     });
 }
 
-const confirmRemoveAll = () => {
-  confirmationStore.show({ onConfirm: removeAll });
-}
-
-const removeAll = () => {
-  confirmationStore.close();
+const removeAll = async () => {
+  if (!(await confirmationStore.show({ messageKey: '_confirmation.remove' })).confirmed) {
+    return;
+  }
 
   busy.value = true;
 

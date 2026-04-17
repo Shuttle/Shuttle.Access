@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
+﻿using System.Net;
 using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Messages.v1;
@@ -12,7 +8,7 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 [TestFixture]
 public class RolesFixture
 {
-    private static Access.DataAccess.Role CreateRole()
+    private static Query.Role CreateRole()
     {
         return new()
         {
@@ -23,12 +19,14 @@ public class RolesFixture
                 new()
                 {
                     Id = Guid.NewGuid(),
-                    Name = "system://permission-a"
+                        Name = "system://permission-a",
+                        Status = PermissionStatus.Active
                 },
                 new()
                 {
                     Id = Guid.NewGuid(),
-                    Name = "system://permission-b"
+                        Name = "system://permission-b",
+                        Status = PermissionStatus.Active
                 }
             ]
         };
@@ -41,8 +39,8 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Access.DataAccess.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<Query.Role>
             {
                 role
             }.AsEnumerable()));
@@ -60,8 +58,8 @@ public class RolesFixture
 
         Assert.That(responseRole.Id, Is.EqualTo(role.Id));
         Assert.That(responseRole.Name, Is.EqualTo(role.Name));
-        Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions[0].Id), Is.Not.Null);
-        Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions[1].Id), Is.Not.Null);
+        Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions.ElementAt(0).Id), Is.Not.Null);
+        Assert.That(responseRole.Permissions.Find(item => item.Id == role.Permissions.ElementAt(1).Id), Is.Not.Null);
     }
 
     [Test]
@@ -71,8 +69,8 @@ public class RolesFixture
 
         var role = CreateRole();
 
-        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Access.DataAccess.Role>
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<Query.Role>
             {
                 role
             }.AsEnumerable()));
@@ -86,8 +84,8 @@ public class RolesFixture
         Assert.That(response.Content, Is.Not.Null);
         Assert.That(response.Content!.Id, Is.EqualTo(role.Id));
         Assert.That(response.Content.Name, Is.EqualTo(role.Name));
-        Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions[0].Id), Is.Not.Null);
-        Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions[1].Id), Is.Not.Null);
+        Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions.ElementAt(0).Id), Is.Not.Null);
+        Assert.That(response.Content.Permissions.Find(item => item.Id == role.Permissions.ElementAt(1).Id), Is.Not.Null);
     }
 
     [Test]
@@ -97,14 +95,14 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RemoveRole>(message => message.Id.Equals(id)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<RemoveRole>(message => message.Id.Equals(id)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Roles.DeleteAsync(id);
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
     }
 
     [Test]
@@ -114,13 +112,12 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m =>
-                m.SendAsync(It.Is<SetRolePermission>(message => message.PermissionId.Equals(permissionId)), null))
+        factory.Bus.Setup(m =>
+                m.SendAsync(It.Is<SetRolePermissionStatus>(message => message.PermissionId.Equals(permissionId)), null))
             .Verifiable();
 
-        var response = await factory.GetAccessClient().Roles.SetPermissionAsync(Guid.NewGuid(), new()
+        var response = await factory.GetAccessClient().Roles.SetPermissionStatusAsync(Guid.NewGuid(), permissionId, new()
         {
-            PermissionId = permissionId,
             Active = true
         });
 
@@ -128,7 +125,7 @@ public class RolesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
     }
 
     [Test]
@@ -139,8 +136,8 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<Access.DataAccess.Role.Specification>(), default)).Returns(
-            Task.FromResult(new List<Access.DataAccess.Permission>
+        factory.RoleQuery.Setup(m => m.PermissionsAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).Returns(
+            Task.FromResult(new List<Query.Permission>
             {
                 new()
                 {
@@ -182,6 +179,7 @@ public class RolesFixture
 
         var response = await factory.GetAccessClient().Roles.RegisterAsync(new()
         {
+            TenantId = Guid.NewGuid(),
             Name = "role"
         });
 
@@ -189,6 +187,6 @@ public class RolesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.ServiceBus.Verify(m => m.SendAsync(It.IsAny<RegisterRole>(), null), Times.Once);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<RegisterRole>(), null), Times.Once);
     }
 }

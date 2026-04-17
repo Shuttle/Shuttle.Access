@@ -26,30 +26,46 @@ export type ChangePassword = {
   newPassword: string;
 };
 
+export type ConfirmationItem = {
+  name: string;
+  getConfirmationMessage: () => string;
+  touched?: boolean;
+  unwatch?: WatchHandle;
+};
+
 export type ConfirmationOptions = {
   item?: any;
-  onConfirm: (item?: any) => void;
-  message?: string;
-  title?: string;
+  messageKey?: string;
+  messageText?: string;
+  titleKey?: string;
+  titleText?: string;
+};
+
+export type ConfirmationResult = {
+  confirmed: boolean;
+  item?: any;
 };
 
 export type Credentials = {
   identityName: string;
   token?: string;
   password?: string;
-  applicationName?: string;
+  tenantId?: string;
 };
 
 export type DashboardItem = {
   route: string;
   title: string;
   value: number;
+  svg: string;
 };
 
 export type DrawerOptions = {
   parentPath: string;
   refresh: () => Promise<void>;
 };
+
+export type DrawerSize = "compact" | "expanded" | "full" | undefined;
 
 export type Env = {
   VITE_API_URL: string;
@@ -80,13 +96,33 @@ export type Identity = {
   id: string;
   name: string;
   registeredBy: string;
-  roles: Role[] | undefined;
+  roles: IdentityRole[] | undefined;
+  tenants: IdentityTenant[] | undefined;
+};
+
+export type IdentityRole = {
+  id: string;
+  name: string;
+};
+
+export type IdentitySpecification = {
+  ids: string[];
+  nameMatch: string;
+  shouldIncludePermissions: boolean;
+  shouldIncludeRoles: boolean;
+  shouldIncludeTenants: boolean;
+};
+
+export type IdentityTenant = {
+  id: string;
+  name: string;
 };
 
 export type NavigationItem = {
   permission?: string;
   title: string;
   to: string;
+  icon?: string;
 };
 
 export type OAuthData = {
@@ -107,16 +143,23 @@ export type Status = {
 };
 
 export type Role = {
+  tab?: string;
   id: string;
   name: string;
   permissions?: Permission[];
+  identities?: RoleIdentity[];
+};
+
+export type RoleIdentity = {
+  id: string;
+  name: string;
+  description?: string;
 };
 
 export type RegisterIdentity = {
   name: string;
   description: string;
   password: string;
-  system: string;
 };
 
 export type RegisterPermission = {
@@ -130,30 +173,31 @@ export type ServerConfiguration = {
 };
 
 export type Session = {
-  identityId: string;
-  identityName: string;
-  identityDescription: string;
-  permissions: string[];
-  expiryDate?: Date;
-  dateRegistered?: Date;
-};
-
-export type SessionData = {
+  id: string;
   identityId: string;
   identityName: string;
   identityDescription: string;
   permissions: Permission[];
   expiryDate?: Date;
   dateRegistered?: Date;
+  tenantId?: string;
+  tenantName?: string;
+  tokenHash?: number[];
 };
 
 export type SessionResponse = {
-  identityId: string;
-  identityName: string;
-  permissions: string[];
+  session?: Session;
   registrationRequested: boolean;
   result: string;
-  token: string;
-  tokenExpiryDate: string;
-  sessionTokenExchangeUrl?: string;
+  token: string | null;
+  tenants: Tenant[];
+};
+
+export type Tenant = {
+  id: string;
+  name: string;
+  logoSvg?: string;
+  logoUrl?: string;
+  status?: number;
+  administratorIdentityName?: string;
 };

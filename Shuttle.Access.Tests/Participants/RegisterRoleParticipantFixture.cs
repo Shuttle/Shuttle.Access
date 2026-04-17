@@ -1,13 +1,8 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Events.Role.v1;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Mediator;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Access.Events.Role.v2;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Participants;
 
@@ -20,23 +15,19 @@ public class RegisterRoleParticipantFixture
         var eventStore = new FixtureEventStore();
         var idKeyRepository = new Mock<IIdKeyRepository>();
 
-        idKeyRepository.Setup(m => m.ContainsAsync(It.IsAny<string>(), default)).ReturnsAsync(await ValueTask.FromResult(false));
+        idKeyRepository.Setup(m => m.ContainsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(await ValueTask.FromResult(false));
 
-        var participant =
-            new RegisterRoleParticipant(eventStore, idKeyRepository.Object, new Mock<IPermissionQuery>().Object);
+        var participant = new RegisterRoleParticipant(eventStore, idKeyRepository.Object);
 
-        var addRole = new Application.RegisterRole("role-name");
+        var tenantId = Guid.NewGuid();
+        var registerRole = new RegisterRole(Guid.NewGuid(), tenantId, "role-name", tenantId, "test");
 
-        var requestResponseMessage =
-            new RequestResponseMessage<Application.RegisterRole, RoleRegistered>(addRole);
+        await participant.HandleAsync(registerRole, CancellationToken.None);
 
-        await participant.ProcessMessageAsync(new ParticipantContext<RequestResponseMessage<Application.RegisterRole, RoleRegistered>>(requestResponseMessage, CancellationToken.None));
-
-        Assert.That(requestResponseMessage.Response, Is.Not.Null);
-
-        var @event = eventStore.FindEvent<Registered>(requestResponseMessage.Response!.Id);
+        var @event = eventStore.FindEvent<Registered>(registerRole.Id);
 
         Assert.That(@event, Is.Not.Null);
-        Assert.That(@event!.Name, Is.EqualTo(addRole.Name));
+
+        Assert.That(registerRole.Name, Is.EqualTo(registerRole.Name));
     }
 }

@@ -1,47 +1,27 @@
-﻿using System;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.DataAccess;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAccess(this IServiceCollection services, Action<AccessBuilder>? builder = null)
+    extension(IServiceCollection services)
     {
-        Guard.AgainstNull(services);
-
-        var accessBuilder = new AccessBuilder(services);
-
-        builder?.Invoke(accessBuilder);
-
-        services.AddSingleton<IValidateOptions<AccessOptions>, AccessOptionsValidator>();
-
-        services.AddOptions<AccessOptions>().Configure(options =>
+        public AccessBuilder AddAccess(Action<AccessOptions>? configureOptions = null)
         {
-            options.ConnectionStringName = accessBuilder.Options.ConnectionStringName;
-            options.SessionDuration = accessBuilder.Options.SessionDuration;
-            options.SessionRenewalTolerance = accessBuilder.Options.SessionRenewalTolerance;
-            options.OAuthRegisterUnknownIdentities = accessBuilder.Options.OAuthRegisterUnknownIdentities;
-            options.ExtensionFolder = accessBuilder.Options.ExtensionFolder;
-            options.Realm = accessBuilder.Options.Realm;
-            options.KnownApplications = accessBuilder.Options.KnownApplications;
-            options.Configuration = accessBuilder.Options.Configuration;
-            options.AllowPasswordAuthentication = accessBuilder.Options.AllowPasswordAuthentication;
-        });
+            Guard.AgainstNull(services);
 
-        return services;
-    }
+            var builder = new AccessBuilder(services);
 
-    public static IServiceCollection AddDataStoreAccessService(this IServiceCollection services)
-    {
-        Guard.AgainstNull(services);
+            services.AddOptions<AccessOptions>().Configure(options =>
+            {
+                configureOptions?.Invoke(options);
+            });
 
-        services.TryAddSingleton<ISessionService, DataStoreSessionService>();
+            services.AddSingleton<IValidateOptions<AccessOptions>, AccessOptionsValidator>();
 
-        return services;
+            return builder;
+        }
     }
 }

@@ -1,29 +1,20 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+﻿using Shuttle.Contract;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class ReviewSetIdentityRoleParticipant : IParticipant<RequestMessage<SetIdentityRole>>
+public class ReviewIdentityRoleRemovalParticipant(IRoleQuery roleQuery, IIdentityQuery identityQuery) : IParticipant<ReviewIdentityRoleRemoval>
 {
-    private readonly IIdentityQuery _identityQuery;
-    private readonly IRoleQuery _roleQuery;
+    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
+    private readonly IRoleQuery _roleQuery = Guard.AgainstNull(roleQuery);
 
-    public ReviewSetIdentityRoleParticipant(IRoleQuery roleQuery, IIdentityQuery identityQuery)
+    public async Task HandleAsync(ReviewIdentityRoleRemoval message, CancellationToken cancellationToken = default)
     {
-        _roleQuery = Guard.AgainstNull(roleQuery);
-        _identityQuery = Guard.AgainstNull(identityQuery);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<RequestMessage<SetIdentityRole>> context)
-    {
-        Guard.AgainstNull(context);
-
-        var request = context.Message.Request;
-        var roles = (await _roleQuery.SearchAsync(new DataAccess.Role.Specification().AddName("Access Administrator"))).ToList();
+        var roles = (await _roleQuery.SearchAsync(new Query.Role.Specification()
+            .WithTenantId(message.TenantId)
+            .AddName("Access Administrator"), cancellationToken)).ToList();
 
         if (roles.Count != 1)
         {
@@ -32,13 +23,10 @@ public class ReviewSetIdentityRoleParticipant : IParticipant<RequestMessage<SetI
 
         var role = roles[0];
 
-        if (request.RoleId.Equals(role.Id)
-            &&
-            !request.Active
-            &&
-            await _identityQuery.AdministratorCountAsync() == 1)
+        if (message.RoleId.Equals(role.Id) && 
+            await _identityQuery.AdministratorCountAsync(message.TenantId, cancellationToken) == 1)
         {
-            context.Message.Failed("last-administrator");
+            message.LastAdministrator();
         }
     }
 }

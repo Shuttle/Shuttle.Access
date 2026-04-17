@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using Shuttle.Access.Events.Role.v1;
-using Shuttle.Core.Contract;
+﻿using Shuttle.Access.Events.Role.v1;
+using Shuttle.Contract;
 
 namespace Shuttle.Access;
 
 public class Role
 {
-    private readonly List<Guid> _permissionIds = new();
+    private readonly List<Guid> _permissionIds = [];
     public string Name { get; private set; } = string.Empty;
+
+    public Guid TenantId { get; private set; }
 
     public PermissionAdded AddPermission(Guid permissionId)
     {
@@ -26,15 +26,25 @@ public class Role
         return _permissionIds.Contains(permissionId);
     }
 
-    public static string Key(string name)
+    public static string Key(string name, Guid tenantId)
     {
-        return $"[role]:name={name}";
+        return $"[role]:name={Guard.AgainstEmpty(name)};tenant-id={Guard.AgainstEmpty(tenantId):D}";
     }
 
     private Registered On(Registered registered)
     {
         Guard.AgainstNull(registered);
 
+        Name = registered.Name;
+
+        return registered;
+    }
+
+    private Shuttle.Access.Events.Role.v2.Registered On(Shuttle.Access.Events.Role.v2.Registered registered)
+    {
+        Guard.AgainstNull(registered);
+
+        TenantId = registered.TenantId;
         Name = registered.Name;
 
         return registered;
@@ -74,10 +84,11 @@ public class Role
         return removed;
     }
 
-    public Registered Register(string name)
+    public Shuttle.Access.Events.Role.v2.Registered Register(Guid tenantId, string name)
     {
-        return On(new Registered
+        return On(new Shuttle.Access.Events.Role.v2.Registered
         {
+            TenantId = tenantId,
             Name = name
         });
     }

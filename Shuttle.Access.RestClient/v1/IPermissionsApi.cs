@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Refit;
-using Shuttle.Access.Messages.v1;
+﻿using Refit;
 
 namespace Shuttle.Access.RestClient.v1;
 
 public interface IPermissionsApi
 {
     [Post("/v1/permissions")]
-    Task<IApiResponse> PostAsync(RegisterPermission message);
+    Task<IApiResponse> PostAsync(WebApi.Contracts.v1.RegisterPermission message, CancellationToken cancellationToken = default);
 
     [Post("/v1/permissions/search")]
-    Task<IApiResponse<List<Messages.v1.Permission>>> SearchAsync(Messages.v1.Permission.Specification specification);
+    Task<IApiResponse<List<WebApi.Contracts.v1.Permission>>> SearchAsync(WebApi.Contracts.v1.Permission.Specification specification, CancellationToken cancellationToken = default);
 
-    [Patch("/v1/permissions/{id}")]
-    Task<IApiResponse> SetStatusAsync(Guid id, SetPermissionStatus message);
+    [Patch("/v1/permissions/{id}/status")]
+    Task<IApiResponse> SetStatusAsync(Guid id, WebApi.Contracts.v1.SetStatus message, CancellationToken cancellationToken = default);
 }

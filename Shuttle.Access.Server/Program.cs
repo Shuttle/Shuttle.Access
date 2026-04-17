@@ -1,35 +1,28 @@
-﻿using System;
-using System.Data.Common;
-using System.IO;
-using System.Reflection;
+﻿using System.Data.Common;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Trace;
 using Serilog;
+using Shuttle.Access.Application;
 using Shuttle.Access.Server.v1.EventHandlers;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Data;
-using Shuttle.Core.DependencyInjection;
-using Shuttle.Core.Mediator;
-using Shuttle.Core.Pipelines;
-using Shuttle.Esb;
-using Shuttle.Esb.AzureStorageQueues;
-using Shuttle.Esb.Sql.Subscription;
+using Shuttle.Access.SqlServer;
+using Shuttle.Hopper;
+using Shuttle.Hopper.AzureStorageQueues;
+using Shuttle.Hopper.SqlServer.Subscription;
+using Shuttle.Mediator;
+using Shuttle.Pipelines;
 using Shuttle.Recall;
-using Shuttle.Recall.Logging;
-using Shuttle.Recall.Sql.EventProcessing;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.EventProcessing;
+using Shuttle.Recall.SqlServer.Storage;
+using Shuttle.Reflection;
 
 namespace Shuttle.Access.Server;
 
 internal class Program
 {
-    private static async Task Main(string[] args)
+    private static async Task Main()
     {
         DbProviderFactories.RegisterFactory("Microsoft.Data.SqlClient", SqlClientFactory.Instance);
 
@@ -49,12 +42,13 @@ internal class Program
             throw new ApplicationException($"File '{appsettingsPath}' cannot be accessed/found.");
         }
 
-        var host = Host.CreateDefaultBuilder()
+        await Host.CreateDefaultBuilder()
             .UseSerilog()
             .ConfigureServices(services =>
             {
                 var configuration = new ConfigurationBuilder()
                     .AddJsonFile(appsettingsPath)
+                    .AddUserSecrets<Program>()
                     .AddEnvironmentVariables()
                     .Build();
 
@@ -62,93 +56,84 @@ internal class Program
                     .ReadFrom.Configuration(configuration)
                     .CreateLogger();
 
+                var accessConnectionString = configuration.GetConnectionString("Access") ?? throw new ApplicationException("Missing connection string 'Access'.");
+
                 services
                     .AddSingleton<IConfiguration>(configuration)
-                    .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
-                    .FromAssembly(Assembly.Load("Shuttle.Access.Sql")).Add()
-                    .AddDataAccess(builder =>
+                    .AddSingleton<IKeepAliveContext, KeepAliveContext>()
+                    .AddOptions<ServerOptions>().Bind(configuration.GetSection(ServerOptions.SectionName))
+                    .Services
+                    .AddAccess()
+                    .UseSqlServer(options =>
                     {
-                        builder.AddConnectionString("Access", "Microsoft.Data.SqlClient");
-                        builder.Options.DatabaseContextFactory.DefaultConnectionStringName = "Access";
+                        options.ConnectionString = accessConnectionString;
                     })
-                    .AddServiceBus(builder =>
+                    .Services
+                    .AddPipelines(options =>
                     {
-                        configuration.GetSection(ServiceBusOptions.SectionName).Bind(builder.Options);
-                    })
-                    .AddAzureStorageQueues(builder =>
-                    {
-                        var queueOptions = configuration.GetSection($"{AzureStorageQueueOptions.SectionName}:Access").Get<AzureStorageQueueOptions>() ?? new();
-
-                        if (string.IsNullOrWhiteSpace(queueOptions.StorageAccount))
+                        options.PipelineFailed += (eventArgs, _) =>
                         {
-                            queueOptions.ConnectionString = configuration.GetConnectionString("azure") ?? string.Empty;
-                        }
+                            Log.Error(eventArgs.Pipeline.Exception?.AllMessages() ?? string.Empty);
+                            return Task.CompletedTask;
+                        };
 
-                        builder.AddOptions("azure", queueOptions);
+                        options.PipelineRecursiveException += (eventArgs, _) =>
+                        {
+                            Log.Error(eventArgs.Pipeline.Exception?.AllMessages() ?? string.Empty);
+                            return Task.CompletedTask;
+                        };
                     })
-                    .AddSqlEventStorage(builder =>
+                    .Services
+                    .AddHopper(options => configuration.GetSection(HopperOptions.SectionName).Bind(options))
+                    .UseAzureStorageQueues(builder =>
                     {
-                        builder.Options.ConnectionStringName = "Access";
+                        builder.Configure("azure", options =>
+                        {
+                            configuration.GetSection($"{AzureStorageQueueOptions.SectionName}:Access").Bind(options);
 
-                        builder.UseSqlServer();
+                            if (string.IsNullOrWhiteSpace(options.StorageAccount))
+                            {
+                                options.ConnectionString = configuration.GetConnectionString("azure") ?? string.Empty;
+                            }
+                        });
                     })
-                    .AddSqlEventProcessing(builder =>
+                    .UseSqlServerSubscription(options =>
                     {
-                        builder.Options.ConnectionStringName = "Access";
+                        options.ConnectionString = accessConnectionString;
+                        options.Schema = "access";
+                    })
+                    .AddMessageHandlersFrom(typeof(Program).Assembly)
+                    .Services
+                    .AddRecall(options =>
+                    {
+                        configuration.GetSection(RecallOptions.SectionName).Bind(options);
+                    })
+                    .UseSqlServerEventStorage(options =>
+                    {
+                        configuration.GetSection(SqlServerStorageOptions.SectionName).Bind(options);
 
-                        builder.UseSqlServer();
+                        options.ConnectionString = accessConnectionString;
+                        options.Schema = "access";
                     })
-                    .AddEventStore(builder =>
+                    .RegisterPrimitiveEventSequencing()
+                    .UseSqlServerEventProcessing(options =>
                     {
-                        configuration.GetSection(EventStoreOptions.SectionName).Bind(builder.Options);
-
-                        builder.AddProjection(ProjectionNames.Identity).AddEventHandler<IdentityHandler>();
-                        builder.AddProjection(ProjectionNames.Permission).AddEventHandler<PermissionHandler>();
-                        builder.AddProjection(ProjectionNames.Role).AddEventHandler<RoleHandler>();
+                        configuration.GetSection(SqlServerEventProcessingOptions.SectionName).Bind(options);
                     })
-                    .AddEventStoreLogging(builder =>
-                    {
-                        builder.Options.AddPipelineEventType<OnPipelineException>();
-                        builder.Options.AddPipelineEventType<OnAfterAcknowledgeEvent>();
-                    })
-                    .AddSqlSubscription(builder =>
-                    {
-                        builder.Options.ConnectionStringName = "Access";
-
-                        builder.UseSqlServer();
-                    })
-                    .AddDataStoreAccessService()
-                    .AddMediator(builder =>
-                    {
-                        builder.AddParticipants(Assembly.Load("Shuttle.Access.Application"));
-                    })
+                    .AddProjection<IdentityHandler>(ProjectionNames.Identity)
+                    .AddProjection<PermissionHandler>(ProjectionNames.Permission)
+                    .AddProjection<RoleHandler>(ProjectionNames.Role)
+                    .AddProjection<TenantHandler>(ProjectionNames.Tenant)
+                    .Services
+                    .AddMediator()
+                    .AddParticipantsFrom(typeof(ConfigureApplication).Assembly)
+                    .Services
                     .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
                     .AddSingleton<IHashingService, HashingService>()
                     .AddSingleton<IHostedService, ServerHostedService>()
-                    .AddSingleton<KeepAliveObserver>()
-                    .AddSingleton(TracerProvider.Default.GetTracer("Shuttle.Access.Server"));
+                    .AddScoped<KeepAliveObserver>();
             })
-            .Build();
-
-        var databaseContextFactory = host.Services.GetRequiredService<IDatabaseContextFactory>();
-
-        var cancellationTokenSource = new CancellationTokenSource();
-
-        Console.CancelKeyPress += delegate
-        {
-            cancellationTokenSource.Cancel();
-        };
-
-        if (!databaseContextFactory.IsAvailable("Access", cancellationTokenSource.Token))
-        {
-            throw new ApplicationException("[connection failure]");
-        }
-
-        if (cancellationTokenSource.Token.IsCancellationRequested)
-        {
-            return;
-        }
-
-        await host.RunAsync(cancellationTokenSource.Token);
+            .Build()
+            .RunAsync();
     }
 }

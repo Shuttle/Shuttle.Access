@@ -19,7 +19,7 @@ namespace Shuttle.Access {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -106,6 +106,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Identity &apos;{0}&apos; is already in tenant with id &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateIdentityTenantException {
+            get {
+                return ResourceManager.GetString("DuplicateIdentityTenantException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Permission with Id &apos;{0}&apos; already exists on role &apos;{1}&apos;..
         /// </summary>
         public static string DuplicateRolePermissionException {
@@ -142,11 +151,29 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Role id &apos;{0}&apos; does not exist on identity &apos;{1}&apos;..
+        /// </summary>
+        public static string IdentityRoleNotFoundException {
+            get {
+                return ResourceManager.GetString("IdentityRoleNotFoundException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tenant id &apos;{0}&apos; does not exist on identity &apos;{1}&apos;..
+        /// </summary>
+        public static string IdentityTenantNotFoundException {
+            get {
+                return ResourceManager.GetString("IdentityTenantNotFoundException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;Authorization&apos; header contains a valid scheme but either has an invalid token, or there is no issuer configuration matching that of the token..
         /// </summary>
-        public static string InvalidAuthenticationHeader {
+        public static string InvalidAuthorizationHeader {
             get {
-                return ResourceManager.GetString("InvalidAuthenticationHeader", resourceCulture);
+                return ResourceManager.GetString("InvalidAuthorizationHeader", resourceCulture);
             }
         }
         
@@ -223,11 +250,11 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Role &apos;{0}&apos; does not exist on user &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Found {0} sessions matching the specification.  Expected exactly 1..
         /// </summary>
-        public static string RoleNotFoundException {
+        public static string SessionCountException {
             get {
-                return ResourceManager.GetString("RoleNotFoundException", resourceCulture);
+                return ResourceManager.GetString("SessionCountException", resourceCulture);
             }
         }
         
@@ -273,6 +300,24 @@ namespace Shuttle.Access {
         public static string UnknownIdentityException {
             get {
                 return ResourceManager.GetString("UnknownIdentityException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find an identity with id &apos;{0}&apos;..
+        /// </summary>
+        public static string UnknownIdentityIdException {
+            get {
+                return ResourceManager.GetString("UnknownIdentityIdException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;{0}&apos; is already set to &apos;{1}&apos;..
+        /// </summary>
+        public static string ValueAlreadySetException {
+            get {
+                return ResourceManager.GetString("ValueAlreadySetException", resourceCulture);
             }
         }
     }

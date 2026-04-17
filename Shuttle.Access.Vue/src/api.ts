@@ -9,8 +9,11 @@ const api = axios.create({ baseURL: configuration.getUrl() });
 api.interceptors.request.use(function (config) {
   const sessionStore = useSessionStore();
 
-  config.headers["Authorization"] =
-    `Shuttle.Access token=${sessionStore.token}`;
+  if (sessionStore.isAuthenticated) {
+    config.headers["Authorization"] =
+      `Shuttle.Access token=${sessionStore.token}`;
+    config.headers["Shuttle-Access-Tenant-Id"] = `${sessionStore.tenantId}`;
+  }
 
   return config;
 });
@@ -19,7 +22,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      router.push("signin");
+      router.push("sign-in");
 
       return error;
     }

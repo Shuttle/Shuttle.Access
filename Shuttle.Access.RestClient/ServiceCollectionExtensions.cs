@@ -1,108 +1,46 @@
-﻿using System;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddAccessClient(this IServiceCollection services, Action<AccessClientBuilder>? builder = null)
+    extension(IServiceCollection services)
     {
-        Guard.AgainstNull(services);
-
-        var accessClientBuilder = new AccessClientBuilder(services);
-
-        builder?.Invoke(accessClientBuilder);
-
-        services.Configure<AccessClientOptions>(options =>
+        public AccessClientBuilder AddAccessClient(Action<AccessClientOptions>? configureOptions = null)
         {
-            options.BaseAddress = accessClientBuilder.Options.BaseAddress;
-            options.RenewToleranceTimeSpan = accessClientBuilder.Options.RenewToleranceTimeSpan;
-            options.ConfigureHttpRequestAsync = accessClientBuilder.Options.ConfigureHttpRequestAsync;
-        });
+            Guard.AgainstNull(services);
 
-        services.AddSingleton<IValidateOptions<AccessClientOptions>, AccessClientOptionsValidator>();
+            var builder = new AccessClientBuilder(services);
 
-        services.AddTransient<AccessHttpMessageHandler>();
-        services.AddHttpClient<IAccessClient, AccessClient>("AccessClient", (serviceProvider, client) =>
+            services.AddOptions<AccessClientOptions>().Configure(options =>
             {
-                client.BaseAddress = new(serviceProvider.GetRequiredService<IOptions<AccessClientOptions>>().Value.BaseAddress);
-            })
-            .AddHttpMessageHandler<AccessHttpMessageHandler>();
+                configureOptions?.Invoke(options);
+            });
+            
+            services.AddSingleton<IValidateOptions<AccessClientOptions>, AccessClientOptionsValidator>();
 
-        services.AddSingleton<RestSessionService>();
-        services.AddSingleton<ISessionService>(sp => sp.GetRequiredService<RestSessionService>());
-        services.AddSingleton<IContextSessionService>(sp => sp.GetRequiredService<RestSessionService>());
+            services.AddTransient<AccessHttpMessageHandler>();
+            services.AddHttpClient<IAccessClient, AccessClient>("AccessClient", (serviceProvider, client) =>
+                {
+                    client.BaseAddress = new(serviceProvider.GetRequiredService<IOptions<AccessClientOptions>>().Value.BaseAddress);
+                })
+                .AddHttpMessageHandler<AccessHttpMessageHandler>();
 
-        services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.TryAddSingleton<IHashingService, HashingService>();
+            services.TryAddSingleton<ISessionCache, SessionCache>();
+            
+            services
+                .AddSingleton<RestSessionService>()
+                .AddSingleton<ISessionService>(sp => sp.GetRequiredService<RestSessionService>())
+                .AddSingleton<IContextSessionService>(sp => sp.GetRequiredService<RestSessionService>());
 
-        return services;
-    }
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-    [Obsolete("Replace with `UseBearerAuthenticationProvider`.")]
-    public static AccessClientBuilder AddBearerAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<BearerAuthenticationProviderBuilder>? builder = null)
-    {
-        return accessClientBuilder.UseBearerAuthenticationProvider(builder);
-    }
-    
-    public static AccessClientBuilder UseBearerAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<BearerAuthenticationProviderBuilder>? builder = null)
-    {
-        Guard.AgainstNull(accessClientBuilder);
-
-        accessClientBuilder.Services.TryAddSingleton<IJwtService, JwtService>();
-        accessClientBuilder.Services.AddHttpClient<IAuthenticationProvider, BearerAuthenticationProvider>("BearerAuthenticationProvider");
-
-        var bearerAuthenticationProviderBuilder = new BearerAuthenticationProviderBuilder(accessClientBuilder.Services);
-
-        builder?.Invoke(bearerAuthenticationProviderBuilder);
-
-        bearerAuthenticationProviderBuilder.Services
-            .Configure<BearerAuthenticationProviderOptions>(options =>
-        {
-            options.GetTokenAsync = bearerAuthenticationProviderBuilder.Options.GetTokenAsync;
-        });
-
-        accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
-        {
-            httpRequestMessage.Headers.Authorization = await serviceProvider.GetRequiredService<IAuthenticationProvider>().GetAuthenticationHeaderAsync(httpRequestMessage);
-        };
-
-        return accessClientBuilder;
-    }
-
-    [Obsolete("Replace with `UsePasswordAuthenticationProvider`.")]
-    public static AccessClientBuilder AddPasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
-    {
-        return accessClientBuilder.UsePasswordAuthenticationProvider(builder);
-    }
-
-    public static AccessClientBuilder UsePasswordAuthenticationProvider(this AccessClientBuilder accessClientBuilder, Action<PasswordAuthenticationProviderBuilder>? builder = null)
-    {
-        Guard.AgainstNull(accessClientBuilder).Services
-            .AddHttpClient<IAuthenticationProvider, PasswordAuthenticationProvider>("PasswordAuthenticationProvider");
-
-        var passwordAuthenticationProviderBuilder = new PasswordAuthenticationProviderBuilder(accessClientBuilder.Services);
-
-        builder?.Invoke(passwordAuthenticationProviderBuilder);
-
-        passwordAuthenticationProviderBuilder.Services
-            .Configure<PasswordAuthenticationProviderOptions>(options =>
-        {
-            options.IdentityName = passwordAuthenticationProviderBuilder.Options.IdentityName;
-            options.Password = passwordAuthenticationProviderBuilder.Options.Password;
-        });
-
-        passwordAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<PasswordAuthenticationProviderOptions>, PasswordAuthenticationProviderOptionsValidator>();
-
-        accessClientBuilder.Options.ConfigureHttpRequestAsync = async (httpRequestMessage, serviceProvider) =>
-        {
-            httpRequestMessage.Headers.Authorization = await serviceProvider.GetRequiredService<IAuthenticationProvider>().GetAuthenticationHeaderAsync(httpRequestMessage);
-        };
-
-        return accessClientBuilder;
+            return builder;
+        }
     }
 }

@@ -3,6 +3,7 @@
 public static class AccessPermissions
 {
     public const string Administrator = "access://*";
+
     public static class Identities
     {
         public const string Activate = "access://identities/activate";
@@ -10,6 +11,13 @@ public static class AccessPermissions
         public const string Register = "access://identities/register";
         public const string Remove = "access://identities/remove";
         public const string View = "access://identities/view";
+    }
+
+    public static class IdentityTenants
+    {
+        public const string Manage = "access://identity-tenants/manage";
+        public const string Remove = "access://identity-tenants/remove";
+        public const string View = "access://identity-tenants/view";
     }
 
     public static class Permissions
@@ -31,5 +39,12 @@ public static class AccessPermissions
         public const string Manage = "access://sessions/manage";
         public const string Register = "access://sessions/register";
         public const string View = "access://sessions/view";
+    }
+
+    public static class Tenants
+    {
+        public const string Manage = "access://tenants/manage";
+        public const string Register = "access://tenants/register";
+        public const string View = "access://tenants/view";
     }
 }

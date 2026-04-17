@@ -1,7 +1,6 @@
-﻿using System.Net.Http;
-using Refit;
+﻿using Refit;
 using Shuttle.Access.RestClient.v1;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
 

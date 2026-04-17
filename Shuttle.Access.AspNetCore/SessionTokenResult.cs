@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
@@ -11,26 +11,27 @@ public class SessionTokenResult
         ActionResult = null;
     }
 
-    public Guid SessionToken { get; private init; }
     public IActionResult? ActionResult { get; private init; }
 
     public bool Ok => ActionResult == null;
 
-    public static SessionTokenResult Success(Guid sessionToken)
-    {
-        return new SessionTokenResult
-        {
-            SessionToken = sessionToken
-        };
-    }
+    public Guid SessionToken { get; private init; }
 
     public static SessionTokenResult Failure(IActionResult httpActionResult)
     {
         Guard.AgainstNull(httpActionResult);
 
-        return new SessionTokenResult
+        return new()
         {
             ActionResult = httpActionResult
+        };
+    }
+
+    public static SessionTokenResult Success(Guid sessionToken)
+    {
+        return new()
+        {
+            SessionToken = sessionToken
         };
     }
 }

@@ -1,38 +1,26 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+﻿using Shuttle.Contract;
+using Shuttle.Mediator;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Application;
 
-public class GetPasswordResetTokenParticipant : IParticipant<RequestResponseMessage<GetPasswordResetToken, Guid>>
+public class GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEventStore eventStore) : IParticipant<GetPasswordResetToken>
 {
-    private readonly IEventStore _eventStore;
-    private readonly IIdentityQuery _identityQuery;
+    private readonly IEventStore _eventStore = Guard.AgainstNull(eventStore);
+    private readonly IIdentityQuery _identityQuery = Guard.AgainstNull(identityQuery);
 
-    public GetPasswordResetTokenParticipant(IIdentityQuery identityQuery, IEventStore eventStore)
+    public async Task HandleAsync(GetPasswordResetToken message, CancellationToken cancellationToken = default)
     {
-        _identityQuery = Guard.AgainstNull(identityQuery);
-        _eventStore = Guard.AgainstNull(eventStore);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<GetPasswordResetToken, Guid>> context)
-    {
-        var identityName = context.Message.Request.Name;
-        var query = (await _identityQuery.SearchAsync(new DataAccess.Identity.Specification().WithName(identityName))).SingleOrDefault();
+        var model = (await _identityQuery.SearchAsync(new Query.Identity.Specification().AddId(message.IdentityId), cancellationToken)).SingleOrDefault();
 
-        if (query == null)
+        if (model == null)
         {
-            context.Message.Failed(string.Format(Access.Resources.UnknownIdentityException, identityName));
-
-            return;
+            throw new ApplicationException(string.Format(Access.Resources.UnknownIdentityIdException, message.IdentityId));
         }
 
-        var stream = await _eventStore.GetAsync(query.Id);
+        var stream = await _eventStore.GetAsync(model.Id, cancellationToken: cancellationToken);
         var identity = new Identity();
 
         stream.Apply(identity);
@@ -43,14 +31,14 @@ public class GetPasswordResetTokenParticipant : IParticipant<RequestResponseMess
             {
                 stream.Add(identity.RegisterPasswordResetToken());
 
-                await _eventStore.SaveAsync(stream);
+                await _eventStore.SaveAsync(stream, cancellationToken);
             }
 
-            context.Message.WithResponse(identity.PasswordResetToken!.Value);
+            message.WithPasswordResetToken(identity.PasswordResetToken!.Value);
         }
         else
         {
-            context.Message.Failed(string.Format(Access.Resources.IdentityInactiveException, identityName));
+            throw new ApplicationException(string.Format(Access.Resources.IdentityInactiveException, model.Name));
         }
     }
 }

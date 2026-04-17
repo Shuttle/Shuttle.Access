@@ -1,8 +1,8 @@
-﻿using Shuttle.Core.Contract;
+﻿using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class SessionAvailableEventArgs(Messages.v1.Session session)
+public class SessionAvailableEventArgs(Query.Session session)
 {
-    public Messages.v1.Session Session { get; } = Guard.AgainstNull(session);
+    public Query.Session Session { get; } = Guard.AgainstNull(session);
 }

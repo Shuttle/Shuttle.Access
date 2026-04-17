@@ -1,32 +1,41 @@
 {
   "active": "Active",
+  "administrator-identity-name": "Administrator identity name",
   "cancel": "Cancel",
   "change": "Change",
   "change-password": "Change password",
-  "confirmation-remove": {
-    "title": "Confirmation",
-    "message": "Are you sure that you want to remove the selected item(s)?"
-  },
   "dashboard": "Dashboard",
   "date-activated": "Date activated",
   "date-registered": "Date registered",
   "deactivated": "Deactivated",
   "description": "Description",
   "drag-and-drop-file": "Drag and drop file here or click to upload",
+  "enums": {
+    "tenant-status": {
+      "0": "Disabled",
+      "1": "Active"
+    }
+  },
   "exceptions": {
     "bad-request": "Bad request.",
     "configuration-error": "Could not complete configuration.  Error: {error}",
     "invalid-credentials": "Invalid credentials.  Reason: {reason}",
     "insufficient-permission": "You do not have permission to access the requested view.  Please contact your system administrator if you require access.",
-    "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}"
+    "oauth-error": "An error occurred while attempting to authenticate with the OAuth provider: {error}",
+    "tenant-selection": "Could not select tenant.",
+    "unauthorised": "You do not have access to the requested endpoint, or your session has expired."
   },
   "expiry-date": "Expiry date",
   "generated-password": "Generated password",
+  "id": "Id",
   "identities": "Identities",
   "identity": "Identity",
   "identity-name": "Identity name",
   "last-administrator": "You cannot remove the administrator role as this identity is the last administrator.",
+  "logo-svg": "Logo SVG",
+  "logo-url": "Logo URL",
   "messages": {
+    "fetching-oauth-providers": "(fetching authentication providers)",
     "file-required": "File is required",
     "invalid-credentials": "Invalid credentials.",
     "invalid-json": "Invalid JSON.",
@@ -77,7 +86,14 @@
   "status": "Status",
   "submit": "Submit",
   "table-empty": "(no results)",
+  "tenant": "Tenant",
+  "tenants": "Tenants",
+  "tenant-selection": "Tenant selection",
   "token": "Token",
   "identity-required": "No identities have been registered.  You will be registered as an administrator.",
-  "yes": "Yes"
+  "yes": "Yes",
+  "_confirmation": {
+    "title": "Confirmation",
+    "remove": "Are you sure that you want to remove the selected item(s)?"
+  }
 }

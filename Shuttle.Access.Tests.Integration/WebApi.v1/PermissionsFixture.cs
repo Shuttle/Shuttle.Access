@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Moq;
+﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Messages.v1;
 
@@ -11,18 +7,38 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 public class PermissionsFixture
 {
     [Test]
+    public async Task Should_be_able_to_post_permission_async()
+    {
+        const string permission = "integration://available-permission";
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.Bus.Setup(m => m.SendAsync(It.Is<RegisterPermission>(message => message.Name.Equals(permission)), null)).Verifiable();
+
+        var response = await factory.GetAccessClient().Permissions.PostAsync(new()
+        {
+            Name = permission
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+
+        factory.Bus.VerifyAll();
+    }
+
+    [Test]
     public async Task Should_be_able_to_search_permissions_async()
     {
-        var permission = new Access.DataAccess.Permission
+        var permission = new Query.Permission
         {
             Id = Guid.NewGuid(),
             Name = "integration://available-permission",
-            Status = (int)PermissionStatus.Active
+            Status = PermissionStatus.Active
         };
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Access.DataAccess.Permission.Specification>(), default)).Returns(Task.FromResult(new List<Access.DataAccess.Permission> { permission }.AsEnumerable()));
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Permission.Specification>(), CancellationToken.None)).Returns(Task.FromResult(new List<Query.Permission> { permission }.AsEnumerable()));
 
         var response = await factory.GetAccessClient().Permissions.SearchAsync(new());
 
@@ -33,43 +49,22 @@ public class PermissionsFixture
     }
 
     [Test]
-    public async Task Should_be_able_to_post_permission_async()
-    {
-        const string permission = "integration://available-permission";
-
-        var factory = new FixtureWebApplicationFactory();
-
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<RegisterPermission>(message => message.Name.Equals(permission)), null)).Verifiable();
-
-        var response = await factory.GetAccessClient().Permissions.PostAsync(new()
-        {
-            Name = permission
-        });
-
-        Assert.That(response, Is.Not.Null);
-        Assert.That(response.IsSuccessStatusCode, Is.True);
-
-        factory.ServiceBus.VerifyAll();
-    }
-
-    [Test]
     public async Task Should_be_able_to_set_permission_status_async()
     {
         var permissionId = Guid.NewGuid();
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.ServiceBus.Setup(m => m.SendAsync(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<SetPermissionStatus>(message => message.Id.Equals(permissionId)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Permissions.SetStatusAsync(permissionId, new()
         {
-            Id = permissionId,
             Status = (int)PermissionStatus.Deactivated
         });
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);
 
-        factory.ServiceBus.VerifyAll();
+        factory.Bus.VerifyAll();
     }
 }

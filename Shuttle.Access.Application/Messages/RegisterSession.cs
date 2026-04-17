@@ -1,69 +1,84 @@
-﻿using System;
-using Shuttle.Core.Contract;
+﻿using System.Diagnostics.CodeAnalysis;
+using Shuttle.Access.Query;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterSession
+public class RegisterSession(string identityName)
 {
+    private readonly List<Session> _sessionsRemoved = [];
+    private readonly List<Query.Tenant> _tenants = [];
     private string _password = string.Empty;
+    private Guid? _sessionToken;
 
-    private Guid? _authenticationToken;
+    [MemberNotNullWhen(true, nameof(Session), nameof(SessionToken))]
+    public bool HasSession => Session != null;
 
-    public RegisterSession(string identityName)
-    {
-        IdentityName = Guard.AgainstEmpty(identityName);
-    }
+    public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
 
-    public bool HasSession => Session != null && SessionToken.HasValue;
-
-    public string IdentityName { get; }
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
     public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;
+
     public Session? Session { get; private set; }
+
+    public IEnumerable<Session> SessionsRemoved => _sessionsRemoved.AsReadOnly();
     public Guid? SessionToken { get; private set; }
-    public string SessionTokenExchangeUrl { get; private set; } = string.Empty;
-    public bool HasKnownApplicationOptions => KnownApplicationOptions != null;
+    public bool ShouldRefresh { get; private set; }
+    public Guid? TenantId { get; private set; }
+
+    public IEnumerable<Query.Tenant> Tenants => _tenants.AsReadOnly();
+
 
     public RegisterSession DelegationSessionInvalid()
     {
         Result = SessionRegistrationResult.DelegationSessionInvalid;
-
         return this;
     }
 
     public RegisterSession Forbidden()
     {
         Result = SessionRegistrationResult.Forbidden;
-
         return this;
     }
 
     public string GetPassword()
     {
-        if (string.IsNullOrWhiteSpace(_password))
-        {
-            throw new InvalidOperationException(Resources.RegisterSessionPasswordNotSetException);
-        }
-
-        return _password;
+        return string.IsNullOrWhiteSpace(_password)
+            ? throw new InvalidOperationException(Resources.RegisterSessionPasswordNotSetException)
+            : _password;
     }
 
-    public Guid GetAuthenticationToken()
+    public Guid GetSessionToken()
     {
-        if (!_authenticationToken.HasValue)
+        return _sessionToken ?? throw new InvalidOperationException(Resources.RegisterSessionTokenNotSetException);
+    }
+
+    public RegisterSession Refresh()
+    {
+        if (RegistrationType == SessionRegistrationType.Token)
         {
-            throw new InvalidOperationException(Resources.RegisterSessionTokenNotSetException);
+            throw new InvalidOperationException(Resources.SessionRefreshException);
         }
 
-        return _authenticationToken.Value;
+        ShouldRefresh = true;
+        return this;
     }
 
     public RegisterSession Registered(Guid sessionToken, Session session)
     {
-        SessionToken = sessionToken;
-        Session = Guard.AgainstNull(session);
+        SessionToken = Guard.AgainstEmpty(sessionToken);
+        Session = session;
 
         Result = SessionRegistrationResult.Registered;
+
+        return this;
+    }
+
+    public RegisterSession Renewed(Session session)
+    {
+        Session = session;
+
+        Result = SessionRegistrationResult.Renewed;
 
         return this;
     }
@@ -85,11 +100,12 @@ public class RegisterSession
         return this;
     }
 
-    public RegisterSession UseDelegation(Guid registrationToken)
+    public RegisterSession UseDelegation(Guid tenantId, Guid delegatedSessionToken)
     {
         SetRegistrationType(SessionRegistrationType.Delegation);
 
-        _authenticationToken = registrationToken;
+        TenantId = Guard.AgainstEmpty(tenantId);
+        _sessionToken = Guard.AgainstEmpty(delegatedSessionToken);
 
         return this;
     }
@@ -110,28 +126,43 @@ public class RegisterSession
         return this;
     }
 
-    public RegisterSession UseAuthenticationToken(Guid authenticationToken)
+    public RegisterSession UseSessionToken(Guid authenticationToken)
     {
+        if (ShouldRefresh)
+        {
+            throw new InvalidOperationException(Resources.SessionRefreshException);
+        }
+
         SetRegistrationType(SessionRegistrationType.Token);
 
-        _authenticationToken = authenticationToken;
+        _sessionToken = authenticationToken;
 
         return this;
     }
 
-    public RegisterSession WithKnownApplicationOptions(KnownApplicationOptions knownApplicationOptions)
+    public RegisterSession WithIdentity(Query.Identity identity, Guid systemTenantId)
     {
-        KnownApplicationOptions = Guard.AgainstNull(knownApplicationOptions);
+        Guard.AgainstEmpty(systemTenantId);
 
         return this;
     }
 
-    public KnownApplicationOptions? KnownApplicationOptions { get; private set; }
-
-    public RegisterSession WithSessionTokenExchangeUrl(string sessionTokenExchangeUrl)
+    public RegisterSession WithSessionsRemoved(IEnumerable<Session> sessions)
     {
-        SessionTokenExchangeUrl = Guard.AgainstEmpty(sessionTokenExchangeUrl);
+        _sessionsRemoved.Clear();
+        _sessionsRemoved.AddRange(Guard.AgainstEmpty(sessions));
+        return this;
+    }
 
+    public RegisterSession WithTenantId(Guid tenantId)
+    {
+        TenantId = Guard.AgainstEmpty(tenantId);
+        return this;
+    }
+
+    public RegisterSession WithTenants(IEnumerable<Query.Tenant> tenants)
+    {
+        _tenants.AddRange(tenants);
         return this;
     }
 }

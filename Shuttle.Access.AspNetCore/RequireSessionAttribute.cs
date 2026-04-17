@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
@@ -11,26 +11,22 @@ public class RequireSessionAttribute : TypeFilterAttribute
         Arguments = [];
     }
 
-    private class RequiresSession : IAuthorizationFilter
+    private class RequiresSession(ISessionService sessionService) : IAuthorizationFilter
     {
-        private readonly ISessionService _sessionService;
-
-        public RequiresSession(ISessionService sessionService)
-        {
-            _sessionService = Guard.AgainstNull(sessionService);
-        }
+        private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var sessionIdentityId = context.HttpContext.GetIdentityId();
+            var tenantId = context.HttpContext.FindTenantId();
+            var identityId = context.HttpContext.FindIdentityId();
 
-            if (sessionIdentityId == null)
+            if (tenantId == null || identityId == null)
             {
                 SetUnauthorized(context);
                 return;
             }
 
-            if (_sessionService.FindAsync(sessionIdentityId.Value).GetAwaiter().GetResult() == null)
+            if (_sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value)).GetAwaiter().GetResult() == null)
             {
                 SetUnauthorized(context);
             }

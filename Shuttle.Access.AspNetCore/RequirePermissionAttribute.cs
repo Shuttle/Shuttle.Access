@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Shuttle.Core.Contract;
+using Shuttle.Access.Query;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
@@ -11,28 +12,23 @@ public class RequirePermissionAttribute : TypeFilterAttribute
         Arguments = [permission];
     }
 
-    private class RequiresPermission : IAuthorizationFilter
+    private class RequiresPermission(ISessionService sessionService, string permission) : IAuthorizationFilter
     {
-        private readonly ISessionService _sessionService;
-        private readonly string _permission;
-
-        public RequiresPermission(ISessionService sessionService, string permission)
-        {
-            _sessionService = Guard.AgainstNull(sessionService);
-            _permission = Guard.AgainstEmpty(permission);
-        }
+        private readonly string _permission = Guard.AgainstEmpty(permission);
+        private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var sessionIdentityId = context.HttpContext.GetIdentityId();
+            var tenantId = context.HttpContext.FindTenantId();
+            var identityId = context.HttpContext.FindIdentityId();
 
-            if (sessionIdentityId == null)
+            if (tenantId == null || identityId == null)
             {
                 SetUnauthorized(context);
                 return;
             }
-
-            if (!_sessionService.HasPermissionAsync(sessionIdentityId.Value, _permission).GetAwaiter().GetResult())
+            
+            if (!_sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId.Value).AddId(identityId.Value)).GetAwaiter().GetResult()?.HasPermission(_permission) ?? false)
             {
                 SetUnauthorized(context);
             }

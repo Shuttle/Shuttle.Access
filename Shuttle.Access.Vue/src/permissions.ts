@@ -23,6 +23,11 @@ const Permissions = {
     Remove: "access://sessions/remove",
     View: "access://sessions/view",
   },
+  Tenants: {
+    Manage: "access://tenants/manage",
+    Register: "access://tenants/register",
+    View: "access://tenants/view",
+  },
 };
 
 export default Permissions;

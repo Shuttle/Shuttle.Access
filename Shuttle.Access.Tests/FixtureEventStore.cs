@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Shuttle.Core.Contract;
+﻿using Microsoft.Extensions.Options;
+using Shuttle.Contract;
 using Shuttle.Recall;
 
 namespace Shuttle.Access.Tests;
@@ -10,19 +7,20 @@ namespace Shuttle.Access.Tests;
 public class FixtureEventStore : IEventStore
 {
     private readonly Dictionary<Guid, EventStream> _eventStreams = new();
-    private long _sequenceNumber = 1;
 
-    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null)
+    public async Task<EventStream> GetAsync(Guid id, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
         return await Task.FromResult(Get(id, builder));
     }
 
-    public async ValueTask<long> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
+    public Task<IEnumerable<EventEnvelope>> SaveAsync(EventStream eventStream, Action<EventStreamBuilder>? builder = null, CancellationToken cancellationToken = default)
     {
-        return await Task.FromResult(Save(eventStream, builder));
+        Save(eventStream, builder);
+
+        return Task.FromResult<IEnumerable<EventEnvelope>>([]);
     }
 
-    public async Task RemoveAsync(Guid id)
+    public async Task RemoveAsync(Guid id, CancellationToken cancellationToken = default)
     {
         _eventStreams.Remove(id);
 
@@ -36,14 +34,14 @@ public class FixtureEventStore : IEventStore
             throw new DuplicateKeyException(id.ToString());
         }
 
-        var result = new EventStream(id, new EventMethodInvoker(new EventMethodInvokerConfiguration()));
+        var result = new EventStream(id, new EventMethodInvoker(Options.Create(new RecallOptions())));
 
         _eventStreams.Add(id, result);
 
         return result;
     }
 
-    public T? FindEvent<T>(Guid id, int index = -1) where T : class
+    public T? FindEvent<T>(Guid id, Func<T, bool>? specification = null, int index = -1) where T : class
     {
         var events = Get(id).GetEvents(EventStream.EventRegistrationType.All);
 
@@ -51,19 +49,34 @@ public class FixtureEventStore : IEventStore
         {
             if (index > -1)
             {
-                return events.ElementAtOrDefault(index)?.Event as T;
-            }
+                var candidate = events.ElementAtOrDefault(index)?.Event as T;
 
-            var type = typeof(T);
+                if (candidate == null)
+                {
+                    return null;
+                }
+
+                if (specification == null || specification(candidate))
+                {
+                    return candidate;
+                }
+
+                return null;
+            }
 
             foreach (var domainEvent in events)
             {
-                if (domainEvent.Event.GetType() != type)
+                if (domainEvent.Event is not T typed)
                 {
                     continue;
                 }
 
-                return (T)domainEvent.Event;
+                if (specification != null && !specification(typed))
+                {
+                    continue;
+                }
+
+                return typed;
             }
         }
         catch
@@ -79,10 +92,8 @@ public class FixtureEventStore : IEventStore
         return _eventStreams.TryGetValue(id, out var stream) ? stream : CreateEventStream(id);
     }
 
-    public long Save(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
+    public void Save(EventStream eventStream, Action<EventStreamBuilder>? builder = null)
     {
         Guard.AgainstNull(eventStream).Commit();
-
-        return _sequenceNumber++;
     }
 }

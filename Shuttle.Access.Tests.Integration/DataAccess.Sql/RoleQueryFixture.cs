@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using NUnit.Framework;
-using Shuttle.Access.Sql;
+﻿using NUnit.Framework;
+using System.Transactions;
 
 namespace Shuttle.Access.Tests.Integration.DataAccess.Sql;
 
@@ -10,13 +8,14 @@ public class RoleQueryFixture : DataAccessFixture
     [Test]
     public async Task Should_be_able_perform_all_queries_async()
     {
-        var query = new RoleQuery(DatabaseContextService, QueryMapper, DataRowMapper, new RoleQueryFactory());
+        var query = ServiceProvider.GetRequiredService<IRoleQuery>();
 
-        using (TransactionScopeFactory.Create())
-        await using (DatabaseContextFactory.Create())
+        using (new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
             await Assert.ThatAsync(() => query.SearchAsync(new()), Throws.Nothing);
-            Assert.That((await query.SearchAsync(new Access.DataAccess.Role.Specification().AddName("Access Administrator"))).Count(), Is.LessThan(2));
+            Assert.That((await query.SearchAsync(new Query.Role.Specification()
+                .WithTenantId(new AccessOptions().SystemTenantId)
+                .AddName("Access Administrator"))).Count(), Is.LessThan(2));
         }
     }
 }

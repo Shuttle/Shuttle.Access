@@ -1,24 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Transactions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+using Shuttle.Contract;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Application;
 
-public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication>
+public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IOptions<AccessOptions> accessOptions, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, IHashingService hashingService)
+    : IParticipant<ConfigureApplication>
 {
-    private readonly IIdentityQuery _identityQuery;
-    private readonly ILogger<ConfigureApplicationParticipant> _logger;
-    private readonly IMediator _mediator;
-    private readonly IPermissionQuery _permissionQuery;
-    private readonly IRoleQuery _roleQuery;
-
     private readonly List<string> _permissions =
     [
         AccessPermissions.Administrator,
@@ -27,6 +17,9 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
         AccessPermissions.Identities.Register,
         AccessPermissions.Identities.Remove,
         AccessPermissions.Identities.View,
+        AccessPermissions.IdentityTenants.View,
+        AccessPermissions.IdentityTenants.Remove,
+        AccessPermissions.IdentityTenants.Manage,
         AccessPermissions.Roles.View,
         AccessPermissions.Roles.Register,
         AccessPermissions.Roles.Remove,
@@ -35,164 +28,160 @@ public class ConfigureApplicationParticipant : IParticipant<ConfigureApplication
         AccessPermissions.Permissions.View,
         AccessPermissions.Sessions.Manage,
         AccessPermissions.Sessions.Register,
-        AccessPermissions.Sessions.View
+        AccessPermissions.Sessions.View,
+        AccessPermissions.Tenants.View,
+        AccessPermissions.Tenants.Register,
+        AccessPermissions.Tenants.Manage
     ];
 
-    private readonly AccessOptions _accessOptions;
-
-    public ConfigureApplicationParticipant(IOptions<AccessOptions> accessOptions, ILogger<ConfigureApplicationParticipant> logger, IMediator mediator, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery)
+    public async Task HandleAsync(ConfigureApplication message, CancellationToken cancellationToken = default)
     {
-        _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
-        _logger = Guard.AgainstNull(logger);
-        _mediator = Guard.AgainstNull(mediator);
-        _roleQuery = Guard.AgainstNull(roleQuery);
-        _permissionQuery = Guard.AgainstNull(permissionQuery);
-        _identityQuery = Guard.AgainstNull(identityQuery);
-    }
+        Guard.AgainstNull(message);
 
-    public async Task ProcessMessageAsync(IParticipantContext<ConfigureApplication> context)
-    {
-        Guard.AgainstNull(context);
+        var systemTenantId = accessOptions.Value.SystemTenantId;
 
         foreach (var permission in _permissions)
         {
-            if (await _permissionQuery.ContainsAsync(new DataAccess.Permission.Specification().AddName(permission)))
+            if (await permissionQuery.ContainsAsync(new Query.Permission.Specification().AddName(permission), cancellationToken))
             {
                 continue;
             }
 
-            _logger.LogDebug($"[permission/registration] : name = '{permission}'");
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-            var registerPermissionMessage = new RequestResponseMessage<RegisterPermission, PermissionRegistered>(
-                new()
-                {
-                    Name = permission,
-                    Status = (int)PermissionStatus.Active
-                });
+            logger.LogDebug($"Registering permission '{permission}'.");
 
-            await _mediator.SendAsync(registerPermissionMessage);
+            var registerPermissionMessage = new RegisterPermission(Guid.NewGuid(), permission, string.Empty, PermissionStatus.Active, systemTenantId, "system");
+
+            await mediator.SendAsync(registerPermissionMessage, cancellationToken);
+
+            scope.Complete();
         }
 
-        var timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
-
-        var permissionSpecification = new DataAccess.Permission.Specification();
+        var permissionSpecification = new Query.Permission.Specification();
 
         foreach (var permission in _permissions)
         {
             permissionSpecification.AddName(permission);
         }
 
-        while (await _permissionQuery.CountAsync(permissionSpecification) != _permissions.Count && DateTimeOffset.Now < timeout)
+        var timeout = DateTimeOffset.Now.Add(message.Timeout);
+
+        while (await permissionQuery.CountAsync(permissionSpecification, cancellationToken) != _permissions.Count && DateTimeOffset.Now < timeout)
         {
-            Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).WaitAsync(cancellationToken);
         }
 
-        if (await _permissionQuery.CountAsync(permissionSpecification) != _permissions.Count)
+        if (await permissionQuery.CountAsync(permissionSpecification, cancellationToken) != _permissions.Count)
         {
             throw new ApplicationException(Resources.PermissionsException);
         }
 
-        if (!_accessOptions.Configuration.ShouldConfigure)
+        if (!message.ShouldConfigure)
         {
             return;
         }
 
-        var roleSpecification = new DataAccess.Role.Specification()
-            .AddName("Access Administrator")
-            .IncludePermissions();
+        /*
+         * System Tenant
+         */
+        var tenantSpecification = new Query.Tenant.Specification()
+            .AddId(systemTenantId);
 
-        var administratorExists = await _roleQuery.CountAsync(roleSpecification) > 0;
+        var systemTenantExists = await tenantQuery.CountAsync(tenantSpecification, cancellationToken) > 0;
 
-        _logger.LogDebug($"[role] : name = 'Access Administrator' / exists = {administratorExists}");
-
-        if (!administratorExists)
+        if (systemTenantExists)
         {
-            _logger.LogDebug("[role/registration] : name = 'Access Administrator'");
+            logger.LogInformation("Found system tenant '{SystemTenantName}' with id '{SystemTenantId}'.", accessOptions.Value.SystemTenantName, systemTenantId);
+        }
+        else
+        {
+            logger.LogInformation("Registering system tenant '{SystemTenantName}' with id '{SystemTenantId}'.", accessOptions.Value.SystemTenantName, systemTenantId);
 
-            var registerRole = new RegisterRole("Access Administrator");
-
-            var registerRoleMessage = new RequestResponseMessage<RegisterRole, RoleRegistered>(registerRole);
-
-            await _mediator.SendAsync(registerRoleMessage);
-
-            timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
-
-            while (await _roleQuery.CountAsync(roleSpecification) == 0 && DateTimeOffset.Now < timeout)
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
             {
-                Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
+                var registerTenant = new RegisterTenant(systemTenantId, accessOptions.Value.SystemTenantName, TenantStatus.Active, systemTenantId, "system");
+
+                await mediator.SendAsync(registerTenant, cancellationToken);
+
+                scope.Complete();
             }
 
-            if (await _roleQuery.CountAsync(roleSpecification) == 0)
+            timeout = DateTimeOffset.Now.Add(message.Timeout);
+
+            while (await tenantQuery.CountAsync(tenantSpecification, cancellationToken) == 0 && DateTimeOffset.Now < timeout)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).WaitAsync(cancellationToken);
+            }
+
+            if (await tenantQuery.CountAsync(tenantSpecification, cancellationToken) == 0)
+            {
+                throw new ApplicationException(Resources.SystemTenantException);
+            }
+        }
+
+        /*
+         * Administrator Role
+         */
+        var roleSpecification = new Query.Role.Specification()
+            .WithTenantId(systemTenantId)
+            .AddName("Access Administrator");
+
+        var administratorRole = (await roleQuery.SearchAsync(roleSpecification, cancellationToken)).FirstOrDefault();
+
+        if (administratorRole != null)
+        {
+            logger.LogDebug("Found role 'Access Administrator' with id '{AdministratorRoleId}'.", administratorRole.Id);
+        }
+        else
+        {
+            logger.LogDebug("Registering role 'Access Administrator'.");
+
+            var administratorPermission = (await permissionQuery.SearchAsync(new Query.Permission.Specification().AddName(AccessPermissions.Administrator), cancellationToken)).FirstOrDefault();
+
+            if (administratorPermission == null)
+            {
+                throw new ApplicationException(Resources.AdministratorPermissionException);
+            }
+
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+            await mediator.SendAsync(new RegisterRole(Guid.NewGuid(), systemTenantId, "Access Administrator", systemTenantId, "system").AddPermissionId(administratorPermission.Id), cancellationToken);
+
+            scope.Complete();
+
+            timeout = DateTimeOffset.Now.Add(message.Timeout);
+
+            while (await roleQuery.CountAsync(roleSpecification, cancellationToken) == 0 && DateTimeOffset.Now < timeout)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken).WaitAsync(cancellationToken);
+            }
+
+            administratorRole = (await roleQuery.SearchAsync(roleSpecification, cancellationToken)).FirstOrDefault();
+
+            if (administratorRole == null)
             {
                 throw new ApplicationException(Resources.AdministratorRoleException);
             }
         }
 
-        var role  = (await _roleQuery.SearchAsync(roleSpecification)).SingleOrDefault();
+        var role = (await roleQuery.SearchAsync(roleSpecification, cancellationToken)).SingleOrDefault();
 
         if (role == null)
         {
             throw new ApplicationException(Resources.AdministratorRoleException);
         }
 
-        var administratorPermission = (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddName("access://*"))).SingleOrDefault();
+        logger.LogDebug($"Registering system administrator with identity name '{message.AdministratorIdentityName}'.");
 
-        if (administratorPermission == null)
-        {
-            throw new ApplicationException(Resources.AdministratorPermissionException);
-        }
+        return;
 
-        await _mediator.SendAsync(new RequestResponseMessage<SetRolePermission, RolePermissionSet>(new()
-        {
-            Active = true,
-            RoleId = role.Id,
-            PermissionId = administratorPermission.Id
-        }));
+        var systemAdministrator = (await identityQuery.SearchAsync(new Query.Identity.Specification().WithName(message.AdministratorIdentityName), cancellationToken)).FirstOrDefault();
 
-        timeout = DateTimeOffset.Now.Add(_accessOptions.Configuration.Timeout);
+        var registerIdentityMessage = new RegisterIdentity(systemAdministrator?.Id ?? Guid.NewGuid(), message.AdministratorIdentityName, string.Empty, string.Empty, hashingService.Sha256(message.AdministratorPassword), "system://access", true, systemTenantId, "system")
+            .AddTenantId(systemTenantId)
+            .AddRoleId(administratorRole.Id);
 
-        var administratorPermissionsRegistered = false;
-
-        while (!administratorPermissionsRegistered && DateTimeOffset.Now < timeout)
-        {
-            role = (await _roleQuery.SearchAsync(roleSpecification)).SingleOrDefault();
-
-            if (role == null)
-            {
-                throw new ApplicationException(Resources.AdministratorRoleException);
-            }
-
-            administratorPermissionsRegistered = role.Permissions.FirstOrDefault(item => item.Name.Equals(AccessPermissions.Administrator, StringComparison.InvariantCultureIgnoreCase)) != null;
-
-            if (administratorPermissionsRegistered)
-            {
-                continue;
-            }
-
-            Task.Delay(TimeSpan.FromMilliseconds(500), context.CancellationToken).Wait();
-        }
-
-        if (!administratorPermissionsRegistered)
-        {
-            throw new ApplicationException(Resources.AdministratorPermissionException);
-        }
-
-        if (await _identityQuery.CountAsync(new DataAccess.Identity.Specification().WithRoleName("Access Administrator")) == 0)
-        {
-            var generateHash = new GenerateHash { Value = _accessOptions.Configuration.AdministratorPassword };
-
-            await _mediator.SendAsync(generateHash);
-
-            var registerIdentityMessage = new RequestResponseMessage<RegisterIdentity, IdentityRegistered>(new()
-            {
-                Name = _accessOptions.Configuration.AdministratorIdentityName,
-                System = "system://access",
-                PasswordHash = generateHash.Hash,
-                RegisteredBy = "system",
-                Activated = true
-            });
-
-            await _mediator.SendAsync(registerIdentityMessage);
-        }
+        await mediator.SendAsync(registerIdentityMessage, cancellationToken);
     }
 }

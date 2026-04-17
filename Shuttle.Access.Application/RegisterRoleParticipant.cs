@@ -1,81 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Shuttle.Access.DataAccess;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Core.Contract;
-using Shuttle.Core.Mediator;
+﻿using Shuttle.Mediator;
 using Shuttle.Recall;
-using Shuttle.Recall.Sql.Storage;
+using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterRoleParticipant : IParticipant<RequestResponseMessage<RegisterRole, RoleRegistered>>
+public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<RegisterRole>
 {
-    private readonly IPermissionQuery _permissionQuery;
-    private readonly IEventStore _eventStore;
-    private readonly IIdKeyRepository _idKeyRepository;
-
-    public RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IPermissionQuery permissionQuery)
+    public async Task HandleAsync(RegisterRole message, CancellationToken cancellationToken = default)
     {
-        _eventStore = Guard.AgainstNull(eventStore);
-        _idKeyRepository = Guard.AgainstNull(idKeyRepository);
-        _permissionQuery = Guard.AgainstNull(permissionQuery);
-    }
+        ArgumentNullException.ThrowIfNull(message);
+        ArgumentNullException.ThrowIfNull(eventStore);
+        ArgumentNullException.ThrowIfNull(idKeyRepository);
 
-    public async Task ProcessMessageAsync(IParticipantContext<RequestResponseMessage<RegisterRole, RoleRegistered>> context)
-    {
-        Guard.AgainstNull(context);
+        var key = Role.Key(message.Name, message.TenantId);
 
-        var message = context.Message.Request;
-
-        var permissionIds = new List<Guid>();
-
-        foreach (var permission in message.GetPermissions())
-        {
-            var permissionId = (await _permissionQuery.SearchAsync(new DataAccess.Permission.Specification().AddName(permission.Name))).FirstOrDefault()?.Id;
-
-            if (permissionId.HasValue)
-            {
-                permissionIds.Add(permissionId.Value);
-            }
-            else
-            {
-                message.MissingPermissions();
-                return;
-            }
-        }
-
-        var key = Role.Key(message.Name);
-
-        if (await _idKeyRepository.ContainsAsync(key))
+        if (await idKeyRepository.ContainsAsync(key, cancellationToken))
         {
             return;
         }
 
-        var id = Guid.NewGuid();
+        await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
 
-        await _idKeyRepository.AddAsync(id, key);
+        var stream = (await eventStore.GetAsync(message.Id, cancellationToken)).MustBeEmpty();
+        var aggregate = stream.Get<Role>();
 
-        var role = new Role();
-        var stream = await _eventStore.GetAsync(id);
+        stream.Add(aggregate.Register(message.TenantId, message.Name));
 
-        stream.Add(role.Register(message.Name));
-
-        foreach (var permissionId in permissionIds)
+        foreach (var permissionId in message.PermissionIds)
         {
-            if (!role.HasPermission(permissionId))
+            if (!aggregate.HasPermission(permissionId))
             {
-                stream.Add(role.AddPermission(permissionId));
+                stream.Add(aggregate.AddPermission(permissionId));
             }
         }
 
-        context.Message.WithResponse(new()
-        {
-            Id = id,
-            Name = message.Name,
-            SequenceNumber = await _eventStore.SaveAsync(stream)
-        });
+        await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
     }
 }

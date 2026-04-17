@@ -1,17 +1,20 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Shuttle.Core.Contract;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
 public static class RouteHandlerBuilderExtensions
 {
-    public static RouteHandlerBuilder RequirePermission(this RouteHandlerBuilder builder, string permission)
+    extension(RouteHandlerBuilder builder)
     {
-        return Guard.AgainstNull(builder).WithMetadata(new AccessPermissionRequirement(Guard.AgainstEmpty(permission)));
-    }
+        public RouteHandlerBuilder RequirePermission(string permission)
+        {
+            return Guard.AgainstNull(builder).WithMetadata(new AccessPermissionRequirement(Guard.AgainstEmpty(permission)));
+        }
 
-    public static RouteHandlerBuilder RequireSession(this RouteHandlerBuilder builder)
-    {
-        return Guard.AgainstNull(builder).WithMetadata(new AccessSessionRequirement());
+        public RouteHandlerBuilder RequireSession()
+        {
+            return Guard.AgainstNull(builder).WithMetadata(new AccessSessionRequirement());
+        }
     }
 }

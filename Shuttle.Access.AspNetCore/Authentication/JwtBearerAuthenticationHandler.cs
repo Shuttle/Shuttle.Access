@@ -1,26 +1,27 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Shuttle.Core.Contract;
-using System.Security.Authentication;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-using System.Text.Json;
+using Shuttle.Contract;
 
-namespace Shuttle.Access.AspNetCore.Authentication;
+namespace Shuttle.Access.AspNetCore;
 
-public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory logger, UrlEncoder encoder)
-    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory loggerFactory, UrlEncoder encoder)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Bearer";
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
+    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly IContextSessionService _contextSessionService = Guard.AgainstNull(contextSessionService);
     private readonly IJwtService _jwtService = Guard.AgainstNull(jwtService);
     private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
+    private readonly ILogger _logger = Guard.AgainstNull(loggerFactory).CreateLogger<JwtBearerAuthenticationHandler>();
 
     private async Task<AuthenticateResult> GetContextAuthenticateResultAsync()
     {
@@ -35,7 +36,8 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
-            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
+            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
+            new(HttpContextExtensions.SessionTenantIdClaimType, $"{session.TenantId:D}")
         ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
@@ -43,29 +45,68 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
-        var header = Request.Headers["Authorization"].FirstOrDefault();
+        var authorizationHeader = Request.Headers.Authorization.FirstOrDefault();
+        var tenantIdHeader = Request.Headers["Shuttle-Access-Tenant-Id"].FirstOrDefault();
+        Guid tenantId;
 
-        if (header == null)
+        if (authorizationHeader == null)
         {
             return AuthenticateResult.NoResult();
         }
 
+        if (tenantIdHeader != null)
+        {
+            LogMessage.TenantIdHeader(_logger, "Found 'Shuttle-Access-Tenant-Id' header.", tenantIdHeader);
+
+            if (Guid.TryParse(tenantIdHeader, out var id))
+            {
+                tenantId = id;
+                LogMessage.TenantId(_logger, "Parsed tenant id.", id);
+            }
+            else
+            {
+                var failureMessage = $"Invalid GUID '{tenantIdHeader}' passed as header 'Shuttle-Access-Tenant-Id'.";
+
+                LogMessage.InvalidTenantIdHeader(_logger, failureMessage);
+
+                Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+                await Response.WriteAsJsonAsync(new ProblemDetails
+                {
+                    Type = Type,
+                    Title = "Unauthorized",
+                    Status = StatusCodes.Status401Unauthorized,
+                    Detail = failureMessage
+                });
+
+                return AuthenticateResult.Fail(failureMessage);
+            }
+        }
+        else
+        {
+            tenantId = _accessOptions.SystemTenantId;
+            LogMessage.TenantId(_logger, "No 'Shuttle-Access-Tenant-Id' header found.  Using system tenant id.", tenantId);
+        }
+        
         if (_accessAuthorizationOptions.PassThrough)
         {
+            LogMessage.PassThrough(_logger);
             return await GetContextAuthenticateResultAsync();
         }
 
-        if (!header.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
-            header.Length < 8)
+        if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
+            authorizationHeader.Length < 8)
         {
+            LogMessage.InvalidAuthorizationHeader(_logger, "Bearer");
             return AuthenticateResult.NoResult();
         }
 
-        var token = header[7..];
+        var token = authorizationHeader[7..];
         var identityName = await _jwtService.GetIdentityNameAsync(token);
 
         if (string.IsNullOrWhiteSpace(identityName))
         {
+            LogMessage.IdentityNameClaimNotFound(_logger);
             return AuthenticateResult.Fail(Access.Resources.IdentityNameClaimNotFound);
         }
 
@@ -73,7 +114,9 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
 
         if (!tokenValidationResult.IsValid)
         {
-            var failureMessage = (tokenValidationResult.Exception ?? new AuthenticationException(Access.Resources.InvalidAuthenticationHeader)).Message;
+            LogMessage.InvalidAuthorizationHeader(_logger, "Bearer");
+
+            var failureMessage = tokenValidationResult.Exception?.Message ?? Access.Resources.InvalidAuthorizationHeader;
 
             Response.StatusCode = StatusCodes.Status401Unauthorized;
 
@@ -91,10 +134,11 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
         List<Claim> claims =
         [
             new(ClaimTypes.NameIdentifier, identityName),
-            new(ClaimTypes.Name, identityName)
+            new(ClaimTypes.Name, identityName),
+            new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}")
         ];
 
-        var session = await _sessionService.FindAsync(identityName);
+        var session = await _sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId).WithIdentityName(identityName));
 
         if (session != null)
         {
@@ -123,6 +167,8 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessAuthorizationOptions>
             Status = StatusCodes.Status401Unauthorized,
             Detail = authenticateResult.Failure?.Message
         };
+
+        LogMessage.AuthenticationFailed(_logger, AuthenticationScheme, authenticateResult.Failure?.Message ?? "Unknown authentication failure.");
 
         await Response.WriteAsJsonAsync(problemDetails, (JsonSerializerOptions?)null, "application/problem+json");
     }

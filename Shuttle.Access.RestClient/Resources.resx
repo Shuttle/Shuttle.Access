@@ -125,11 +125,20 @@
     <value>Option `{0}` may not be empty.</value>
     <comment>0 = option name</comment>
   </data>
-  <data name="UnexpectedMultipleSessionsException" xml:space="preserve">
-    <value>More than one session found for {0} '{1}'.</value>
-    <comment>0 = type, 1 = value</comment>
-  </data>
-  <data name="AuthorizationHeaderNotFound" xml:space="preserve">
+  <data name="AuthorizationHeaderException" xml:space="preserve">
     <value>The 'HttpContext' does not contain an 'Authorization' header.</value>
+  </data>
+  <data name="AuthenticationInterceptorException" xml:space="preserve">
+    <value>No 'IAuthenticationInterceptor' has been registered.</value>
+  </data>
+  <data name="TenantIdException" xml:space="preserve">
+    <value>The 'HttpContext' does not contain a 'Shuttle-Access-Tenant-Id' header.</value>
+  </data>
+  <data name="BearerAuthenticationContextException" xml:space="preserve">
+    <value>Could not obtain 'BearerAuthenticationContext'.  You may need to configure the 'BearerAuthenticationProviderOptions.GetBearerAuthenticationContextAsync' function.</value>
+  </data>
+  <data name="SessionResponseException" xml:space="preserve">
+    <value>Could not register the session.  Received a result of '{0}'.</value>
+    <comment>0 = result</comment>
   </data>
 </root>

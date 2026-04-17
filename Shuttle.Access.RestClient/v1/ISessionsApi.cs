@@ -1,21 +1,24 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Refit;
+﻿using Refit;
 
 namespace Shuttle.Access.RestClient.v1;
 
 public interface ISessionsApi
 {
     [Delete("/v1/sessions")]
-    Task<IApiResponse> DeleteAsync();
+    Task<IApiResponse> DeleteAsync(CancellationToken cancellationToken = default);
+
     [Delete("/v1/sessions/self")]
-    Task<IApiResponse> DeleteSelfAsync();
+    Task<IApiResponse> DeleteSelfAsync(CancellationToken cancellationToken = default);
+
     [Get("/v1/sessions/self")]
-    Task<IApiResponse<Messages.v1.Session>> GetSelfAsync();
-    [Post("/v1/sessions/search")]
-    Task<IApiResponse<IEnumerable<Messages.v1.Session>>> PostSearchAsync(Messages.v1.Session.Specification specification);
+    Task<IApiResponse<WebApi.Contracts.v1.Session>> GetSelfAsync(CancellationToken cancellationToken = default);
+
     [Post("/v1/sessions")]
-    Task<IApiResponse<Messages.v1.SessionResponse>> PostAsync(Messages.v1.RegisterSession message);
+    Task<IApiResponse<WebApi.Contracts.v1.SessionResponse>> PostAsync(WebApi.Contracts.v1.RegisterSession message, CancellationToken cancellationToken = default);
+
     [Post("/v1/sessions/delegated")]
-    Task<IApiResponse<Messages.v1.SessionResponse>> PostAsync(Messages.v1.RegisterDelegatedSession message);
+    Task<IApiResponse<WebApi.Contracts.v1.SessionResponse>> PostAsync(WebApi.Contracts.v1.RegisterDelegatedSession message, CancellationToken cancellationToken = default);
+
+    [Post("/v1/sessions/search")]
+    Task<IApiResponse<IEnumerable<WebApi.Contracts.v1.Session>>> PostSearchAsync(WebApi.Contracts.v1.Session.Specification specification, CancellationToken cancellationToken = default);
 }

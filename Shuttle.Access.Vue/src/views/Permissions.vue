@@ -1,7 +1,7 @@
 <template>
   <v-card flat>
     <v-card-title class="sv-card-title">
-      <sv-title :title="$t('permissions')" />
+      <a-title :title="$t('permissions')" />
       <div class="sv-strip">
         <v-btn :icon="mdiRefresh" size="x-small" @click="refresh"></v-btn>
         <v-text-field v-model="search" density="compact" :label="$t('search')" :prepend-inner-icon="mdiMagnify"
@@ -9,12 +9,11 @@
       </div>
     </v-card-title>
     <v-divider></v-divider>
-    <v-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
+    <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
       :loading="busy" show-select v-model="selected">
       <template v-slot:header.action="">
         <div class="flex flex-row items-center gap-2" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
-          <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
-          <v-btn v-if="false" :icon="mdiCodeJson" size="x-small" @click="json"></v-btn>
+          <v-btn-primary :icon="mdiPlus" size="x-small" @click="add"></v-btn-primary>
           <v-btn :icon="mdiUpload" size="x-small" @click="upload"></v-btn>
           <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>
@@ -33,26 +32,26 @@
       </template>
       <template v-slot:item.name="{ item }">
         <div class="flex items-center">
-          <div class="flex-grow">{{ item.name }}</div>
+          <div class="grow">{{ item.name }}</div>
           <v-btn :icon="mdiPencil" size="x-small" @click.stop="rename(item)" class="flex-none" />
         </div>
       </template>
       <template v-slot:item.description="{ item }">
         <div class="flex items-center">
-          <div class="flex-grow">{{ item.description }}</div>
+          <div class="grow">{{ item.description }}</div>
           <v-btn :icon="mdiPencil" size="x-small" @click.stop="description(item)" class="flex-none" />
         </div>
       </template>
-    </v-data-table>
+    </a-data-table>
   </v-card>
-  <sv-form-drawer></sv-form-drawer>
+  <a-drawer></a-drawer>
 </template>
 
 <script setup lang="ts">
 import api from "@/api";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { mdiCodeJson, mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil, mdiDownload, mdiUpload } from '@mdi/js';
+import { mdiMagnify, mdiTimerSand, mdiPlus, mdiRefresh, mdiPencil, mdiDownload, mdiUpload } from '@mdi/js';
 import { useRouter } from "vue-router";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
@@ -69,6 +68,7 @@ const drawerStore = useDrawerStore()
 const busy: Ref<boolean> = ref(false);
 const search: Ref<string> = ref('')
 const selected: Ref<string[]> = ref([])
+let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
 type PermissionItem = Permission & {
   working: boolean;
@@ -102,9 +102,6 @@ const headers = useSecureTableHeaders([
     value: "name",
   },
   {
-    headerProps: {
-      class: "w-96",
-    },
     title: t("description"),
     value: "description",
   },
@@ -148,7 +145,7 @@ const getWorkingPermissions = async () => {
       permission.working = permission.status !== item.status;
     });
   } finally {
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
       getWorkingPermissions();
     }, 1000);
   }
@@ -184,10 +181,6 @@ const add = () => {
   router.push({ name: "permission" })
 }
 
-const json = () => {
-  router.push({ name: "permission-json" })
-}
-
 const upload = () => {
   router.push({ name: "permission-upload" })
 }
@@ -205,7 +198,7 @@ const download = async () => {
     return;
   }
 
-  const response = await api.post("v1/permissions/bulk-download", selected.value, { responseType: 'blob' });
+  const response = await api.post("v1/permissions/download", selected.value, { responseType: 'blob' });
 
   const blob = new Blob([response.data], { type: 'application/json' });
   const url = window.URL.createObjectURL(blob);
@@ -225,4 +218,11 @@ onMounted(() => {
     parentPath: '/permissions',
   })
 })
+
+onBeforeUnmount(() => {
+  if (timeoutId) {
+    clearTimeout(timeoutId);
+    timeoutId = undefined;
+  }
+});
 </script>

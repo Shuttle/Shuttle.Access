@@ -1,14 +1,14 @@
-delete from [dbo].[PrimitiveEvent]
-delete from [dbo].[EventType]
-delete from [dbo].[IdKey]
+/*
+delete from [access].[PrimitiveEvent]
+delete from [access].[EventType]
+delete from [access].[IdKey]
+*/
 
-delete from [dbo].[Projection]
-delete from [dbo].[ProjectionJournal]
-
-delete from [dbo].[Session]
-delete from [dbo].[SessionPermission]
-delete from [dbo].[Role]
-delete from [dbo].[RolePermission]
-delete from [dbo].[Identity]
-delete from [dbo].[IdentityRole]
-delete from [dbo].[Permission]
+delete from [access].[Projection]
+delete from [access].[SessionPermission]
+delete from [access].[Session]
+delete from [access].[RolePermission]
+delete from [access].[Role]
+delete from [access].[IdentityRole]
+delete from [access].[Identity]
+delete from [access].[Permission]
