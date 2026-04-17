@@ -38,18 +38,20 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
     {
         Guard.AgainstNull(message);
 
+        var systemTenantId = accessOptions.Value.SystemTenantId;
+
         foreach (var permission in _permissions)
         {
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
             if (await permissionQuery.ContainsAsync(new Query.Permission.Specification().AddName(permission), cancellationToken))
             {
                 continue;
             }
 
+            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
             logger.LogDebug($"Registering permission '{permission}'.");
 
-            var registerPermissionMessage = new RegisterPermission(Guid.NewGuid(), permission, string.Empty, PermissionStatus.Active, accessOptions.Value.SystemTenantId, "system");
+            var registerPermissionMessage = new RegisterPermission(Guid.NewGuid(), permission, string.Empty, PermissionStatus.Active, systemTenantId, "system");
 
             await mediator.SendAsync(registerPermissionMessage, cancellationToken);
 
@@ -84,25 +86,26 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
          * System Tenant
          */
         var tenantSpecification = new Query.Tenant.Specification()
-            .AddId(accessOptions.Value.SystemTenantId);
+            .AddId(systemTenantId);
 
         var systemTenantExists = await tenantQuery.CountAsync(tenantSpecification, cancellationToken) > 0;
 
         if (systemTenantExists)
         {
-            logger.LogInformation("Found system tenant '{SystemTenantName}' with id '{SystemTenantId}'.", accessOptions.Value.SystemTenantName, accessOptions.Value.SystemTenantId);
+            logger.LogInformation("Found system tenant '{SystemTenantName}' with id '{SystemTenantId}'.", accessOptions.Value.SystemTenantName, systemTenantId);
         }
         else
         {
-            logger.LogInformation("Registering system tenant '{SystemTenantName}' with id '{SystemTenantId}'.", accessOptions.Value.SystemTenantName, accessOptions.Value.SystemTenantId);
+            logger.LogInformation("Registering system tenant '{SystemTenantName}' with id '{SystemTenantId}'.", accessOptions.Value.SystemTenantName, systemTenantId);
 
-            using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-            
-            var registerTenant = new RegisterTenant(accessOptions.Value.SystemTenantId, accessOptions.Value.SystemTenantName, TenantStatus.Active, accessOptions.Value.SystemTenantId, "system");
+            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+            {
+                var registerTenant = new RegisterTenant(systemTenantId, accessOptions.Value.SystemTenantName, TenantStatus.Active, systemTenantId, "system");
 
-            await mediator.SendAsync(registerTenant, cancellationToken);
+                await mediator.SendAsync(registerTenant, cancellationToken);
 
-            scope.Complete();
+                scope.Complete();
+            }
 
             timeout = DateTimeOffset.Now.Add(message.Timeout);
 
@@ -119,10 +122,9 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
         /*
          * Administrator Role
-         *
          */
         var roleSpecification = new Query.Role.Specification()
-            .WithTenantId(accessOptions.Value.SystemTenantId)
+            .WithTenantId(systemTenantId)
             .AddName("Access Administrator");
 
         var administratorRole = (await roleQuery.SearchAsync(roleSpecification, cancellationToken)).FirstOrDefault();
@@ -144,7 +146,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-            await mediator.SendAsync(new RegisterRole(Guid.NewGuid(), accessOptions.Value.SystemTenantId, "Access Administrator", accessOptions.Value.SystemTenantId, "system").AddPermissionId(administratorPermission.Id), cancellationToken);
+            await mediator.SendAsync(new RegisterRole(Guid.NewGuid(), systemTenantId, "Access Administrator", systemTenantId, "system").AddPermissionId(administratorPermission.Id), cancellationToken);
 
             scope.Complete();
 
@@ -170,12 +172,16 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
             throw new ApplicationException(Resources.AdministratorRoleException);
         }
 
-        if (await identityQuery.CountAsync(new Query.Identity.Specification().WithRoleName("Access Administrator"), cancellationToken) == 0)
-        {
-            var registerIdentityMessage = new RegisterIdentity(Guid.NewGuid(), message.AdministratorIdentityName, string.Empty, string.Empty, hashingService.Sha256(message.AdministratorPassword), "system://access", true, accessOptions.Value.SystemTenantId, "system")
-                .AddRoleId(administratorRole.Id);
+        logger.LogDebug($"Registering system administrator with identity name '{message.AdministratorIdentityName}'.");
 
-            await mediator.SendAsync(registerIdentityMessage, cancellationToken);
-        }
+        return;
+
+        var systemAdministrator = (await identityQuery.SearchAsync(new Query.Identity.Specification().WithName(message.AdministratorIdentityName), cancellationToken)).FirstOrDefault();
+
+        var registerIdentityMessage = new RegisterIdentity(systemAdministrator?.Id ?? Guid.NewGuid(), message.AdministratorIdentityName, string.Empty, string.Empty, hashingService.Sha256(message.AdministratorPassword), "system://access", true, systemTenantId, "system")
+            .AddTenantId(systemTenantId)
+            .AddRoleId(administratorRole.Id);
+
+        await mediator.SendAsync(registerIdentityMessage, cancellationToken);
     }
 }

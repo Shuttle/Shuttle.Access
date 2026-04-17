@@ -20,9 +20,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.5" />
-    <PackageReference Include="Shuttle.Recall" Version="21.0.2-rc3" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.2-rc3" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.2-rc3" />
+    <PackageReference Include="Shuttle.Recall" Version="21.0.3" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.3" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,7 +31,7 @@
 
   <PropertyGroup>
     <Description>Provides a Sql Server implementation of the data access components used by Shuttle.Access.</Description>
-    <Version>9.0.0-rc9.1</Version>
+    <Version>9.0.1</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

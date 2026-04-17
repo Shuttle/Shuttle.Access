@@ -61,7 +61,8 @@ internal class Program
                 services
                     .AddSingleton<IConfiguration>(configuration)
                     .AddSingleton<IKeepAliveContext, KeepAliveContext>()
-                    .AddSingleton(configuration.GetSection(ServerOptions.SectionName).Get<ServerOptions>() ?? new ServerOptions())
+                    .AddOptions<ServerOptions>().Bind(configuration.GetSection(ServerOptions.SectionName))
+                    .Services
                     .AddAccess()
                     .UseSqlServer(options =>
                     {
@@ -115,7 +116,10 @@ internal class Program
                         options.Schema = "access";
                     })
                     .RegisterPrimitiveEventSequencing()
-                    .UseSqlServerEventProcessing()
+                    .UseSqlServerEventProcessing(options =>
+                    {
+                        configuration.GetSection(SqlServerEventProcessingOptions.SectionName).Bind(options);
+                    })
                     .AddProjection<IdentityHandler>(ProjectionNames.Identity)
                     .AddProjection<PermissionHandler>(ProjectionNames.Permission)
                     .AddProjection<RoleHandler>(ProjectionNames.Role)

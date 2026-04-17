@@ -15,45 +15,64 @@ public class RegisterIdentityParticipant(IEventStore eventStore, IIdKeyRepositor
 
         var key = Identity.Key(message.Name);
 
-        if (await idKeyRepository.ContainsAsync(key, cancellationToken))
+        EventStream stream;
+        Identity aggregate;
+
+        if (!await idKeyRepository.ContainsAsync(key, cancellationToken))
         {
-            return;
-        }
+            await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
 
-        await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
+            stream = (await eventStore.GetAsync(message.Id, cancellationToken)).MustBeEmpty();
+            aggregate = stream.Get<Identity>();
 
-        var stream = (await eventStore.GetAsync(message.Id, cancellationToken)).MustBeEmpty();
-        var aggregate = stream.Get<Identity>();
+            var registered = aggregate.Register(message.Name, message.Description, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
 
-        var registered = aggregate.Register(message.Name, message.Description, message.PasswordHash, message.RegisteredBy, message.GeneratedPassword, message.Activated);
-
-        stream.Add(registered);
-
-        if (message.Activated)
-        {
-            stream.Add(aggregate.Activate(registered.DateRegistered));
-        }
-
-        if (message.HasTenantIds)
-        {
-            foreach (var tenantId in message.TenantIds)
-            {
-                stream.Add(aggregate.AddTenant(tenantId));
-            }
+            stream.Add(registered);
         }
         else
+        {
+            stream = (await eventStore.GetAsync(message.Id, cancellationToken));
+            aggregate = stream.Get<Identity>();
+        }
+
+        if (message.Activated && !aggregate.Activated)
+        {
+            stream.Add(aggregate.Activate(DateTimeOffset.UtcNow));
+        }
+
+        if (!message.HasTenantIds)
         {
             var specification = new Query.Tenant.Specification().IncludeActiveOnly();
 
             if (await tenantQuery.CountAsync(specification, cancellationToken) == 1)
             {
-                stream.Add(aggregate.AddTenant((await tenantQuery.SearchAsync(specification, cancellationToken)).First().Id));
+                message.AddTenantId((await tenantQuery.SearchAsync(specification, cancellationToken)).First().Id);
             }
+        }
+
+        foreach (var tenantId in message.TenantIds)
+        {
+            if (aggregate.IsInTenant(tenantId))
+            {
+                continue;
+            }
+
+            stream.Add(aggregate.AddTenant(tenantId));
         }
 
         foreach (var roleId in message.RoleIds)
         {
+            if (aggregate.IsInRole(roleId))
+            {
+                continue;
+            }
+
             stream.Add(aggregate.AddRole(roleId));
+        }
+
+        if (!stream.ShouldSave())
+        {
+            return;
         }
 
         await eventStore.SaveAsync(stream, cancellationToken);

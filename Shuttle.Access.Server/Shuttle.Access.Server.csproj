@@ -11,13 +11,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
-    <PackageReference Include="Shuttle.Mediator" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Pipelines" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Hopper" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.1-rc3" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.2-rc3" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.2-rc3" />
+    <PackageReference Include="Shuttle.Mediator" Version="21.0.1" />
+    <PackageReference Include="Shuttle.Pipelines" Version="21.0.2" />
+    <PackageReference Include="Shuttle.Hopper" Version="21.0.2" />
+    <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="21.0.2" />
+    <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="21.0.2" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.3" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.3" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
