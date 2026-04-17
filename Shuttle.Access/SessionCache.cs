@@ -4,6 +4,7 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
 {
     private readonly Lock _lock = new();
     private readonly List<SessionEntry> _sessionEntries = [];
+    private readonly object _lock = new();
 
     private Query.Session? ActiveSessionOnly(Query.Session? session)
     {
