@@ -174,8 +174,6 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
         logger.LogDebug($"Registering system administrator with identity name '{message.AdministratorIdentityName}'.");
 
-        return;
-
         var systemAdministrator = (await identityQuery.SearchAsync(new Query.Identity.Specification().WithName(message.AdministratorIdentityName), cancellationToken)).FirstOrDefault();
 
         var registerIdentityMessage = new RegisterIdentity(systemAdministrator?.Id ?? Guid.NewGuid(), message.AdministratorIdentityName, string.Empty, string.Empty, hashingService.Sha256(message.AdministratorPassword), "system://access", true, systemTenantId, "system")
