@@ -232,6 +232,11 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
             return;
         }
 
+        if (await _accessDbContext.IdentityTenants.FirstOrDefaultAsync(item => item.IdentityId == context.PrimitiveEvent.Id && item.TenantId == context.Event.TenantId, cancellationToken: cancellationToken) != null)
+        {
+            return;
+        }
+
         _accessDbContext.IdentityTenants.Add(new()
         {
             IdentityId = context.PrimitiveEvent.Id,

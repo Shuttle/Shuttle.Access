@@ -126,7 +126,7 @@ internal class Program
                     .AddProjection<TenantHandler>(ProjectionNames.Tenant)
                     .Services
                     .AddMediator()
-                    .AddParticipantsFrom(typeof(ConfigureApplication).Assembly)
+                    .AddParticipantsFrom(typeof(RegisterSession).Assembly)
                     .Services
                     .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
                     .AddSingleton<IHashingService, HashingService>()

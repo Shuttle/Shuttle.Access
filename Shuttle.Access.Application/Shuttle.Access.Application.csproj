@@ -11,6 +11,7 @@
     <PackageReference Include="Shuttle.Mediator" Version="21.0.1" />
     <PackageReference Include="Shuttle.Hopper" Version="21.0.2" />
     <PackageReference Include="Shuttle.Recall" Version="21.0.3" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="21.0.3" />
     <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="21.0.3" />
   </ItemGroup>
 
@@ -31,7 +32,7 @@
 
   <PropertyGroup>
     <Description>Application concern implementations such as Shuttle.Mediator participants.</Description>
-    <Version>9.0.3</Version>
+    <Version>9.0.4</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

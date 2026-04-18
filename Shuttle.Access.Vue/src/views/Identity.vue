@@ -75,7 +75,6 @@ const submit = async () => {
       name: state.identityName,
       description: state.description,
       password: state.password,
-      system: "system://access",
       activated: true
     });
 

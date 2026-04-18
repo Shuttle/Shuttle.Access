@@ -40,24 +40,18 @@ public static class AccessClientBuilderExtensions
             return accessClientBuilder;
         }
 
-        public AccessClientBuilder UsePasswordAuthenticationProvider(Action<PasswordAuthenticationInterceptorBuilder>? builder = null)
+        public AccessClientBuilder UsePasswordAuthenticationProvider(Action<PasswordAuthenticationInterceptorOptions>? configureOptions = null)
         {
             var services = Guard.AgainstNull(accessClientBuilder).Services;
 
             services.AddHttpClient<IAuthenticationInterceptor, PasswordAuthenticationInterceptor>("PasswordAuthenticationProvider");
 
-            var passwordAuthenticationProviderBuilder = new PasswordAuthenticationInterceptorBuilder(accessClientBuilder.Services);
+            services.Configure<PasswordAuthenticationInterceptorOptions>(options =>
+            {
+                configureOptions?.Invoke(options);
+            });
 
-            builder?.Invoke(passwordAuthenticationProviderBuilder);
-
-            passwordAuthenticationProviderBuilder.Services
-                .Configure<PasswordAuthenticationInterceptorOptions>(options =>
-                {
-                    options.IdentityName = passwordAuthenticationProviderBuilder.Options.IdentityName;
-                    options.Password = passwordAuthenticationProviderBuilder.Options.Password;
-                });
-
-            passwordAuthenticationProviderBuilder.Services.AddSingleton<IValidateOptions<PasswordAuthenticationInterceptorOptions>, PasswordAuthenticationInterceptorOptionsValidator>();
+            services.AddSingleton<IValidateOptions<PasswordAuthenticationInterceptorOptions>, PasswordAuthenticationInterceptorOptionsValidator>();
 
             services.AddOptions<AccessClientOptions>().Configure(options =>
             {

@@ -1,13 +1,20 @@
-﻿using System.Transactions;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Contract;
+using Shuttle.Hopper;
 using Shuttle.Mediator;
+using System.Transactions;
+using Shuttle.Access.Application;
+using RegisterIdentity = Shuttle.Access.Application.RegisterIdentity;
+using RegisterPermission = Shuttle.Access.Application.RegisterPermission;
+using RegisterRole = Shuttle.Access.Application.RegisterRole;
+using RegisterTenant = Shuttle.Access.Application.RegisterTenant;
 
-namespace Shuttle.Access.Application;
+namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationParticipant> logger, IOptions<AccessOptions> accessOptions, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, IHashingService hashingService)
-    : IParticipant<ConfigureApplication>
+public class ConfigureApplicationHandler(ILogger<ConfigureApplicationHandler> logger, IOptions<ServerOptions> serverOptions, IOptions<AccessOptions> accessOptions, IMediator mediator, ITenantQuery tenantQuery, IRoleQuery roleQuery, IPermissionQuery permissionQuery, IIdentityQuery identityQuery, IHashingService hashingService, IBus bus)
+    : IContextMessageHandler<ConfigureApplication>
 {
     private readonly List<string> _permissions =
     [
@@ -34,9 +41,29 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
         AccessPermissions.Tenants.Manage
     ];
 
-    public async Task HandleAsync(ConfigureApplication message, CancellationToken cancellationToken = default)
+    public async Task HandleAsync(IHandlerContext<ConfigureApplication> context, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        Guard.AgainstNull(context);
+
+        var transportMessage  = Guard.AgainstNull( context.State.GetTransportMessage());
+
+        if (transportMessage.SentAt < (DateTimeOffset.UtcNow - TimeSpan.FromSeconds(30)))
+        {
+            logger.LogWarning($"Message 'ConfigureApplication' was sent at '{transportMessage.SentAt}'.  The message is too old and has been ignored.  Another message may have been sent at server startup; else re-start the server.");
+            return;
+        }
+
+        var message = context.Message;
+
+        var getEventSourcingCounts = new GetEventSourcingCounts();
+
+        await mediator.SendAsync(getEventSourcingCounts, cancellationToken);
+
+        if (getEventSourcingCounts.HasUnsequencedPrimitiveEvents || getEventSourcingCounts.HasWaitingProjections)
+        {
+            await bus.SendAsync(message, builder => builder.ToSelf().DeferFor(TimeSpan.FromSeconds(5)), cancellationToken);
+            return;
+        }
 
         var systemTenantId = accessOptions.Value.SystemTenantId;
 
@@ -65,7 +92,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
             permissionSpecification.AddName(permission);
         }
 
-        var timeout = DateTimeOffset.Now.Add(message.Timeout);
+        var timeout = DateTimeOffset.Now.Add(serverOptions.Value.Timeout);
 
         while (await permissionQuery.CountAsync(permissionSpecification, cancellationToken) != _permissions.Count && DateTimeOffset.Now < timeout)
         {
@@ -74,12 +101,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
         if (await permissionQuery.CountAsync(permissionSpecification, cancellationToken) != _permissions.Count)
         {
-            throw new ApplicationException(Resources.PermissionsException);
-        }
-
-        if (!message.ShouldConfigure)
-        {
-            return;
+            throw new ApplicationException(Application.Resources.PermissionsException);
         }
 
         /*
@@ -107,7 +129,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
                 scope.Complete();
             }
 
-            timeout = DateTimeOffset.Now.Add(message.Timeout);
+            timeout = DateTimeOffset.Now.Add(serverOptions.Value.Timeout);
 
             while (await tenantQuery.CountAsync(tenantSpecification, cancellationToken) == 0 && DateTimeOffset.Now < timeout)
             {
@@ -116,7 +138,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
             if (await tenantQuery.CountAsync(tenantSpecification, cancellationToken) == 0)
             {
-                throw new ApplicationException(Resources.SystemTenantException);
+                throw new ApplicationException(Application.Resources.SystemTenantException);
             }
         }
 
@@ -141,7 +163,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
             if (administratorPermission == null)
             {
-                throw new ApplicationException(Resources.AdministratorPermissionException);
+                throw new ApplicationException(Application.Resources.AdministratorPermissionException);
             }
 
             using var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
@@ -150,7 +172,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
             scope.Complete();
 
-            timeout = DateTimeOffset.Now.Add(message.Timeout);
+            timeout = DateTimeOffset.Now.Add(serverOptions.Value.Timeout);
 
             while (await roleQuery.CountAsync(roleSpecification, cancellationToken) == 0 && DateTimeOffset.Now < timeout)
             {
@@ -161,7 +183,7 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
             if (administratorRole == null)
             {
-                throw new ApplicationException(Resources.AdministratorRoleException);
+                throw new ApplicationException(Application.Resources.AdministratorRoleException);
             }
         }
 
@@ -169,16 +191,16 @@ public class ConfigureApplicationParticipant(ILogger<ConfigureApplicationPartici
 
         if (role == null)
         {
-            throw new ApplicationException(Resources.AdministratorRoleException);
+            throw new ApplicationException(Application.Resources.AdministratorRoleException);
         }
 
-        logger.LogDebug($"Registering system administrator with identity name '{message.AdministratorIdentityName}'.");
+        logger.LogDebug($"Registering system administrator with identity name '{accessOptions.Value.SystemAdministratorIdentityName}'.");
 
         var systemAdministrator = (await identityQuery.SearchAsync(new Query.Identity.Specification()
             .WithTenantId(systemTenantId)
-            .WithName(message.AdministratorIdentityName), cancellationToken)).FirstOrDefault();
+            .WithName(accessOptions.Value.SystemAdministratorIdentityName), cancellationToken)).FirstOrDefault();
 
-        var registerIdentityMessage = new RegisterIdentity(systemAdministrator?.Id ?? Guid.NewGuid(), message.AdministratorIdentityName, string.Empty, string.Empty, hashingService.Sha256(message.AdministratorPassword), "system://access", true, systemTenantId, "system")
+        var registerIdentityMessage = new RegisterIdentity(systemAdministrator?.Id ?? Guid.NewGuid(), accessOptions.Value.SystemAdministratorIdentityName, string.Empty, string.Empty, hashingService.Sha256(accessOptions.Value.SystemAdministratorPassword), "system://access", true, systemTenantId, "system")
             .AddTenantId(systemTenantId)
             .AddRoleId(administratorRole.Id);
 

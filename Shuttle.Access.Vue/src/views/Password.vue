@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="change" class="sv-form px-5 pt-20" :class="getClasses()">
+  <form @submit.prevent="change" class="sv-form" :class="getClasses()">
     <a-title :title="$t('change-password')" :close-path="getClosePath()" :type="getTitleType()" />
     <v-text-field :prepend-icon="`svg:${mdiAccountOutline}`" v-model="state.identityName" :label="$t('identity-name')"
       class="mb-2" :error-messages="validation.message('identityName')" readonly>
@@ -96,7 +96,7 @@ const change = async () => {
   busy.value = true;
 
   try {
-    await api.put<ChangePassword>("v1/identities/password", {
+    await api.patch<ChangePassword>("v1/identities/password", {
       id: props.id === "token" ? undefined : props.id,
       token: props.id === "token" ? sessionStore.token : undefined,
       newPassword: state.password

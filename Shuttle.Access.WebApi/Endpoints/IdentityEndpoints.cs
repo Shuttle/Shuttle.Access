@@ -120,7 +120,7 @@ public static class IdentityEndpoints
         return Results.Ok(from tenantId in identifiers.Values select new IdentifierAvailability<Guid> { Id = tenantId, Active = tenants.Any(item => item.Equals(tenantId)) });
     }
 
-    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, IBus bus, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, [FromBody] Contracts.v1.RegisterIdentity message, CancellationToken cancellationToken)
+    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, IBus bus, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, IHashingService hashingService, [FromBody] Contracts.v1.RegisterIdentity message, CancellationToken cancellationToken)
     {
         Guard.AgainstNull(message);
 
@@ -186,7 +186,7 @@ public static class IdentityEndpoints
             }
         }
 
-        await bus.SendAsync(new Messages.v1.RegisterIdentity
+        var registerIdentity = new Messages.v1.RegisterIdentity
         {
             Id = Guid.NewGuid(),
             Name = message.Name,
@@ -197,7 +197,14 @@ public static class IdentityEndpoints
             Activated = true,
             RoleIds = roleIds,
             TenantIds = tenantIds
-        }, cancellationToken);
+        };
+
+        if (!string.IsNullOrWhiteSpace(message.Password))
+        {
+            registerIdentity.PasswordHash = hashingService.Sha256(message.Password);
+        }
+
+        await bus.SendAsync(registerIdentity, cancellationToken);
 
         return Results.Accepted();
     }
