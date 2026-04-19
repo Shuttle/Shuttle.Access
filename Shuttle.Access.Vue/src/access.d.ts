@@ -103,6 +103,8 @@ export type Identity = {
 export type IdentityRole = {
   id: string;
   name: string;
+  tenantId: string;
+  tenantName: string;
 };
 
 export type IdentitySpecification = {
@@ -166,6 +168,15 @@ export type RegisterPermission = {
   name: string;
   description: string;
   status: number;
+};
+
+export type RegisterTenant = {
+  id?: string;
+  name: string;
+  logoSvg?: string;
+  logoUrl?: string;
+  status: number;
+  administratorIdentityName?: string;
 };
 
 export type ServerConfiguration = {

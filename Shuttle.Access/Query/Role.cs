@@ -5,6 +5,7 @@ namespace Shuttle.Access.Query;
 public class Role
 {
     public Guid TenantId { get; set; }
+    public string TenantName { get; set; } = string.Empty;
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
 

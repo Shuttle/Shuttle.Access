@@ -13,16 +13,27 @@ public class RegisterTenantParticipant(IEventStore eventStore, IIdKeyRepository 
         ArgumentNullException.ThrowIfNull(idKeyRepository);
 
         var key = Tenant.Key(message.Name);
+        var id = await idKeyRepository.FindAsync(key, cancellationToken);
 
-        if (await idKeyRepository.ContainsAsync(key, cancellationToken))
+        if (!id.HasValue)
+        {
+            await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
+        }
+        else
+        {
+            if (!id.Value.Equals(message.Id))
+            {
+                throw new ApplicationException($"There is already a tenant key '{key}' which is associated with id '{id.Value}'.");
+            }
+        }
+        
+        var stream = await eventStore.GetAsync(message.Id, cancellationToken);
+        var aggregate = stream.Get<Tenant>();
+
+        if (!string.IsNullOrWhiteSpace(aggregate.Name))
         {
             return;
         }
-
-        await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
-
-        var stream = (await eventStore.GetAsync(message.Id, cancellationToken)).MustBeEmpty();
-        var aggregate = stream.Get<Tenant>();
 
         stream.Add(aggregate.Register(message.Name, (int)message.Status, message.LogoSvg, message.LogoUrl));
 

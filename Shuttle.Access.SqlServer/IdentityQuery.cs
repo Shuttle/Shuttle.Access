@@ -81,6 +81,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
                     Id = item.RoleId,
                     Name = item.Role.Name,
                     TenantId = item.Role.TenantId,
+                    TenantName = item.Role.Tenant.Name,
                     Permissions = specification.ShouldIncludePermissions
                         ? item.Role.RolePermissions.Select(rp => new Query.Permission
                         {
@@ -104,7 +105,9 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             : queryable;
 
         queryable = identitySpecification is { ShouldIncludeRoles: true, ShouldIncludePermissions: false }
-            ? queryable.Include(item => item.IdentityRoles).ThenInclude(item => item.Role)
+            ? queryable.Include(item => item.IdentityRoles)
+                .ThenInclude(item => item.Role)
+                .ThenInclude(item => item.Tenant)
             : queryable;
 
         queryable = identitySpecification.ShouldIncludePermissions

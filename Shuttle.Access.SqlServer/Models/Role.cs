@@ -21,4 +21,7 @@ public class Role
     
     public ICollection<RolePermission> RolePermissions { get; set; } = [];
     public ICollection<IdentityRole> IdentityRoles { get; set; } = [];
+
+    [ForeignKey(nameof(TenantId))]
+    public Tenant Tenant { get; set; } = null!;
 }

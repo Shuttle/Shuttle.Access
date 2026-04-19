@@ -27,14 +27,13 @@ import { useValidation } from "@/composables/Validation"
 import api from "@/api";
 import { useDrawerStore } from "@/stores/drawer";
 import { useSnackbarStore } from "@/stores/snackbar";
-import type { Tenant } from "@/access";
+import type { RegisterTenant } from "@/access";
 
 const drawerStore = useDrawerStore()
 
 const busy: Ref<boolean> = ref(false);
 
-const state: Reactive<Tenant> = reactive({
-  id: "",
+const state: Reactive<RegisterTenant> = reactive({
   name: "",
   logoSvg: "",
   logoUrl: "",

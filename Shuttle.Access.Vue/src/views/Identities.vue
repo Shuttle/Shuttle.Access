@@ -50,7 +50,7 @@
               <v-divider></v-divider>
               <v-tabs-window v-model="item.tab">
                 <v-tabs-window-item value="roles">
-                  <a-data-table :items="item.roles" :headers="roleHeaders" hide-default-header>
+                  <a-data-table :items="item.roles" :headers="roleHeaders">
                   </a-data-table>
                 </v-tabs-window-item>
                 <v-tabs-window-item value="tenants">
@@ -142,6 +142,10 @@ const roleHeaders = useSecureTableHeaders([
   {
     title: t("role"),
     value: "name"
+  },
+  {
+    title: t("tenant"),
+    value: "tenantName"
   },
 ]);
 

@@ -1,14 +1,11 @@
 ﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Contract;
-using Shuttle.Mediator;
 using Shuttle.Hopper;
-using Shuttle.Recall;
+using Shuttle.Mediator;
 using Shuttle.Recall.SqlServer.Storage;
-using RoleRegistered = Shuttle.Access.Messages.v2.RoleRegistered;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class RegisterRoleHandler(IBus bus, IMediator mediator, IPermissionQuery permissionQuery)
+public class RegisterRoleHandler(IBus bus, IMediator mediator, IPermissionQuery permissionQuery, IIdKeyRepository idKeyRepository)
     : IMessageHandler<RegisterRole>
 {
     public async Task HandleAsync(RegisterRole message, CancellationToken cancellationToken = default)
@@ -17,6 +14,7 @@ public class RegisterRoleHandler(IBus bus, IMediator mediator, IPermissionQuery 
         ArgumentNullException.ThrowIfNull(bus);
         ArgumentNullException.ThrowIfNull(mediator);
         ArgumentNullException.ThrowIfNull(permissionQuery);
+        ArgumentNullException.ThrowIfNull(idKeyRepository);
 
         var permissionIds = new List<Guid>();
 
@@ -41,6 +39,15 @@ public class RegisterRoleHandler(IBus bus, IMediator mediator, IPermissionQuery 
                 return;
             }
         }
+
+        var key = Role.Key(message.Name, message.TenantId);
+
+        if (await idKeyRepository.ContainsAsync(key, cancellationToken))
+        {
+            return;
+        }
+
+        await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
 
         var registerRole = new Application.RegisterRole(message.Id, message.TenantId, message.Name, message.AuditTenantId, message.AuditIdentityName);
 

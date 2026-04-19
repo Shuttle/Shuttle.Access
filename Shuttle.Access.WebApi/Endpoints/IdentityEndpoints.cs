@@ -8,13 +8,78 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
-using Shuttle.Mediator;
 using Shuttle.Hopper;
+using Shuttle.Mediator;
+using ActivateIdentity = Shuttle.Access.WebApi.Contracts.v1.ActivateIdentity;
+using ChangePassword = Shuttle.Access.WebApi.Contracts.v1.ChangePassword;
+using RegisterIdentity = Shuttle.Access.WebApi.Contracts.v1.RegisterIdentity;
+using ResetPassword = Shuttle.Access.WebApi.Contracts.v1.ResetPassword;
 
 namespace Shuttle.Access.WebApi;
 
 public static class IdentityEndpoints
 {
+    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, IBus bus)
+    {
+        await bus.SendAsync(sessionContext.Audit(new RemoveIdentity { Id = id }));
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> Get(IIdentityQuery identityQuery, string value)
+    {
+        var specification = new Query.Identity.Specification().IncludeRoles();
+
+        if (Guid.TryParse(value, out var id))
+        {
+            specification.AddId(id);
+        }
+        else
+        {
+            specification.WithName(value);
+        }
+
+        var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
+
+        return identity != null
+            ? Results.Ok(identity)
+            : Results.BadRequest();
+    }
+
+    private static async Task<IResult> GetPasswordResetToken(IMediator mediator, Guid id)
+    {
+        var message = new GetPasswordResetToken(id);
+
+        await mediator.SendAsync(message);
+
+        return Results.Ok(message.PasswordResetToken);
+    }
+
+    private static Contracts.v1.Identity Map(Query.Identity identity)
+    {
+        return new()
+        {
+            Id = identity.Id,
+            Name = identity.Name,
+            Description = identity.Description,
+            DateRegistered = identity.DateRegistered,
+            DateActivated = identity.DateActivated,
+            RegisteredBy = identity.RegisteredBy,
+            Roles = identity.Roles.Select(item => new Contracts.v1.Identity.Role
+            {
+                Id = item.Id,
+                Name = item.Name,
+                TenantId = item.TenantId,
+                TenantName = item.TenantName
+            }).OrderBy(item => item.Name).ThenBy(item => item.TenantName).ToList(),
+            Tenants = identity.Tenants.Select(item => new Contracts.v1.Identity.Tenant
+            {
+                Id = item.Id,
+                Name = item.Name
+            }).OrderBy(item => item.Name).ToList()
+        };
+    }
+
     public static WebApplication MapIdentityEndpoints(this WebApplication app, ApiVersionSet versionSet)
     {
         var apiVersion1 = new ApiVersion(1, 0);
@@ -31,7 +96,7 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.Register);
 
-        app.MapPost("/v{version:apiVersion}/identities/search", Search)
+        app.MapPost("/v{version:apiVersion}/identities/search", PostSearch)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -106,21 +171,125 @@ public static class IdentityEndpoints
         return app;
     }
 
-    private static async Task<IResult> PostRoleAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
+    private static async Task<IResult> PatchActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
     {
-        var roles = (await identityQuery.RoleIdsAsync(new Query.Identity.Specification().AddId(id))).ToList();
+        var specification = new Query.Identity.Specification();
 
-        return Results.Ok(from roleId in identifiers.Values select new IdentifierAvailability<Guid> { Id = roleId, Active = roles.Any(item => item.Equals(roleId)) });
+        if (message.Id.HasValue)
+        {
+            specification.AddId(message.Id.Value);
+        }
+        else
+        {
+            specification.WithName(message.Name);
+        }
+
+        var query = (await identityQuery.SearchAsync(specification)).FirstOrDefault();
+
+        if (query == null)
+        {
+            return Results.BadRequest();
+        }
+
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.ActivateIdentity
+        {
+            Id = message.Id,
+            Name = message.Name
+        }));
+
+        return Results.Accepted();
     }
 
-    private static async Task<IResult> PostTenantAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetDescription message, ISessionContext sessionContext, IBus bus)
     {
-        var tenants = (await identityQuery.TenantIdsAsync(new Query.Identity.Specification().AddId(id))).ToList();
+        await bus.SendAsync(sessionContext.Audit(new SetIdentityDescription
+        {
+            Id = id,
+            Description = message.Description
+        }));
 
-        return Results.Ok(from tenantId in identifiers.Values select new IdentifierAvailability<Guid> { Id = tenantId, Active = tenants.Any(item => item.Equals(tenantId)) });
+        return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, IBus bus, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, IHashingService hashingService, [FromBody] Contracts.v1.RegisterIdentity message, CancellationToken cancellationToken)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, IBus bus)
+    {
+        await bus.SendAsync(sessionContext.Audit(new SetIdentityName
+        {
+            Id = id,
+            Name = message.Name
+        }));
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator)
+    {
+        if (sessionContext.Session == null || (message.Id.HasValue && !(sessionContext.Session?.HasPermission(AccessPermissions.Identities.Register) ?? false)))
+        {
+            return Results.Unauthorized();
+        }
+
+        if (!message.Id.HasValue && !message.Token.HasValue)
+        {
+            return Results.BadRequest();
+        }
+
+        await mediator.SendAsync(message.Id.HasValue
+            ? Application.ChangePassword.UseId(message.Id.Value, message.NewPassword, sessionContext.Session.TenantId, sessionContext.Session.IdentityName)
+            : Application.ChangePassword.UseToken(message.Token!.Value, message.NewPassword, sessionContext.Session.TenantId, sessionContext.Session.IdentityName));
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchPasswordReset([FromBody] ResetPassword message, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
+    {
+        if (!sessionContext.IsAuthorized)
+        {
+            return Results.Unauthorized();
+        }
+
+        await mediator.SendAsync(new Application.ResetPassword(message.Name, message.Password, message.PasswordResetToken, sessionContext.Session.TenantId, sessionContext.Session.IdentityName));
+
+        return Results.Ok();
+    }
+
+    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    {
+        if (!message.Active)
+        {
+            var reviewIdentityRoleRemoval = new ReviewIdentityRoleRemoval(sessionContext.Session!.TenantId, roleId);
+
+            await mediator.SendAsync(reviewIdentityRoleRemoval);
+
+            if (reviewIdentityRoleRemoval.IsLastAdministrator)
+            {
+                return Results.BadRequest("The user cannot be removed from the administrator role as this is the last administrator.");
+            }
+        }
+
+        await bus.SendAsync(sessionContext.Audit(new SetIdentityRoleStatus
+        {
+            IdentityId = id,
+            RoleId = roleId,
+            Active = message.Active
+        }));
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchTenantStatus(Guid id, Guid tenantId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    {
+        await bus.SendAsync(sessionContext.Audit(new SetIdentityTenantStatus
+        {
+            IdentityId = id,
+            TenantId = tenantId,
+            Active = message.Active
+        }));
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, IBus bus, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, IHashingService hashingService, [FromBody] RegisterIdentity message, CancellationToken cancellationToken)
     {
         Guard.AgainstNull(message);
 
@@ -134,8 +303,8 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
-        var roleIds= new List<Guid>();
-        var tenantIds= new List<Guid>();
+        var roleIds = new List<Guid>();
+        var tenantIds = new List<Guid>();
 
         if (message.RoleIds.Count > 0 || message.TenantIds.Count > 0)
         {
@@ -209,139 +378,14 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> GetPasswordResetToken(IMediator mediator, Guid id)
+    private static async Task<IResult> PostRoleAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
     {
-        var message = new GetPasswordResetToken(id);
+        var roles = (await identityQuery.RoleIdsAsync(new Query.Identity.Specification().AddId(id))).ToList();
 
-        await mediator.SendAsync(message);
-
-        return Results.Ok(message.PasswordResetToken);
+        return Results.Ok(from roleId in identifiers.Values select new IdentifierAvailability<Guid> { Id = roleId, Active = roles.Any(item => item.Equals(roleId)) });
     }
 
-    private static async Task<IResult> PatchActivate([FromBody] Contracts.v1.ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
-    {
-        var specification = new Query.Identity.Specification();
-
-        if (message.Id.HasValue)
-        {
-            specification.AddId(message.Id.Value);
-        }
-        else
-        {
-            specification.WithName(message.Name);
-        }
-
-        var query = (await identityQuery.SearchAsync(specification)).FirstOrDefault();
-
-        if (query == null)
-        {
-            return Results.BadRequest();
-        }
-
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.ActivateIdentity
-        {
-            Id = message.Id,
-            Name = message.Name
-        }));
-
-        return Results.Accepted();
-    }
-
-    private static async Task<IResult> PatchPasswordReset([FromBody] Contracts.v1.ResetPassword message, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext)
-    {
-        if (!sessionContext.IsAuthorized)
-        {
-            return Results.Unauthorized();
-        }
-
-        await mediator.SendAsync(new Application.ResetPassword(message.Name, message.Password, message.PasswordResetToken, sessionContext.Session.TenantId, sessionContext.Session.IdentityName));
-
-        return Results.Ok();
-    }
-
-    private static async Task<IResult> PatchPassword([FromBody] Contracts.v1.ChangePassword message, ISessionContext sessionContext, IMediator mediator)
-    {
-        if (sessionContext.Session == null || message.Id.HasValue && !(sessionContext.Session?.HasPermission(AccessPermissions.Identities.Register) ?? false))
-        {
-            return Results.Unauthorized();
-        }
-
-        if (!message.Id.HasValue && !message.Token.HasValue)
-        {
-            return Results.BadRequest();
-        }
-
-        await mediator.SendAsync(message.Id.HasValue 
-        ? Application.ChangePassword.UseId(message.Id.Value, message.NewPassword, sessionContext.Session.TenantId, sessionContext.Session.IdentityName)
-        : Application.ChangePassword.UseToken(message.Token!.Value, message.NewPassword, sessionContext.Session.TenantId, sessionContext.Session.IdentityName));
-
-        return Results.Accepted();
-    }
-
-    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
-    {
-        if (!message.Active)
-        {
-            var reviewIdentityRoleRemoval = new ReviewIdentityRoleRemoval(sessionContext.Session!.TenantId, roleId);
-
-            await mediator.SendAsync(reviewIdentityRoleRemoval);
-
-            if (reviewIdentityRoleRemoval.IsLastAdministrator)
-            {
-                return Results.BadRequest("The user cannot be removed from the administrator role as this is the last administrator.");
-            }
-        }
-
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityRoleStatus
-        {
-            IdentityId = id,
-            RoleId = roleId,
-            Active = message.Active,
-        }));
-
-        return Results.Accepted();
-    }
-
-    private static async Task<IResult> PatchTenantStatus(Guid id, Guid tenantId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
-    {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityTenantStatus
-        {
-            IdentityId = id,
-            TenantId = tenantId,
-            Active = message.Active
-        }));
-
-        return Results.Accepted();
-    }
-
-    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, IBus bus)
-    {
-        await bus.SendAsync(sessionContext.Audit(new RemoveIdentity { Id = id }));
-
-        return Results.Accepted();
-    }
-
-    private static async Task<IResult> Get(IIdentityQuery identityQuery, string value)
-    {
-        var specification = new Query.Identity.Specification().IncludeRoles();
-
-        if (Guid.TryParse(value, out var id))
-        {
-            specification.AddId(id);
-        }
-        else
-        {
-            specification.WithName(value);
-        }
-
-        var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
-
-        return identity != null
-            ? Results.Ok(identity)
-            : Results.BadRequest();
-    }
-
-    private static async Task<IResult> Search(IIdentityQuery identityQuery, [FromBody] Contracts.v1.Identity.Specification specification)
+    private static async Task<IResult> PostSearch(IIdentityQuery identityQuery, [FromBody] Contracts.v1.Identity.Specification specification)
     {
         var search = new Query.Identity.Specification().AddIds(specification.Ids);
 
@@ -365,28 +409,13 @@ public static class IdentityEndpoints
             search.IncludeTenants();
         }
 
-        return Results.Ok((await identityQuery.SearchAsync(search)).ToList());
+        return Results.Ok((await identityQuery.SearchAsync(search)).Select(Map).ToList());
     }
 
-    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetDescription message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PostTenantAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityDescription
-        {
-            Id = id,
-            Description = message.Description
-        }));
+        var tenants = (await identityQuery.TenantIdsAsync(new Query.Identity.Specification().AddId(id))).ToList();
 
-        return Results.Accepted();
-    }
-
-    private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, IBus bus)
-    {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityName
-        {
-            Id = id,
-            Name = message.Name
-        }));
-
-        return Results.Accepted();
+        return Results.Ok(from tenantId in identifiers.Values select new IdentifierAvailability<Guid> { Id = tenantId, Active = tenants.Any(item => item.Equals(tenantId)) });
     }
 }

@@ -110,7 +110,9 @@ public static class TenantEndpoints
             Name = message.Name,
             Status = message.Status,
             LogoUrl = message.LogoUrl,
-            LogoSvg = message.LogoSvg
+            LogoSvg = message.LogoSvg,
+            AdministratorIdentityName = message.AdministratorIdentityName,
+            AccessAdministratorRoleId = Guid.NewGuid()
         }), cancellationToken);
 
         return Results.Accepted();

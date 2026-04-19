@@ -8,4 +8,5 @@ public class RegisterTenant : AuditMessage
     public string LogoUrl { get; set; } = string.Empty;
     public int Status { get; set; } = 1;
     public string AdministratorIdentityName { get; set; } = string.Empty;
+    public Guid AccessAdministratorRoleId { get; set; }
 }
