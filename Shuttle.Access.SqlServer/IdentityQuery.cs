@@ -95,68 +95,68 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             });
     }
 
-    private IQueryable<Models.Identity> GetQueryable(Query.Identity.Specification identitySpecification)
+    private IQueryable<Models.Identity> GetQueryable(Query.Identity.Specification specification)
     {
         var queryable = _accessDbContext.Identities
             .AsNoTracking();
 
-        queryable = identitySpecification.ShouldIncludeTenants
+        queryable = specification.ShouldIncludeTenants
             ? queryable.Include(item => item.IdentityTenants).ThenInclude(item => item.Tenant)
             : queryable;
 
-        queryable = identitySpecification is { ShouldIncludeRoles: true, ShouldIncludePermissions: false }
-            ? queryable.Include(item => item.IdentityRoles)
+        queryable = specification is { ShouldIncludeRoles: true, ShouldIncludePermissions: false }
+            ? queryable.Include(item => item.IdentityRoles.Where(role => role.TenantId == specification.TenantId))
                 .ThenInclude(item => item.Role)
                 .ThenInclude(item => item.Tenant)
             : queryable;
 
-        queryable = identitySpecification.ShouldIncludePermissions
+        queryable = specification.ShouldIncludePermissions
             ? queryable.Include(item => item.IdentityRoles).ThenInclude(item => item.Role).ThenInclude(item => item.RolePermissions).ThenInclude(item => item.Permission) 
             : queryable;
 
-        if (!string.IsNullOrEmpty(identitySpecification.NameMatch))
+        if (!string.IsNullOrEmpty(specification.NameMatch))
         {
-            queryable = queryable.Where(e => e.Name.Contains(identitySpecification.NameMatch) || e.Description.Contains(identitySpecification.NameMatch));
+            queryable = queryable.Where(e => e.Name.Contains(specification.NameMatch) || e.Description.Contains(specification.NameMatch));
         }
 
-        if (!string.IsNullOrEmpty(identitySpecification.Name))
+        if (!string.IsNullOrEmpty(specification.Name))
         {
-            queryable = queryable.Where(e => e.Name == identitySpecification.Name || e.Description == identitySpecification.Name);
+            queryable = queryable.Where(e => e.Name == specification.Name || e.Description == specification.Name);
         }
 
-        if (identitySpecification.TenantId != null)
+        if (specification.TenantId != null)
         {
-            queryable = queryable.Where(e => e.IdentityTenants.Any(it => it.TenantId == identitySpecification.TenantId));
+            queryable = queryable.Where(e => e.IdentityTenants.Any(it => it.TenantId == specification.TenantId));
         }
 
-        if (!string.IsNullOrEmpty(identitySpecification.RoleName))
+        if (!string.IsNullOrEmpty(specification.RoleName))
         {
-            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.Name == identitySpecification.RoleName));
+            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.Name == specification.RoleName));
         }
 
-        if (identitySpecification.RoleId != null)
+        if (specification.RoleId != null)
         {
-            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.RoleId == identitySpecification.RoleId));
+            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.RoleId == specification.RoleId));
         }
 
-        if (identitySpecification.PermissionId != null)
+        if (specification.PermissionId != null)
         {
-            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.RolePermissions.Any(rp => rp.PermissionId == identitySpecification.PermissionId)));
+            queryable = queryable.Where(e => e.IdentityRoles.Any(ir => ir.Role.RolePermissions.Any(rp => rp.PermissionId == specification.PermissionId)));
         }
 
-        if (identitySpecification.HasIds)
+        if (specification.HasIds)
         {
-            queryable = queryable.Where(e => identitySpecification.Ids.Contains(e.Id));
+            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
         }
 
-        if (identitySpecification.HasExcludedIds)
+        if (specification.HasExcludedIds)
         {
-            queryable = queryable.Where(e => !identitySpecification.ExcludedIds.Contains(e.Id));
+            queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
         }
 
-        if (identitySpecification.MaximumRows > 0)
+        if (specification.MaximumRows > 0)
         {
-            queryable = queryable.Take(identitySpecification.MaximumRows);
+            queryable = queryable.Take(specification.MaximumRows);
         }
 
         return queryable.AsSplitQuery();

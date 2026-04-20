@@ -38,6 +38,7 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
                 Id = e.Id,
                 Name = e.Name,
                 TenantId = e.TenantId,
+                TenantName = e.Tenant.Name,
                 Permissions = e.RolePermissions.Select(rolePermission => rolePermission.Permission).Select(permission => new Query.Permission
                 {
                     Id = permission.Id,
@@ -58,6 +59,7 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
     {
         var queryable = _accessDbContext.Roles
             .AsNoTracking()
+            .Include(item => item.Tenant)
             .Include(item => item.RolePermissions).ThenInclude(item => item.Permission)
             .Include(item => item.IdentityRoles).ThenInclude(item => item.Identity)
             .AsSplitQuery();

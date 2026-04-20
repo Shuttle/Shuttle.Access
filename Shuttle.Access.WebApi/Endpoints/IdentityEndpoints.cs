@@ -26,9 +26,14 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Get(IIdentityQuery identityQuery, string value)
+    private static async Task<IResult> Get(ISessionContext sessionContext, IIdentityQuery identityQuery, string value)
     {
-        var specification = new Query.Identity.Specification().IncludeRoles();
+        if (!sessionContext.IsAuthorized)
+        {
+            return Results.Unauthorized();
+        }
+
+        var specification = new Query.Identity.Specification().IncludeRoles().WithTenantId(sessionContext.Session.TenantId);
 
         if (Guid.TryParse(value, out var id))
         {

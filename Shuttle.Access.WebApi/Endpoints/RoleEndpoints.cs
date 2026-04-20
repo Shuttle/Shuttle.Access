@@ -48,6 +48,8 @@ public static class RoleEndpoints
         {
             Id = role.Id,
             Name = role.Name,
+            TenantId = role.TenantId,
+            TenantName = role.TenantName,
             Permissions = role.Permissions.Select(item => new Contracts.v1.Permission
             {
                 Id = item.Id,

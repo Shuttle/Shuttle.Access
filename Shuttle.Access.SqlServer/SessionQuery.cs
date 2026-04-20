@@ -149,6 +149,11 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
             queryable = queryable.Where(e => e.SessionPermissions.Any(p => specification.Permissions.Contains(p.Permission.Name)));
         }
 
+        if (specification.TenantId.HasValue)
+        {
+            queryable = queryable.Where(e => e.TenantId == specification.TenantId);
+        }
+
         return queryable;
     }
 }

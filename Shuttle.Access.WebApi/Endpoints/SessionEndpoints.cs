@@ -42,11 +42,16 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteAll(IBus bus, ISessionQuery sessionQuery, CancellationToken cancellationToken)
+    private static async Task<IResult> DeleteAll(ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery, CancellationToken cancellationToken)
     {
+        if (!sessionContext.IsAuthorized)
+        {
+            return Results.Unauthorized();
+        }
+
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            await sessionQuery.RemoveAsync(new(), cancellationToken);
+            await sessionQuery.RemoveAsync(new Session.Specification().WithTenantId(sessionContext.Session.TenantId), cancellationToken);
 
             await bus.PublishAsync(new AllSessionsDeleted(), cancellationToken);
 
@@ -322,9 +327,14 @@ public static class SessionEndpoints
         return Results.Ok(registerSession.GetSessionResponse(false));
     }
 
-    private static async Task<IResult> PostSearch([FromBody] Contracts.v1.Session.Specification model, ISessionQuery sessionQuery, IHashingService hashingService)
+    private static async Task<IResult> PostSearch(ISessionContext sessionContext, ISessionQuery sessionQuery, IHashingService hashingService, [FromBody] Contracts.v1.Session.Specification model)
     {
-        var specification = GetSpecification(model, hashingService);
+        if (!sessionContext.IsAuthorized)
+        {
+            return Results.Unauthorized();
+        }
+
+        var specification = GetSpecification(model, hashingService).WithTenantId(sessionContext.Session.TenantId);
 
         return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(session => session.Map()).ToList());
     }
