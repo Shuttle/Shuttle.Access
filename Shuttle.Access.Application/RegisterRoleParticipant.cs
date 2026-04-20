@@ -13,18 +13,27 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
         ArgumentNullException.ThrowIfNull(idKeyRepository);
 
         var key = Role.Key(message.Name, message.TenantId);
+        var id = await idKeyRepository.FindAsync(key, cancellationToken);
 
-        if (await idKeyRepository.ContainsAsync(key, cancellationToken))
+        if (!id.HasValue)
         {
-            return;
+            await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
+        }
+        else
+        {
+            if (!id.Value.Equals(message.Id))
+            {
+                throw new ApplicationException($"There is already a role key '{key}' which is associated with id '{id.Value}'.");
+            }
         }
 
-        await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
-
-        var stream = (await eventStore.GetAsync(message.Id, cancellationToken)).MustBeEmpty();
+        var stream = (await eventStore.GetAsync(message.Id, cancellationToken));
         var aggregate = stream.Get<Role>();
 
-        stream.Add(aggregate.Register(message.TenantId, message.Name));
+        if (string.IsNullOrWhiteSpace(aggregate.Name))
+        {
+            stream.Add(aggregate.Register(message.TenantId, message.Name));
+        }
 
         foreach (var permissionId in message.PermissionIds)
         {
@@ -34,6 +43,9 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
             }
         }
 
-        await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
+        if (stream.ShouldSave())
+        {
+            await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
+        }
     }
 }

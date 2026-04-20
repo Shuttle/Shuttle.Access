@@ -32,7 +32,7 @@
 
   <PropertyGroup>
     <Description>Application concern implementations such as Shuttle.Mediator participants.</Description>
-    <Version>9.0.5</Version>
+    <Version>9.0.6</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

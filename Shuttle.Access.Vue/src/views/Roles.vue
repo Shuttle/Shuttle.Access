@@ -13,7 +13,7 @@
       :loading="busy" show-expand v-model:expanded="expanded" expand-on-click show-select v-model="selected">
       <template v-slot:header.action="">
         <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Roles.Manage)">
-          <v-btn :icon="mdiPlus" size="x-small" @click="add"></v-btn>
+          <v-btn-primary :icon="mdiPlus" size="x-small" @click="add"></v-btn-primary>
           <v-btn :icon="mdiUpload" size="x-small" @click="upload"></v-btn>
           <v-btn :icon="mdiDownload" size="x-small" @click="download" v-if="selected.length"></v-btn>
         </div>

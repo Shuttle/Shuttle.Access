@@ -40,15 +40,6 @@ public class RegisterRoleHandler(IBus bus, IMediator mediator, IPermissionQuery 
             }
         }
 
-        var key = Role.Key(message.Name, message.TenantId);
-
-        if (await idKeyRepository.ContainsAsync(key, cancellationToken))
-        {
-            return;
-        }
-
-        await idKeyRepository.AddAsync(message.Id, key, cancellationToken);
-
         var registerRole = new Application.RegisterRole(message.Id, message.TenantId, message.Name, message.AuditTenantId, message.AuditIdentityName);
 
         foreach (var permissionId in permissionIds)
