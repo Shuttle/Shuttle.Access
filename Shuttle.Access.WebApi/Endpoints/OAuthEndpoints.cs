@@ -30,7 +30,7 @@ public static class OAuthEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapGet("/v{version:apiVersion}/oauth/session/{state}/{code}", GetSessionStateCode)
+        app.MapGet("/v{version:apiVersion}/oauth/session/{state}/{*code}", GetSessionStateCode)
             .WithTags("OAuth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);

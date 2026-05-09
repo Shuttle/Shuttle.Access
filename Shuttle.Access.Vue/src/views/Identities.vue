@@ -17,7 +17,7 @@
       </template>
       <template v-slot:item.action="{ item }">
         <div class="sv-strip">
-          <v-btn :icon="mdiAccountGroupOutline" size="x-small" @click.stop="roles(item)" />
+          <v-btn v-if="shouldShowRoles(item)" :icon="mdiAccountGroupOutline" size="x-small" @click.stop="roles(item)" />
           <v-btn :icon="mdiDomain" size="x-small" @click.stop="tenants(item)" />
           <v-btn :icon="mdiKey" size="x-small" @click.stop="password(item)" />
           <v-btn :icon="mdiDelete" size="x-small" @click.stop="remove(item)" />
@@ -157,6 +157,12 @@ const tenantHeaders = useSecureTableHeaders([
 ]);
 
 const items: Ref<Identity[]> = ref([]);
+
+const shouldShowRoles = (identity: Identity) => {
+  return identity.tenants?.some(item => {
+    return item.id === sessionStore.tenantId;
+  });
+};
 
 const refresh = async () => {
   busy.value = true;

@@ -6,6 +6,7 @@ using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
+using Shuttle.Access.SqlServer;
 using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
 using Shuttle.Hopper;
@@ -33,7 +34,7 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
-        var specification = new Query.Identity.Specification().IncludeRoles().WithTenantId(sessionContext.Session.TenantId);
+        var specification = new Query.Identity.Specification().IncludeRoles();
 
         if (Guid.TryParse(value, out var id))
         {
@@ -258,13 +259,22 @@ public static class IdentityEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus, IRoleQuery roleQuery, IIdentityQuery identityQuery, CancellationToken cancellationToken)
     {
+        var identity = (await identityQuery.FindAsync(new Query.Identity.Specification().AddId(id), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(id);
+
+        var role = (await roleQuery.FindAsync(new Query.Role.Specification().AddId(roleId), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(roleId);
+
+        if (identity.Tenants.All(e => e.Id != role.TenantId))
+        {
+            return Results.BadRequest($"Identity '{identity.Name}' is not in tenant with id '{role.TenantId}'.");
+        }
+
         if (!message.Active)
         {
             var reviewIdentityRoleRemoval = new ReviewIdentityRoleRemoval(sessionContext.Session!.TenantId, roleId);
 
-            await mediator.SendAsync(reviewIdentityRoleRemoval);
+            await mediator.SendAsync(reviewIdentityRoleRemoval, cancellationToken);
 
             if (reviewIdentityRoleRemoval.IsLastAdministrator)
             {
@@ -277,7 +287,7 @@ public static class IdentityEndpoints
             IdentityId = id,
             RoleId = roleId,
             Active = message.Active
-        }));
+        }), cancellationToken: cancellationToken);
 
         return Results.Accepted();
     }

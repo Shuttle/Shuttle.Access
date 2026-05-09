@@ -1,4 +1,5 @@
 ﻿using Shuttle.Access.Messages.v1;
+using Shuttle.Access.SqlServer;
 using Shuttle.Contract;
 using Shuttle.Hopper;
 using Shuttle.Recall;
@@ -11,6 +12,8 @@ public class SetIdentityRoleStatusHandler(IEventStore eventStore, IRoleQuery rol
     {
         Guard.AgainstNull(message);
 
+        Query.Role role;
+
         if (!message.Active)
         {
             var roles = (await roleQuery.SearchAsync(new Query.Role.Specification()
@@ -22,7 +25,7 @@ public class SetIdentityRoleStatusHandler(IEventStore eventStore, IRoleQuery rol
                 return;
             }
 
-            var role = roles[0];
+            role = roles[0];
 
             if (message.RoleId.Equals(role.Id) &&
                 await identityQuery.AdministratorCountAsync(message.AuditTenantId, cancellationToken) == 1)
@@ -31,8 +34,15 @@ public class SetIdentityRoleStatusHandler(IEventStore eventStore, IRoleQuery rol
             }
         }
 
+        role = (await roleQuery.FindAsync(new Query.Role.Specification().AddId(message.RoleId), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(message.RoleId);
+
         var identity = new Identity();
         var stream = await eventStore.GetAsync(message.IdentityId, cancellationToken);
+
+        if (!identity.IsInTenant(role.TenantId))
+        {
+            throw new ApplicationException($"Identity '{identity.Name}' is not in tenant with id '{role.TenantId}'.");
+        }
 
         stream.Apply(identity);
 
