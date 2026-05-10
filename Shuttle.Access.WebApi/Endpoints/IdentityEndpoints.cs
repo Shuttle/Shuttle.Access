@@ -261,7 +261,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus, IRoleQuery roleQuery, IIdentityQuery identityQuery, CancellationToken cancellationToken)
     {
-        var identity = (await identityQuery.FindAsync(new Query.Identity.Specification().AddId(id), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(id);
+        var identity = (await identityQuery.FindAsync(new Query.Identity.Specification().AddId(id).IncludeTenants(), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(id);
 
         var role = (await roleQuery.FindAsync(new Query.Role.Specification().AddId(roleId), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(roleId);
 
@@ -393,8 +393,13 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PostRoleAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
+    private static async Task<IResult> PostRoleAvailability(ISessionContext sessionContext, IIdentityQuery identityQuery, Guid id, [FromBody] Identifiers<Guid> identifiers)
     {
+        if (!sessionContext.IsAuthorized)
+        {
+            return Results.Unauthorized();
+        }
+
         var roles = (await identityQuery.RoleIdsAsync(new Query.Identity.Specification().AddId(id))).ToList();
 
         return Results.Ok(from roleId in identifiers.Values select new IdentifierAvailability<Guid> { Id = roleId, Active = roles.Any(item => item.Equals(roleId)) });
@@ -429,7 +434,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> PostTenantAvailability(Guid id, [FromBody] Identifiers<Guid> identifiers, IIdentityQuery identityQuery)
     {
-        var tenants = (await identityQuery.TenantIdsAsync(new Query.Identity.Specification().AddId(id))).ToList();
+        var tenants = (await identityQuery.TenantIdsAsync(new Query.Identity.Specification().AddId(id).IncludeTenants())).ToList();
 
         return Results.Ok(from tenantId in identifiers.Values select new IdentifierAvailability<Guid> { Id = tenantId, Active = tenants.Any(item => item.Equals(tenantId)) });
     }
