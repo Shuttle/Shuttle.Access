@@ -43,13 +43,13 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
 
     public async Task<IEnumerable<Guid>> RoleIdsAsync(Query.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
-        return (await SearchAsync(specification, cancellationToken))
+        return (await SearchAsync(specification.IncludeRoles(), cancellationToken))
             .SelectMany(e => e.Roles.Select(item => item.Id)).ToList();
     }
 
     public async Task<IEnumerable<Guid>> TenantIdsAsync(Query.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
-        return (await SearchAsync(specification, cancellationToken))
+        return (await SearchAsync(specification.IncludeTenants(), cancellationToken))
             .SelectMany(e => e.Tenants.Select(item => item.Id)).ToList();
     }
 
@@ -105,7 +105,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             : queryable;
 
         queryable = specification is { ShouldIncludeRoles: true, ShouldIncludePermissions: false }
-            ? queryable.Include(item => item.IdentityRoles.Where(role => role.TenantId == specification.TenantId))
+            ? queryable.Include(item => item.IdentityRoles.Where(role => specification.TenantId == null || role.TenantId == specification.TenantId))
                 .ThenInclude(item => item.Role)
                 .ThenInclude(item => item.Tenant)
             : queryable;
@@ -159,6 +159,6 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             queryable = queryable.Take(specification.MaximumRows);
         }
 
-        return queryable.AsSplitQuery();
+        return queryable;
     }
 }
