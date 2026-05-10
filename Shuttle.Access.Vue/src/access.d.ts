@@ -18,6 +18,7 @@ export type Configuration = {
   isPasswordAuthenticationAllowed: () => boolean;
   isDebugging: () => boolean;
   getApiUrl: (path: string) => string;
+  systemTenantId: string;
 };
 
 export type ChangePassword = {
@@ -98,6 +99,7 @@ export type Identity = {
   registeredBy: string;
   roles: IdentityRole[] | undefined;
   tenants: IdentityTenant[] | undefined;
+  tab?: string;
 };
 
 export type IdentityRole = {
@@ -181,6 +183,7 @@ export type RegisterTenant = {
 
 export type ServerConfiguration = {
   allowPasswordAuthentication: boolean;
+  systemTenantId: string;
 };
 
 export type Session = {

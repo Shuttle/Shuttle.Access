@@ -17,6 +17,7 @@ export const useSessionStore = defineStore("session", () => {
   const identityName = ref<string | null>();
   const token = ref<string | null>();
   const tenantId = ref<string | null>();
+  const tenantName = ref<string | null>();
   const permissions = ref<string[]>([]);
   const tenants = ref<Tenant[]>([]);
 
@@ -76,8 +77,9 @@ export const useSessionStore = defineStore("session", () => {
     }
 
     identityName.value = sessionResponse.session.identityName;
-    tenantId.value = sessionResponse.session.tenantId;
     tenants.value = sessionResponse.tenants;
+
+    selectTenantId(sessionResponse.session.tenantId ?? "");
 
     removePermissions();
     sessionResponse.session.permissions.forEach((item) =>
@@ -116,12 +118,21 @@ export const useSessionStore = defineStore("session", () => {
     return sessionResponse;
   };
 
+  const selectTenantId = (id: string) => {
+    tenantId.value = id;
+    tenantName.value = tenants.value.find((t) => t.id === id)?.name ?? null;
+  };
+
   const sessionTenantSelected = (session: Session) => {
     if (!session) {
       throw Error(i18n.global.t("messages.invalid-session"));
     }
 
-    tenantId.value = session.tenantId;
+    if (!session.tenantId) {
+      throw Error(i18n.global.t("messages.no-tenant-selected"));
+    }
+
+    selectTenantId(session.tenantId);
 
     removePermissions();
     session.permissions.forEach((item) => addPermission(item.name));
@@ -168,6 +179,14 @@ export const useSessionStore = defineStore("session", () => {
 
   const hasPermission = (permission: string) => {
     const required = permission.toLowerCase();
+
+    if (
+      permission.startsWith("access://tenants/") &&
+      tenantId.value !== configuration.systemTenantId
+    ) {
+      return false;
+    }
+
     let result = false;
 
     permissions.value.forEach((item) => {
@@ -196,12 +215,17 @@ export const useSessionStore = defineStore("session", () => {
     return result;
   };
 
+  const systemTenantActive = computed(() => {
+    return tenantId.value === configuration.systemTenantId;
+  });
+
   return {
     isAuthenticated,
     isInitialized,
     identityName,
     token,
     tenantId,
+    tenantName,
     permissions,
     status,
     tenants,
@@ -215,5 +239,6 @@ export const useSessionStore = defineStore("session", () => {
     hasSession,
     hasPermission,
     tenantSelected: sessionTenantSelected,
+    systemTenantActive,
   };
 });

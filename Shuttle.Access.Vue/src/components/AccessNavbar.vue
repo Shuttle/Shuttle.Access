@@ -33,7 +33,10 @@
   </v-app-bar>
   <v-navigation-drawer v-model="drawerStore.showProfileDrawer" location="right" temporary>
     <v-list>
-      <v-list-item :title="sessionStore.identityName ?? ''" class="select-none"></v-list-item>
+      <v-list-item :title="sessionStore.identityName ?? t('(unknown)')" class="select-none"></v-list-item>
+      <v-divider></v-divider>
+      <v-list-item v-if="sessionStore.tenantName" :prepend-icon="mdiSwapHorizontal" @click.prevent="selectTenant"
+        :title="sessionStore.tenantName ?? t('(unknown)')"></v-list-item>
       <v-divider></v-divider>
       <v-list-item :prepend-icon="mdiShieldAccountOutline" to="/password/token"
         :title="t('change-password')"></v-list-item>
@@ -44,7 +47,7 @@
 
 <script setup lang="ts">
 import map from "./navigation-map";
-import { mdiArrowCollapseLeft, mdiDotsVertical, mdiLogin, mdiLogout, mdiWhiteBalanceSunny, mdiWeatherNight, mdiShieldAccountOutline } from '@mdi/js';
+import { mdiArrowCollapseLeft, mdiDotsVertical, mdiLogin, mdiLogout, mdiWhiteBalanceSunny, mdiWeatherNight, mdiShieldAccountOutline, mdiSwapHorizontal } from '@mdi/js';
 import { computed, ref, watch } from "vue";
 import { useSessionStore } from "@/stores/session";
 import { useI18n } from "vue-i18n";
@@ -99,6 +102,10 @@ const items = computed(() => {
 
   return result;
 });
+
+const selectTenant = () => {
+  router.push({ name: "tenant-selection" });
+}
 
 const signIn = () => {
   router.push({ name: 'sign-in' })

@@ -3,5 +3,6 @@
 public class ServerConfiguration
 {
     public bool AllowPasswordAuthentication { get; set; }
+    public Guid SystemTenantId { get; set; }
     public string Version { get; set; } = string.Empty;
 }

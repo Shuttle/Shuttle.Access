@@ -55,6 +55,7 @@ const getConfiguration = (): Configuration => {
 
       return this.getUrl() + (path.startsWith("/") ? path.substring(1) : path);
     },
+    systemTenantId: serverConfiguration.systemTenantId,
   };
 };
 

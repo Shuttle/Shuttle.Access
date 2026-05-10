@@ -16,9 +16,9 @@
           @click="add"></v-btn-primary>
       </template>
       <template v-slot:item.action="{ item }">
-        <div class="sv-strip">
+        <div class="sv-strip" v-if="sessionStore.hasPermission(Permissions.Identities.Manage)">
           <v-btn v-if="shouldShowRoles(item)" :icon="mdiAccountGroupOutline" size="x-small" @click.stop="roles(item)" />
-          <v-btn :icon="mdiDomain" size="x-small" @click.stop="tenants(item)" />
+          <v-btn v-if="sessionStore.systemTenantActive" :icon="mdiDomain" size="x-small" @click.stop="tenants(item)" />
           <v-btn :icon="mdiKey" size="x-small" @click.stop="password(item)" />
           <v-btn :icon="mdiDelete" size="x-small" @click.stop="remove(item)" />
         </div>
@@ -164,20 +164,28 @@ const shouldShowRoles = (identity: Identity) => {
   });
 };
 
+const getSelectedTab = (id: string) => {
+  return items.value.find((item) => item.id === id)?.tab || 'roles'
+}
+
 const refresh = async () => {
   busy.value = true;
 
   try {
-    const response = await api.post("v1/identities/search", {
+    const { data } = await api.post<Identity[]>("v1/identities/search", {
       shouldIncludeRoles: true,
       shouldIncludeTenants: true
     });
 
-    if (!response || !response.data) {
+    if (!data) {
       return;
     }
 
-    items.value = response.data;
+    data.forEach(item => {
+      item.tab = getSelectedTab(item.id ?? '')
+    });
+
+    items.value = data;
   } finally {
     busy.value = false;
   }

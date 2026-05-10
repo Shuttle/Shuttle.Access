@@ -42,6 +42,7 @@
     "invalid-session": "Invalid session.",
     "missing-credentials": "Incomplete credentials specified.",
     "no-items": "There are no items to display.",
+    "no-tenant-selected": "No tenant selected.",
     "oauth-missing-data": "Missing OAuth data.",
     "oauth-unknown-identity": "Unknown identity '{identityName}' received from OAuth provider.  Please contact a system administrator if you require access.",
     "oauth-unknown-identity-registered": "Unknown identity '{identityName}' received from OAuth provider.  This identity has been submitted for registration.  Please wait a few seconds and then try logging in again.",
@@ -95,5 +96,6 @@
   "_confirmation": {
     "title": "Confirmation",
     "remove": "Are you sure that you want to remove the selected item(s)?"
-  }
+  },
+  "(unknown)": "(unknown)"
 }
