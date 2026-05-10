@@ -7,7 +7,7 @@ public class Specification<T> where T : class
     private readonly List<Guid> _ids = [];
     private readonly List<Guid> _excludedIds = [];
     public IEnumerable<Guid> Ids => _ids.AsReadOnly();
-    public IEnumerable<Guid> ExcludedIds => _ids.AsReadOnly();
+    public IEnumerable<Guid> ExcludedIds => _excludedIds.AsReadOnly();
 
     public bool HasIds => _ids.Count > 0;
     public bool HasExcludedIds => _excludedIds.Count > 0;
