@@ -36,15 +36,13 @@ public class SetIdentityRoleStatusHandler(IEventStore eventStore, IRoleQuery rol
 
         role = (await roleQuery.FindAsync(new Query.Role.Specification().AddId(message.RoleId), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(message.RoleId);
 
-        var identity = new Identity();
         var stream = await eventStore.GetAsync(message.IdentityId, cancellationToken);
+        var identity = stream.Get<Identity>();
 
         if (!identity.IsInTenant(role.TenantId))
         {
             throw new ApplicationException($"Identity '{identity.Name}' is not in tenant with id '{role.TenantId}'.");
         }
-
-        stream.Apply(identity);
 
         if (message.Active && !identity.IsInRole(message.RoleId))
         {
