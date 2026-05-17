@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Shuttle.Access.Query;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.SqlServer;
@@ -22,20 +23,18 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
         return (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Name == identityName, cancellationToken)).GuardAgainstRecordNotFound(identityName).Id;
     }
 
-    public async Task<IEnumerable<Query.Permission>> PermissionsAsync(Guid id, Guid tenantId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Session.Permission>> PermissionsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _accessDbContext.Identities.AsNoTracking()
             .Where(identity => identity.Id == id)
             .SelectMany(identity => identity.IdentityRoles
-                .Where(identityRole => identityRole.TenantId == tenantId)
                 .SelectMany(identityRole => identityRole.Role.RolePermissions
-                    .Select(rolePermission => rolePermission.Permission)))
-            .Select(permission => new Query.Permission
+                    .Select(rolePermission => new { rolePermission.Permission.Id, rolePermission.Permission.Name, rolePermission.TenantId, })))
+            .Select(permission => new Session.Permission
             {
                 Id = permission.Id,
-                Name = permission.Name,
-                Description = permission.Description,
-                Status = (PermissionStatus)permission.Status
+                TenantId = permission.TenantId,
+                Name = permission.Name
             })
             .AsSplitQuery()
             .ToListAsync(cancellationToken);
@@ -56,9 +55,9 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
     public async Task<IEnumerable<Query.Identity>> SearchAsync(Query.Identity.Specification specification, CancellationToken cancellationToken = default)
     {
         return (await GetQueryable(specification)
-            .OrderBy(e => e.Name)
-            .Distinct()
-            .ToListAsync(cancellationToken))
+                .OrderBy(e => e.Name)
+                .Distinct()
+                .ToListAsync(cancellationToken))
             .Select(e => new Query.Identity
             {
                 Id = e.Id,
@@ -111,7 +110,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             : queryable;
 
         queryable = specification.ShouldIncludePermissions
-            ? queryable.Include(item => item.IdentityRoles).ThenInclude(item => item.Role).ThenInclude(item => item.RolePermissions).ThenInclude(item => item.Permission) 
+            ? queryable.Include(item => item.IdentityRoles).ThenInclude(item => item.Role).ThenInclude(item => item.RolePermissions).ThenInclude(item => item.Permission)
             : queryable;
 
         if (!string.IsNullOrEmpty(specification.NameMatch))

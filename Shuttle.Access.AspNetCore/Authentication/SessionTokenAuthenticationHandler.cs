@@ -12,17 +12,22 @@ using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder, ISessionService sessionService)
+public class SessionTokenAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder, ISessionService sessionService)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
-    private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Shuttle.Access";
     public static readonly Regex TokenExpression = new(@"token\s*=\s*(?<token>[0-9a-fA-F-]{36})", RegexOptions.IgnoreCase);
-    private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
     private readonly ILogger _logger = Guard.AgainstNull(loggerFactory).CreateLogger<JwtBearerAuthenticationHandler>();
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        var tenantId = Request.GetTenantId(_logger, accessOptions.Value.SystemTenantId);
+
+        if (!tenantId.HasValue)
+        {
+            return await Response.GetTenantIdInvalidAuthenticateResultAsync();
+        }
+
         var header = Request.Headers.Authorization.FirstOrDefault();
 
         if (header == null || !header.StartsWith("Shuttle.Access ", StringComparison.OrdinalIgnoreCase))
@@ -40,7 +45,7 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
             return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
         }
 
-        var session = await _sessionService.FindAsync(new Query.Session.Specification().WithToken(sessionToken));
+        var session = await sessionService.FindAsync(new Query.Session.Specification().WithToken(sessionToken));
 
         if (session == null)
         {
@@ -52,7 +57,7 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
             new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
-            new(HttpContextExtensions.SessionTenantIdClaimType, $"{session.TenantId:D}"),
+            new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}"),
             new(HttpContextExtensions.SessionTokenClaimType, $"{sessionToken:D}")
         ];
 
@@ -73,7 +78,7 @@ public class SessionTokenAuthenticationHandler(IOptionsMonitor<AuthenticationSch
 
         var problemDetails = new ProblemDetails
         {
-            Type = Type,
+            Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2",
             Title = ReasonPhrases.GetReasonPhrase(StatusCodes.Status401Unauthorized),
             Status = StatusCodes.Status401Unauthorized,
             Detail = authenticateResult.Failure?.Message

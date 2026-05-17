@@ -234,7 +234,18 @@ router.beforeEach(async (to) => {
   const sessionStore = useSessionStore();
 
   if (!sessionStore.isInitialized) {
-    return;
+    try {
+      await sessionStore.initialize();
+    } catch (error: any) {
+      useAlertStore().add({
+        message: error.toString(),
+        type: "error",
+        name: "session-initialize",
+      });
+      if (!window.location.pathname.startsWith("/sign-in")) {
+        router.push({ path: "/sign-in" });
+      }
+    }
   }
 
   if (

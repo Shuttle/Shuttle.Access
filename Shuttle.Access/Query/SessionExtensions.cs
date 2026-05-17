@@ -1,17 +1,15 @@
-﻿using System.Text.RegularExpressions;
-
-namespace Shuttle.Access.Query;
+﻿namespace Shuttle.Access.Query;
 
 public static class SessionExtensions
 {
-    extension(Query.Session session)
+    extension(Session session)
     {
-        public bool HasPermission(string requiredPermission)
+        public bool HasPermission(Guid tenantId, string requiredPermission)
         {
             ArgumentNullException.ThrowIfNull(session);
             ArgumentException.ThrowIfNullOrWhiteSpace(requiredPermission);
 
-            return session.Permissions.Any(permission => permission.IsSatisfiedBy(requiredPermission));
+            return session.Permissions.Any(permission => permission.TenantId == tenantId && permission.IsSatisfiedBy(requiredPermission));
         }
     }
 }

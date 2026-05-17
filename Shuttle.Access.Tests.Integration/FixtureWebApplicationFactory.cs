@@ -5,7 +5,6 @@ using Shuttle.Access.WebApi;
 using Shuttle.Mediator;
 using Shuttle.Hopper;
 using Shuttle.OAuth;
-using Shuttle.Recall.SqlServer.EventProcessing;
 using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Integration;
@@ -37,19 +36,21 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
         
         webHostBuilder?.Invoke(builder);
 
+        var accessOptions = new AccessOptions();
+
         var session = new Query.Session
         {
             IdentityId = Guid.NewGuid(),
             IdentityName = "identity-name",
-            Permissions = [new() { Name = "*" }],
+            Permissions = [new() { Id = Guid.NewGuid(), Name = "*", TenantId = accessOptions.SystemTenantId }],
             DateRegistered = DateTimeOffset.UtcNow,
             ExpiryDate = DateTimeOffset.UtcNow.Add(TimeSpan.FromHours(1)),
-            TenantId = Guid.NewGuid()
         };
 
         SessionService.Setup(m => m.FindAsync(It.IsAny<Query.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(session)!);
 
         SessionContext.Setup(m => m.Session).Returns(session);
+        SessionContext.Setup(m => m.TenantId).Returns(accessOptions.SystemTenantId);
         SessionContext.Setup(m => m.IsAuthorized).Returns(true);
 
         builder.ConfigureServices(services =>

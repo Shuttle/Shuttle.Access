@@ -41,7 +41,7 @@ import { mdiDelete, mdiDeleteSweepOutline, mdiMagnify, mdiRefresh } from '@mdi/j
 import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
-import type { Session } from "@/access";
+import type { Session, SessionPermission } from "@/access";
 import type { AxiosResponse } from "axios";
 import { useDateFormatter } from "@/composables/DateFormatter";
 import { useSessionStore } from "@/stores/session";
@@ -94,17 +94,23 @@ const headers = useSecureTableHeaders([
 const permissionHeaders = useSecureTableHeaders([
   {
     headerProps: {
-      class: "w-96",
+      class: "w-px",
     },
-    title: t("permission"),
-    value: "name",
+    cellProps: {
+      class: "whitespace-nowrap"
+    },
+    title: t("tenant"),
+    key: "tenantName",
+    value: (item: SessionPermission) => {
+      return sessionStore.getTenantName(item.tenantId)
+    },
   },
   {
     headerProps: {
-      class: "w-96",
+      class: "w-fit",
     },
-    title: t("description"),
-    value: "description",
+    title: t("permission"),
+    value: "name",
   }
 ]);
 

@@ -25,8 +25,9 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
 
         if (tenantId != null && identityId != null)
         {
-            var specification = new Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value);
+            var specification = new Session.Specification().WithIdentityId(identityId.Value);
 
+            sessionContext.TenantId = tenantId.Value;
             sessionContext.Session = await Guard.AgainstNull(sessionService).FindAsync(specification);
 
             if (sessionContext.Session == null)
@@ -56,9 +57,9 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
 
         if (permissionRequirement != null &&
             sessionContext.Session != null &&
-            !sessionContext.Session.HasPermission(permissionRequirement.Permission))
+            !sessionContext.Session.HasPermission(tenantId.Value, permissionRequirement.Permission))
         {
-            LogMessage.PermissionDenied(_logger, sessionContext.Session.IdentityName, sessionContext.Session.TenantName, permissionRequirement.Permission);
+            LogMessage.PermissionDenied(_logger, sessionContext.Session.IdentityName, $"{sessionContext.TenantId:D}", permissionRequirement.Permission);
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return;
         }

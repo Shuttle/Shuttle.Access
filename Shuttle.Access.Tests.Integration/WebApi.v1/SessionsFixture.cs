@@ -44,13 +44,12 @@ public class SessionsFixture
         var identityId = Guid.NewGuid();
         var tenantId = Guid.NewGuid();
         var factory = new FixtureWebApplicationFactory();
-
         var sessionToken = Guid.NewGuid();
+
         var session = new Query.Session
             {
                 Id = Guid.NewGuid(),
-                TokenHash = sessionToken.ToByteArray(),
-                TenantId = tenantId,
+                TokenHash = Convert.ToHexString(sessionToken.ToByteArray()),
                 IdentityId = identityId,
                 DateRegistered = DateTimeOffset.Now,
                 ExpiryDate = DateTimeOffset.Now.AddMinutes(5)

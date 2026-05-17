@@ -11,9 +11,14 @@ public class Session
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
     public List<Permission> Permissions { get; set; } = [];
-    public Guid TenantId { get; set; }
-    public string TenantName { get; set; } = string.Empty;
-    public byte[] TokenHash { get; set; } = new byte[32];
+    public string TokenHash { get; set; } = string.Empty;
+
+    public class Permission
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public Guid TenantId { get; set; }
+    }
 
     public class Specification : Specification<Specification>
     {
@@ -27,8 +32,7 @@ public class Session
             !string.IsNullOrWhiteSpace(IdentityName) ||
             !string.IsNullOrWhiteSpace(IdentityNameMatch) ||
             _permissions.Count > 0 ||
-            TenantId != null ||
-            TokenHash != null ||
+            !string.IsNullOrWhiteSpace(TokenHash) ||
             Token != null;
 
         public Guid? IdentityId { get; private set; }
@@ -36,21 +40,8 @@ public class Session
         public string? IdentityNameMatch { get; private set; }
         public IEnumerable<string> Permissions => _permissions.AsReadOnly();
         public Guid? RoleId { get; private set; }
-        public Guid? TenantId { get; private set; }
         public Guid? Token { get; private set; }
-        public byte[]? TokenHash { get; private set; }
-
-        public Specification AddPermission(string permission)
-        {
-            Guard.AgainstEmpty(permission);
-
-            if (!_permissions.Contains(permission))
-            {
-                _permissions.Add(permission);
-            }
-
-            return this;
-        }
+        public string TokenHash { get; private set; } = string.Empty;
 
         public Specification AddPermissions(IEnumerable<string> permissions)
         {
@@ -58,7 +49,10 @@ public class Session
 
             foreach (var permission in permissions)
             {
-                AddPermission(permission);
+                if (!_permissions.Contains(permission))
+                {
+                    _permissions.Add(permission);
+                }
             }
 
             return this;
@@ -89,12 +83,6 @@ public class Session
             return this;
         }
 
-        public Specification WithTenantId(Guid tenantId)
-        {
-            TenantId = Guard.AgainstEmpty(tenantId);
-            return this;
-        }
-
         public Specification WithToken(Guid token)
         {
             Token = Guard.AgainstEmpty(token);
@@ -104,7 +92,12 @@ public class Session
 
         public Specification WithTokenHash(byte[] tokenHash)
         {
-            TokenHash = Guard.AgainstNull(tokenHash);
+            return WithTokenHash(Convert.ToHexString(tokenHash));
+        }
+
+        public Specification WithTokenHash(string tokenHash)
+        {
+            TokenHash = Guard.AgainstEmpty(tokenHash);
             WithMaximumRows(1);
             return this;
         }

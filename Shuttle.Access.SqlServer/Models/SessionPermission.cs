@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Shuttle.Access.SqlServer.Models;
 
 [Table(nameof(SessionPermission), Schema = "access")]
-[PrimaryKey(nameof(SessionId), nameof(PermissionId))]
+[PrimaryKey(nameof(SessionId), nameof(TenantId), nameof(PermissionId))]
 public class SessionPermission
 {
     public Permission Permission { get; set; } = null!;
@@ -17,4 +17,7 @@ public class SessionPermission
 
     [Required]
     public Guid SessionId { get; set; }
+
+    [Required]
+    public Guid TenantId { get; set; }
 }

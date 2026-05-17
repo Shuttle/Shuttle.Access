@@ -16,16 +16,11 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Bearer";
-    private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
-    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
-    private readonly IContextSessionService _contextSessionService = Guard.AgainstNull(contextSessionService);
-    private readonly IJwtService _jwtService = Guard.AgainstNull(jwtService);
-    private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
     private readonly ILogger _logger = Guard.AgainstNull(loggerFactory).CreateLogger<JwtBearerAuthenticationHandler>();
 
-    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync()
+    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync(Guid tenantId)
     {
-        var session = await _contextSessionService.FindAsync();
+        var session = await contextSessionService.FindAsync();
 
         if (session == null)
         {
@@ -37,7 +32,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
             new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
-            new(HttpContextExtensions.SessionTenantIdClaimType, $"{session.TenantId:D}")
+            new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}")
         ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
@@ -45,53 +40,24 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        var tenantId = Request.GetTenantId(_logger, accessOptions.Value.SystemTenantId);
+
+        if (!tenantId.HasValue)
+        {
+            return await Response.GetTenantIdInvalidAuthenticateResultAsync();
+        }
+
         var authorizationHeader = Request.Headers.Authorization.FirstOrDefault();
-        var tenantIdHeader = Request.Headers["Shuttle-Access-Tenant-Id"].FirstOrDefault();
-        Guid tenantId;
 
         if (authorizationHeader == null)
         {
             return AuthenticateResult.NoResult();
         }
-
-        if (tenantIdHeader != null)
-        {
-            LogMessage.TenantIdHeader(_logger, "Found 'Shuttle-Access-Tenant-Id' header.", tenantIdHeader);
-
-            if (Guid.TryParse(tenantIdHeader, out var id))
-            {
-                tenantId = id;
-                LogMessage.TenantId(_logger, "Parsed tenant id.", id);
-            }
-            else
-            {
-                var failureMessage = $"Invalid GUID '{tenantIdHeader}' passed as header 'Shuttle-Access-Tenant-Id'.";
-
-                LogMessage.InvalidTenantIdHeader(_logger, failureMessage);
-
-                Response.StatusCode = StatusCodes.Status401Unauthorized;
-
-                await Response.WriteAsJsonAsync(new ProblemDetails
-                {
-                    Type = Type,
-                    Title = "Unauthorized",
-                    Status = StatusCodes.Status401Unauthorized,
-                    Detail = failureMessage
-                });
-
-                return AuthenticateResult.Fail(failureMessage);
-            }
-        }
-        else
-        {
-            tenantId = _accessOptions.SystemTenantId;
-            LogMessage.TenantId(_logger, "No 'Shuttle-Access-Tenant-Id' header found.  Using system tenant id.", tenantId);
-        }
         
-        if (_accessAuthorizationOptions.PassThrough)
+        if (accessAuthorizationOptions.Value.PassThrough)
         {
             LogMessage.PassThrough(_logger);
-            return await GetContextAuthenticateResultAsync();
+            return await GetContextAuthenticateResultAsync(tenantId.Value);
         }
 
         if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
@@ -102,7 +68,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
         }
 
         var token = authorizationHeader[7..];
-        var identityName = await _jwtService.GetIdentityNameAsync(token);
+        var identityName = await jwtService.GetIdentityNameAsync(token);
 
         if (string.IsNullOrWhiteSpace(identityName))
         {
@@ -110,7 +76,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             return AuthenticateResult.Fail(Access.Resources.IdentityNameClaimNotFound);
         }
 
-        var tokenValidationResult = await _jwtService.ValidateTokenAsync(token);
+        var tokenValidationResult = await jwtService.ValidateTokenAsync(token);
 
         if (!tokenValidationResult.IsValid)
         {
@@ -138,7 +104,7 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}")
         ];
 
-        var session = await _sessionService.FindAsync(new Query.Session.Specification().WithTenantId(tenantId).WithIdentityName(identityName));
+        var session = await sessionService.FindAsync(new Query.Session.Specification().WithIdentityName(identityName));
 
         if (session != null)
         {

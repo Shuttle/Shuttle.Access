@@ -175,11 +175,12 @@ public class RolesFixture
     [Test]
     public async Task Should_be_able_to_register_role_async()
     {
+        var accessOptions = new AccessOptions();
         var factory = new FixtureWebApplicationFactory();
 
         var response = await factory.GetAccessClient().Roles.RegisterAsync(new()
         {
-            TenantId = Guid.NewGuid(),
+            TenantId = accessOptions.SystemTenantId,
             Name = "role"
         });
 

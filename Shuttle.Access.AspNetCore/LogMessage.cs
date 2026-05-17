@@ -17,7 +17,7 @@ public static class LogMessage
         LoggerMessage.Define<Guid, Guid?>(LogLevel.Debug, new(1003, nameof(SessionUnavailable)), "No active session found for identity '{IdentityId}' and tenant '{TenantId}'.");
 
     private static readonly Action<ILogger, string, string, string, Exception?> PermissionDeniedDelegate =
-        LoggerMessage.Define<string, string, string>(LogLevel.Trace, new(1004, nameof(PermissionDenied)), "Identity '{IdentityName}' in tenant '{TenantName}' does not have access to permission '{Permission}'.");
+        LoggerMessage.Define<string, string, string>(LogLevel.Trace, new(1004, nameof(PermissionDenied)), "Identity '{IdentityName}' in tenant '{TenantId}' does not have access to permission '{Permission}'.");
 
     private static readonly Action<ILogger, string, string, Exception?> TenantIdHeaderDelegate =
         LoggerMessage.Define<string, string>(LogLevel.Trace, new(1005, nameof(TenantIdHeader)), "{Message}.  Tenant id header = '{TenantIdHeader}'.");
@@ -49,8 +49,8 @@ public static class LogMessage
     public static void SessionUnavailable(ILogger logger, Guid identityId, Guid? tenantId) =>
         SessionUnavailableDelegate(logger, identityId, tenantId, null);
 
-    public static void PermissionDenied(ILogger logger, string identityName, string tenantName, string permission) =>
-        PermissionDeniedDelegate(logger, identityName, tenantName, permission, null);
+    public static void PermissionDenied(ILogger logger, string identityName, string tenantId, string permission) =>
+        PermissionDeniedDelegate(logger, identityName, tenantId, permission, null);
 
     public static void TenantIdHeader(ILogger logger, string message, string tenantIdHeader) =>
         TenantIdHeaderDelegate(logger, message, tenantIdHeader, null);

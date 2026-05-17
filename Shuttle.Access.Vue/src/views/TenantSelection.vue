@@ -13,38 +13,14 @@
 </template>
 
 <script setup lang="ts">
-import { useAlertStore } from "@/stores/alert";
 import { useSessionStore } from "@/stores/session";
-import { useI18n } from "vue-i18n";
-import api from "@/api";
-import type { Session, Tenant } from "@/access";
 import router from "@/router";
+import type { Tenant } from "@/access";
 
-const { t } = useI18n({ useScope: 'global' });
 const sessionStore = useSessionStore();
 
-const busy = ref(false);
-
 const select = async (tenant: Tenant) => {
-  busy.value = true;
-
-  try {
-    const { data: session } = await api.patch<Session>(`/v1/sessions/tenant`, {
-      tenantId: tenant.id
-    })
-
-    sessionStore.tenantSelected(session);
-  } catch {
-    useAlertStore().add({
-      message: t("exceptions.tenant-selection"),
-      type: "error",
-      name: "tenant-select-exception"
-    });
-
-    sessionStore.signOut();
-    router.push({ name: 'sign-in' })
-    return
-  }
+  sessionStore.selectTenantId(tenant.id);
 
   router.push({ name: "dashboard" });
 }

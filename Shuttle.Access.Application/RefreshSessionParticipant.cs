@@ -21,15 +21,7 @@ public class RefreshSessionParticipant(ISessionCache sessionCache, ISessionQuery
             return;
         }
 
-        session.Permissions = (await identityQuery.PermissionsAsync(session.IdentityId, session.TenantId, cancellationToken))
-            .Select(permission => new Query.Permission
-            {
-                Id = permission.Id,
-                Name = permission.Name,
-                Description = permission.Description,
-                Status = permission.Status
-            })
-            .ToList();
+        session.Permissions = (await identityQuery.PermissionsAsync(session.IdentityId, cancellationToken)).ToList();
 
         await sessionQuery.SaveAsync(session, cancellationToken);
 

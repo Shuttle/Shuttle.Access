@@ -73,7 +73,6 @@ public static class OAuthEndpoints
                 Id = session.Id,
                 IdentityId = session.IdentityId,
                 IdentityName = session.IdentityName,
-                TenantId = session.TenantId
             }, cancellationToken);
         }
 

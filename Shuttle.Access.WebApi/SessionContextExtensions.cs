@@ -12,7 +12,7 @@ public static class SessionContextExtensions
         {
             Guard.AgainstNull(sessionContext).AuthenticationInvariants();
 
-            message.AuditTenantId = sessionContext.Session!.TenantId;
+            message.AuditTenantId = sessionContext.TenantId;
             message.AuditIdentityName = sessionContext.Session!.IdentityName;
 
             return message;
@@ -32,7 +32,7 @@ public static class SessionContextExtensions
         {
             Guard.AgainstNull(sessionContext).AuthenticationInvariants();
 
-            return new AuditInformation(sessionContext.Session!.TenantId, sessionContext.Session!.IdentityName);
+            return new AuditInformation(sessionContext.TenantId, sessionContext.Session!.IdentityName);
         }
     }
 }
