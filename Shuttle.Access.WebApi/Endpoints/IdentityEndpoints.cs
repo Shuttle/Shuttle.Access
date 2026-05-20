@@ -11,6 +11,7 @@ using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
 using Shuttle.Hopper;
 using Shuttle.Mediator;
+using Shuttle.OAuth;
 using ActivateIdentity = Shuttle.Access.WebApi.Contracts.v1.ActivateIdentity;
 using ChangePassword = Shuttle.Access.WebApi.Contracts.v1.ChangePassword;
 using RegisterIdentity = Shuttle.Access.WebApi.Contracts.v1.RegisterIdentity;

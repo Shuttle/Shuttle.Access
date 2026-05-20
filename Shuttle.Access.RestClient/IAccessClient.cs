@@ -4,6 +4,7 @@ namespace Shuttle.Access.RestClient;
 
 public interface IAccessClient
 {
+    IOAuthApi OAuth { get; }
     IIdentitiesApi Identities { get; }
     IPermissionsApi Permissions { get; }
     IRolesApi Roles { get; }

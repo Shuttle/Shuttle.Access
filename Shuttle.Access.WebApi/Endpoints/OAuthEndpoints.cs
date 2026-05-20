@@ -1,14 +1,14 @@
-﻿using System.Text;
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Contract;
-using Shuttle.Mediator;
 using Shuttle.Hopper;
+using Shuttle.Mediator;
 using Shuttle.OAuth;
+using System.Text;
 using RegisterIdentity = Shuttle.Access.Messages.v1.RegisterIdentity;
 using RegisterSession = Shuttle.Access.Application.RegisterSession;
 
@@ -35,9 +35,37 @@ public static class OAuthEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
+        app.MapGet("/v{version:apiVersion}/oauth/identity/{state}/{*code}", GetIdentityStateCode)
+            .WithTags("OAuth")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1);
+
         return app;
     }
 
+    private static async Task<IResult> GetIdentityStateCode(IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, string state, string code, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var grantId))
+        {
+            return Results.BadRequest();
+        }
+
+        var grant = await oauthGrantRepository.GetAsync(grantId, cancellationToken);
+        var data = await oauthService.GetDataAsync(grant, code, cancellationToken);
+        var oauthProviderOptions = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value).GetProviderOptions(grant.ProviderName);
+
+        if (string.IsNullOrWhiteSpace(oauthProviderOptions.Data.IdentityPropertyName))
+        {
+            return Results.Problem($"The 'Data.IdentityPropertyName' is empty for the '{grant.ProviderName}' provider options.");
+        }
+
+        var identityName = data.GetProperty(oauthProviderOptions.Data.IdentityPropertyName).ToString();
+
+        return string.IsNullOrWhiteSpace(identityName) 
+            ? Results.BadRequest($"No identity property '{oauthProviderOptions.Data.IdentityPropertyName}' was returned from the data endpoint provider.") 
+            : Results.Ok(new Contracts.v1.OAuthIdentity { IdentityName = identityName });
+    }
+    
     private static async Task<IResult> GetSessionStateCode(IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IBus bus, IMediator mediator, string state, string code, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var grantId))
@@ -45,9 +73,8 @@ public static class OAuthEndpoints
             return Results.BadRequest();
         }
 
-        var grant = await oauthGrantRepository.GetAsync(grantId);
-
-        var data = await oauthService.GetDataAsync(grant, code);
+        var grant = await oauthGrantRepository.GetAsync(grantId, cancellationToken);
+        var data = await oauthService.GetDataAsync(grant, code, cancellationToken);
         var oauthProviderOptions = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value).GetProviderOptions(grant.ProviderName);
 
         if (string.IsNullOrWhiteSpace(oauthProviderOptions.Data.IdentityPropertyName))
