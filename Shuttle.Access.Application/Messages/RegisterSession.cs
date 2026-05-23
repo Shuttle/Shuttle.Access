@@ -9,7 +9,6 @@ public class RegisterSession(string identityName)
     private readonly List<Session> _sessionsRemoved = [];
     private readonly List<Query.Tenant> _tenants = [];
     private string _password = string.Empty;
-    private Guid? _sessionToken;
 
     [MemberNotNullWhen(true, nameof(Session), nameof(SessionToken))]
     public bool HasSession => Session != null;
@@ -23,6 +22,7 @@ public class RegisterSession(string identityName)
 
     public IEnumerable<Session> SessionsRemoved => _sessionsRemoved.AsReadOnly();
     public Guid? SessionToken { get; private set; }
+    public Guid? DelegatedSessionToken { get; private set; }
     public bool ShouldRefresh { get; private set; }
 
     public IEnumerable<Query.Tenant> Tenants => _tenants.AsReadOnly();
@@ -48,7 +48,7 @@ public class RegisterSession(string identityName)
 
     public Guid GetSessionToken()
     {
-        return _sessionToken ?? throw new InvalidOperationException(Resources.RegisterSessionTokenNotSetException);
+        return SessionToken ?? throw new InvalidOperationException(Resources.RegisterSessionTokenNotSetException);
     }
 
     public RegisterSession Refresh()
@@ -102,7 +102,7 @@ public class RegisterSession(string identityName)
     {
         SetRegistrationType(SessionRegistrationType.Delegation);
 
-        _sessionToken = Guard.AgainstEmpty(delegatedSessionToken);
+        DelegatedSessionToken = Guard.AgainstEmpty(delegatedSessionToken);
 
         return this;
     }
@@ -123,7 +123,7 @@ public class RegisterSession(string identityName)
         return this;
     }
 
-    public RegisterSession UseSessionToken(Guid authenticationToken)
+    public RegisterSession UseSessionToken(Guid sessionToken)
     {
         if (ShouldRefresh)
         {
@@ -132,7 +132,7 @@ public class RegisterSession(string identityName)
 
         SetRegistrationType(SessionRegistrationType.Token);
 
-        _sessionToken = authenticationToken;
+        SessionToken = sessionToken;
 
         return this;
     }
@@ -155,5 +155,10 @@ public class RegisterSession(string identityName)
     {
         _tenants.AddRange(tenants);
         return this;
+    }
+
+    public Guid GetDelegatedSessionToken()
+    {
+        return DelegatedSessionToken ?? throw new InvalidOperationException(Resources.RegisterSessionDelegatedTokenNotSetException);
     }
 }

@@ -88,6 +88,15 @@ namespace Shuttle.Access.Application {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The delegated token has not been set.  Call `UseDelegation` first..
+        /// </summary>
+        public static string RegisterSessionDelegatedTokenNotSetException {
+            get {
+                return ResourceManager.GetString("RegisterSessionDelegatedTokenNotSetException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The password has not been set.  Please call `UsePassword` first..
         /// </summary>
         public static string RegisterSessionPasswordNotSetException {
@@ -97,7 +106,7 @@ namespace Shuttle.Access.Application {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The token has not been set.  Please call `UseToken` or `UseDelegation` first..
+        ///   Looks up a localized string similar to The token has not been set.  Call `UseSessionToken` first..
         /// </summary>
         public static string RegisterSessionTokenNotSetException {
             get {

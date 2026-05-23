@@ -48,7 +48,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             }
             case SessionRegistrationType.Delegation:
             {
-                var requesterSession = (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetSessionToken().ToString("D"))), cancellationToken)).FirstOrDefault();
+                var requesterSession = (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetDelegatedSessionToken().ToString("D"))), cancellationToken)).FirstOrDefault();
 
                 if (requesterSession == null || DateTimeOffset.UtcNow > requesterSession.ExpiryDate || !requesterSession.HasPermission(accessOptions.Value.SystemTenantId, AccessPermissions.Sessions.Register))
                 {
@@ -62,7 +62,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             {
                 session = (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetSessionToken().ToString("D"))), cancellationToken)).FirstOrDefault();
 
-                if (session != null)
+                if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
                 {
                     await SaveAsync(message, session, cancellationToken);
                 }
@@ -135,25 +135,21 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
     }
     private async Task SaveAsync(RegisterSession message, Session session, CancellationToken cancellationToken)
     {
-        Guid? token = session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow ? null : Guid.NewGuid();
+        var token = message.SessionToken ?? Guid.NewGuid();
 
-        if (token.HasValue)
-        {
-            session.TokenHash = Convert.ToHexString(hashingService.Sha256(token.Value.ToString("D")));
-        }
-
+        session.TokenHash = Convert.ToHexString(hashingService.Sha256(token.ToString("D")));
         session.ExpiryDate = DateTime.UtcNow.Add(accessOptions.Value.SessionDuration);
         session.Permissions = (await identityQuery.PermissionsAsync(session.IdentityId, cancellationToken)).ToList();
 
         await sessionQuery.SaveAsync(session, cancellationToken);
 
-        if (token.HasValue)
+        if (message.SessionToken.HasValue)
         {
-            message.Registered(token.Value, session);
+            message.Renewed(session);
         }
         else
         {
-            message.Renewed(session);
+            message.Registered(token, session);
         }
     }
 }

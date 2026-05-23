@@ -9,6 +9,7 @@ public class Session
     public string IdentityName { get; set; } = string.Empty;
     public List<Permission> Permissions { get; set; } = [];
     public Guid Id { get; set; }
+    public string TokenHash { get; set; } = string.Empty;
 
     public class Permission
     {

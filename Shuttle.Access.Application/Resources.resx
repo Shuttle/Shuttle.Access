@@ -128,7 +128,7 @@
     <value>The password has not been set.  Please call `UsePassword` first.</value>
   </data>
   <data name="RegisterSessionTokenNotSetException" xml:space="preserve">
-    <value>The token has not been set.  Please call `UseToken` or `UseDelegation` first.</value>
+    <value>The token has not been set.  Call `UseSessionToken` first.</value>
   </data>
   <data name="SessionRegistrationTypeNoneException" xml:space="preserve">
     <value>No registration type has been set.</value>
@@ -144,5 +144,8 @@
   </data>
   <data name="SessionRefreshException" xml:space="preserve">
     <value>Cannot refresh (remove) sessions when using a token to register a session.</value>
+  </data>
+  <data name="RegisterSessionDelegatedTokenNotSetException" xml:space="preserve">
+    <value>The delegated token has not been set.  Call `UseDelegation` first.</value>
   </data>
 </root>
