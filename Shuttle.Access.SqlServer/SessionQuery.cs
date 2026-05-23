@@ -17,7 +17,6 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
     public async Task<IEnumerable<Session>> SearchAsync(Session.Specification specification, CancellationToken cancellationToken = default)
     {
         return (await GetQueryable(specification)
-                .Include(e => e.Tenant)
                 .Include(e => e.Identity).ThenInclude(e => e.IdentityRoles)
                 .Include(e => e.SessionPermissions).ThenInclude(e => e.Permission)
                 .OrderBy(e => e.Identity.Name)
@@ -32,15 +31,12 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
                 IdentityId = e.IdentityId,
                 IdentityName = e.Identity.Name,
                 IdentityDescription = e.Identity.Description,
-                TokenHash = e.Token,
-                TenantId = e.TenantId,
-                TenantName = e.Tenant.Name,
-                Permissions = e.SessionPermissions.Select(item => new Query.Permission
+                TokenHash = e.TokenHash,
+                Permissions = e.SessionPermissions.Select(item => new Query.Session.Permission
                 {
                     Id = item.PermissionId,
                     Name = item.Permission.Name,
-                    Description = item.Permission.Description,
-                    Status = (PermissionStatus)item.Permission.Status
+                    TenantId = item.TenantId
                 }).ToList()
             });
     }
@@ -63,39 +59,40 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
 
         if (model == null)
         {
-            _accessDbContext.Sessions.Add(new()
+            model = new()
             {
                 Id = session.Id,
-                TenantId = session.TenantId,
                 IdentityId = session.IdentityId,
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
-                Token = session.TokenHash,
+                TokenHash = session.TokenHash,
                 SessionPermissions = session.Permissions.Select(p => new SessionPermission
                 {
                     SessionId = session.Id,
-                    PermissionId = p.Id
+                    PermissionId = p.Id,
+                    TenantId = p.TenantId
                 }).ToList()
-            });
+            };
+
+            _accessDbContext.Sessions.Add(model);
         }
         else
         {
-            model.Token = session.TokenHash;
-            model.ExpiryDate = session.ExpiryDate;
-            model.TenantId = session.TenantId;
-
             _accessDbContext.SessionPermissions.RemoveRange(model.SessionPermissions);
-
-            model.SessionPermissions.Clear();
-
-            await _accessDbContext.SaveChangesAsync(cancellationToken);
-
-            model.SessionPermissions = session.Permissions.Select(p => new SessionPermission
-            {
-                SessionId = session.Id,
-                PermissionId = p.Id
-            }).ToList();
         }
+
+        model.TokenHash = session.TokenHash;
+        model.ExpiryDate = session.ExpiryDate;
+        model.SessionPermissions.Clear();
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        model.SessionPermissions = session.Permissions.Select(p => new SessionPermission
+        {
+            SessionId = session.Id,
+            PermissionId = p.Id,
+            TenantId = p.TenantId
+        }).ToList();
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);
     }
@@ -119,9 +116,9 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
             specification.WithTokenHash(hashingService.Sha256($"{specification.Token.Value:D}"));
         }
 
-        if (specification.TokenHash != null)
+        if (!string.IsNullOrWhiteSpace(specification.TokenHash))
         {
-            queryable = queryable.Where(e => e.Token == specification.TokenHash);
+            queryable = queryable.Where(e => e.TokenHash == specification.TokenHash);
         }
 
         if (specification.IdentityId.HasValue)
@@ -147,11 +144,6 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
         if (specification.Permissions.Any())
         {
             queryable = queryable.Where(e => e.SessionPermissions.Any(p => specification.Permissions.Contains(p.Permission.Name)));
-        }
-
-        if (specification.TenantId.HasValue)
-        {
-            queryable = queryable.Where(e => e.TenantId == specification.TenantId);
         }
 
         return queryable;

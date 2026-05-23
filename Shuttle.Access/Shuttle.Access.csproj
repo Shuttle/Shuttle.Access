@@ -30,7 +30,7 @@
 
   <PropertyGroup>
     <Description>An abstraction for simple identity and access control.</Description>
-    <Version>9.0.8</Version>
+    <Version>10.0.0</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

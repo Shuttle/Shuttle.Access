@@ -86,21 +86,20 @@ watch(isDarkTheme, (newValue) => {
 })
 
 const items = computed(() => {
-  const result: any[] = [];
+  if (!sessionStore.tenantId) {
+    return [];
+  }
 
-  map.forEach((item: NavigationItem) => {
-    if (!item.permission || sessionStore.hasPermission(item.permission)) {
-      result.push({
-        icon: item.icon,
-        title: t(item.title),
-        to: item.to || ""
-      });
-    }
-
-    return result.length ? result : [{ title: t("sign-in"), props: { to: "/sign-in" } }];
-  });
-
-  return result;
+  return map
+    .filter((item: NavigationItem) => {
+      return !item.permission ||
+        sessionStore.hasPermission(item.permission);
+    })
+    .map((item: NavigationItem) => ({
+      icon: item.icon,
+      title: t(item.title),
+      to: item.to || ""
+    }));
 });
 
 const selectTenant = () => {

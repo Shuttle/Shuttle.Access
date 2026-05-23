@@ -5,8 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Shuttle.Access.SqlServer.Models;
 
 [Table(nameof(Session), Schema = "access")]
-[Index(nameof(Token), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(Token)}")]
-[Index(nameof(IdentityId), nameof(TenantId), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(IdentityId)}_{nameof(TenantId)}")]
+[Index(nameof(TokenHash), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(TokenHash)}")]
+[Index(nameof(IdentityId), IsUnique = true, Name = $"UX_{nameof(Session)}_{nameof(IdentityId)}")]
 public class Session
 {
     [Key]
@@ -23,12 +23,9 @@ public class Session
     [Required]
     public Guid IdentityId { get; set; }
 
-    public Guid TenantId { get; set; }
-
     public ICollection<SessionPermission> SessionPermissions { get; set; } = [];
 
-    public Tenant Tenant { get; set; } = null!;
-
     [Required]
-    public byte[] Token { get; set; } = new byte[32];
+    [StringLength(64)]
+    public string TokenHash { get; set; } = string.Empty;
 }

@@ -16,7 +16,7 @@ public class ChangePasswordParticipantFixture
         var eventStore = new FixtureEventStore();
         var sessionQuery = new Mock<ISessionQuery>();
         var hashingService = new HashingService();
-        var sessionTokenHash = hashingService.Sha256(changePassword.Token!.Value.ToString("D"));
+        var sessionTokenHash = Convert.ToHexString(hashingService.Sha256(changePassword.Token!.Value.ToString("D")));
         var passwordHash = hashingService.Sha256(changePassword.NewPassword);
 
         var session = new Query.Session { TokenHash = sessionTokenHash };

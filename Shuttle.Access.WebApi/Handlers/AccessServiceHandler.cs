@@ -58,7 +58,7 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
             return;
         }
 
-        await RefreshAsync(new Query.Session.Specification().AddPermission(message.Name), cancellationToken);
+        await RefreshAsync(new Query.Session.Specification().AddPermissions([message.Name]), cancellationToken);
     }
 
     public async Task HandleAsync(RolePermissionAdded message, CancellationToken cancellationToken = default)
@@ -84,7 +84,6 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
             await _bus.PublishAsync(new SessionRefreshed
             {
                 Id = session.Id,
-                TenantId = session.TenantId,
                 IdentityId = session.IdentityId,
                 IdentityName = session.IdentityName
             }, cancellationToken);

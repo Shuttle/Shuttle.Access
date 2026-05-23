@@ -28,14 +28,9 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
                 specification.WithTokenHash(hashingService.Sha256($"{specification.Token.Value:D}"));
             }
 
-            if (specification.TokenHash != null)
+            if (!string.IsNullOrWhiteSpace(specification.TokenHash))
             {
                 query = query.Where(e => e.Session.TokenHash.SequenceEqual(specification.TokenHash));
-            }
-
-            if (specification.TenantId.HasValue)
-            {
-                query = query.Where(e => e.Session.TenantId == specification.TenantId);
             }
 
             if (specification.IdentityId.HasValue)
@@ -67,7 +62,7 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
     {
         lock (_lock)
         {
-            _sessionEntries.RemoveAll(item => item.Session.TenantId == session.TenantId && item.Session.IdentityId.Equals(session.IdentityId));
+            _sessionEntries.RemoveAll(item => item.Session.IdentityId.Equals(session.IdentityId));
             _sessionEntries.Add(new(session));
 
             return session;

@@ -109,8 +109,7 @@ public static class RoleEndpoints
         app.MapPost("/v{version:apiVersion}/roles", Post)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Roles.Register);
+            .MapToApiVersion(apiVersion1);
 
         app.MapPost("/v{version:apiVersion}/roles/file", PostFile)
             .WithTags("Permissions")
@@ -165,14 +164,12 @@ public static class RoleEndpoints
 
         if (Guid.Empty.Equals(message.TenantId))
         {
-            message.TenantId = sessionContext.Session!.TenantId;
+            message.TenantId = sessionContext.TenantId;
         }
-        else
+
+        if (!sessionContext.Session.HasPermission(message.TenantId, AccessPermissions.Tenants.Manage))
         {
-            if (!sessionContext.Session.HasPermission(AccessPermissions.Tenants.Manage))
-            {
-                return Results.Forbid();
-            }
+            return Results.Forbid();
         }
 
         await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterRole
@@ -244,7 +241,7 @@ public static class RoleEndpoints
             {
                 Id = message.Id ?? Guid.NewGuid(),
                 Name = message.Name,
-                TenantId = sessionContext.Session.TenantId,
+                TenantId = sessionContext.TenantId,
                 Permissions = message.Permissions.Select(registerPermission => sessionContext.Audit(new RegisterPermission
                 {
                     Id = registerPermission.Id ?? Guid.NewGuid(),
@@ -279,7 +276,7 @@ public static class RoleEndpoints
             return Results.BadRequest();
         }
 
-        var search = new Query.Role.Specification().WithTenantId(sessionContext.Session.TenantId);
+        var search = new Query.Role.Specification().WithTenantId(sessionContext.TenantId);
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {

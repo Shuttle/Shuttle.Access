@@ -6,7 +6,7 @@ import { i18n } from "@/i18n";
 import type {
   Credentials,
   OAuthData,
-  Session,
+  SessionPermission,
   SessionResponse,
   Tenant,
 } from "@/access";
@@ -18,7 +18,7 @@ export const useSessionStore = defineStore("session", () => {
   const token = ref<string | null>();
   const tenantId = ref<string | null>();
   const tenantName = ref<string | null>();
-  const permissions = ref<string[]>([]);
+  const sessionPermissions = ref<SessionPermission[]>([]);
   const tenants = ref<Tenant[]>([]);
 
   const status = computed(() => {
@@ -45,18 +45,6 @@ export const useSessionStore = defineStore("session", () => {
     }
   };
 
-  const addPermission = (permission: string) => {
-    if (hasPermission(permission)) {
-      return;
-    }
-
-    permissions.value.push(permission);
-  };
-
-  const removePermissions = () => {
-    permissions.value = [];
-  };
-
   const register = (sessionResponse: SessionResponse) => {
     if (
       !sessionResponse ||
@@ -79,12 +67,11 @@ export const useSessionStore = defineStore("session", () => {
     identityName.value = sessionResponse.session.identityName;
     tenants.value = sessionResponse.tenants;
 
-    selectTenantId(sessionResponse.session.tenantId ?? "");
+    if (tenants.value.length == 1) {
+      selectTenantId(tenants.value[0].id);
+    }
 
-    removePermissions();
-    sessionResponse.session.permissions.forEach((item) =>
-      addPermission(item.name),
-    );
+    sessionPermissions.value = sessionResponse.session.permissions;
 
     isAuthenticated.value = true;
   };
@@ -118,24 +105,13 @@ export const useSessionStore = defineStore("session", () => {
     return sessionResponse;
   };
 
-  const selectTenantId = (id: string) => {
-    tenantId.value = id;
-    tenantName.value = tenants.value.find((t) => t.id === id)?.name ?? null;
+  const getTenantName = (id: string) => {
+    return tenants.value.find((t) => t.id === id)?.name ?? null;
   };
 
-  const sessionTenantSelected = (session: Session) => {
-    if (!session) {
-      throw Error(i18n.global.t("messages.invalid-session"));
-    }
-
-    if (!session.tenantId) {
-      throw Error(i18n.global.t("messages.no-tenant-selected"));
-    }
-
-    selectTenantId(session.tenantId);
-
-    removePermissions();
-    session.permissions.forEach((item) => addPermission(item.name));
+  const selectTenantId = (id: string) => {
+    tenantId.value = id;
+    tenantName.value = getTenantName(id);
   };
 
   const oauth = async (oauthData: OAuthData): Promise<SessionResponse> => {
@@ -168,7 +144,7 @@ export const useSessionStore = defineStore("session", () => {
     localStorage.removeItem("shuttle-access.identityName");
     localStorage.removeItem("shuttle-access.token");
 
-    removePermissions();
+    sessionPermissions.value = [];
 
     isAuthenticated.value = false;
   };
@@ -177,30 +153,36 @@ export const useSessionStore = defineStore("session", () => {
     return !!token.value;
   };
 
-  const hasPermission = (permission: string) => {
-    const required = permission.toLowerCase();
+  const activePermissions = computed(() => {
+    return sessionPermissions.value.filter(
+      (item) =>
+        item.tenantId === tenantId.value &&
+        (!item.name.startsWith("access://tenants/") ||
+          tenantId.value === configuration.systemTenantId),
+    );
+  });
 
-    if (
-      permission.startsWith("access://tenants/") &&
-      tenantId.value !== configuration.systemTenantId
-    ) {
+  const hasPermission = (permission: string) => {
+    if (!tenantId.value) {
       return false;
     }
 
+    const required = permission.toLowerCase();
+
     let result = false;
 
-    permissions.value.forEach((item) => {
+    activePermissions.value.forEach((item) => {
       if (result) {
         return;
       }
 
-      if (item.toLowerCase() === required) {
+      if (item.name.toLowerCase() === required) {
         result = true;
         return;
       }
 
-      if (item.includes("*")) {
-        const escaped = item
+      if (item.name.includes("*")) {
+        const escaped = item.name
           .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
           .replace(/\\\*/g, ".*");
 
@@ -226,19 +208,19 @@ export const useSessionStore = defineStore("session", () => {
     token,
     tenantId,
     tenantName,
-    permissions,
+    activePermissions,
+    sessionPermissions,
     status,
     tenants,
+    systemTenantActive,
     initialize,
-    addPermission,
-    removePermissions,
     register,
     signIn,
     signOut,
     oauth,
     hasSession,
     hasPermission,
-    tenantSelected: sessionTenantSelected,
-    systemTenantActive,
+    selectTenantId,
+    getTenantName,
   };
 });

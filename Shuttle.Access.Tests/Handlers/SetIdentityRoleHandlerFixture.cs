@@ -11,26 +11,50 @@ namespace Shuttle.Access.Tests.Handlers;
 public class SetIdentityRoleHandlerFixture
 {
     [Test]
-    public async Task Should_be_able_to_review_with_no_administrator_role_async()
+    public async Task Should_be_able_to_activate_role_async()
     {
-        var eventStore = new FixtureEventStore();
-        var handler = new SetIdentityRoleStatusHandler(eventStore, new Mock<IRoleQuery>().Object, new Mock<IIdentityQuery>().Object);
-
         var identityId = Guid.NewGuid();
+        var roleId = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
+
+        var eventStore = new FixtureEventStore();
+        var roleQuery = new Mock<IRoleQuery>();
+
+        roleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync([
+            new()
+            {
+                Id = roleId,
+                TenantId = tenantId
+            }
+        ]);
+
+        var eventStream = await eventStore.GetAsync(identityId);
+
+        eventStream.Add(new Events.Identity.v1.Registered
+        {
+            Name = "identity"
+        });
+
+        eventStream.Add(new Events.Identity.v1.TenantAdded
+        {
+            TenantId = tenantId
+        });
+
+        eventStream.Commit();
+
+        var handler = new SetIdentityRoleStatusHandler(eventStore, roleQuery.Object, new Mock<IIdentityQuery>().Object);
 
         var setIdentityRole = new SetIdentityRoleStatus
         {
             AuditTenantId = Guid.NewGuid(),
-            RoleId = Guid.NewGuid(),
+            RoleId = roleId,
             Active = true,
             IdentityId = identityId
         };
 
         await handler.HandleAsync(setIdentityRole);
 
-        var eventStream = await eventStore.GetAsync(identityId);
-
-        Assert.That(eventStream.Count, Is.EqualTo(1));
-        Assert.That(((RoleAdded)eventStream.GetEvents(EventStream.EventRegistrationType.All).First().Event).RoleId, Is.EqualTo(setIdentityRole.RoleId));
+        Assert.That(eventStream.Count, Is.EqualTo(3));
+        Assert.That(((RoleAdded)eventStream.GetEvents(EventStream.EventRegistrationType.All).Last().Event).RoleId, Is.EqualTo(setIdentityRole.RoleId));
     }
 }

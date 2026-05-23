@@ -31,8 +31,7 @@ public static class SessionEndpoints
                 {
                     Id = session.Id,
                     IdentityId = session.IdentityId,
-                    IdentityName = session.IdentityName,
-                    TenantId = session.TenantId
+                    IdentityName = session.IdentityName
                 }, cancellationToken);
             }
 
@@ -51,7 +50,7 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            await sessionQuery.RemoveAsync(new Session.Specification().WithTenantId(sessionContext.Session.TenantId), cancellationToken);
+            await sessionQuery.RemoveAsync(new(), cancellationToken);
 
             await bus.PublishAsync(new AllSessionsDeleted(), cancellationToken);
 
@@ -73,7 +72,7 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithTenantId(tenantId.Value).WithIdentityId(identityId.Value), cancellationToken)).FirstOrDefault();
+            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityId(identityId.Value), cancellationToken)).FirstOrDefault();
 
             if (session != null)
             {
@@ -83,8 +82,7 @@ public static class SessionEndpoints
                     {
                         Id = session.Id,
                         IdentityId = session.IdentityId,
-                        IdentityName = session.IdentityName,
-                        TenantId = session.TenantId
+                        IdentityName = session.IdentityName
                     }, cancellationToken);
                 }
             }
@@ -116,13 +114,6 @@ public static class SessionEndpoints
             registerSession.UseDirect();
         }
 
-        var tenantId = httpContext.FindTenantId();
-
-        if (tenantId.HasValue)
-        {
-            registerSession.WithTenantId(tenantId.Value);
-        }
-
         await mediator.SendAsync(registerSession, cancellationToken);
 
         if (registerSession.Result == SessionRegistrationResult.Forbidden)
@@ -142,7 +133,7 @@ public static class SessionEndpoints
             specification.WithTokenHash(hashingService.Sha256(model.Token.Value.ToString("D")));
         }
 
-        if (model.TokenHash != null)
+        if (!string.IsNullOrWhiteSpace(model.TokenHash))
         {
             specification.WithTokenHash(model.TokenHash);
         }
@@ -181,11 +172,6 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapPatch("/v{version:apiVersion}/sessions/tenant", PatchTenant)
-            .WithTags("Sessions")
-            .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1);
-
         app.MapPost("/v{version:apiVersion}/sessions/delegated", PostDelegated)
             .WithTags("Sessions")
             .RequireSession()
@@ -217,21 +203,7 @@ public static class SessionEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchTenant(ISessionContext sessionContext, SelectTenant selectTenant, IMediator mediator, CancellationToken cancellationToken)
-    {
-        if (sessionContext.Session == null)
-        {
-            return Results.BadRequest();
-        }
-
-        var message = new SessionTenantSelected(sessionContext.Session.Id, selectTenant.TenantId);
-
-        await Guard.AgainstNull(mediator).SendAsync(message, cancellationToken);
-
-        return message.Session == null ? Results.BadRequest() : Results.Ok(message.Session.Map());
-    }
-
-    private static async Task<IResult> Post(ILogger<RegisterSession> logger, IOptions<ApiOptions> apiOptions, IBus bus, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext, [FromBody] Contracts.v1.RegisterSession message, CancellationToken cancellationToken)
+    private static async Task<IResult> Post(ILogger<RegisterSession> logger, IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IBus bus, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext, [FromBody] Contracts.v1.RegisterSession message, CancellationToken cancellationToken)
     {
         var options = Guard.AgainstNull(apiOptions.Value);
 
@@ -246,11 +218,6 @@ public static class SessionEndpoints
         }
 
         var registerSession = new RegisterSession(message.IdentityName);
-
-        if (message.TenantId.HasValue)
-        {
-            registerSession.WithTenantId(message.TenantId.Value);
-        }
 
         if (!string.IsNullOrWhiteSpace(message.Password))
         {
@@ -279,7 +246,7 @@ public static class SessionEndpoints
                     return Results.BadRequest($"The identity determined from the HTTP Context is '{identityName}' but the session registration request is for '{message.IdentityName}'.");
                 }
 
-                if (!sessionContext.Session.HasPermission(AccessPermissions.Sessions.Register))
+                if (!sessionContext.Session.HasPermission(accessOptions.Value.SystemTenantId, AccessPermissions.Sessions.Register))
                 {
                     LogMessage.RegisterSessionUnauthorized(logger, sessionContext.Session.IdentityName);
 
@@ -299,7 +266,6 @@ public static class SessionEndpoints
                 Id = session.Id,
                 IdentityId = session.IdentityId,
                 IdentityName = session.IdentityName,
-                TenantId = session.TenantId
             }, cancellationToken);
         }
 
@@ -334,7 +300,7 @@ public static class SessionEndpoints
             return Results.Unauthorized();
         }
 
-        var specification = GetSpecification(model, hashingService).WithTenantId(sessionContext.Session.TenantId);
+        var specification = GetSpecification(model, hashingService);
 
         return Results.Ok((await sessionQuery.SearchAsync(specification)).Select(session => session.Map()).ToList());
     }

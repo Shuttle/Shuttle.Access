@@ -40,7 +40,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         if (session != null)
         {
-            LogMessage.SessionAvailable(_logger, session.IdentityName, session.TenantId, true);
+            LogMessage.SessionAvailable(_logger, session.IdentityName, true);
 
             await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
 
@@ -53,7 +53,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
             if (session != null)
             {
-                LogMessage.SessionAvailable(_logger, session.IdentityName, session.TenantId, false);
+                LogMessage.SessionAvailable(_logger, session.IdentityName, false);
 
                 _sessionCache.Add(session);
             }
@@ -71,7 +71,6 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             IdentityId = specification.IdentityId,
             IdentityName = specification.IdentityName ?? string.Empty,
             IdentityNameMatch = specification.IdentityNameMatch ?? string.Empty,
-            TenantId = specification.TenantId,
             TokenHash = specification.TokenHash
         };
 
@@ -85,7 +84,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 {
                     var result = _sessionCache.Add(GetSession(sessionResponse.Content.Single()));
 
-                    LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId, false);
+                    LogMessage.SessionAvailable(_logger, result.IdentityName, false);
 
                     await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
@@ -119,7 +118,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
                 var result = GetSession(content.Session);
 
-                LogMessage.SessionAvailable(_logger, result.IdentityName, result.TenantId, false);
+                LogMessage.SessionAvailable(_logger, result.IdentityName, false);
 
                 await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
 
@@ -134,13 +133,13 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", specification.IdentityName), cancellationToken);
         }
 
-        if (specification.TokenHash != null)
+        if (!string.IsNullOrWhiteSpace(specification.TokenHash))
         {
-            var identifier = Convert.ToHexString(specification.TokenHash);
+            var identifier = specification.TokenHash;
 
             LogMessage.SessionUnavailable(_logger, "TokenHash", identifier);
 
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("IdentityName", identifier), cancellationToken);
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("TokenHash", identifier), cancellationToken);
         }
 
         return null;
@@ -156,15 +155,11 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             IdentityDescription = session.IdentityDescription,
             DateRegistered = session.DateRegistered,
             ExpiryDate = session.ExpiryDate,
-            TenantId = session.TenantId,
-            TenantName = session.TenantName,
-            TokenHash = session.TokenHash,
-            Permissions = session.Permissions.Select(e => new Query.Permission
+            Permissions = session.Permissions.Select(e => new Query.Session.Permission
             {
                 Id = e.Id,
                 Name = e.Name,
-                Description = e.Description,
-                Status = (PermissionStatus)e.Status
+                TenantId = e.TenantId,
             }).ToList()
         };
     }

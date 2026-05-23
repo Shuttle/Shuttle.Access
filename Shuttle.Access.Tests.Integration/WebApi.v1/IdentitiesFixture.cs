@@ -266,13 +266,38 @@ public class IdentitiesFixture
     [Test]
     public async Task Should_be_able_to_set_identity_role_status_async()
     {
+        var tenantId = Guid.NewGuid();
         var roleId = Guid.NewGuid();
+
+        var identity = CreateIdentity();
+
+        identity.Tenants =
+        [
+            new()
+            {
+                Id = tenantId
+            }
+        ];
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null)).Verifiable();
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+            new List<Query.Identity>
+            {
+                identity
+            }.AsEnumerable()));
 
-        var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(Guid.NewGuid(), roleId, new()
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync([
+            new()
+            {
+                Id = roleId,
+                TenantId = tenantId
+            }
+        ]);
+        
+        factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null, It.IsAny<CancellationToken>())).Verifiable();
+
+        var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(identity.Id, roleId, new()
         {
             Active = true
         });
@@ -412,8 +437,34 @@ public class IdentitiesFixture
     public async Task Should_not_be_able_to_reset_password_when_no_session_token_is_provided_async()
     {
         var token = Guid.NewGuid();
+        var tenantId = Guid.NewGuid();
+        var roleId = Guid.NewGuid();
+
+        var identity = CreateIdentity();
+
+        identity.Tenants =
+        [
+            new()
+            {
+                Id = tenantId
+            }
+        ];
 
         var factory = new FixtureWebApplicationFactory();
+
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+            new List<Query.Identity>
+            {
+                identity
+            }.AsEnumerable()));
+
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync([
+            new()
+            {
+                Id = roleId,
+                TenantId = tenantId
+            }
+        ]);
 
         var response = await factory.GetAccessClient(httpClient =>
         {
@@ -434,11 +485,36 @@ public class IdentitiesFixture
     }
 
     [Test]
-    public async Task Should_not_be_able_to_set_identity_role_status_when_review_fails_async()
+    public async Task Should_not_be_able_to_deactivate_last_administrator_async()
     {
+        var tenantId = Guid.NewGuid();
         var roleId = Guid.NewGuid();
 
+        var identity = CreateIdentity();
+
+        identity.Tenants =
+        [
+            new()
+            {
+                Id = tenantId
+            }
+        ];
+
         var factory = new FixtureWebApplicationFactory();
+
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+            new List<Query.Identity>
+            {
+                identity
+            }.AsEnumerable()));
+
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync([
+            new()
+            {
+                Id = roleId,
+                TenantId = tenantId
+            }
+        ]);
 
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<ReviewIdentityRoleRemoval>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) => ((ReviewIdentityRoleRemoval)message).LastAdministrator());

@@ -42,6 +42,7 @@ public class RegisterSessionParticipantFixture
     [Test]
     public void Should_be_able_to_register_a_session_using_delegation()
     {
+        var accessOptions = new AccessOptions();
         var sessionToken = Guid.NewGuid();
         var message = new RegisterSession(IdentityName).UseDelegation(_tenantId, sessionToken);
 
@@ -50,12 +51,14 @@ public class RegisterSessionParticipantFixture
 
         session.Permissions = [new()
         {
-            Name = AccessPermissions.Sessions.Register
+            Id = Guid.NewGuid(),
+            Name = AccessPermissions.Sessions.Register,
+            TenantId = accessOptions.SystemTenantId
         }];
 
         identityQuery.Setup(m => m.IdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(ValueTask.FromResult(Guid.NewGuid()));
 
-        var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new HashingService(), sessionQuery.Object, identityQuery.Object);
+        var participant = new RegisterSessionParticipant(Options.Create(accessOptions), new Mock<IAuthenticationService>().Object, new HashingService(), sessionQuery.Object, identityQuery.Object);
 
         Assert.That(async () => await participant.HandleAsync(message, It.IsAny<CancellationToken>()), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
@@ -102,7 +105,6 @@ public class RegisterSessionParticipantFixture
         {
             Id = Guid.NewGuid(),
             IdentityId = Guid.NewGuid(),
-            TenantId = Guid.NewGuid(),
             DateRegistered = now,
             ExpiryDate = now.AddMinutes(1)
         };
@@ -151,16 +153,14 @@ public class RegisterSessionParticipantFixture
     [Test]
     public void Should_be_able_to_renew_a_session()
     {
-        var message = new RegisterSession(IdentityName)
-            .UseDirect()
-            .WithTenantId(_tenantId);
-
-        var sessionToken = new HashingService().Sha256($"{Guid.NewGuid():D}");
+        var token = Guid.NewGuid();
+        var tokenHash = Convert.ToHexString(new HashingService().Sha256($"{token:D}"));
+        var message = new RegisterSession(IdentityName).UseSessionToken(token);
 
         var identityQuery = MockIdentitySearchAsync();
         var sessionQuery = MockSessionSearchAsync(out var session);
 
-        session.TokenHash = sessionToken;
+        session.TokenHash = tokenHash;
 
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new HashingService(), sessionQuery.Object, identityQuery.Object);
 
@@ -169,6 +169,6 @@ public class RegisterSessionParticipantFixture
 
         sessionQuery.Verify(m => m.SaveAsync(It.IsAny<Query.Session>(), It.IsAny<CancellationToken>()), Times.Once);
 
-        Assert.That(message.Session!.TokenHash, Is.EqualTo(sessionToken));
+        Assert.That(message.Session!.TokenHash, Is.EqualTo(tokenHash));
     }
 }

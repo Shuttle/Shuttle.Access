@@ -24,11 +24,9 @@ public class RegisterSession(string identityName)
     public IEnumerable<Session> SessionsRemoved => _sessionsRemoved.AsReadOnly();
     public Guid? SessionToken { get; private set; }
     public bool ShouldRefresh { get; private set; }
-    public Guid? TenantId { get; private set; }
 
     public IEnumerable<Query.Tenant> Tenants => _tenants.AsReadOnly();
-
-
+    
     public RegisterSession DelegationSessionInvalid()
     {
         Result = SessionRegistrationResult.DelegationSessionInvalid;
@@ -104,7 +102,6 @@ public class RegisterSession(string identityName)
     {
         SetRegistrationType(SessionRegistrationType.Delegation);
 
-        TenantId = Guard.AgainstEmpty(tenantId);
         _sessionToken = Guard.AgainstEmpty(delegatedSessionToken);
 
         return this;
@@ -151,12 +148,6 @@ public class RegisterSession(string identityName)
     {
         _sessionsRemoved.Clear();
         _sessionsRemoved.AddRange(Guard.AgainstEmpty(sessions));
-        return this;
-    }
-
-    public RegisterSession WithTenantId(Guid tenantId)
-    {
-        TenantId = Guard.AgainstEmpty(tenantId);
         return this;
     }
 

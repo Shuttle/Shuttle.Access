@@ -11,21 +11,16 @@ public static class SessionExtensions
             return new()
             {
                 Id = session.Id,
-                TenantId = session.TenantId,
-                TenantName = session.TenantName,
                 IdentityId = session.IdentityId,
                 IdentityName = session.IdentityName,
                 IdentityDescription = session.IdentityDescription,
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
-                TokenHash = session.TokenHash,
-                Permissions = session.Permissions.Select(item => new Contracts.v1.Permission
+                Permissions = session.Permissions.Select(item => new Contracts.v1.Session.Permission
                 {
                     Id = item.Id,
                     Name = item.Name,
-                    Description = item.Description,
-                    Status = (int)item.Status,
-                    StatusName = item.Status.ToString()
+                    TenantId = item.TenantId
                 }).ToList()
             };
         }

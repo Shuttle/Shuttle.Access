@@ -22,12 +22,12 @@ public class SessionServiceFixture
     public async Task Should_be_able_check_for_and_cache_existent_session_async()
     {
         var sessionQuery = new Mock<ISessionQuery>();
-
         var sessionToken = Guid.NewGuid();
+
         Query.Session session = new()
         {
             Id = Guid.NewGuid(),
-            TokenHash = sessionToken.ToByteArray(),
+            TokenHash = Convert.ToHexString(sessionToken.ToByteArray()),
             IdentityName = "test-user",
             DateRegistered = DateTimeOffset.UtcNow,
             ExpiryDate = DateTimeOffset.UtcNow.AddHours(1)

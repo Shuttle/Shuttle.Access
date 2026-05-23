@@ -6,14 +6,13 @@ public static class SessionExtensions
 {
     extension(Session session)
     {
-        public bool HasPermission(string requiredPermission)
+        public bool HasPermission(Guid tenantId, string requiredPermission)
         {
             ArgumentNullException.ThrowIfNull(session);
             ArgumentException.ThrowIfNullOrWhiteSpace(requiredPermission);
 
             return session.Permissions
-                .Any(permission =>
-                    Regex.IsMatch(requiredPermission, $"^{Regex.Escape(permission.Name).Replace(@"\*", ".*")}$", RegexOptions.IgnoreCase));
+                .Any(permission => permission.TenantId == tenantId && Regex.IsMatch(requiredPermission, $"^{Regex.Escape(permission.Name).Replace(@"\*", ".*")}$", RegexOptions.IgnoreCase));
         }
     }
 }
