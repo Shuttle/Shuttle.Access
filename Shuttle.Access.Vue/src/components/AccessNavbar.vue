@@ -35,8 +35,8 @@
     <v-list>
       <v-list-item :title="sessionStore.identityName ?? t('(unknown)')" class="select-none"></v-list-item>
       <v-divider></v-divider>
-      <v-list-item v-if="sessionStore.tenantName" :prepend-icon="mdiSwapHorizontal" @click.prevent="selectTenant"
-        :title="sessionStore.tenantName ?? t('(unknown)')"></v-list-item>
+      <v-list-item v-if="sessionStore.tenant" :prepend-icon="mdiSwapHorizontal" @click.prevent="selectTenant"
+        :title="sessionStore.tenant.name ?? t('(unknown)')"></v-list-item>
       <v-divider></v-divider>
       <v-list-item :prepend-icon="mdiShieldAccountOutline" to="/password/token"
         :title="t('change-password')"></v-list-item>

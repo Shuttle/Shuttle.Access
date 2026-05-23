@@ -17,7 +17,6 @@ export const useSessionStore = defineStore("session", () => {
   const identityName = ref<string | null>();
   const token = ref<string | null>();
   const tenantId = ref<string | null>();
-  const tenantName = ref<string | null>();
   const sessionPermissions = ref<SessionPermission[]>([]);
   const tenants = ref<Tenant[]>([]);
 
@@ -30,7 +29,8 @@ export const useSessionStore = defineStore("session", () => {
       return;
     }
 
-    identityName.value = localStorage.getItem("shuttle-access.identityName");
+    identityName.value = localStorage.getItem("shuttle-access.identity-name");
+    tenantId.value = localStorage.getItem("shuttle-access.tenant-id");
     token.value = localStorage.getItem("shuttle-access.token");
 
     try {
@@ -55,7 +55,7 @@ export const useSessionStore = defineStore("session", () => {
     }
 
     localStorage.setItem(
-      "shuttle-access.identityName",
+      "shuttle-access.identity-name",
       sessionResponse.session.identityName,
     );
 
@@ -105,13 +105,9 @@ export const useSessionStore = defineStore("session", () => {
     return sessionResponse;
   };
 
-  const getTenantName = (id: string) => {
-    return tenants.value.find((t) => t.id === id)?.name ?? null;
-  };
-
   const selectTenantId = (id: string) => {
     tenantId.value = id;
-    tenantName.value = getTenantName(id);
+    localStorage.setItem("shuttle-access.tenant-id", id);
   };
 
   const oauth = async (oauthData: OAuthData): Promise<SessionResponse> => {
@@ -141,7 +137,7 @@ export const useSessionStore = defineStore("session", () => {
     token.value = undefined;
     tenantId.value = undefined;
 
-    localStorage.removeItem("shuttle-access.identityName");
+    localStorage.removeItem("shuttle-access.identity-name");
     localStorage.removeItem("shuttle-access.token");
 
     sessionPermissions.value = [];
@@ -201,13 +197,21 @@ export const useSessionStore = defineStore("session", () => {
     return tenantId.value === configuration.systemTenantId;
   });
 
+  const getTenantName = (id: string) => {
+    return tenants.value.find((t) => t.id === id)?.name ?? null;
+  };
+
+  const tenant = computed(() => {
+    return tenants.value.find((t) => t.id === tenantId.value) ?? null;
+  });
+
   return {
     isAuthenticated,
     isInitialized,
     identityName,
     token,
+    tenant,
     tenantId,
-    tenantName,
     activePermissions,
     sessionPermissions,
     status,
