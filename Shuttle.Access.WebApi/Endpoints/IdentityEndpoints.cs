@@ -11,7 +11,6 @@ using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
 using Shuttle.Hopper;
 using Shuttle.Mediator;
-using Shuttle.OAuth;
 using ActivateIdentity = Shuttle.Access.WebApi.Contracts.v1.ActivateIdentity;
 using ChangePassword = Shuttle.Access.WebApi.Contracts.v1.ChangePassword;
 using RegisterIdentity = Shuttle.Access.WebApi.Contracts.v1.RegisterIdentity;
@@ -72,7 +71,7 @@ public static class IdentityEndpoints
             DateRegistered = identity.DateRegistered,
             DateActivated = identity.DateActivated,
             RegisteredBy = identity.RegisteredBy,
-            GeneratedPassword = identity.GeneratedPassword,
+            GeneratedPassword = identity.GeneratedPassword ?? string.Empty,
             Roles = identity.Roles.Select(item => new Contracts.v1.Identity.Role
             {
                 Id = item.Id,
