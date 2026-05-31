@@ -34,7 +34,7 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
-        var specification = new Query.Identity.Specification().IncludeRoles();
+        var specification = new Query.Identity.Specification().IncludeTenants().IncludeRoles().IncludePermissions();
 
         if (Guid.TryParse(value, out var id))
         {
@@ -409,6 +409,11 @@ public static class IdentityEndpoints
     private static async Task<IResult> PostSearch(IIdentityQuery identityQuery, [FromBody] Contracts.v1.Identity.Specification specification)
     {
         var search = new Query.Identity.Specification().AddIds(specification.Ids);
+
+        if (!string.IsNullOrWhiteSpace(specification.Name))
+        {
+            search.WithName(specification.Name);
+        }
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {

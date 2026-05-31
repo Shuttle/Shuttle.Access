@@ -11,32 +11,12 @@ using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, IContextSessionService contextSessionService, ISessionService sessionService, ILoggerFactory loggerFactory, UrlEncoder encoder)
+public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, ISessionService sessionService, ILoggerFactory loggerFactory, UrlEncoder encoder)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
     public static readonly string AuthenticationScheme = "Bearer";
     private readonly ILogger _logger = Guard.AgainstNull(loggerFactory).CreateLogger<JwtBearerAuthenticationHandler>();
-
-    private async Task<AuthenticateResult> GetContextAuthenticateResultAsync(Guid tenantId)
-    {
-        var session = await contextSessionService.FindAsync();
-
-        if (session == null)
-        {
-            return AuthenticateResult.Fail(Resources.ContextSessionNotFound);
-        }
-
-        List<Claim> claims =
-        [
-            new(ClaimTypes.NameIdentifier, session.IdentityName),
-            new(ClaimTypes.Name, session.IdentityName),
-            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
-            new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}")
-        ];
-
-        return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
-    }
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -54,12 +34,6 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             return AuthenticateResult.NoResult();
         }
         
-        if (accessAuthorizationOptions.Value.PassThrough)
-        {
-            LogMessage.PassThrough(_logger);
-            return await GetContextAuthenticateResultAsync(tenantId.Value);
-        }
-
         if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
             authorizationHeader.Length < 8)
         {

@@ -96,7 +96,6 @@ public class Program
 
         services
             .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
-            .AddSingleton<IContextSessionService, NullContextSessionService>()
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
             .AddAccess(options =>
@@ -150,8 +149,6 @@ public class Program
             .AddAccessAuthorization(options =>
             {
                 configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(options);
-
-                options.PassThrough = false;
             })
             .Services
             .AddOAuth(builder =>

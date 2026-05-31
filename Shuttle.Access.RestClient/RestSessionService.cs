@@ -9,30 +9,12 @@ using Session = Shuttle.Access.Query.Session;
 namespace Shuttle.Access.RestClient;
 
 public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionCache sessionCache, IAccessClient accessClient, ILogger<RestSessionService>? logger = null)
-    : ISessionService, IContextSessionService
+    : ISessionService
 {
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
     private readonly IAccessClient _accessClient = Guard.AgainstNull(accessClient);
     private readonly ILogger<RestSessionService> _logger = logger ?? NullLogger<RestSessionService>.Instance;
     private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
-
-    public async Task<Session?> FindAsync(CancellationToken cancellationToken = default)
-    {
-        var sessionResponse = await _accessClient.Sessions.GetSelfAsync(cancellationToken);
-
-        var result = sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? _sessionCache.Add(GetSession(sessionResponse.Content)) : null;
-
-        if (result == null)
-        {
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"), cancellationToken);
-        }
-        else
-        {
-            await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
-        }
-
-        return result;
-    }
 
     public async Task<Session?> FindAsync(Session.Specification specification, CancellationToken cancellationToken = default)
     {
@@ -47,30 +29,13 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             return session;
         }
 
-        if (_accessAuthorizationOptions.PassThrough)
-        {
-            session = await FindAsync(cancellationToken);
-
-            if (session != null)
-            {
-                LogMessage.SessionAvailable(_logger, session.IdentityName, false);
-
-                _sessionCache.Add(session);
-            }
-            else
-            {
-                LogMessage.SessionUnavailable(_logger, "Pass-Through", "(self)");
-            }
-
-            return session;
-        }
-
         var messageSpecification = new WebApi.Contracts.v1.Session.Specification
         {
             Ids = specification.Ids.ToList(),
             IdentityId = specification.IdentityId,
             IdentityName = specification.IdentityName ?? string.Empty,
             IdentityNameMatch = specification.IdentityNameMatch ?? string.Empty,
+            Token = specification.Token,
             TokenHash = specification.TokenHash
         };
 

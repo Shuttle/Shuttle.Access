@@ -35,8 +35,7 @@ public static class ServiceCollectionExtensions
             
             services
                 .AddSingleton<RestSessionService>()
-                .AddSingleton<ISessionService>(sp => sp.GetRequiredService<RestSessionService>())
-                .AddSingleton<IContextSessionService>(sp => sp.GetRequiredService<RestSessionService>());
+                .AddSingleton<ISessionService>(sp => sp.GetRequiredService<RestSessionService>());
 
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

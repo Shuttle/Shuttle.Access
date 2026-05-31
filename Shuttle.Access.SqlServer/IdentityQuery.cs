@@ -103,7 +103,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
             ? queryable.Include(item => item.IdentityTenants).ThenInclude(item => item.Tenant)
             : queryable;
 
-        queryable = specification is { ShouldIncludeRoles: true, ShouldIncludePermissions: false }
+        queryable = specification.ShouldIncludeRoles
             ? queryable.Include(item => item.IdentityRoles.Where(role => specification.TenantId == null || role.TenantId == specification.TenantId))
                 .ThenInclude(item => item.Role)
                 .ThenInclude(item => item.Tenant)
@@ -115,12 +115,12 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
 
         if (!string.IsNullOrEmpty(specification.NameMatch))
         {
-            queryable = queryable.Where(e => e.Name.Contains(specification.NameMatch) || e.Description.Contains(specification.NameMatch));
+            queryable = queryable.Where(e => e.Name.Contains(specification.NameMatch));
         }
 
         if (!string.IsNullOrEmpty(specification.Name))
         {
-            queryable = queryable.Where(e => e.Name == specification.Name || e.Description == specification.Name);
+            queryable = queryable.Where(e => e.Name == specification.Name);
         }
 
         if (specification.TenantId != null)

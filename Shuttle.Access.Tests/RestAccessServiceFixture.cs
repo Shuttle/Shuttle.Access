@@ -43,7 +43,7 @@ public class RestAccessServiceFixture
 
         accessClient.Setup(m => m.Sessions).Returns(sessionsApi.Object);
 
-        var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions { PassThrough = false }), new SessionCache(new HashingService()), accessClient.Object);
+        var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), new SessionCache(new HashingService()), accessClient.Object);
 
         Assert.That(await service.FindAsync(new Query.Session.Specification().AddId(identityId)), Is.Not.Null);
         Assert.That(await service.FindAsync(new Query.Session.Specification().AddId(identityId)), Is.Not.Null); // returned from cache

@@ -33,18 +33,6 @@ public class AccessHttpMessageHandler : DelegatingHandler
 
         request.Headers.Add("User-Agent", _userAgent);
 
-        if (_accessAuthorizationOptions.PassThrough)
-        {
-            var httpContext = _httpContextAccessor.HttpContext;
-
-            if (httpContext != null &&
-                httpContext.Request.Headers.TryGetValue("Authorization", out var authorizationHeaderValues) &&
-                AuthenticationHeaderValue.TryParse(authorizationHeaderValues, out var authorizationHeader))
-            {
-                request.Headers.Authorization = authorizationHeader;
-            }
-        }
-
         await (_accessClientOptions.ConfigureHttpRequestAsync?.Invoke(request, _serviceProvider) ?? Task.CompletedTask);
 
         return await base.SendAsync(request, cancellationToken);

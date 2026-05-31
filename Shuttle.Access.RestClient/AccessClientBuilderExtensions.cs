@@ -10,17 +10,14 @@ public static class AccessClientBuilderExtensions
 {
     extension(AccessClientBuilder accessClientBuilder)
     {
-        public AccessClientBuilder UseBearerAuthenticationProvider(Action<BearerAuthenticationInterceptorOptions>? configureOptions = null)
+        public AccessClientBuilder UseBearerAuthenticationProvider(Action<BearerAuthenticationInterceptorOptions> configureOptions)
         {
             var services = Guard.AgainstNull(accessClientBuilder).Services;
 
             services.TryAddSingleton<IJwtService, JwtService>();
-            services.AddHttpClient<IAuthenticationInterceptor, BearerAuthenticationInterceptor>("BearerAuthenticationProvider");
+            services.AddSingleton<IAuthenticationInterceptor, BearerAuthenticationInterceptor>();
 
-            services.Configure<BearerAuthenticationInterceptorOptions>(options =>
-            {
-                configureOptions?.Invoke(options);
-            });
+            services.Configure(configureOptions);
 
             services.AddOptions<AccessClientOptions>().Configure(options =>
             {
@@ -40,16 +37,13 @@ public static class AccessClientBuilderExtensions
             return accessClientBuilder;
         }
 
-        public AccessClientBuilder UsePasswordAuthenticationProvider(Action<PasswordAuthenticationInterceptorOptions>? configureOptions = null)
+        public AccessClientBuilder UsePasswordAuthenticationProvider(Action<PasswordAuthenticationInterceptorOptions> configureOptions)
         {
             var services = Guard.AgainstNull(accessClientBuilder).Services;
 
             services.AddHttpClient<IAuthenticationInterceptor, PasswordAuthenticationInterceptor>("PasswordAuthenticationProvider");
 
-            services.Configure<PasswordAuthenticationInterceptorOptions>(options =>
-            {
-                configureOptions?.Invoke(options);
-            });
+            services.Configure(configureOptions);
 
             services.AddSingleton<IValidateOptions<PasswordAuthenticationInterceptorOptions>, PasswordAuthenticationInterceptorOptionsValidator>();
 

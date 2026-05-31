@@ -28,9 +28,6 @@ public static class LogMessage
     private static readonly Action<ILogger, string, Exception?> InvalidTenantIdHeaderDelegate =
         LoggerMessage.Define<string>(LogLevel.Trace, new(1007, nameof(InvalidTenantIdHeader)), "{Message}");
 
-    private static readonly Action<ILogger, Exception?> PassThroughDelegate =
-        LoggerMessage.Define(LogLevel.Trace, new(1008, nameof(InvalidTenantIdHeader)), "Using pass-through.");
-
     private static readonly Action<ILogger, string, Exception?> InvalidAuthorizationHeaderDelegate =
         LoggerMessage.Define<string>(LogLevel.Trace, new(1009, nameof(InvalidAuthorizationHeader)), "{Message}");
 
@@ -60,9 +57,6 @@ public static class LogMessage
 
     public static void InvalidTenantIdHeader(ILogger logger, string message) =>
         InvalidTenantIdHeaderDelegate(logger, message, null);
-
-    public static void PassThrough(ILogger logger) =>
-        PassThroughDelegate(logger, null);
 
     public static void InvalidAuthorizationHeader(ILogger logger, string scheme) =>
         InvalidAuthorizationHeaderDelegate(logger, scheme, null);
