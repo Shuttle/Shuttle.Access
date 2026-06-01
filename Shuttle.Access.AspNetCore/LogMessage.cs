@@ -20,19 +20,14 @@ public static class LogMessage
         LoggerMessage.Define<string, string, string>(LogLevel.Trace, new(1004, nameof(PermissionDenied)), "Identity '{IdentityName}' in tenant '{TenantId}' does not have access to permission '{Permission}'.");
 
     private static readonly Action<ILogger, string, string, Exception?> TenantIdHeaderDelegate =
-        LoggerMessage.Define<string, string>(LogLevel.Trace, new(1005, nameof(TenantIdHeader)), "{Message}.  Tenant id header = '{TenantIdHeader}'.");
+        LoggerMessage.Define<string, string>(LogLevel.Trace, new(1005, nameof(TenantIdHeader)), "{Message}  Tenant id header = '{TenantIdHeader}'.");
 
     private static readonly Action<ILogger, string, Guid, Exception?> TenantIdDelegate =
-        LoggerMessage.Define<string, Guid>(LogLevel.Trace, new(1006, nameof(TenantId)), "{Message}.  Tenant id = '{TenantId}'.");
+        LoggerMessage.Define<string, Guid>(LogLevel.Trace, new(1006, nameof(TenantId)), "{Message}  Tenant id = '{TenantId}'.");
 
     private static readonly Action<ILogger, string, Exception?> InvalidTenantIdHeaderDelegate =
         LoggerMessage.Define<string>(LogLevel.Trace, new(1007, nameof(InvalidTenantIdHeader)), "{Message}");
 
-    private static readonly Action<ILogger, string, Exception?> InvalidAuthorizationHeaderDelegate =
-        LoggerMessage.Define<string>(LogLevel.Trace, new(1009, nameof(InvalidAuthorizationHeader)), "{Message}");
-
-    private static readonly Action<ILogger, Exception?> IdentityNameClaimNotFoundDelegate =
-        LoggerMessage.Define(LogLevel.Trace, new(1008, nameof(IdentityNameClaimNotFound)), "Using pass-through.");
 
     public static void JwtIssuerOptionsUnavailable(ILogger logger, string jsonWebToken) =>
         JwtIssuerOptionsUnavailableDelegate(logger, jsonWebToken, null);
@@ -57,10 +52,4 @@ public static class LogMessage
 
     public static void InvalidTenantIdHeader(ILogger logger, string message) =>
         InvalidTenantIdHeaderDelegate(logger, message, null);
-
-    public static void InvalidAuthorizationHeader(ILogger logger, string scheme) =>
-        InvalidAuthorizationHeaderDelegate(logger, scheme, null);
-
-    public static void IdentityNameClaimNotFound(ILogger logger) =>
-        IdentityNameClaimNotFoundDelegate(logger, null);
 }

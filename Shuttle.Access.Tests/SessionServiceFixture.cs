@@ -1,5 +1,10 @@
-﻿using Moq;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using Moq;
 using NUnit.Framework;
+using Shuttle.Access.AspNetCore;
+using Shuttle.Access.WebApi;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Tests;
 
@@ -13,7 +18,7 @@ public class SessionServiceFixture
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).ReturnsAsync([]);
 
-        var service = new SessionService(new NullSessionCache(), sessionQuery.Object);
+        var service = new SessionService(new Mock<ILogger<SessionService>>().Object, new Mock<IHttpContextAccessor>().Object, new NullSessionCache(), sessionQuery.Object, new Mock<IJwtService>().Object, new Mock<IMediator>().Object);
 
         Assert.That(await service.FindAsync(new()), Is.Null);
     }
@@ -35,8 +40,8 @@ public class SessionServiceFixture
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).ReturnsAsync([session]);
 
-        var service = new SessionService(new NullSessionCache(), sessionQuery.Object);
-
+        var service = new SessionService(new Mock<ILogger<SessionService>>().Object, new Mock<IHttpContextAccessor>().Object, new NullSessionCache(), sessionQuery.Object, new Mock<IJwtService>().Object, new Mock<IMediator>().Object);
+        
         Assert.That(await service.FindAsync(new()), Is.Not.Null);
 
         sessionQuery.Verify(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None), Times.Exactly(1));

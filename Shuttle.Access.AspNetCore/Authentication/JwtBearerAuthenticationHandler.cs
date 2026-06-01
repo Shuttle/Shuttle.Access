@@ -11,7 +11,7 @@ using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, IJwtService jwtService, ISessionService sessionService, ILoggerFactory loggerFactory, UrlEncoder encoder)
+public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ISessionService sessionService, ILoggerFactory loggerFactory, UrlEncoder encoder)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
@@ -20,6 +20,13 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        var authorizationHeader = Request.Headers.Authorization.FirstOrDefault();
+
+        if (authorizationHeader == null)
+        {
+            return AuthenticateResult.NoResult();
+        }
+
         var tenantId = Request.GetTenantId(_logger, accessOptions.Value.SystemTenantId);
 
         if (!tenantId.HasValue)
@@ -27,63 +34,20 @@ public class JwtBearerAuthenticationHandler(IOptions<AccessOptions> accessOption
             return await Response.GetTenantIdInvalidAuthenticateResultAsync();
         }
 
-        var authorizationHeader = Request.Headers.Authorization.FirstOrDefault();
+        var session = await sessionService.GetSelfAsync();
 
-        if (authorizationHeader == null)
+        if (session == null)
         {
-            return AuthenticateResult.NoResult();
-        }
-        
-        if (!authorizationHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ||
-            authorizationHeader.Length < 8)
-        {
-            LogMessage.InvalidAuthorizationHeader(_logger, "Bearer");
-            return AuthenticateResult.NoResult();
-        }
-
-        var token = authorizationHeader[7..];
-        var identityName = await jwtService.GetIdentityNameAsync(token);
-
-        if (string.IsNullOrWhiteSpace(identityName))
-        {
-            LogMessage.IdentityNameClaimNotFound(_logger);
-            return AuthenticateResult.Fail(Access.Resources.IdentityNameClaimNotFound);
-        }
-
-        var tokenValidationResult = await jwtService.ValidateTokenAsync(token);
-
-        if (!tokenValidationResult.IsValid)
-        {
-            LogMessage.InvalidAuthorizationHeader(_logger, "Bearer");
-
-            var failureMessage = tokenValidationResult.Exception?.Message ?? Access.Resources.InvalidAuthorizationHeader;
-
-            Response.StatusCode = StatusCodes.Status401Unauthorized;
-
-            await Response.WriteAsJsonAsync(new ProblemDetails
-            {
-                Type = Type,
-                Title = "Unauthorized",
-                Status = StatusCodes.Status401Unauthorized,
-                Detail = failureMessage
-            });
-
-            return AuthenticateResult.Fail(failureMessage);
+            return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
         }
 
         List<Claim> claims =
         [
-            new(ClaimTypes.NameIdentifier, identityName),
-            new(ClaimTypes.Name, identityName),
-            new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}")
+            new(ClaimTypes.NameIdentifier, session.IdentityName),
+            new(ClaimTypes.Name, session.IdentityName),
+            new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}"),
+            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}")
         ];
-
-        var session = await sessionService.FindAsync(new Query.Session.Specification().WithIdentityName(identityName));
-
-        if (session != null)
-        {
-            claims.Add(new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"));
-        }
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
     }

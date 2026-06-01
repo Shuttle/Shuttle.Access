@@ -16,6 +16,24 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
     private readonly ILogger<RestSessionService> _logger = logger ?? NullLogger<RestSessionService>.Instance;
     private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
 
+    public async Task<Session?> GetSelfAsync(CancellationToken cancellationToken = default)
+    {
+        var sessionResponse = await _accessClient.Sessions.GetSelfAsync(cancellationToken);
+
+        var result = sessionResponse is { IsSuccessStatusCode: true, Content: not null } ? _sessionCache.Add(GetSession(sessionResponse.Content)) : null;
+
+        if (result == null)
+        {
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"), cancellationToken);
+        }
+        else
+        {
+            await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(result), cancellationToken);
+        }
+
+        return result;
+    }
+
     public async Task<Session?> FindAsync(Session.Specification specification, CancellationToken cancellationToken = default)
     {
         var session = _sessionCache.Find(specification);

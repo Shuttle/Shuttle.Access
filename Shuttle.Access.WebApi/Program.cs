@@ -98,6 +98,7 @@ public class Program
             .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
+            .AddScoped<ISessionService, SessionService>()
             .AddAccess(options =>
             {
                 configuration.GetSection(AccessOptions.SectionName).Bind(options);
