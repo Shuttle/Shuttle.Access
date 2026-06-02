@@ -46,6 +46,9 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
             .Property(p => p.Id).HasDefaultValueSql("NEWID()");
 
         modelBuilder.Entity<Models.Session>()
+            .Property(p => p.Application).HasDefaultValue("Access");
+
+        modelBuilder.Entity<Models.Session>()
             .HasMany(p => p.SessionPermissions)
             .WithOne(f => f.Session);
     }

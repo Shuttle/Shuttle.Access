@@ -55,26 +55,26 @@ public class SessionService(ILogger<SessionService> logger, IHttpContextAccessor
                 Title = "Unauthorized",
                 Status = StatusCodes.Status401Unauthorized,
                 Detail = failureMessage
-            }, cancellationToken: cancellationToken);
+            }, cancellationToken);
 
             return null;
         }
 
-        var registerSession = new RegisterSession(identityName).UseDirect();
+        var registerSession = new RegisterSession(identityName, httpContext.Request.GetApplication(logger)).UseDirect();
 
         await mediator.SendAsync(registerSession, cancellationToken);
 
         return registerSession.Session;
     }
 
-    public async Task<Query.Session?> FindAsync(Query.Session.Specification specification, CancellationToken cancellationToken = default)
+    public async Task<Session?> FindAsync(Session.Specification specification, CancellationToken cancellationToken = default)
     {
         var session = sessionCache.Find(specification);
 
         return session ?? Add((await sessionQuery.SearchAsync(specification, cancellationToken)).FirstOrDefault());
     }
 
-    private Query.Session? Add(Query.Session? session)
+    private Session? Add(Session? session)
     {
         return session == null ? null : sessionCache.Add(session);
     }

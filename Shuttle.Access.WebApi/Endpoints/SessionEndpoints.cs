@@ -72,7 +72,7 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityId(identityId.Value), cancellationToken)).FirstOrDefault();
+            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityId(identityId.Value).WithScope(httpContext.GetApplication()), cancellationToken)).FirstOrDefault();
 
             if (session != null)
             {
@@ -103,7 +103,7 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        var registerSession = new RegisterSession(identityName);
+        var registerSession = new RegisterSession(identityName, httpContext.GetApplication());
 
         if (token.HasValue)
         {
@@ -217,7 +217,7 @@ public static class SessionEndpoints
             return Results.BadRequest(Resources.SessionIdentityNameRequired);
         }
 
-        var registerSession = new RegisterSession(message.IdentityName);
+        var registerSession = new RegisterSession(message.IdentityName, message.Application);
 
         if (!string.IsNullOrWhiteSpace(message.Password))
         {
@@ -286,7 +286,7 @@ public static class SessionEndpoints
             return Results.Unauthorized();
         }
 
-        var registerSession = new RegisterSession(message.IdentityName).UseDelegation(message.TenantId, sessionIdentityId.Value);
+        var registerSession = new RegisterSession(message.IdentityName, message.Application).UseDelegation(message.TenantId, sessionIdentityId.Value);
 
         await mediator.SendAsync(registerSession);
 

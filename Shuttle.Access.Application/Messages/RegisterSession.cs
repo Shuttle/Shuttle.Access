@@ -4,7 +4,7 @@ using Shuttle.Contract;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterSession(string identityName)
+public class RegisterSession(string identityName, string application)
 {
     private readonly List<Session> _sessionsRemoved = [];
     private readonly List<Query.Tenant> _tenants = [];
@@ -14,6 +14,7 @@ public class RegisterSession(string identityName)
     public bool HasSession => Session != null;
 
     public string IdentityName { get; } = Guard.AgainstEmpty(identityName);
+    public string Application { get; } = Guard.AgainstEmpty(application);
 
     public SessionRegistrationType RegistrationType { get; private set; } = SessionRegistrationType.None;
     public SessionRegistrationResult Result { get; private set; } = SessionRegistrationResult.Forbidden;

@@ -10,6 +10,7 @@ public class Session
     public List<Permission> Permissions { get; set; } = [];
     public Guid Id { get; set; }
     public string TokenHash { get; set; } = string.Empty;
+    public string Application { get; set; } = "Access";
 
     public class Permission
     {

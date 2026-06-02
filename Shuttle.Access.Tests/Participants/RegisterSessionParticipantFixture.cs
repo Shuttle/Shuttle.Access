@@ -14,7 +14,7 @@ public class RegisterSessionParticipantFixture
     [Test]
     public void Should_not_be_able_to_register_a_session_when_no_registration_type_has_been_set()
     {
-        var message = new RegisterSession(IdentityName);
+        var message = new RegisterSession(IdentityName, "fixture");
         var participant = new RegisterSessionParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new HashingService(), new Mock<ISessionQuery>().Object, new Mock<IIdentityQuery>().Object);
 
         Assert.That(async () => await participant.HandleAsync(message, It.IsAny<CancellationToken>()), Throws.Exception);
@@ -23,7 +23,7 @@ public class RegisterSessionParticipantFixture
     [Test]
     public void Should_be_able_to_register_a_session_using_a_password()
     {
-        var message = new RegisterSession(IdentityName).UsePassword("some_password");
+        var message = new RegisterSession(IdentityName, "fixture").UsePassword("some_password");
         var authenticationService = new Mock<IAuthenticationService>();
 
         authenticationService.Setup(m => m.AuthenticateAsync(IdentityName, "some_password", It.IsAny<CancellationToken>())).ReturnsAsync(new AuthenticationResult(true, IdentityName));
@@ -44,7 +44,7 @@ public class RegisterSessionParticipantFixture
     {
         var accessOptions = new AccessOptions();
         var sessionToken = Guid.NewGuid();
-        var message = new RegisterSession(IdentityName).UseDelegation(_tenantId, sessionToken);
+        var message = new RegisterSession(IdentityName, "fixture").UseDelegation(_tenantId, sessionToken);
 
         var identityQuery = MockIdentitySearchAsync();
         var sessionQuery = MockSessionSearchAsync(out var session);
@@ -69,7 +69,7 @@ public class RegisterSessionParticipantFixture
     {
         var hashingService = new HashingService();
         var sessionToken = Guid.NewGuid();
-        var message = new RegisterSession(IdentityName).UseSessionToken(sessionToken);
+        var message = new RegisterSession(IdentityName, "fixture").UseSessionToken(sessionToken);
 
         var identityQuery = MockIdentitySearchAsync();
         var sessionQuery = MockSessionSearchAsync(out _);
@@ -119,7 +119,7 @@ public class RegisterSessionParticipantFixture
     [Test]
     public void Should_be_able_to_register_a_session_using_direct_registration()
     {
-        var message = new RegisterSession(IdentityName).UseDirect();
+        var message = new RegisterSession(IdentityName, "fixture").UseDirect();
 
         var identityQuery = MockIdentitySearchAsync();
         var sessionQuery = MockSessionSearchAsync(out _);
@@ -135,7 +135,7 @@ public class RegisterSessionParticipantFixture
     [Test]
     public void Should_be_able_to_register_a_new_session()
     {
-        var message = new RegisterSession(IdentityName).UseDirect();
+        var message = new RegisterSession(IdentityName, "fixture").UseDirect();
 
         var identityQuery = MockIdentitySearchAsync();
         var sessionQuery = MockSessionSearchAsync(out _);
@@ -155,7 +155,7 @@ public class RegisterSessionParticipantFixture
     {
         var token = Guid.NewGuid();
         var tokenHash = Convert.ToHexString(new HashingService().Sha256($"{token:D}"));
-        var message = new RegisterSession(IdentityName).UseSessionToken(token);
+        var message = new RegisterSession(IdentityName, "fixture").UseSessionToken(token);
 
         var identityQuery = MockIdentitySearchAsync();
         var sessionQuery = MockSessionSearchAsync(out var session);

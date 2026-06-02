@@ -12,6 +12,7 @@ public class Session
     public string IdentityName { get; set; } = string.Empty;
     public List<Permission> Permissions { get; set; } = [];
     public string TokenHash { get; set; } = string.Empty;
+    public string Application { get; set; } = "Access";
 
     public class Permission
     {
@@ -29,6 +30,7 @@ public class Session
             HasExcludedIds ||
             IdentityId != null ||
             RoleId != null ||
+            !string.IsNullOrWhiteSpace(Application) ||
             !string.IsNullOrWhiteSpace(IdentityName) ||
             !string.IsNullOrWhiteSpace(IdentityNameMatch) ||
             _permissions.Count > 0 ||
@@ -42,6 +44,7 @@ public class Session
         public Guid? RoleId { get; private set; }
         public Guid? Token { get; private set; }
         public string TokenHash { get; private set; } = string.Empty;
+        public string Application { get; private set; } = "Access";
 
         public Specification AddPermissions(IEnumerable<string> permissions)
         {
@@ -99,6 +102,12 @@ public class Session
         {
             TokenHash = Guard.AgainstEmpty(tokenHash);
             WithMaximumRows(1);
+            return this;
+        }
+
+        public Specification WithScope(string scope)
+        {
+            Application = Guard.AgainstEmpty(scope);
             return this;
         }
     }

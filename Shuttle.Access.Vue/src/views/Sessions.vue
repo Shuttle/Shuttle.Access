@@ -64,6 +64,10 @@ const headers = useSecureTableHeaders([
     filterable: false
   },
   {
+    title: t("application"),
+    value: "application",
+  },
+  {
     title: t("identity"),
     value: "identityName",
   },

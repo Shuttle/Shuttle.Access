@@ -111,7 +111,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             return;
         }
 
-        session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityName(message.IdentityName), cancellationToken)).FirstOrDefault();
+        session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityName(message.IdentityName).WithScope(message.Application), cancellationToken)).FirstOrDefault();
 
         if (session != null)
         {

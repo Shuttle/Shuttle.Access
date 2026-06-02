@@ -4,4 +4,5 @@ public class RegisterDelegatedSession
 {
     public Guid TenantId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
+    public string Application { get; set; } = "Application";
 }

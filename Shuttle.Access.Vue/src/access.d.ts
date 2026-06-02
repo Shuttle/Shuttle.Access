@@ -195,6 +195,7 @@ export type Session = {
   expiryDate?: Date;
   dateRegistered?: Date;
   tokenHash?: number[];
+  application?: string;
 };
 
 export type SessionPermission = {

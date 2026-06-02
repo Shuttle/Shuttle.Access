@@ -24,7 +24,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
 
         if (result == null)
         {
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Pass-Through", "(self)"), cancellationToken);
+            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Self", "(self)"), cancellationToken);
         }
         else
         {

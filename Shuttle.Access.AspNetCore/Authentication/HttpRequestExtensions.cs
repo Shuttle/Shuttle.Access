@@ -30,5 +30,21 @@ public static class HttpRequestExtensions
 
             return systemTenantId;
         }
+
+        public string GetApplication(ILogger logger)
+        {
+            var value = httpRequest.Headers["Shuttle-Access-Application"].FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                LogMessage.DefaultApplication(logger);
+
+                return "Access";
+            }
+
+            LogMessage.ProvidedApplication(logger, value);
+
+            return value;
+        }
     }
 }

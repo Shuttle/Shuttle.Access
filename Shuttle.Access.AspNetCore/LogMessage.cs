@@ -28,6 +28,12 @@ public static class LogMessage
     private static readonly Action<ILogger, string, Exception?> InvalidTenantIdHeaderDelegate =
         LoggerMessage.Define<string>(LogLevel.Trace, new(1007, nameof(InvalidTenantIdHeader)), "{Message}");
 
+    private static readonly Action<ILogger, Exception?> DefaultApplicationDelegate =
+        LoggerMessage.Define(LogLevel.Trace, new(1008, nameof(DefaultApplication)), @"Using 'Access' application.");
+
+    private static readonly Action<ILogger, string, Exception?> ProvidedApplicationDelegate =
+        LoggerMessage.Define<string>(LogLevel.Trace, new(1009, nameof(ProvidedApplication)), "Using provided application '{Application}'.");
+
 
     public static void JwtIssuerOptionsUnavailable(ILogger logger, string jsonWebToken) =>
         JwtIssuerOptionsUnavailableDelegate(logger, jsonWebToken, null);
@@ -52,4 +58,10 @@ public static class LogMessage
 
     public static void InvalidTenantIdHeader(ILogger logger, string message) =>
         InvalidTenantIdHeaderDelegate(logger, message, null);
+
+    public static void DefaultApplication(ILogger logger) =>
+        DefaultApplicationDelegate(logger, null);
+
+    public static void ProvidedApplication(ILogger logger, string scope) =>
+        ProvidedApplicationDelegate(logger, scope, null);
 }

@@ -30,6 +30,12 @@ public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterc
             }
 
             httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
+
+            if (authenticationContext.TenantId.HasValue)
+            {
+            }
+
+            httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
         }
         finally
         {

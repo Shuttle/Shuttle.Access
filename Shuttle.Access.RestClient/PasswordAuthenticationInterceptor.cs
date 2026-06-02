@@ -47,7 +47,8 @@ public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
             var requestData = new
             {
                 identityName = _passwordAuthenticationInterceptorOptions.IdentityName,
-                password = _passwordAuthenticationInterceptorOptions.Password
+                password = _passwordAuthenticationInterceptorOptions.Password,
+                application = string.IsNullOrWhiteSpace(_passwordAuthenticationInterceptorOptions.Application) ? "Access" : _passwordAuthenticationInterceptorOptions.Application
             };
 
             var json = JsonSerializer.Serialize(requestData);

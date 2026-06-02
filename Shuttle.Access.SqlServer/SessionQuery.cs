@@ -121,6 +121,11 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
             queryable = queryable.Where(e => e.TokenHash == specification.TokenHash);
         }
 
+        if (!string.IsNullOrWhiteSpace(specification.Application))
+        {
+            queryable = queryable.Where(e => e.Application == specification.Application);
+        }
+
         if (specification.IdentityId.HasValue)
         {
             queryable = queryable.Where(e => e.IdentityId == specification.IdentityId);
