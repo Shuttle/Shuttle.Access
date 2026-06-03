@@ -17,6 +17,7 @@ public static class SessionExtensions
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
                 TokenHash = session.TokenHash,
+                Application = session.Application,
                 Permissions = session.Permissions.Select(item => new Contracts.v1.Session.Permission
                 {
                     Id = item.Id,

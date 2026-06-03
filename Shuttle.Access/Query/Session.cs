@@ -44,7 +44,7 @@ public class Session
         public Guid? RoleId { get; private set; }
         public Guid? Token { get; private set; }
         public string TokenHash { get; private set; } = string.Empty;
-        public string Application { get; private set; } = "Access";
+        public string Application { get; private set; } = string.Empty;
 
         public Specification AddPermissions(IEnumerable<string> permissions)
         {
@@ -105,9 +105,9 @@ public class Session
             return this;
         }
 
-        public Specification WithScope(string scope)
+        public Specification WithApplication(string application)
         {
-            Application = Guard.AgainstEmpty(scope);
+            Application = Guard.AgainstEmpty(application);
             return this;
         }
     }

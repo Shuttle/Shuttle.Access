@@ -21,7 +21,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
 
         if (message.ShouldRefresh)
         {
-            var specification = new Session.Specification().WithIdentityName(message.IdentityName);
+            var specification = new Session.Specification().WithIdentityName(message.IdentityName).WithApplication(message.Application);
 
             var sessions = await sessionQuery.SearchAsync(specification, cancellationToken);
 
@@ -62,9 +62,11 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             {
                 session = (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetSessionToken().ToString("D"))), cancellationToken)).FirstOrDefault();
 
-                if (session != null && session.ExpiryDate.Add(accessOptions.Value.SessionRenewalTolerance) > DateTimeOffset.UtcNow)
+                if (session != null && !session.HasExpired(accessOptions.Value.SessionRenewalTolerance))
                 {
-                    await SaveAsync(message, session, cancellationToken);
+                    await SaveAsync(session, cancellationToken);
+
+                    message.Renewed(session);
                 }
                 else
                 {
@@ -111,16 +113,19 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             return;
         }
 
-        session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityName(message.IdentityName).WithScope(message.Application), cancellationToken)).FirstOrDefault();
+        session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityName(message.IdentityName).WithApplication(message.Application), cancellationToken)).FirstOrDefault();
 
-        if (session != null)
+        if (session != null && !session.HasExpired(accessOptions.Value.SessionRenewalTolerance))
         {
-            await SaveAsync(message, session, cancellationToken);
+            await SaveAsync(session, cancellationToken);
+
+            message.Renewed(session);
 
             return;
         }
 
         var now = DateTimeOffset.UtcNow;
+        var token = Guid.NewGuid();
 
         session = new()
         {
@@ -129,27 +134,19 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             IdentityName = identity.Name,
             IdentityDescription = identity.Description,
             DateRegistered = now,
+            TokenHash = Convert.ToHexString(hashingService.Sha256(token.ToString("D"))),
+            Application = message.Application
         };
 
-        await SaveAsync(message, session, cancellationToken);
-    }
-    private async Task SaveAsync(RegisterSession message, Session session, CancellationToken cancellationToken)
-    {
-        var token = message.SessionToken ?? Guid.NewGuid();
+        await SaveAsync(session, cancellationToken);
 
-        session.TokenHash = Convert.ToHexString(hashingService.Sha256(token.ToString("D")));
+        message.Registered(token, session);
+    }
+    private async Task SaveAsync(Session session, CancellationToken cancellationToken)
+    {
         session.ExpiryDate = DateTime.UtcNow.Add(accessOptions.Value.SessionDuration);
         session.Permissions = (await identityQuery.PermissionsAsync(session.IdentityId, cancellationToken)).ToList();
 
         await sessionQuery.SaveAsync(session, cancellationToken);
-
-        if (message.SessionToken.HasValue)
-        {
-            message.Renewed(session);
-        }
-        else
-        {
-            message.Registered(token, session);
-        }
     }
 }

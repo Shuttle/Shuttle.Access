@@ -72,7 +72,7 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityId(identityId.Value).WithScope(httpContext.GetApplication()), cancellationToken)).FirstOrDefault();
+            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityId(identityId.Value).WithApplication(httpContext.GetApplication()), cancellationToken)).FirstOrDefault();
 
             if (session != null)
             {
@@ -151,6 +151,11 @@ public static class SessionEndpoints
         if (!string.IsNullOrWhiteSpace(model.IdentityNameMatch))
         {
             specification.WithIdentityNameMatch(model.IdentityNameMatch);
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.Application))
+        {
+            specification.WithApplication(model.Application);
         }
 
         return specification;

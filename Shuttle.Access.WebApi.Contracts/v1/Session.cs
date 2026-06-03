@@ -27,5 +27,6 @@ public class Session
         public string IdentityNameMatch { get; set; } = string.Empty;
         public Guid? Token { get; set; }
         public string TokenHash { get; set; } = string.Empty;
+        public string Application { get; set; } = "Access";
     }
 }

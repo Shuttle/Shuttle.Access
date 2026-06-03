@@ -11,5 +11,10 @@ public static class SessionExtensions
 
             return session.Permissions.Any(permission => permission.TenantId == tenantId && permission.IsSatisfiedBy(requiredPermission));
         }
+
+        public bool HasExpired(TimeSpan sessionRenewalTolerance)
+        {
+            return session.ExpiryDate < DateTimeOffset.UtcNow.Add(sessionRenewalTolerance);
+        }
     }
 }

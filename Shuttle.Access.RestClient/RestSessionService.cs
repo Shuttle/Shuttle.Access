@@ -54,7 +54,8 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             IdentityName = specification.IdentityName ?? string.Empty,
             IdentityNameMatch = specification.IdentityNameMatch ?? string.Empty,
             Token = specification.Token,
-            TokenHash = specification.TokenHash
+            TokenHash = specification.TokenHash,
+            Application = specification.Application
         };
 
         var sessionResponse = await _accessClient.Sessions.PostSearchAsync(messageSpecification, cancellationToken);

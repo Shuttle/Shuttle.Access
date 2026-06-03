@@ -66,6 +66,7 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
                 TokenHash = session.TokenHash,
+                Application = session.Application,
                 SessionPermissions = session.Permissions.Select(p => new SessionPermission
                 {
                     SessionId = session.Id,
@@ -101,16 +102,6 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
     {
         var queryable = _accessDbContext.Sessions.AsQueryable();
 
-        if (specification.HasIds)
-        {
-            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
-        }
-
-        if (specification.HasExcludedIds)
-        {
-            queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
-        }
-
         if (specification.Token.HasValue)
         {
             specification.WithTokenHash(hashingService.Sha256($"{specification.Token.Value:D}"));
@@ -119,6 +110,16 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
         if (!string.IsNullOrWhiteSpace(specification.TokenHash))
         {
             queryable = queryable.Where(e => e.TokenHash == specification.TokenHash);
+        }
+
+        if (specification.HasIds)
+        {
+            queryable = queryable.Where(e => specification.Ids.Contains(e.Id));
+        }
+
+        if (specification.HasExcludedIds)
+        {
+            queryable = queryable.Where(e => !specification.ExcludedIds.Contains(e.Id));
         }
 
         if (!string.IsNullOrWhiteSpace(specification.Application))

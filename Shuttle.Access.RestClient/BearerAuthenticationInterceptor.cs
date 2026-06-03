@@ -31,11 +31,12 @@ public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterc
 
             httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
 
-            if (authenticationContext.TenantId.HasValue)
+            if (_bearerAuthenticationInterceptorOptions.TenantId.HasValue)
             {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_bearerAuthenticationInterceptorOptions.TenantId.Value:D}");
             }
 
-            httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
+            httpRequestMessage.Headers.Add("Shuttle-Access-Application", _bearerAuthenticationInterceptorOptions.Application);
         }
         finally
         {

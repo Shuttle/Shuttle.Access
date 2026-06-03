@@ -1,4 +1,5 @@
-﻿using System.Security.Authentication;
+﻿using System.Net.Http.Headers;
+using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
@@ -40,7 +41,7 @@ public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
         {
             if (_tokenExpiryDate > DateTimeOffset.UtcNow.Add(_accessClientOptions.RenewToleranceTimeSpan))
             {
-                httpRequestMessage.Headers.Add("Shuttle.Access", _token);
+                httpRequestMessage.Headers.Authorization = new("Shuttle.Access", _token);
                 return;
             }
 
@@ -73,7 +74,14 @@ public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
             _token = $"token={sessionResponse.Token:D}";
             _tokenExpiryDate = sessionResponse.Session.ExpiryDate;
 
-            httpRequestMessage.Headers.Add("Shuttle.Access", _token);
+            httpRequestMessage.Headers.Authorization = new("Shuttle.Access", _token);
+
+            if (_passwordAuthenticationInterceptorOptions.TenantId.HasValue)
+            {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_passwordAuthenticationInterceptorOptions.TenantId.Value:D}");
+            }
+
+            httpRequestMessage.Headers.Add("Shuttle-Access-Application", _passwordAuthenticationInterceptorOptions.Application);
         }
         finally
         {
