@@ -112,6 +112,12 @@ public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> ac
     {
         Guard.AgainstNull(context);
 
+        if (await _accessDbContext.Tenants.FirstOrDefaultAsync(e => e.Id == _accessOptions.SystemTenantId, cancellationToken: cancellationToken) == null)
+        {
+            context.Defer();
+            return;
+        }
+
         _accessDbContext.Roles.Add(new()
         {
             Id = context.PrimitiveEvent.Id,

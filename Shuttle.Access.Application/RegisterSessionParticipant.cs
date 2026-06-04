@@ -66,7 +66,7 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
                 {
                     await SaveAsync(session, cancellationToken);
 
-                    message.Renewed(session);
+                    message.Renewed(message.GetSessionToken(), session);
                 }
                 else
                 {
@@ -113,30 +113,21 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
             return;
         }
 
-        session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityName(message.IdentityName).WithApplication(message.Application), cancellationToken)).FirstOrDefault();
-
-        if (session != null && !session.HasExpired(accessOptions.Value.SessionRenewalTolerance))
-        {
-            await SaveAsync(session, cancellationToken);
-
-            message.Renewed(session);
-
-            return;
-        }
-
+        // A new token has to be issued here.
         var now = DateTimeOffset.UtcNow;
         var token = Guid.NewGuid();
 
-        session = new()
-        {
-            Id = session?.Id ?? Guid.NewGuid(),
-            IdentityId = identity.Id,
-            IdentityName = identity.Name,
-            IdentityDescription = identity.Description,
-            DateRegistered = now,
-            TokenHash = Convert.ToHexString(hashingService.Sha256(token.ToString("D"))),
-            Application = message.Application
-        };
+        session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityName(message.IdentityName).WithApplication(message.Application), cancellationToken)).FirstOrDefault()
+                  ?? new()
+                  {
+                      Id = Guid.NewGuid(),
+                      IdentityId = identity.Id,
+                      IdentityName = identity.Name,
+                      IdentityDescription = identity.Description,
+                      DateRegistered = now,
+                      TokenHash = Convert.ToHexString(hashingService.Sha256(token.ToString("D"))),
+                      Application = message.Application
+                  };
 
         await SaveAsync(session, cancellationToken);
 

@@ -73,8 +73,9 @@ public class RegisterSession(string identityName, string application)
         return this;
     }
 
-    public RegisterSession Renewed(Session session)
+    public RegisterSession Renewed(Guid sessionToken, Session session)
     {
+        SessionToken = Guard.AgainstEmpty(sessionToken);
         Session = session;
 
         Result = SessionRegistrationResult.Renewed;

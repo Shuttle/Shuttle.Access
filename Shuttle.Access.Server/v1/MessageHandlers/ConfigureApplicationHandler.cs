@@ -54,6 +54,16 @@ public class ConfigureApplicationHandler(ILogger<ConfigureApplicationHandler> lo
         }
 
         var message = context.Message;
+        var systemTenantId = accessOptions.Value.SystemTenantId;
+
+        using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            var registerTenant = new RegisterTenant(systemTenantId, accessOptions.Value.SystemTenantName, TenantStatus.Active, systemTenantId, "system");
+
+            await mediator.SendAsync(registerTenant, cancellationToken);
+
+            scope.Complete();
+        }
 
         var getEventSourcingCounts = new GetEventSourcingCounts();
 
@@ -64,8 +74,6 @@ public class ConfigureApplicationHandler(ILogger<ConfigureApplicationHandler> lo
             await bus.SendAsync(message, builder => builder.ToSelf().DeferFor(TimeSpan.FromSeconds(5)), cancellationToken);
             return;
         }
-
-        var systemTenantId = accessOptions.Value.SystemTenantId;
 
         foreach (var permission in _permissions)
         {
@@ -119,15 +127,6 @@ public class ConfigureApplicationHandler(ILogger<ConfigureApplicationHandler> lo
         else
         {
             logger.LogInformation("Registering system tenant '{SystemTenantName}' with id '{SystemTenantId}'.", accessOptions.Value.SystemTenantName, systemTenantId);
-
-            using (var scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
-            {
-                var registerTenant = new RegisterTenant(systemTenantId, accessOptions.Value.SystemTenantName, TenantStatus.Active, systemTenantId, "system");
-
-                await mediator.SendAsync(registerTenant, cancellationToken);
-
-                scope.Complete();
-            }
 
             timeout = DateTimeOffset.Now.Add(serverOptions.Value.Timeout);
 
