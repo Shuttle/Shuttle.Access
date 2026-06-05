@@ -10,7 +10,7 @@
     </v-card-title>
     <v-divider></v-divider>
     <a-data-table :items="items" :headers="headers" :mobile="null" mobile-breakpoint="md" v-model:search="search"
-      :loading="busy" show-expand v-model:expanded="expanded" item-value="identityName" expand-on-click>
+      :loading="busy" show-expand v-model:expanded="expanded" item-value="id" expand-on-click>
       <template v-slot:header.action="">
         <v-btn v-if="sessionStore.hasPermission(Permissions.Sessions.Manage)" :icon="mdiDeleteSweepOutline"
           size="x-small" @click="removeAll()"></v-btn>
