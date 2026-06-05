@@ -18,7 +18,7 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
-    private static async Task<IResult> Delete(Guid sessionId, ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery, CancellationToken cancellationToken)
+    private static async Task<IResult> Delete(ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery, Guid sessionId, CancellationToken cancellationToken)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
@@ -199,7 +199,7 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapDelete("/v{version:apiVersion}/sessions/{identityId:Guid}", Delete)
+        app.MapDelete("/v{version:apiVersion}/sessions/{sessionId:Guid}", Delete)
             .WithTags("Sessions")
             .RequirePermission(AccessPermissions.Sessions.Manage)
             .WithApiVersionSet(versionSet)

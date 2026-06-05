@@ -145,7 +145,7 @@ const remove = async (item: Session) => {
   busy.value = true;
 
   api
-    .delete(`v1/sessions/${item.identityId}`)
+    .delete(`v1/sessions/${item.id}`)
     .then(function () {
       refresh();
     })
