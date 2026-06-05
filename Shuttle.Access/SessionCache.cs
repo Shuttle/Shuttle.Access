@@ -33,6 +33,11 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
                 query = query.Where(e => e.Session.TokenHash.SequenceEqual(specification.TokenHash));
             }
 
+            if (!string.IsNullOrWhiteSpace(specification.Application))
+            {
+                query = query.Where(e => e.Session.Application == specification.Application);
+            }
+
             if (specification.IdentityId.HasValue)
             {
                 query = query.Where(e => e.Session.IdentityId == specification.IdentityId.Value);

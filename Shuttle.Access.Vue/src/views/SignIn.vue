@@ -119,7 +119,7 @@ const oauthAuthenticate = async (provider: string) => {
   busy.value = true;
 
   try {
-    const response = await api.get(`v1/oauth/authenticate/${provider}/access`)
+    const response = await api.get(`v1/oauth/authenticate/${provider}/Access`)
 
     window.location.replace(response?.data?.authorizationUrl);
   } finally {
@@ -131,7 +131,7 @@ const refreshOAuthProviders = async () => {
   busy.value = true;
 
   try {
-    const response = await api.get("v1/oauth/providers/access")
+    const response = await api.get("v1/oauth/providers/Access")
 
     oauthProviders.value = response?.data;
   } finally {

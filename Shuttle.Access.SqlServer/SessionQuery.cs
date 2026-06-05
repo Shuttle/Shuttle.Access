@@ -32,6 +32,7 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
                 IdentityName = e.Identity.Name,
                 IdentityDescription = e.Identity.Description,
                 TokenHash = e.TokenHash,
+                Application = e.Application,
                 Permissions = e.SessionPermissions.Select(item => new Query.Session.Permission
                 {
                     Id = item.PermissionId,
