@@ -11,8 +11,8 @@
   </ItemGroup>
 	
   <ItemGroup>
-		<PackageReference Include="Refit" Version="10.1.6" />
-		<PackageReference Include="Refit.HttpClientFactory" Version="10.1.6" />
+		<PackageReference Include="Refit" Version="11.0.1" />
+		<PackageReference Include="Refit.HttpClientFactory" Version="11.0.1" />
 		<PackageReference Include="Shuttle.Contract" Version="21.0.1" />
 	</ItemGroup>
 
@@ -33,7 +33,7 @@
 
   <PropertyGroup>
     <Description>A client used to interact with the restful Shuttle.Access web API.</Description>
-    <Version>10.1.2</Version>
+    <Version>10.1.4</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

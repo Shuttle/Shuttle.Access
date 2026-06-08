@@ -123,11 +123,12 @@ public class RegisterSessionParticipant(IOptions<AccessOptions> accessOptions, I
                       Id = Guid.NewGuid(),
                       IdentityId = identity.Id,
                       IdentityName = identity.Name,
-                      IdentityDescription = identity.Description,
                       DateRegistered = now,
-                      TokenHash = Convert.ToHexString(hashingService.Sha256(token.ToString("D"))),
                       Application = message.Application
                   };
+
+        session.TokenHash = Convert.ToHexString(hashingService.Sha256(token.ToString("D")));
+        session.IdentityDescription = identity.Description;
 
         await SaveAsync(session, cancellationToken);
 
