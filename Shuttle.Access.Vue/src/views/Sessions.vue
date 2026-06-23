@@ -22,9 +22,25 @@
         <tr>
           <td :colspan="columns.length">
             <a-container show-border>
-              <a-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
-                mobile-breakpoint="md">
-              </a-data-table>
+              <v-tabs v-model="item.tab" class="mb-2">
+                <v-tab value="permissions">
+                  <span>{{ $t('permissions') }}</span>
+                </v-tab>
+                <v-tab value="tokens">
+                  <span>{{ $t('tokens') }}</span>
+                </v-tab>
+              </v-tabs>
+              <v-tabs-window v-model="item.tab">
+                <v-tabs-window-item value="permissions">
+                  <a-data-table :items="item.permissions" :headers="permissionHeaders" :mobile="null"
+                    mobile-breakpoint="md">
+                  </a-data-table>
+                </v-tabs-window-item>
+                <v-tabs-window-item value="tokens">
+                  <a-data-table :items="item.tokens" :headers="tokenHeaders" :mobile="null" mobile-breakpoint="md">
+                  </a-data-table>
+                </v-tabs-window-item>
+              </v-tabs-window>
             </a-container>
           </td>
         </tr>
@@ -64,20 +80,12 @@ const headers = useSecureTableHeaders([
     filterable: false
   },
   {
-    title: t("application"),
-    value: "application",
-  },
-  {
     title: t("identity"),
     value: "identityName",
   },
   {
     title: t("description"),
     value: "identityDescription",
-  },
-  {
-    title: t("tenant"),
-    value: "tenantName",
   },
   {
     title: t("date-registered"),
@@ -118,23 +126,61 @@ const permissionHeaders = useSecureTableHeaders([
   }
 ]);
 
+const tokenHeaders = useSecureTableHeaders([
+  {
+    headerProps: {
+      class: "w-px",
+    },
+    cellProps: {
+      class: "whitespace-nowrap"
+    },
+    title: t("application"),
+    value: "application"
+  },
+  {
+    title: t("date-registered"),
+    key: "item.dateRegistered",
+    value: (item: any) => {
+      return useDateFormatter(item.dateRegistered).dateTimeMilliseconds();
+    }
+  },
+  {
+    title: t("expiry-date"),
+    key: "item.expiryDate",
+    value: (item: any) => {
+      return useDateFormatter(item.expiryDate).dateTimeMilliseconds();
+    }
+  },
+  {
+    title: t("token-hash"),
+    value: "tokenHash"
+  }
+]);
+
 const items: Ref<Session[]> = ref([]);
 
-const refresh = () => {
+const getSelectedTab = (id: string) => {
+  return items.value.find((item) => item.id === id)?.tab || 'permissions'
+}
+
+const refresh = async () => {
   busy.value = true;
 
-  api
-    .post("v1/sessions/search", {})
-    .then(function (response: AxiosResponse<Session[]>) {
-      if (!response || !response.data) {
-        return;
-      }
+  try {
+    const { data } = await api.post<Session[]>("v1/sessions/search", {})
 
-      items.value = response.data;
+    if (!data) {
+      return;
+    }
+
+    data.forEach((item) => {
+      item.tab = getSelectedTab(item.id ?? '')
     })
-    .finally(function () {
-      busy.value = false;
-    });
+
+    items.value = data;
+  } finally {
+    busy.value = false;
+  }
 }
 
 const remove = async (item: Session) => {

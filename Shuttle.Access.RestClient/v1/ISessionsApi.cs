@@ -14,7 +14,7 @@ public interface ISessionsApi
     Task<IApiResponse<WebApi.Contracts.v1.Session>> GetSelfAsync(CancellationToken cancellationToken = default);
 
     [Post("/v1/sessions")]
-    Task<IApiResponse<WebApi.Contracts.v1.SessionResponse>> PostAsync(WebApi.Contracts.v1.RegisterSession message, CancellationToken cancellationToken = default);
+    Task<IApiResponse<WebApi.Contracts.v1.SessionResponse>> PostAsync(WebApi.Contracts.v1.SessionRequest message, CancellationToken cancellationToken = default);
 
     [Post("/v1/sessions/delegated")]
     Task<IApiResponse<WebApi.Contracts.v1.SessionResponse>> PostAsync(WebApi.Contracts.v1.RegisterDelegatedSession message, CancellationToken cancellationToken = default);

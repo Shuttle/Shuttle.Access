@@ -145,7 +145,7 @@ public class Program
             .UseSqlServerEventProcessing()
             .Services
             .AddMediator()
-            .AddParticipantsFrom(typeof(RegisterSession).Assembly)
+            .AddParticipantsFrom(typeof(SessionRequest).Assembly)
             .Services
             .AddAccessAuthorization(options =>
             {

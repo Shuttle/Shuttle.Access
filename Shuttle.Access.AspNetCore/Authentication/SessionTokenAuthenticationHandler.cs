@@ -58,8 +58,7 @@ public class SessionTokenAuthenticationHandler(IOptions<AccessOptions> accessOpt
             new(ClaimTypes.Name, session.IdentityName),
             new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
             new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}"),
-            new(HttpContextExtensions.SessionTokenClaimType, $"{sessionToken:D}"),
-            new(HttpContextExtensions.SessionScopeClaimType, session.Application)
+            new(HttpContextExtensions.SessionTokenClaimType, $"{sessionToken:D}")
         ];
 
         return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));

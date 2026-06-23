@@ -1,10 +1,9 @@
 ﻿namespace Shuttle.Access.Application;
 
-public enum SessionRegistrationResult
+public enum SessionRequestResult
 {
     Forbidden = 0,
-    Registered = 1,
-    DelegationSessionInvalid = 2,
-    UnknownIdentity = 3,
-    Renewed = 4
+    UnknownIdentity = 1,
+    Registered = 2,
+    Renewed = 3
 }

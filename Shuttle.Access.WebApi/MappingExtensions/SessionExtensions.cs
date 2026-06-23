@@ -1,8 +1,10 @@
-﻿namespace Shuttle.Access.WebApi;
+﻿using Shuttle.Access.Query;
+
+namespace Shuttle.Access.WebApi;
 
 public static class SessionExtensions
 {
-    extension(Query.Session session)
+    extension(Session session)
     {
         public Contracts.v1.Session Map()
         {
@@ -16,13 +18,18 @@ public static class SessionExtensions
                 IdentityDescription = session.IdentityDescription,
                 DateRegistered = session.DateRegistered,
                 ExpiryDate = session.ExpiryDate,
-                TokenHash = session.TokenHash,
-                Application = session.Application,
-                Permissions = session.Permissions.Select(item => new Contracts.v1.Session.Permission
+                Permissions = session.Permissions.Select(item => new Contracts.v1.Session.SessionPermission
                 {
                     Id = item.Id,
                     Name = item.Name,
                     TenantId = item.TenantId
+                }).ToList(),
+                Tokens = session.Tokens.Select(item => new Contracts.v1.Session.SessionToken
+                {
+                    DateRegistered = item.DateRegistered,
+                    ExpiryDate = item.ExpiryDate,
+                    TokenHash = item.TokenHash,
+                    Application = item.Application
                 }).ToList()
             };
         }

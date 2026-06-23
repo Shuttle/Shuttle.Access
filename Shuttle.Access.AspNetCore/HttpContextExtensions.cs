@@ -9,7 +9,6 @@ public static class HttpContextExtensions
     public const string SessionIdentityIdClaimType = "http://shuttle.org/claims/session/identity-id";
     public const string SessionTenantIdClaimType = "http://shuttle.org/claims/session/tenant-id";
     public const string SessionTokenClaimType = "http://shuttle.org/claims/session/token";
-    public const string SessionScopeClaimType = "http://shuttle.org/claims/session/scope";
 
     extension(HttpContext httpContext)
     {
@@ -39,13 +38,6 @@ public static class HttpContextExtensions
             var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == SessionTokenClaimType)?.Value ?? string.Empty;
 
             return Guid.TryParse(value, out var result) ? result : null;
-        }
-
-        public string GetApplication()
-        {
-            var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == SessionScopeClaimType)?.Value ?? string.Empty;
-
-            return string.IsNullOrWhiteSpace(value) ? "Access" : value;
         }
     }
 }

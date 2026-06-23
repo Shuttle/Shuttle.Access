@@ -12,9 +12,18 @@ public static class SessionExtensions
             return session.Permissions.Any(permission => permission.TenantId == tenantId && permission.IsSatisfiedBy(requiredPermission));
         }
 
-        public bool HasExpired(TimeSpan sessionRenewalTolerance)
+        public bool HasExpired(TimeSpan sessionRenewalTolerance, string application)
         {
-            return session.ExpiryDate < DateTimeOffset.UtcNow.Add(sessionRenewalTolerance);
+            var token = session.FindSessionToken(application);
+            var expiryDate = DateTimeOffset.UtcNow.Subtract(sessionRenewalTolerance);
+
+            return session.ExpiryDate < expiryDate ||
+                   (token != null && token.ExpiryDate < expiryDate);
+        }
+
+        public Session.SessionToken? FindSessionToken(string application)
+        {
+            return session.Tokens.FirstOrDefault(item => item.Application.Equals(application, StringComparison.InvariantCultureIgnoreCase));
         }
     }
 }

@@ -60,7 +60,7 @@ public class SessionService(ILogger<SessionService> logger, IHttpContextAccessor
             return null;
         }
 
-        var registerSession = new RegisterSession(identityName, httpContext.Request.GetApplication(logger)).UseDirect();
+        var registerSession = new SessionRequest(identityName).UseDirect();
 
         await mediator.SendAsync(registerSession, cancellationToken);
 

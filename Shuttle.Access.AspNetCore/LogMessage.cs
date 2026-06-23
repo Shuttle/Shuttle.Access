@@ -34,10 +34,16 @@ public static class LogMessage
     private static readonly Action<ILogger, string, Exception?> ProvidedApplicationDelegate =
         LoggerMessage.Define<string>(LogLevel.Trace, new(1009, nameof(ProvidedApplication)), "Using provided application '{Application}'.");
 
+    private static readonly Action<ILogger, string, string, Exception?> JwtIdentityNameClaimFoundDelegate =
+        LoggerMessage.Define<string, string>(LogLevel.Debug, new(1010, nameof(JwtIdentityNameClaimFound)), "JWT identity name claim found: '{ClaimType}' = '{ClaimValue}'.");
+
+    private static readonly Action<ILogger, string, Exception?> JwtIdentityNameClaimNotFoundDelegate =
+        LoggerMessage.Define<string>(LogLevel.Warning, new(1011, nameof(JwtIdentityNameClaimNotFound)), "JWT identity name claim not found. Searched claim types: '{ClaimTypes}'.");
+
 
     public static void JwtIssuerOptionsUnavailable(ILogger logger, string jsonWebToken) =>
         JwtIssuerOptionsUnavailableDelegate(logger, jsonWebToken, null);
-    
+
     public static void JwtIssuerOptionsAvailable(ILogger logger, string jsonWebToken) =>
         JwtIssuerOptionsAvailableDelegate(logger, jsonWebToken, null);
 
@@ -64,4 +70,10 @@ public static class LogMessage
 
     public static void ProvidedApplication(ILogger logger, string scope) =>
         ProvidedApplicationDelegate(logger, scope, null);
+
+    public static void JwtIdentityNameClaimFound(ILogger logger, string claimType, string claimValue) =>
+        JwtIdentityNameClaimFoundDelegate(logger, claimType, claimValue, null);
+
+    public static void JwtIdentityNameClaimNotFound(ILogger logger, string claimTypes) =>
+        JwtIdentityNameClaimNotFoundDelegate(logger, claimTypes, null);
 }

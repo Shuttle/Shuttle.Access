@@ -1,6 +1,7 @@
 ﻿using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
+using Shuttle.Access.Query;
 
 namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
@@ -11,7 +12,7 @@ public class SessionsFixture
     {
         var factory = new FixtureWebApplicationFactory();
 
-        var session = new Query.Session
+        var session = new Session
         {
             Id = Guid.NewGuid(),
             IdentityId = Guid.NewGuid(),
@@ -26,7 +27,7 @@ public class SessionsFixture
             ]
         };
 
-        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<Query.Session> { session }.AsEnumerable()));
+        factory.SessionQuery.Setup(m => m.SearchAsync(It.IsAny<Session.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(new List<Session> { session }.AsEnumerable()));
 
         var client = factory.GetAccessClient();
 
@@ -46,19 +47,25 @@ public class SessionsFixture
         var factory = new FixtureWebApplicationFactory();
         var sessionToken = Guid.NewGuid();
 
-        var session = new Query.Session
-            {
-                Id = Guid.NewGuid(),
-                TokenHash = Convert.ToHexString(sessionToken.ToByteArray()),
-                IdentityId = identityId,
-                DateRegistered = DateTimeOffset.Now,
-                ExpiryDate = DateTimeOffset.Now.AddMinutes(5)
-            };
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            IdentityId = identityId,
+            DateRegistered = DateTimeOffset.Now,
+            ExpiryDate = DateTimeOffset.Now.AddMinutes(5),
+            Tokens =
+            [
+                new()
+                {
+                    TokenHash = Convert.ToHexString(sessionToken.ToByteArray())
+                }
+            ]
+        };
 
-        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()))
+        factory.Mediator.Setup(m => m.SendAsync(It.IsAny<SessionRequest>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>
             {
-                var registerSession = (RegisterSession)message;
+                var registerSession = (SessionRequest)message;
 
                 registerSession.WithIdentity(new()
                 {
@@ -81,7 +88,7 @@ public class SessionsFixture
         var client = factory.GetAccessClient();
 
         var sessionResponse = await client.Sessions.PostAsync(
-            new Access.WebApi.Contracts.v1.RegisterSession
+            new Access.WebApi.Contracts.v1.SessionRequest
             {
                 IdentityName = "identity-name",
                 Password = "password"
@@ -93,6 +100,6 @@ public class SessionsFixture
         Assert.That(sessionResponse.Content!.Token, Is.EqualTo(sessionToken));
         Assert.That(sessionResponse.Content.Session!.IdentityName, Is.EqualTo(session.IdentityName));
 
-        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<RegisterSession>(), It.IsAny<CancellationToken>()), Times.Once);
+        factory.Mediator.Verify(m => m.SendAsync(It.IsAny<SessionRequest>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

@@ -4,7 +4,7 @@ namespace Shuttle.Access.Query;
 
 public static class PermissionExtensions
 {
-    extension(Session.Permission permission)
+    extension(Session.SessionPermission permission)
     {
         public bool IsSatisfiedBy(string requiredPermission)
         {

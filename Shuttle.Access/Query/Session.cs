@@ -10,15 +10,23 @@ public class Session
     public string IdentityDescription { get; set; } = string.Empty;
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
-    public List<Permission> Permissions { get; set; } = [];
-    public string TokenHash { get; set; } = string.Empty;
-    public string Application { get; set; } = "Access";
+    public List<SessionPermission> Permissions { get; set; } = [];
+    public List<SessionToken> Tokens { get; set; } = [];
 
-    public class Permission
+    public class SessionPermission
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public Guid TenantId { get; set; }
+    }
+
+    public class SessionToken
+    {
+        public Guid Id { get; set; }
+        public string TokenHash { get; set; } = string.Empty;
+        public DateTimeOffset DateRegistered { get; set; }
+        public DateTimeOffset ExpiryDate { get; set; }
+        public string Application { get; set; } = "Access";
     }
 
     public class Specification : Specification<Specification>

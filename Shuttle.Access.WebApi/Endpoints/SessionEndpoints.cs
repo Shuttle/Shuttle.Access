@@ -7,11 +7,9 @@ using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
-using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
 using Shuttle.Mediator;
 using Shuttle.Hopper;
-using RegisterSession = Shuttle.Access.Application.RegisterSession;
 using Session = Shuttle.Access.Query.Session;
 
 namespace Shuttle.Access.WebApi;
@@ -72,7 +70,7 @@ public static class SessionEndpoints
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityId(identityId.Value).WithApplication(httpContext.GetApplication()), cancellationToken)).FirstOrDefault();
+            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityId(identityId.Value), cancellationToken)).FirstOrDefault();
 
             if (session != null)
             {
@@ -103,7 +101,7 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        var registerSession = new RegisterSession(identityName, httpContext.GetApplication());
+        var registerSession = new SessionRequest(identityName);
 
         if (token.HasValue)
         {
@@ -116,7 +114,7 @@ public static class SessionEndpoints
 
         await mediator.SendAsync(registerSession, cancellationToken);
 
-        if (registerSession.Result == SessionRegistrationResult.Forbidden)
+        if (registerSession.Result == SessionRequestResult.Forbidden)
         {
             return Results.Forbid();
         }
@@ -177,12 +175,6 @@ public static class SessionEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
-        app.MapPost("/v{version:apiVersion}/sessions/delegated", PostDelegated)
-            .WithTags("Sessions")
-            .RequireSession()
-            .WithApiVersionSet(versionSet)
-            .MapToApiVersion(apiVersion1);
-
         app.MapDelete("/v{version:apiVersion}/sessions/self", DeleteSelf)
             .WithTags("Sessions")
             .WithApiVersionSet(versionSet)
@@ -208,7 +200,7 @@ public static class SessionEndpoints
         return app;
     }
 
-    private static async Task<IResult> Post(ILogger<RegisterSession> logger, IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IBus bus, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext, [FromBody] Contracts.v1.RegisterSession message, CancellationToken cancellationToken)
+    private static async Task<IResult> Post(ILogger<SessionRequest> logger, IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IBus bus, ISessionContext sessionContext, IMediator mediator, HttpContext httpContext, [FromBody] Contracts.v1.SessionRequest message, CancellationToken cancellationToken)
     {
         var options = Guard.AgainstNull(apiOptions.Value);
 
@@ -222,11 +214,15 @@ public static class SessionEndpoints
             return Results.BadRequest(Resources.SessionIdentityNameRequired);
         }
 
-        var registerSession = new RegisterSession(message.IdentityName, message.Application);
+        var registerSession = new SessionRequest(message.IdentityName);
+
+        if (!string.IsNullOrWhiteSpace(message.Application))
+        {
+        }
 
         if (!string.IsNullOrWhiteSpace(message.Password))
         {
-            registerSession.Refresh().UsePassword(message.Password);
+            registerSession.UsePassword(message.Password);
         }
         else if (!Guid.Empty.Equals(message.Token))
         {
@@ -263,37 +259,6 @@ public static class SessionEndpoints
         }
 
         await mediator.SendAsync(registerSession, cancellationToken);
-
-        foreach (var session in registerSession.SessionsRemoved)
-        {
-            await bus.PublishAsync(new SessionDeleted
-            {
-                Id = session.Id,
-                IdentityId = session.IdentityId,
-                IdentityName = session.IdentityName,
-            }, cancellationToken);
-        }
-
-        return Results.Ok(registerSession.GetSessionResponse(false));
-    }
-
-    private static async Task<IResult> PostDelegated(IMediator mediator, RegisterDelegatedSession message, HttpContext httpContext)
-    {
-        if (string.IsNullOrEmpty(message.IdentityName))
-        {
-            return Results.BadRequest();
-        }
-
-        var sessionIdentityId = httpContext.FindIdentityId();
-
-        if (sessionIdentityId == null)
-        {
-            return Results.Unauthorized();
-        }
-
-        var registerSession = new RegisterSession(message.IdentityName, message.Application).UseDelegation(message.TenantId, sessionIdentityId.Value);
-
-        await mediator.SendAsync(registerSession);
 
         return Results.Ok(registerSession.GetSessionResponse(false));
     }

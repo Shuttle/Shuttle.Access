@@ -84,7 +84,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
         {
             if (!string.IsNullOrWhiteSpace(specification.IdentityName))
             {
-                var registrationResponse = await _accessClient.Sessions.PostAsync(new RegisterSession
+                var registrationResponse = await _accessClient.Sessions.PostAsync(new SessionRequest
                 {
                     IdentityName = specification.IdentityName
                 }, cancellationToken);
@@ -139,13 +139,19 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
             IdentityDescription = session.IdentityDescription,
             DateRegistered = session.DateRegistered,
             ExpiryDate = session.ExpiryDate,
-            TokenHash = session.TokenHash,
-            Application = session.Application,
-            Permissions = session.Permissions.Select(e => new Query.Session.Permission
+            Permissions = session.Permissions.Select(e => new Session.SessionPermission
             {
                 Id = e.Id,
                 Name = e.Name,
                 TenantId = e.TenantId,
+            }).ToList(),
+            Tokens = session.Tokens.Select(e => new Session.SessionToken
+            {
+                Id = e.Id,
+                TokenHash = e.TokenHash,
+                Application = e.Application,
+                DateRegistered = e.DateRegistered,
+                ExpiryDate = e.ExpiryDate,
             }).ToList()
         };
     }

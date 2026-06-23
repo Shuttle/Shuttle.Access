@@ -17,26 +17,32 @@ public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterc
 
         try
         {
-            BearerAuthenticationContext? authenticationContext = null;
-
-            if (_bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync != null)
-            {
-                authenticationContext = await _bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync.Invoke(httpRequestMessage, _serviceProvider);
-            }
-
-            if (authenticationContext == null)
-            {
-                throw new AuthenticationException(Resources.BearerAuthenticationContextException);
-            }
-
-            httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
-
-            if (_bearerAuthenticationInterceptorOptions.TenantId.HasValue)
+            if (!httpRequestMessage.Headers.Contains("Shuttle-Access-Tenant-Id") && _bearerAuthenticationInterceptorOptions.TenantId.HasValue)
             {
                 httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_bearerAuthenticationInterceptorOptions.TenantId.Value:D}");
             }
 
-            httpRequestMessage.Headers.Add("Shuttle-Access-Application", _bearerAuthenticationInterceptorOptions.Application);
+            if (!string.IsNullOrWhiteSpace(_bearerAuthenticationInterceptorOptions.Application))
+            {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Application", _bearerAuthenticationInterceptorOptions.Application);
+            }
+
+            if (httpRequestMessage.Headers.Authorization == null)
+            {
+                BearerAuthenticationContext? authenticationContext = null;
+
+                if (_bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync != null)
+                {
+                    authenticationContext = await _bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync.Invoke(httpRequestMessage, _serviceProvider);
+                }
+
+                if (authenticationContext == null)
+                {
+                    throw new AuthenticationException(Resources.BearerAuthenticationContextException);
+                }
+
+                httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
+            }
         }
         finally
         {

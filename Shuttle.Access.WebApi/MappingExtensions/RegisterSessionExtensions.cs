@@ -1,31 +1,32 @@
-﻿using Shuttle.Access.WebApi.Contracts.v1;
-using RegisterSession = Shuttle.Access.Application.RegisterSession;
+﻿using Shuttle.Access.Application;
+using Shuttle.Access.WebApi.Contracts.v1;
+using SessionRequest = Shuttle.Access.Application.SessionRequest;
 
 namespace Shuttle.Access.WebApi;
 
 public static class RegisterSessionExtensions
 {
-    extension(RegisterSession registerSession)
+    extension(SessionRequest sessionRequest)
     {
         public SessionResponse GetSessionResponse(bool registrationRequested)
         {
-            ArgumentNullException.ThrowIfNull(registerSession);
+            ArgumentNullException.ThrowIfNull(sessionRequest);
 
-            if (registerSession.Session == null)
+            if (sessionRequest.Session == null)
             {
                 return new()
                 {
-                    Result = registerSession.Result.ToString()
+                    Result = sessionRequest.Result.ToString()
                 };
             }
 
             return new()
             {
-                Token = registerSession.SessionToken,
-                Result = registerSession.Result.ToString(),
+                Token = sessionRequest.SessionToken,
+                Result = sessionRequest.Result.ToString(),
                 RegistrationRequested = registrationRequested,
-                Session = registerSession.Session.Map(),
-                Tenants = registerSession.Tenants.Select(item => new Contracts.v1.Tenant
+                Session = sessionRequest.Session.Map(),
+                Tenants = sessionRequest.Tenants.Select(item => new Contracts.v1.Tenant
                 {
                     Id = item.Id,
                     Name = item.Name,

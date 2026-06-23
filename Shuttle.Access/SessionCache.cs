@@ -1,23 +1,13 @@
-﻿namespace Shuttle.Access;
+﻿using Shuttle.Access.Query;
+
+namespace Shuttle.Access;
 
 public class SessionCache(IHashingService hashingService) : ISessionCache
 {
     private readonly Lock _lock = new();
     private readonly List<SessionEntry> _sessionEntries = [];
 
-    private Query.Session? ActiveSessionOnly(Query.Session? session)
-    {
-        if (session == null || DateTimeOffset.UtcNow <= session.ExpiryDate)
-        {
-            return session;
-        }
-
-        Flush(session.IdentityId);
-
-        return null;
-    }
-
-    public Query.Session? Find(Query.Session.Specification specification)
+    public Session? Find(Session.Specification specification)
     {
         lock (_lock)
         {
@@ -30,12 +20,12 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
 
             if (!string.IsNullOrWhiteSpace(specification.TokenHash))
             {
-                query = query.Where(e => e.Session.TokenHash.SequenceEqual(specification.TokenHash));
+                query = query.Where(e => e.Session.Tokens.Any(t => t.TokenHash.Equals(specification.TokenHash, StringComparison.InvariantCultureIgnoreCase)));
             }
 
             if (!string.IsNullOrWhiteSpace(specification.Application))
             {
-                query = query.Where(e => e.Session.Application == specification.Application);
+                query = query.Where(e => e.Session.Tokens.Any(t => t.Application.Equals(specification.Application, StringComparison.InvariantCultureIgnoreCase)));
             }
 
             if (specification.IdentityId.HasValue)
@@ -63,7 +53,7 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
         }
     }
 
-    public Query.Session Add(Query.Session session)
+    public Session Add(Session session)
     {
         lock (_lock)
         {
@@ -90,9 +80,21 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
         }
     }
 
-    private class SessionEntry(Query.Session session)
+    private Session? ActiveSessionOnly(Session? session)
     {
-        public Query.Session Session { get; } = session;
+        if (session == null || DateTimeOffset.UtcNow <= session.ExpiryDate)
+        {
+            return session;
+        }
+
+        Flush(session.IdentityId);
+
+        return null;
+    }
+
+    private class SessionEntry(Session session)
+    {
         public DateTimeOffset ExpiryDate { get; } = DateTimeOffset.UtcNow.AddMinutes(5);
+        public Session Session { get; } = session;
     }
 }

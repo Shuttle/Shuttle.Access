@@ -21,16 +21,24 @@ public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorization
     public async ValueTask<string> GetIdentityNameAsync(string token)
     {
         var jsonWebToken = _jwtHandler.ReadJsonWebToken(Guard.AgainstEmpty(token));
+        var safeWebToken = $"{jsonWebToken.EncodedHeader}.{jsonWebToken.EncodedPayload}";
         var issuerOptions = GetOptions(jsonWebToken);
+
+        var nameClaims = string.Join(", ", jsonWebToken.Claims
+            .Where(c => issuerOptions?.IdentityNameClaimTypes
+                .Any(t => t.Equals(c.Type, StringComparison.InvariantCultureIgnoreCase)) == true)
+            .Select(c => $"{c.Type}={c.Value}"));
+
+        var webTokenDetails = $"iss={jsonWebToken.Issuer}, sub={jsonWebToken.Subject}, jti={jsonWebToken.Id}{(string.IsNullOrEmpty(nameClaims) ? string.Empty : $", {nameClaims}")}";
 
         if (issuerOptions == null)
         {
-            LogMessage.JwtIssuerOptionsUnavailable(_logger, _accessAuthorizationOptionsOptions.InsecureModeEnabled ? token : $"iss={jsonWebToken.Issuer}, sub={jsonWebToken.Subject}, jti={jsonWebToken.Id}");
+            LogMessage.JwtIssuerOptionsUnavailable(_logger, _accessAuthorizationOptionsOptions.InsecureModeEnabled ? safeWebToken : webTokenDetails);
             await _accessAuthorizationOptionsOptions.JwtIssuerOptionsUnavailable.InvokeAsync(new(jsonWebToken));
             return string.Empty;
         }
 
-        LogMessage.JwtIssuerOptionsAvailable(_logger, _accessAuthorizationOptionsOptions.InsecureModeEnabled ? token : $"iss={jsonWebToken.Issuer}, sub={jsonWebToken.Subject}, jti={jsonWebToken.Id}");
+        LogMessage.JwtIssuerOptionsAvailable(_logger, _accessAuthorizationOptionsOptions.InsecureModeEnabled ? safeWebToken : webTokenDetails);
         await _accessAuthorizationOptionsOptions.JwtIssuerOptionsAvailable.InvokeAsync(new(jsonWebToken, issuerOptions));
 
         Claim? claim = null;
@@ -43,6 +51,15 @@ public class JwtService(IOptions<AccessAuthorizationOptions> accessAuthorization
             {
                 break;
             }
+        }
+
+        if (claim != null)
+        {
+            LogMessage.JwtIdentityNameClaimFound(_logger, claim.Type, claim.Value);
+        }
+        else
+        {
+            LogMessage.JwtIdentityNameClaimNotFound(_logger, string.Join(", ", issuerOptions.IdentityNameClaimTypes));
         }
 
         return await ValueTask.FromResult(claim?.Value ?? string.Empty);

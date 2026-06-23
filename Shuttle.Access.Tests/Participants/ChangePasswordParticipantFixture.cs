@@ -19,7 +19,7 @@ public class ChangePasswordParticipantFixture
         var sessionTokenHash = Convert.ToHexString(hashingService.Sha256(changePassword.Token!.Value.ToString("D")));
         var passwordHash = hashingService.Sha256(changePassword.NewPassword);
 
-        var session = new Query.Session { TokenHash = sessionTokenHash };
+        var session = new Query.Session { Tokens = [new() {TokenHash = sessionTokenHash}] };
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Session.Specification>(), CancellationToken.None)).ReturnsAsync([session]);
 

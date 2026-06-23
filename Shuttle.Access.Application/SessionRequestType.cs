@@ -1,10 +1,9 @@
 ﻿namespace Shuttle.Access.Application;
 
-public enum SessionRegistrationType
+public enum SessionRequestType
 {
     None,
     Password,
     Token,
-    Delegation,
     Direct
 }

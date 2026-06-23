@@ -192,16 +192,24 @@ export type Session = {
   identityName: string;
   identityDescription: string;
   permissions: SessionPermission[];
+  tokens: SessionToken[];
   expiryDate?: Date;
   dateRegistered?: Date;
-  tokenHash?: number[];
-  application?: string;
+  tab?: string;
 };
 
 export type SessionPermission = {
   id: string;
   name: string;
   tenantId: string;
+};
+
+export type SessionToken = {
+  id: string;
+  tokenHash: number[];
+  application: string;
+  expiryDate: Date;
+  dateRegistered: Date;
 };
 
 export type SessionResponse = {

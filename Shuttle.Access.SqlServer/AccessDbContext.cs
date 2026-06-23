@@ -12,6 +12,7 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
     public DbSet<Models.RolePermission> RolePermissions { get; set; } = null!;
     public DbSet<Models.Session> Sessions { get; set; } = null!;
     public DbSet<Models.SessionPermission> SessionPermissions { get; set; } = null!;
+    public DbSet<Models.SessionToken> SessionTokens { get; set; } = null!;
     public DbSet<Models.Tenant> Tenants { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -46,10 +47,11 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
             .Property(p => p.Id).HasDefaultValueSql("NEWID()");
 
         modelBuilder.Entity<Models.Session>()
-            .Property(p => p.Application).HasDefaultValue("Access");
+            .HasMany(p => p.Permissions)
+            .WithOne(f => f.Session);
 
         modelBuilder.Entity<Models.Session>()
-            .HasMany(p => p.SessionPermissions)
+            .HasMany(p => p.Tokens)
             .WithOne(f => f.Session);
     }
 }

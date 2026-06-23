@@ -92,6 +92,8 @@
   "tenants": "Tenants",
   "tenant-selection": "Tenant selection",
   "token": "Token",
+  "tokens": "Tokens",
+  "token-hash": "Token hash",
   "identity-required": "No identities have been registered.  You will be registered as an administrator.",
   "yes": "Yes",
   "_confirmation": {

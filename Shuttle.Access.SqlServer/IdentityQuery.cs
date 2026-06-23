@@ -23,14 +23,14 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
         return (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Name == identityName, cancellationToken)).GuardAgainstRecordNotFound(identityName).Id;
     }
 
-    public async Task<IEnumerable<Session.Permission>> PermissionsAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Session.SessionPermission>> PermissionsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _accessDbContext.Identities.AsNoTracking()
             .Where(identity => identity.Id == id)
             .SelectMany(identity => identity.IdentityRoles
                 .SelectMany(identityRole => identityRole.Role.RolePermissions
                     .Select(rolePermission => new { rolePermission.Permission.Id, rolePermission.Permission.Name, rolePermission.TenantId, })))
-            .Select(permission => new Session.Permission
+            .Select(permission => new Session.SessionPermission
             {
                 Id = permission.Id,
                 TenantId = permission.TenantId,

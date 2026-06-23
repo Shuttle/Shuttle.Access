@@ -11,7 +11,7 @@ using Shuttle.Hopper;
 using Shuttle.Mediator;
 using Shuttle.OAuth;
 using RegisterIdentity = Shuttle.Access.Messages.v1.RegisterIdentity;
-using RegisterSession = Shuttle.Access.Application.RegisterSession;
+using SessionRequest = Shuttle.Access.Application.SessionRequest;
 
 namespace Shuttle.Access.WebApi;
 
@@ -142,21 +142,11 @@ public static class OAuthEndpoints
             application = "Access";
         }
 
-        var registerSession = new RegisterSession(identityName, application).Refresh().UseDirect();
+        var registerSession = new SessionRequest(identityName).WithApplication(application).UseDirect();
 
         await mediator.SendAsync(registerSession, cancellationToken);
 
-        foreach (var session in registerSession.SessionsRemoved)
-        {
-            await bus.PublishAsync(new SessionDeleted
-            {
-                Id = session.Id,
-                IdentityId = session.IdentityId,
-                IdentityName = session.IdentityName
-            }, cancellationToken);
-        }
-
-        var requestRegistration = registerSession.Result == SessionRegistrationResult.UnknownIdentity && apiOptions.Value.OAuthRegisterUnknownIdentities;
+        var requestRegistration = registerSession.Result == SessionRequestResult.UnknownIdentity && apiOptions.Value.OAuthRegisterUnknownIdentities;
 
         if (requestRegistration)
         {
