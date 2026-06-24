@@ -26,6 +26,7 @@ public static class SessionExtensions
                 }).ToList(),
                 Tokens = session.Tokens.Select(item => new Contracts.v1.Session.SessionToken
                 {
+                    Id = item.Id,
                     DateRegistered = item.DateRegistered,
                     ExpiryDate = item.ExpiryDate,
                     TokenHash = item.TokenHash,

@@ -101,6 +101,13 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
+        var session = await sessionQuery.FindAsync(new Session.Specification().WithIdentityName(identityName), cancellationToken: cancellationToken);
+
+        if (session != null)
+        {
+            return Results.Ok(session.Map());
+        }
+
         var sessionRequest = new SessionRequest(identityName);
 
         if (token.HasValue)
