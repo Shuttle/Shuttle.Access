@@ -43,7 +43,7 @@ public class SessionRequestParticipant(IOptions<AccessOptions> accessOptions, IA
 
                 session = (await sessionQuery.SearchAsync(specification, cancellationToken)).FirstOrDefault();
 
-                var application = session?.Tokens.First(item => item.TokenHash.Equals(specification.TokenHash, StringComparison.InvariantCultureIgnoreCase)).Application ?? "Access";
+                var application = session?.Tokens.FirstOrDefault(item => item.TokenHash.Equals(specification.TokenHash, StringComparison.InvariantCultureIgnoreCase))?.Application ?? "Access";
 
                 if (session != null && !session.HasExpired(accessOptions.Value.SessionRenewalTolerance, application))
                 {

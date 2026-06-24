@@ -23,7 +23,7 @@ public class RestAccessServiceFixture
 
         var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), new NullSessionCache(), accessClient.Object);
 
-        Assert.That(await service.FindAsync(new Query.Session.Specification()), Is.Null);
+        Assert.That(await service.FindAsync(new()), Is.Null);
     }
 
     [Test]
