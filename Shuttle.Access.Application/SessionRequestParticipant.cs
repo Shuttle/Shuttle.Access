@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
 using Shuttle.Access.Query;
-using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
 using Shuttle.Mediator;
 using Session = Shuttle.Access.Query.Session;
@@ -40,9 +39,13 @@ public class SessionRequestParticipant(IOptions<AccessOptions> accessOptions, IA
             }
             case SessionRequestType.Token:
             {
-                session = (await sessionQuery.SearchAsync(new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetSessionToken().ToString("D"))), cancellationToken)).FirstOrDefault();
+                var specification = new Session.Specification().WithTokenHash(hashingService.Sha256(message.GetSessionToken().ToString("D")));
 
-                if (session != null && !session.HasExpired(accessOptions.Value.SessionRenewalTolerance, message.Application))
+                session = (await sessionQuery.SearchAsync(specification, cancellationToken)).FirstOrDefault();
+
+                var application = session?.Tokens.First(item => item.TokenHash.Equals(specification.TokenHash, StringComparison.InvariantCultureIgnoreCase)).Application ?? "Access";
+
+                if (session != null && !session.HasExpired(accessOptions.Value.SessionRenewalTolerance, application))
                 {
                     message.Renewed(session);
 

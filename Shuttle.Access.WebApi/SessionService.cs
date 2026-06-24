@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Query;
@@ -7,7 +8,7 @@ using Shuttle.Mediator;
 
 namespace Shuttle.Access.WebApi;
 
-public class SessionService(ILogger<SessionService> logger, IHttpContextAccessor httpContextAccessor, ISessionCache sessionCache, ISessionQuery sessionQuery, IJwtService jwtService, IMediator mediator)
+public class SessionService(ILogger<SessionService> logger, IOptions<AccessOptions> accessOptions, IHttpContextAccessor httpContextAccessor, ISessionCache sessionCache, ISessionQuery sessionQuery, IJwtService jwtService, IMediator mediator)
     : ISessionService
 {
     private const string Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2";
@@ -58,6 +59,13 @@ public class SessionService(ILogger<SessionService> logger, IHttpContextAccessor
             }, cancellationToken);
 
             return null;
+        }
+
+        var session = await sessionQuery.FindAsync(new Session.Specification().WithIdentityName(identityName), cancellationToken: cancellationToken);
+
+        if (session != null && !session.HasExpired(accessOptions.Value.SessionRenewalTolerance, "Access"))
+        {
+            return session;
         }
 
         var sessionRequest = new SessionRequest(identityName).UseDirect();

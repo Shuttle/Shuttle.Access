@@ -1,5 +1,4 @@
-﻿using System.Transactions;
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -8,8 +7,9 @@ using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
 using Shuttle.Contract;
-using Shuttle.Mediator;
 using Shuttle.Hopper;
+using Shuttle.Mediator;
+using System.Transactions;
 using Session = Shuttle.Access.Query.Session;
 
 namespace Shuttle.Access.WebApi;
@@ -105,20 +105,18 @@ public static class SessionEndpoints
 
         if (session != null)
         {
-            var application = "Access";
-
             if (token.HasValue)
             {
-                var tokenHash = hashingService.Sha256(token.Value.ToString("D"));
+                var tokenHash = Convert.ToHexString(hashingService.Sha256(token.Value.ToString("D")));
                 var sessionToken = session.Tokens.FirstOrDefault(item => item.TokenHash.Equals(tokenHash, StringComparison.InvariantCultureIgnoreCase));
 
-                if (sessionToken != null)
+                if (sessionToken != null && !session.HasExpired(accessOptions.Value.SessionRenewalTolerance, sessionToken.Application))
                 {
-                    application = sessionToken.Application;
+                    return Results.Ok(session.Map());
                 }
             }
 
-            if (!session.HasExpired(accessOptions.Value.SessionRenewalTolerance, application))
+            if (!session.HasExpired(accessOptions.Value.SessionRenewalTolerance, "Access"))
             {
                 return Results.Ok(session.Map());
             }
@@ -241,6 +239,7 @@ public static class SessionEndpoints
 
         if (!string.IsNullOrWhiteSpace(message.Application))
         {
+            sessionRequest.WithApplication(message.Application);
         }
 
         if (!string.IsNullOrWhiteSpace(message.Password))
