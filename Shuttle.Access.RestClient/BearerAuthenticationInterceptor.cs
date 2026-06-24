@@ -1,10 +1,12 @@
-﻿using System.Security.Authentication;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Shuttle.Contract;
+using System.Net.Http.Headers;
+using System.Security.Authentication;
 
 namespace Shuttle.Access.RestClient;
 
-public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterceptorOptions> bearerAuthenticationInterceptorOptions, IServiceProvider serviceProvider)
+public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterceptorOptions> bearerAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
     : IAuthenticationInterceptor
 {
     private readonly BearerAuthenticationInterceptorOptions _bearerAuthenticationInterceptorOptions = Guard.AgainstNull(Guard.AgainstNull(bearerAuthenticationInterceptorOptions).Value);
@@ -17,32 +19,46 @@ public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterc
 
         try
         {
-            if (!httpRequestMessage.Headers.Contains("Shuttle-Access-Tenant-Id") && _bearerAuthenticationInterceptorOptions.TenantId.HasValue)
+            var httpRequest = httpContextAccessor.HttpContext?.Request;
+
+            if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Tenant-Id") ?? false)
+            {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", httpRequest.Headers["Shuttle-Access-Tenant-Id"].First());
+            }
+            else if (_bearerAuthenticationInterceptorOptions.TenantId.HasValue)
             {
                 httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_bearerAuthenticationInterceptorOptions.TenantId.Value:D}");
             }
 
-            if (!string.IsNullOrWhiteSpace(_bearerAuthenticationInterceptorOptions.Application))
+            if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Application") ?? false)
+            {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Application", httpRequest.Headers["Shuttle-Access-Application"].First());
+            }
+            else if (!string.IsNullOrWhiteSpace(_bearerAuthenticationInterceptorOptions.Application))
             {
                 httpRequestMessage.Headers.Add("Shuttle-Access-Application", _bearerAuthenticationInterceptorOptions.Application);
             }
 
-            if (httpRequestMessage.Headers.Authorization == null)
+            if ((httpRequest?.Headers.TryGetValue("Authorization", out var authorizationValues) ?? false) &&
+                AuthenticationHeaderValue.TryParse(authorizationValues.ToString(), out var authenticationHeaderValue))
             {
-                BearerAuthenticationContext? authenticationContext = null;
-
-                if (_bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync != null)
-                {
-                    authenticationContext = await _bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync.Invoke(httpRequestMessage, _serviceProvider);
-                }
-
-                if (authenticationContext == null)
-                {
-                    throw new AuthenticationException(Resources.BearerAuthenticationContextException);
-                }
-
-                httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
+                httpRequestMessage.Headers.Authorization = authenticationHeaderValue;
+                return;
             }
+
+            BearerAuthenticationContext? authenticationContext = null;
+
+            if (_bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync != null)
+            {
+                authenticationContext = await _bearerAuthenticationInterceptorOptions.GetBearerAuthenticationContextAsync.Invoke(httpRequestMessage, _serviceProvider);
+            }
+
+            if (authenticationContext == null)
+            {
+                throw new AuthenticationException(Resources.BearerAuthenticationContextException);
+            }
+
+            httpRequestMessage.Headers.Authorization = new("Bearer", authenticationContext.Bearer);
         }
         finally
         {

@@ -101,25 +101,25 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        var registerSession = new SessionRequest(identityName);
+        var sessionRequest = new SessionRequest(identityName);
 
         if (token.HasValue)
         {
-            registerSession.UseSessionToken(token.Value);
+            sessionRequest.UseSessionToken(token.Value);
         }
         else
         {
-            registerSession.UseDirect();
+            sessionRequest.UseDirect();
         }
 
-        await mediator.SendAsync(registerSession, cancellationToken);
+        await mediator.SendAsync(sessionRequest, cancellationToken);
 
-        if (registerSession.Result == SessionRequestResult.Forbidden)
+        if (sessionRequest.Result == SessionRequestResult.Forbidden)
         {
             return Results.Forbid();
         }
 
-        return !registerSession.HasSession ? Results.NotFound() : Results.Ok(registerSession.Session.Map());
+        return !sessionRequest.HasSession ? Results.NotFound() : Results.Ok(sessionRequest.Session.Map());
     }
 
     private static Session.Specification GetSpecification(Contracts.v1.Session.Specification model, IHashingService hashingService)
@@ -214,7 +214,7 @@ public static class SessionEndpoints
             return Results.BadRequest(Resources.SessionIdentityNameRequired);
         }
 
-        var registerSession = new SessionRequest(message.IdentityName);
+        var sessionRequest = new SessionRequest(message.IdentityName);
 
         if (!string.IsNullOrWhiteSpace(message.Application))
         {
@@ -222,11 +222,11 @@ public static class SessionEndpoints
 
         if (!string.IsNullOrWhiteSpace(message.Password))
         {
-            registerSession.UsePassword(message.Password);
+            sessionRequest.UsePassword(message.Password);
         }
         else if (!Guid.Empty.Equals(message.Token))
         {
-            registerSession.UseSessionToken(message.Token);
+            sessionRequest.UseSessionToken(message.Token);
         }
         else
         {
@@ -255,12 +255,12 @@ public static class SessionEndpoints
                 }
             }
 
-            registerSession.UseDirect();
+            sessionRequest.UseDirect();
         }
 
-        await mediator.SendAsync(registerSession, cancellationToken);
+        await mediator.SendAsync(sessionRequest, cancellationToken);
 
-        return Results.Ok(registerSession.GetSessionResponse(false));
+        return Results.Ok(sessionRequest.GetSessionResponse(false));
     }
 
     private static async Task<IResult> PostSearch(ISessionContext sessionContext, ISessionQuery sessionQuery, IHashingService hashingService, [FromBody] Contracts.v1.Session.Specification model)

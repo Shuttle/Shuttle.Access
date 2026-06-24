@@ -1,37 +1,25 @@
-﻿using System.Net.Http.Headers;
-using System.Security.Authentication;
-using System.Text;
-using System.Text.Json;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
+using System.Net.Http.Headers;
+using System.Security.Authentication;
+using System.Text;
+using System.Text.Json;
 
 namespace Shuttle.Access.RestClient;
 
-public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
+public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> accessClientOptions, IOptions<PasswordAuthenticationInterceptorOptions> passwordAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
+    : IAuthenticationInterceptor
 {
-    private readonly AccessClientOptions _accessClientOptions;
-    private readonly string _baseAddress;
-    private readonly HttpClient _httpClient;
+    private readonly AccessClientOptions _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
+    private readonly string _baseAddress = accessClientOptions.Value.BaseAddress.TrimEnd('/');
+    private readonly HttpClient _httpClient = Guard.AgainstNull(httpClient);
     private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly SemaphoreSlim _lock = new(1, 1);
-    private readonly PasswordAuthenticationInterceptorOptions _passwordAuthenticationInterceptorOptions;
+    private readonly PasswordAuthenticationInterceptorOptions _passwordAuthenticationInterceptorOptions = Guard.AgainstNull(Guard.AgainstNull(passwordAuthenticationInterceptorOptions).Value);
     private DateTimeOffset _tokenExpiryDate = DateTimeOffset.MinValue;
     private string _token = string.Empty;
-
-    public PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> accessClientOptions, IOptions<PasswordAuthenticationInterceptorOptions> passwordAuthenticationInterceptorOptions, HttpClient httpClient)
-    {
-        _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
-        _passwordAuthenticationInterceptorOptions = Guard.AgainstNull(Guard.AgainstNull(passwordAuthenticationInterceptorOptions).Value);
-        _httpClient = Guard.AgainstNull(httpClient);
-
-        _baseAddress = _accessClientOptions.BaseAddress;
-
-        if (_baseAddress.EndsWith("/"))
-        {
-            _baseAddress = _baseAddress[..^1];
-        }
-    }
 
     public async Task ConfigureAsync(HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken = default)
     {
@@ -39,6 +27,33 @@ public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
 
         try
         {
+            var httpRequest = httpContextAccessor.HttpContext?.Request;
+
+            if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Tenant-Id") ?? false)
+            {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", httpRequest.Headers["Shuttle-Access-Tenant-Id"].First());
+            }
+            else if (_passwordAuthenticationInterceptorOptions.TenantId.HasValue)
+            {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_passwordAuthenticationInterceptorOptions.TenantId.Value:D}");
+            }
+
+            if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Application") ?? false)
+            {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Application", httpRequest.Headers["Shuttle-Access-Application"].First());
+            }
+            else if (!string.IsNullOrWhiteSpace(_passwordAuthenticationInterceptorOptions.Application))
+            {
+                httpRequestMessage.Headers.Add("Shuttle-Access-Application", _passwordAuthenticationInterceptorOptions.Application);
+            }
+
+            if ((httpRequest?.Headers.TryGetValue("Authorization", out var authorizationValues) ?? false) &&
+                AuthenticationHeaderValue.TryParse(authorizationValues.ToString(), out var authenticationHeaderValue))
+            {
+                httpRequestMessage.Headers.Authorization = authenticationHeaderValue;
+                return;
+            }
+
             if (_tokenExpiryDate > DateTimeOffset.UtcNow.Add(_accessClientOptions.RenewToleranceTimeSpan))
             {
                 httpRequestMessage.Headers.Authorization = new("Shuttle.Access", _token);
@@ -75,13 +90,6 @@ public class PasswordAuthenticationInterceptor : IAuthenticationInterceptor
             _tokenExpiryDate = sessionResponse.Session.ExpiryDate;
 
             httpRequestMessage.Headers.Authorization = new("Shuttle.Access", _token);
-
-            if (_passwordAuthenticationInterceptorOptions.TenantId.HasValue)
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_passwordAuthenticationInterceptorOptions.TenantId.Value:D}");
-            }
-
-            httpRequestMessage.Headers.Add("Shuttle-Access-Application", _passwordAuthenticationInterceptorOptions.Application);
         }
         finally
         {

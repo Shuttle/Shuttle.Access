@@ -60,11 +60,11 @@ public class SessionService(ILogger<SessionService> logger, IHttpContextAccessor
             return null;
         }
 
-        var registerSession = new SessionRequest(identityName).UseDirect();
+        var sessionRequest = new SessionRequest(identityName).UseDirect();
 
-        await mediator.SendAsync(registerSession, cancellationToken);
+        await mediator.SendAsync(sessionRequest, cancellationToken);
 
-        return registerSession.Session;
+        return sessionRequest.Session;
     }
 
     public async Task<Session?> FindAsync(Session.Specification specification, CancellationToken cancellationToken = default)

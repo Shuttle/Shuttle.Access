@@ -142,11 +142,11 @@ public static class OAuthEndpoints
             application = "Access";
         }
 
-        var registerSession = new SessionRequest(identityName).WithApplication(application).UseDirect();
+        var sessionRequest = new SessionRequest(identityName).WithApplication(application).UseDirect();
 
-        await mediator.SendAsync(registerSession, cancellationToken);
+        await mediator.SendAsync(sessionRequest, cancellationToken);
 
-        var requestRegistration = registerSession.Result == SessionRequestResult.UnknownIdentity && apiOptions.Value.OAuthRegisterUnknownIdentities;
+        var requestRegistration = sessionRequest.Result == SessionRequestResult.UnknownIdentity && apiOptions.Value.OAuthRegisterUnknownIdentities;
 
         if (requestRegistration)
         {
@@ -161,7 +161,7 @@ public static class OAuthEndpoints
             }, cancellationToken);
         }
 
-        return Results.Ok(registerSession.GetSessionResponse(requestRegistration));
+        return Results.Ok(sessionRequest.GetSessionResponse(requestRegistration));
     }
 
     public static WebApplication MapOAuthEndpoints(this WebApplication app, ApiVersionSet versionSet)

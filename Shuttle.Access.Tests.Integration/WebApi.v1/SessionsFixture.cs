@@ -65,9 +65,9 @@ public class SessionsFixture
         factory.Mediator.Setup(m => m.SendAsync(It.IsAny<SessionRequest>(), It.IsAny<CancellationToken>()))
             .Callback<object, CancellationToken>((message, _) =>
             {
-                var registerSession = (SessionRequest)message;
+                var sessionRequest = (SessionRequest)message;
 
-                registerSession.WithIdentity(new()
+                sessionRequest.WithIdentity(new()
                 {
                     Id = identityId,
                     Name = "identity-name",
@@ -82,7 +82,7 @@ public class SessionsFixture
                     ]
                 }, tenantId);
 
-                registerSession.Registered(sessionToken, session);
+                sessionRequest.Registered(sessionToken, session);
             });
 
         var client = factory.GetAccessClient();
