@@ -91,7 +91,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext, CancellationToken cancellationToken)
+    private static async Task<IResult> GetSelf(IOptions<AccessOptions> accessOptions, IHashingService hashingService, ISessionContext sessionContext, ISessionCache sessionCache, ISessionQuery sessionQuery, IMediator mediator, HttpContext httpContext, CancellationToken cancellationToken)
     {
         var identityName = httpContext.FindIdentityName();
         var token = httpContext.FindToken();
@@ -105,7 +105,23 @@ public static class SessionEndpoints
 
         if (session != null)
         {
-            return Results.Ok(session.Map());
+            var application = "Access";
+
+            if (token.HasValue)
+            {
+                var tokenHash = hashingService.Sha256(token.Value.ToString("D"));
+                var sessionToken = session.Tokens.FirstOrDefault(item => item.TokenHash.Equals(tokenHash, StringComparison.InvariantCultureIgnoreCase));
+
+                if (sessionToken != null)
+                {
+                    application = sessionToken.Application;
+                }
+            }
+
+            if (!session.HasExpired(accessOptions.Value.SessionRenewalTolerance, application))
+            {
+                return Results.Ok(session.Map());
+            }
         }
 
         var sessionRequest = new SessionRequest(identityName);
