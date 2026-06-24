@@ -58,7 +58,6 @@ import { useConfirmationStore } from "@/stores/confirmation";
 import { useSecureTableHeaders } from "@/composables/SecureTableHeaders";
 import Permissions from "@/permissions";
 import type { Session, SessionPermission } from "@/access";
-import type { AxiosResponse } from "axios";
 import { useDateFormatter } from "@/composables/DateFormatter";
 import { useSessionStore } from "@/stores/session";
 
