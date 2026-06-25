@@ -13,6 +13,11 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
         {
             var query = _sessionEntries.AsEnumerable();
 
+            if (specification.HasIds)
+            {
+                query = query.Where(e => specification.Ids.Contains(e.Session.Id));
+            }
+
             if (specification.Token.HasValue)
             {
                 specification.WithTokenHash(hashingService.Sha256($"{specification.Token.Value:D}"));

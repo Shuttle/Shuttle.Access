@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.AspNetCore;
 using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
-using System.Net.Http.Headers;
 using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
 
 namespace Shuttle.Access.RestClient;
 
-public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> accessClientOptions, IOptions<PasswordAuthenticationInterceptorOptions> passwordAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
+public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> accessClientOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptions<PasswordAuthenticationInterceptorOptions> passwordAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
     : IAuthenticationInterceptor
 {
     private readonly AccessClientOptions _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
@@ -27,6 +27,11 @@ public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> acc
 
         try
         {
+            if (accessAuthorizationOptions.Value.PassThrough)
+            {
+                throw new ApplicationException(string.Format(Resources.PassThroughNotSupportedOnInterceptor, nameof(PasswordAuthenticationInterceptor)));
+            }
+
             var httpRequest = httpContextAccessor.HttpContext?.Request;
 
             if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Tenant-Id") ?? false)
@@ -47,8 +52,7 @@ public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> acc
             var requestData = new
             {
                 identityName = _passwordAuthenticationInterceptorOptions.IdentityName,
-                password = _passwordAuthenticationInterceptorOptions.Password,
-                application = string.IsNullOrWhiteSpace(_passwordAuthenticationInterceptorOptions.Application) ? "Access" : _passwordAuthenticationInterceptorOptions.Application
+                password = _passwordAuthenticationInterceptorOptions.Password
             };
 
             var json = JsonSerializer.Serialize(requestData);

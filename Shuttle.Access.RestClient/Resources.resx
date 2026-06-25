@@ -141,4 +141,8 @@
     <value>Could not register the session.  Received a result of '{0}'.</value>
     <comment>0 = result</comment>
   </data>
+  <data name="PassThroughNotSupportedOnInterceptor" xml:space="preserve">
+    <value>Authorization header pass-through is not supported on interceptor '{0}'.</value>
+    <comment>0 = interceptor name</comment>
+  </data>
 </root>

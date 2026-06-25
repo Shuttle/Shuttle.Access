@@ -6,6 +6,5 @@ public class PasswordAuthenticationInterceptorOptions
 
     public string IdentityName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
-    public string Application { get; set; } = "Access";
     public Guid? TenantId { get; set; }
 }

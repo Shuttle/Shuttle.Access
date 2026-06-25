@@ -2,10 +2,11 @@
 using Microsoft.Extensions.Options;
 using Shuttle.Contract;
 using System.Security.Authentication;
+using Shuttle.Access.AspNetCore;
 
 namespace Shuttle.Access.RestClient;
 
-public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterceptorOptions> bearerAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
+public class BearerAuthenticationInterceptor(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptions<BearerAuthenticationInterceptorOptions> bearerAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
     : IAuthenticationInterceptor
 {
     private readonly BearerAuthenticationInterceptorOptions _bearerAuthenticationInterceptorOptions = Guard.AgainstNull(Guard.AgainstNull(bearerAuthenticationInterceptorOptions).Value);
@@ -18,6 +19,11 @@ public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterc
 
         try
         {
+            if (accessAuthorizationOptions.Value.PassThrough)
+            {
+                throw new ApplicationException(string.Format(Resources.PassThroughNotSupportedOnInterceptor, nameof(BearerAuthenticationInterceptor)));
+            }
+
             var httpRequest = httpContextAccessor.HttpContext?.Request;
 
             if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Tenant-Id") ?? false)

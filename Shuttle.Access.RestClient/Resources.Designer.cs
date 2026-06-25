@@ -106,6 +106,15 @@ namespace Shuttle.Access.RestClient {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Authorization header pass-through is not supported on interceptor &apos;{0}&apos;..
+        /// </summary>
+        public static string PassThroughNotSupportedOnInterceptor {
+            get {
+                return ResourceManager.GetString("PassThroughNotSupportedOnInterceptor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not register the session.  Received a result of &apos;{0}&apos;..
         /// </summary>
         public static string SessionResponseException {
