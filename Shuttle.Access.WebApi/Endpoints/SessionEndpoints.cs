@@ -60,17 +60,17 @@ public static class SessionEndpoints
 
     private static async Task<IResult> DeleteSelf(IBus bus, ISessionQuery sessionQuery, HttpContext httpContext, CancellationToken cancellationToken)
     {
-        var identityId = httpContext.FindIdentityId();
+        var sessionId = httpContext.FindSessionsId();
         var tenantId = httpContext.FindTenantId();
 
-        if (tenantId == null || identityId == null)
+        if (tenantId == null || sessionId == null)
         {
             return Results.BadRequest();
         }
 
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
-            var session = (await sessionQuery.SearchAsync(new Session.Specification().WithIdentityId(identityId.Value), cancellationToken)).FirstOrDefault();
+            var session = (await sessionQuery.SearchAsync(new Session.Specification().AddId(sessionId.Value), cancellationToken)).FirstOrDefault();
 
             if (session != null)
             {

@@ -20,19 +20,19 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
             return;
         }
 
-        var identityId = context.FindIdentityId();
+        var sessionId = context.FindSessionsId();
         var tenantId = context.FindTenantId();
 
-        if (tenantId != null && identityId != null)
+        if (tenantId != null && sessionId != null)
         {
-            var specification = new Session.Specification().WithIdentityId(identityId.Value);
+            var specification = new Session.Specification().AddId(sessionId.Value);
 
             sessionContext.TenantId = tenantId.Value;
             sessionContext.Session = await Guard.AgainstNull(sessionService).FindAsync(specification);
 
             if (sessionContext.Session == null)
             {
-                LogMessage.SessionUnavailable(_logger, identityId.Value, tenantId);
+                LogMessage.SessionUnavailable(_logger, sessionId.Value);
             }
         }
 
@@ -48,7 +48,7 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
             return;
         }
 
-        if (tenantId == null || identityId == null)
+        if (tenantId == null || sessionId == null)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.Headers.Append("WWW-Authenticate", $"Shuttle.Access realm=\"{_accessAuthorizationOptions.Realm}\", token=\"GUID\"; Bearer realm=\"{_accessAuthorizationOptions.Realm}\"");

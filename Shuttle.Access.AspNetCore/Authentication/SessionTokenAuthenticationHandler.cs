@@ -8,11 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.Query;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class SessionTokenAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder, ISessionService sessionService)
+public class SessionTokenAuthenticationHandler(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory loggerFactory, UrlEncoder encoder, ISessionService sessionService)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, loggerFactory, encoder)
 {
     public static readonly string AuthenticationScheme = "Shuttle.Access";
@@ -21,11 +22,34 @@ public class SessionTokenAuthenticationHandler(IOptions<AccessOptions> accessOpt
 
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        Session? session;
+        List<Claim> claims;
+
         var tenantId = Request.GetTenantId(_logger, accessOptions.Value.SystemTenantId);
 
         if (!tenantId.HasValue)
         {
             return await Response.GetTenantIdInvalidAuthenticateResultAsync();
+        }
+
+        if (accessAuthorizationOptions.Value.PassThrough)
+        {
+            session = await sessionService.GetSelfAsync();
+
+            if (session == null)
+            {
+                return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
+            }
+
+            claims =
+            [
+                new(ClaimTypes.NameIdentifier, session.IdentityName),
+                new(ClaimTypes.Name, session.IdentityName),
+                new(HttpContextExtensions.SessionIdClaimType, $"{session.Id:D}"),
+                new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}")
+            ];
+
+            return AuthenticateResult.Success(new(new(new ClaimsIdentity(claims, Scheme.Name)), Scheme.Name));
         }
 
         var header = Request.Headers.Authorization.FirstOrDefault();
@@ -45,18 +69,18 @@ public class SessionTokenAuthenticationHandler(IOptions<AccessOptions> accessOpt
             return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
         }
 
-        var session = await sessionService.FindAsync(new Query.Session.Specification().WithToken(sessionToken));
+        session = await sessionService.FindAsync(new Session.Specification().WithToken(sessionToken));
 
         if (session == null)
         {
             return AuthenticateResult.Fail(Access.Resources.InvalidAuthorizationHeader);
         }
 
-        List<Claim> claims =
+        claims =
         [
             new(ClaimTypes.NameIdentifier, session.IdentityName),
             new(ClaimTypes.Name, session.IdentityName),
-            new(HttpContextExtensions.SessionIdentityIdClaimType, $"{session.IdentityId:D}"),
+            new(HttpContextExtensions.SessionIdClaimType, $"{session.Id:D}"),
             new(HttpContextExtensions.SessionTenantIdClaimType, $"{tenantId:D}"),
             new(HttpContextExtensions.SessionTokenClaimType, $"{sessionToken:D}")
         ];

@@ -38,22 +38,6 @@ public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> acc
                 httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_passwordAuthenticationInterceptorOptions.TenantId.Value:D}");
             }
 
-            if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Application") ?? false)
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Application", httpRequest.Headers["Shuttle-Access-Application"].First());
-            }
-            else if (!string.IsNullOrWhiteSpace(_passwordAuthenticationInterceptorOptions.Application))
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Application", _passwordAuthenticationInterceptorOptions.Application);
-            }
-
-            if ((httpRequest?.Headers.TryGetValue("Authorization", out var authorizationValues) ?? false) &&
-                AuthenticationHeaderValue.TryParse(authorizationValues.ToString(), out var authenticationHeaderValue))
-            {
-                httpRequestMessage.Headers.Authorization = authenticationHeaderValue;
-                return;
-            }
-
             if (_tokenExpiryDate > DateTimeOffset.UtcNow.Add(_accessClientOptions.RenewToleranceTimeSpan))
             {
                 httpRequestMessage.Headers.Authorization = new("Shuttle.Access", _token);

@@ -150,6 +150,8 @@ public class Program
             .AddAccessAuthorization(options =>
             {
                 configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(options);
+
+                options.PassThrough = false;
             })
             .Services
             .AddOAuth(builder =>

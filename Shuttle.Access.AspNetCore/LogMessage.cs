@@ -13,8 +13,8 @@ public static class LogMessage
     private static readonly Action<ILogger, string, string, Exception?> AuthenticationFailedDelegate =
         LoggerMessage.Define<string, string>(LogLevel.Debug, new(1002, nameof(AuthenticationFailed)), "Authentication failed for scheme '{AuthenticationScheme}'. Reason: {Reason}");
 
-    private static readonly Action<ILogger, Guid, Guid?, Exception?> SessionUnavailableDelegate =
-        LoggerMessage.Define<Guid, Guid?>(LogLevel.Debug, new(1003, nameof(SessionUnavailable)), "No active session found for identity '{IdentityId}' and tenant '{TenantId}'.");
+    private static readonly Action<ILogger, Guid, Exception?> SessionUnavailableDelegate =
+        LoggerMessage.Define<Guid>(LogLevel.Debug, new(1003, nameof(SessionUnavailable)), "No active session found with id '{SessionId}'.");
 
     private static readonly Action<ILogger, string, string, string, Exception?> PermissionDeniedDelegate =
         LoggerMessage.Define<string, string, string>(LogLevel.Trace, new(1004, nameof(PermissionDenied)), "Identity '{IdentityName}' in tenant '{TenantId}' does not have access to permission '{Permission}'.");
@@ -40,6 +40,13 @@ public static class LogMessage
     private static readonly Action<ILogger, string, Exception?> JwtIdentityNameClaimNotFoundDelegate =
         LoggerMessage.Define<string>(LogLevel.Warning, new(1011, nameof(JwtIdentityNameClaimNotFound)), "JWT identity name claim not found. Searched claim types: '{ClaimTypes}'.");
 
+    private static readonly Action<ILogger, string, Exception?> InvalidAuthorizationHeaderDelegate =
+        LoggerMessage.Define<string>(LogLevel.Trace, new(1012, nameof(InvalidAuthorizationHeader)), "{Message}");
+
+
+    private static readonly Action<ILogger, Exception?> IdentityNameClaimNotFoundDelegate =
+        LoggerMessage.Define(LogLevel.Trace, new(1013, nameof(IdentityNameClaimNotFound)), "Using pass-through.");
+
 
     public static void JwtIssuerOptionsUnavailable(ILogger logger, string jsonWebToken) =>
         JwtIssuerOptionsUnavailableDelegate(logger, jsonWebToken, null);
@@ -50,8 +57,8 @@ public static class LogMessage
     public static void AuthenticationFailed(ILogger logger, string scheme, string reason) =>
         AuthenticationFailedDelegate(logger, scheme, reason, null);
 
-    public static void SessionUnavailable(ILogger logger, Guid identityId, Guid? tenantId) =>
-        SessionUnavailableDelegate(logger, identityId, tenantId, null);
+    public static void SessionUnavailable(ILogger logger, Guid sessionId) =>
+        SessionUnavailableDelegate(logger, sessionId, null);
 
     public static void PermissionDenied(ILogger logger, string identityName, string tenantId, string permission) =>
         PermissionDeniedDelegate(logger, identityName, tenantId, permission, null);
@@ -76,4 +83,10 @@ public static class LogMessage
 
     public static void JwtIdentityNameClaimNotFound(ILogger logger, string claimTypes) =>
         JwtIdentityNameClaimNotFoundDelegate(logger, claimTypes, null);
+
+    public static void InvalidAuthorizationHeader(ILogger logger, string scheme) =>
+        InvalidAuthorizationHeaderDelegate(logger, scheme, null);
+
+    public static void IdentityNameClaimNotFound(ILogger logger) =>
+        IdentityNameClaimNotFoundDelegate(logger, null);
 }

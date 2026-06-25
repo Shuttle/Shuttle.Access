@@ -12,31 +12,31 @@ public class RequirePermissionAttribute : TypeFilterAttribute
         Arguments = [permission];
     }
 
-    private class RequiresPermission(ISessionService sessionService, string permission) : IAuthorizationFilter
+    private class RequiresPermission(ISessionService sessionService, string permission) : IAsyncAuthorizationFilter
     {
         private readonly string _permission = Guard.AgainstEmpty(permission);
         private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
-        public void OnAuthorization(AuthorizationFilterContext context)
+        private static void SetUnauthorized(AuthorizationFilterContext context)
+        {
+            context.Result = new UnauthorizedResult();
+        }
+
+        public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             var tenantId = context.HttpContext.FindTenantId();
-            var identityId = context.HttpContext.FindIdentityId();
+            var sessionId = context.HttpContext.FindSessionsId();
 
-            if (tenantId == null || identityId == null)
+            if (tenantId == null || sessionId == null)
             {
                 SetUnauthorized(context);
                 return;
             }
-            
-            if (!_sessionService.FindAsync(new Session.Specification().AddId(identityId.Value)).GetAwaiter().GetResult()?.HasPermission(tenantId.Value, _permission) ?? false)
+
+            if (!(await _sessionService.FindAsync(new Session.Specification().AddId(sessionId.Value)))?.HasPermission(tenantId.Value, _permission) ?? false)
             {
                 SetUnauthorized(context);
             }
-        }
-
-        private static void SetUnauthorized(AuthorizationFilterContext context)
-        {
-            context.Result = new UnauthorizedResult();
         }
     }
 }

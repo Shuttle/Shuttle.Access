@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Shuttle.Contract;
-using System.Net.Http.Headers;
 using System.Security.Authentication;
 
 namespace Shuttle.Access.RestClient;
@@ -28,22 +27,6 @@ public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterc
             else if (_bearerAuthenticationInterceptorOptions.TenantId.HasValue)
             {
                 httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_bearerAuthenticationInterceptorOptions.TenantId.Value:D}");
-            }
-
-            if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Application") ?? false)
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Application", httpRequest.Headers["Shuttle-Access-Application"].First());
-            }
-            else if (!string.IsNullOrWhiteSpace(_bearerAuthenticationInterceptorOptions.Application))
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Application", _bearerAuthenticationInterceptorOptions.Application);
-            }
-
-            if ((httpRequest?.Headers.TryGetValue("Authorization", out var authorizationValues) ?? false) &&
-                AuthenticationHeaderValue.TryParse(authorizationValues.ToString(), out var authenticationHeaderValue))
-            {
-                httpRequestMessage.Headers.Authorization = authenticationHeaderValue;
-                return;
             }
 
             BearerAuthenticationContext? authenticationContext = null;

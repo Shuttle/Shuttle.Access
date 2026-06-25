@@ -2,22 +2,19 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
 
 public class AccessHttpMessageHandler : DelegatingHandler
 {
-    private readonly AccessAuthorizationOptions _accessAuthorizationOptions;
     private readonly AccessClientOptions _accessClientOptions;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IServiceProvider _serviceProvider;
     private readonly string _userAgent;
 
-    public AccessHttpMessageHandler(IOptions<AccessClientOptions> accessClientOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
+    public AccessHttpMessageHandler(IOptions<AccessClientOptions> accessClientOptions, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
     {
-        _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
         _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
         _httpContextAccessor = Guard.AgainstNull(httpContextAccessor);
         _serviceProvider = Guard.AgainstNull(serviceProvider);
@@ -33,7 +30,20 @@ public class AccessHttpMessageHandler : DelegatingHandler
 
         request.Headers.Add("User-Agent", _userAgent);
 
-        await (_accessClientOptions.ConfigureHttpRequestAsync?.Invoke(request, _serviceProvider) ?? Task.CompletedTask);
+        if (_accessClientOptions.ConfigureHttpRequestAsync != null)
+        {
+            await _accessClientOptions.ConfigureHttpRequestAsync.Invoke(request, _serviceProvider);
+        }
+        else
+        {
+            var httpRequest = _httpContextAccessor.HttpContext?.Request;
+
+            if ((httpRequest?.Headers.TryGetValue("Authorization", out var authorizationValues) ?? false) &&
+                AuthenticationHeaderValue.TryParse(authorizationValues.ToString(), out var authenticationHeaderValue))
+            {
+                request.Headers.Authorization = authenticationHeaderValue;
+            }
+        }
 
         return await base.SendAsync(request, cancellationToken);
     }

@@ -20,7 +20,7 @@ public class SessionServiceFixture
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Session.Specification>(), CancellationToken.None)).ReturnsAsync([]);
 
-        var service = new SessionService(new Mock<ILogger<SessionService>>().Object, Options.Create(new AccessOptions()), new Mock<IHttpContextAccessor>().Object, new NullSessionCache(), sessionQuery.Object, new Mock<IJwtService>().Object, new Mock<IMediator>().Object);
+        var service = new SessionService(new Mock<ILogger<SessionService>>().Object, Options.Create(new AccessOptions()), new Mock<IHttpContextAccessor>().Object, new NullSessionCache(), sessionQuery.Object, new Mock<IMediator>().Object);
 
         Assert.That(await service.FindAsync(new()), Is.Null);
     }
@@ -48,7 +48,7 @@ public class SessionServiceFixture
 
         sessionQuery.Setup(m => m.SearchAsync(It.IsAny<Session.Specification>(), CancellationToken.None)).ReturnsAsync([session]);
 
-        var service = new SessionService(new Mock<ILogger<SessionService>>().Object, Options.Create(new AccessOptions()), new Mock<IHttpContextAccessor>().Object, new NullSessionCache(), sessionQuery.Object, new Mock<IJwtService>().Object, new Mock<IMediator>().Object);
+        var service = new SessionService(new Mock<ILogger<SessionService>>().Object, Options.Create(new AccessOptions()), new Mock<IHttpContextAccessor>().Object, new NullSessionCache(), sessionQuery.Object, new Mock<IMediator>().Object);
 
         Assert.That(await service.FindAsync(new()), Is.Not.Null);
 

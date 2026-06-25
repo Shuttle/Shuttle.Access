@@ -15,4 +15,5 @@ public class AccessAuthorizationOptions
     public AsyncEvent<JwtIssuerOptionsUnavailableEventArgs> JwtIssuerOptionsUnavailable { get; set; } = new();
     public AsyncEvent<SessionAvailableEventArgs> SessionAvailable { get; set; } = new();
     public AsyncEvent<SessionUnavailableEventArgs> SessionUnavailable { get; set; } = new();
+    public bool PassThrough { get; set; } = true;
 }

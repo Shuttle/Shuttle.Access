@@ -11,30 +11,30 @@ public class RequireSessionAttribute : TypeFilterAttribute
         Arguments = [];
     }
 
-    private class RequiresSession(ISessionService sessionService) : IAuthorizationFilter
+    private class RequiresSession(ISessionService sessionService) : IAsyncAuthorizationFilter
     {
         private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
 
-        public void OnAuthorization(AuthorizationFilterContext context)
+        private static void SetUnauthorized(AuthorizationFilterContext context)
+        {
+            context.Result = new UnauthorizedResult();
+        }
+
+        public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             var tenantId = context.HttpContext.FindTenantId();
-            var identityId = context.HttpContext.FindIdentityId();
+            var sessionId = context.HttpContext.FindSessionsId();
 
-            if (tenantId == null || identityId == null)
+            if (tenantId == null || sessionId == null)
             {
                 SetUnauthorized(context);
                 return;
             }
 
-            if (_sessionService.FindAsync(new Query.Session.Specification().WithIdentityId(identityId.Value)).GetAwaiter().GetResult() == null)
+            if (await _sessionService.FindAsync(new Query.Session.Specification().AddId(sessionId.Value)) == null)
             {
                 SetUnauthorized(context);
             }
-        }
-
-        private static void SetUnauthorized(AuthorizationFilterContext context)
-        {
-            context.Result = new UnauthorizedResult();
         }
     }
 }

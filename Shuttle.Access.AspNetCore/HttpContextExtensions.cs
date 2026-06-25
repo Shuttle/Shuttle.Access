@@ -6,17 +6,17 @@ namespace Shuttle.Access.AspNetCore;
 
 public static class HttpContextExtensions
 {
-    public const string SessionIdentityIdClaimType = "http://shuttle.org/claims/session/identity-id";
+    public const string SessionIdClaimType = "http://shuttle.org/claims/session/id";
     public const string SessionTenantIdClaimType = "http://shuttle.org/claims/session/tenant-id";
     public const string SessionTokenClaimType = "http://shuttle.org/claims/session/token";
 
     extension(HttpContext httpContext)
     {
-        public Guid? FindIdentityId()
+        public Guid? FindSessionsId()
         {
-            var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == SessionIdentityIdClaimType)?.Value ?? string.Empty;
+            var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == SessionIdClaimType)?.Value ?? string.Empty;
 
-            return string.IsNullOrWhiteSpace(value) || !Guid.TryParse(value, out var identityId) ? null : identityId;
+            return string.IsNullOrWhiteSpace(value) || !Guid.TryParse(value, out var sessionId) ? null : sessionId;
         }
 
         public string? FindIdentityName()
