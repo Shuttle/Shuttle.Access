@@ -53,7 +53,7 @@ public class SessionCache(IHashingService hashingService) : ISessionCache
                 .Select(e => e.Session).ToList();
 
             return sessions.Count > 1
-                ? throw new ApplicationException(string.Format(Resources.SessionCountException, sessions.Count))
+                ? throw new ApplicationException(string.Format(Resources.SessionCountException, sessions.Count, specification))
                 : ActiveSessionOnly(sessions.FirstOrDefault());
         }
     }

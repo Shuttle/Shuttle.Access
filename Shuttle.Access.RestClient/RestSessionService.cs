@@ -76,7 +76,7 @@ public class RestSessionService(IOptions<AccessAuthorizationOptions> accessAutho
                 }
                 case > 1:
                 {
-                    throw new InvalidOperationException(string.Format(Access.Resources.SessionCountException));
+                    throw new InvalidOperationException(string.Format(Access.Resources.SessionCountException, sessionResponse.Content.Count(), messageSpecification));
                 }
             }
         }

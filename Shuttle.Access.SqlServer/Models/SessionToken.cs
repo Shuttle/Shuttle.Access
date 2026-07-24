@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Shuttle.Access.SqlServer.Models;
 
+[Table(nameof(SessionToken), Schema = "access")]
 [Index(nameof(SessionId), nameof(TokenHash), IsUnique = true, Name = $"UX_{nameof(SessionToken)}_{nameof(SessionId)}_{nameof(TokenHash)}")]
 public class SessionToken
 {

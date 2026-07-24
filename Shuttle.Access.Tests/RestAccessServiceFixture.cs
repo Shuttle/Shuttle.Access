@@ -29,14 +29,14 @@ public class RestAccessServiceFixture
     [Test]
     public async Task Should_be_able_check_for_and_cache_existing_session()
     {
-        var identityId = Guid.NewGuid();
+        var sessionId = Guid.NewGuid();
         var accessClient = new Mock<IAccessClient>();
         var sessionsApi = new Mock<ISessionsApi>();
 
         var response = new Mock<IApiResponse<IEnumerable<WebApi.Contracts.v1.Session>>>();
 
         response.Setup(m => m.IsSuccessStatusCode).Returns(true);
-        response.Setup(m => m.Content).Returns([new() { IdentityId = identityId, Permissions = [], ExpiryDate = DateTimeOffset.UtcNow.AddMinutes(5) }]);
+        response.Setup(m => m.Content).Returns([new() { Id = sessionId, IdentityId = Guid.NewGuid(), Permissions = [], ExpiryDate = DateTimeOffset.UtcNow.AddMinutes(5) }]);
         response.Setup(m => m.StatusCode).Returns(HttpStatusCode.OK);
 
         sessionsApi.Setup(m => m.PostSearchAsync(It.IsAny<WebApi.Contracts.v1.Session.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync(response.Object);
@@ -45,8 +45,8 @@ public class RestAccessServiceFixture
 
         var service = new RestSessionService(Options.Create(new AccessAuthorizationOptions()), new SessionCache(new HashingService()), accessClient.Object);
 
-        Assert.That(await service.FindAsync(new Query.Session.Specification().AddId(identityId)), Is.Not.Null);
-        Assert.That(await service.FindAsync(new Query.Session.Specification().AddId(identityId)), Is.Not.Null); // returned from cache
+        Assert.That(await service.FindAsync(new Query.Session.Specification().AddId(sessionId)), Is.Not.Null);
+        Assert.That(await service.FindAsync(new Query.Session.Specification().AddId(sessionId)), Is.Not.Null); // returned from cache
 
         accessClient.Verify(m => m.Sessions.PostSearchAsync(It.IsAny<WebApi.Contracts.v1.Session.Specification>(), It.IsAny<CancellationToken>()).Result, Times.Exactly(1));
     }

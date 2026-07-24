@@ -145,7 +145,8 @@ public static class SessionEndpoints
 
     private static Session.Specification GetSpecification(Contracts.v1.Session.Specification model, IHashingService hashingService)
     {
-        var specification = new Session.Specification();
+        var specification = new Session.Specification()
+            .AddIds(model.Ids);
 
         if (model.Token != null)
         {

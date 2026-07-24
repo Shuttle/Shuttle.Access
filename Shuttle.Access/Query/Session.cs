@@ -118,5 +118,70 @@ public class Session
             Application = Guard.AgainstEmpty(application);
             return this;
         }
+
+        public override string ToString()
+        {
+            var parts = new List<string>();
+
+            if (HasIds)
+            {
+                parts.Add($"Ids=[{string.Join(", ", Ids)}]");
+            }
+
+            if (HasExcludedIds)
+            {
+                parts.Add($"ExcludedIds=[{string.Join(", ", ExcludedIds)}]");
+            }
+
+            if (IdentityId.HasValue)
+            {
+                parts.Add($"IdentityId={IdentityId.Value}");
+            }
+
+            if (RoleId.HasValue)
+            {
+                parts.Add($"RoleId={RoleId.Value}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(Application))
+            {
+                parts.Add($"Application='{Application}'");
+            }
+
+            if (!string.IsNullOrWhiteSpace(IdentityName))
+            {
+                parts.Add($"IdentityName='{IdentityName}'");
+            }
+
+            if (!string.IsNullOrWhiteSpace(IdentityNameMatch))
+            {
+                parts.Add($"IdentityNameMatch='{IdentityNameMatch}'");
+            }
+
+            if (_permissions.Count > 0)
+            {
+                parts.Add($"Permissions=[{string.Join(", ", _permissions)}]");
+            }
+
+            if (Token.HasValue)
+            {
+                parts.Add($"Token={Token.Value}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(TokenHash))
+            {
+                parts.Add($"TokenHash='{TokenHash}'");
+            }
+
+            var baseString = base.ToString();
+            if (!string.IsNullOrWhiteSpace(baseString) && baseString != GetType().ToString())
+            {
+                parts.Add(baseString);
+            }
+
+            return parts.Count > 0 
+                ? $"{nameof(Specification)} {{ {string.Join(", ", parts)} }}" 
+                : $"{nameof(Specification)} {{ <no filters> }}";
+        }
     }
 }
