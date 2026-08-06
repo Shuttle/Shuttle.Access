@@ -20,7 +20,7 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
             return;
         }
 
-        var sessionId = context.FindSessionsId();
+        var sessionId = context.FindSessionId();
         var tenantId = context.FindTenantId();
 
         if (tenantId != null && sessionId != null)

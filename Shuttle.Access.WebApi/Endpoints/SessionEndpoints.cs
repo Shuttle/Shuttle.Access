@@ -60,7 +60,7 @@ public static class SessionEndpoints
 
     private static async Task<IResult> DeleteSelf(IBus bus, ISessionQuery sessionQuery, HttpContext httpContext, CancellationToken cancellationToken)
     {
-        var sessionId = httpContext.FindSessionsId();
+        var sessionId = httpContext.FindSessionId();
         var tenantId = httpContext.FindTenantId();
 
         if (tenantId == null || sessionId == null)

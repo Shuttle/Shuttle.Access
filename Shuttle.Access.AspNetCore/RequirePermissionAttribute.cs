@@ -25,7 +25,7 @@ public class RequirePermissionAttribute : TypeFilterAttribute
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             var tenantId = context.HttpContext.FindTenantId();
-            var sessionId = context.HttpContext.FindSessionsId();
+            var sessionId = context.HttpContext.FindSessionId();
 
             if (tenantId == null || sessionId == null)
             {

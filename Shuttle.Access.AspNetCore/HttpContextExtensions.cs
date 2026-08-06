@@ -12,7 +12,7 @@ public static class HttpContextExtensions
 
     extension(HttpContext httpContext)
     {
-        public Guid? FindSessionsId()
+        public Guid? FindSessionId()
         {
             var value = Guard.AgainstNull(httpContext).User.Claims.FirstOrDefault(claim => claim.Type == SessionIdClaimType)?.Value ?? string.Empty;
 
