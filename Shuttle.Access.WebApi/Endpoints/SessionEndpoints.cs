@@ -16,7 +16,7 @@ namespace Shuttle.Access.WebApi;
 
 public static class SessionEndpoints
 {
-    private static async Task<IResult> Delete(ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery, Guid sessionId, CancellationToken cancellationToken)
+    private static async Task<IResult> Delete(ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery, ISessionCache sessionCache, Guid sessionId, CancellationToken cancellationToken)
     {
         using (var tx = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
         {
@@ -25,6 +25,8 @@ public static class SessionEndpoints
 
             if (session != null && await sessionQuery.RemoveAsync(specification, cancellationToken) > 0)
             {
+                sessionCache.Flush(session.IdentityId);
+
                 await bus.PublishAsync(new SessionDeleted
                 {
                     Id = session.Id,
@@ -39,7 +41,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteAll(ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery, CancellationToken cancellationToken)
+    private static async Task<IResult> DeleteAll(ISessionContext sessionContext, IBus bus, ISessionQuery sessionQuery, ISessionCache sessionCache, CancellationToken cancellationToken)
     {
         if (!sessionContext.IsAuthorized)
         {
@@ -50,6 +52,8 @@ public static class SessionEndpoints
         {
             await sessionQuery.RemoveAsync(new(), cancellationToken);
 
+            sessionCache.Flush();
+
             await bus.PublishAsync(new AllSessionsDeleted(), cancellationToken);
 
             tx.Complete();
@@ -58,7 +62,7 @@ public static class SessionEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> DeleteSelf(IBus bus, ISessionQuery sessionQuery, HttpContext httpContext, CancellationToken cancellationToken)
+    private static async Task<IResult> DeleteSelf(IBus bus, ISessionQuery sessionQuery, ISessionCache sessionCache, HttpContext httpContext, CancellationToken cancellationToken)
     {
         var sessionId = httpContext.FindSessionId();
         var tenantId = httpContext.FindTenantId();
@@ -76,6 +80,8 @@ public static class SessionEndpoints
             {
                 if (await sessionQuery.RemoveAsync(new Session.Specification().AddId(session.Id), cancellationToken) > 0)
                 {
+                    sessionCache.Flush(session.IdentityId);
+
                     await bus.PublishAsync(new SessionDeleted
                     {
                         Id = session.Id,

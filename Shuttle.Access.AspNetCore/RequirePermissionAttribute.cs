@@ -33,7 +33,7 @@ public class RequirePermissionAttribute : TypeFilterAttribute
                 return;
             }
 
-            if (!(await _sessionService.FindAsync(new Session.Specification().AddId(sessionId.Value)))?.HasPermission(tenantId.Value, _permission) ?? false)
+            if (!((await _sessionService.FindAsync(new Session.Specification().AddId(sessionId.Value)))?.HasPermission(tenantId.Value, _permission) ?? false))
             {
                 SetUnauthorized(context);
             }
