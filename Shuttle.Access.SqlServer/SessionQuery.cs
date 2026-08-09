@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Shuttle.Access.SqlServer.Models;
 using Shuttle.Contract;
-using static System.Net.Mime.MediaTypeNames;
 using Session = Shuttle.Access.Query.Session;
 
 namespace Shuttle.Access.SqlServer;
@@ -82,10 +80,11 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
         else
         {
             _accessDbContext.SessionPermissions
-                .RemoveRange(model.Permissions.Where(item => session.Permissions.All(p => p.Id != item.PermissionId && p.TenantId != item.TenantId)).ToList());
+                .RemoveRange(model.Permissions.Where(item => 
+                    !session.Permissions.Any(p => p.Id == item.PermissionId && p.TenantId == item.TenantId)).ToList());
 
             _accessDbContext.SessionTokens
-                .RemoveRange(model.Tokens.Where(item => session.Tokens.All(t => t.Id != item.Id)).ToList());
+                .RemoveRange(model.Tokens.Where(item => !session.Tokens.Any(t => t.Id == item.Id)).ToList());
         }
 
         model.ExpiryDate = session.ExpiryDate;

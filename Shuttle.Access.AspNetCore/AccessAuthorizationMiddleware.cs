@@ -20,7 +20,7 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
             return;
         }
 
-        var sessionId = context.FindSessionsId();
+        var sessionId = context.FindSessionId();
         var tenantId = context.FindTenantId();
 
         if (tenantId != null && sessionId != null)
@@ -48,7 +48,7 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
             return;
         }
 
-        if (tenantId == null || sessionId == null)
+        if (tenantId == null || sessionId == null || sessionContext.Session == null)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             context.Response.Headers.Append("WWW-Authenticate", $"Shuttle.Access realm=\"{_accessAuthorizationOptions.Realm}\", token=\"GUID\"; Bearer realm=\"{_accessAuthorizationOptions.Realm}\"");
@@ -56,7 +56,6 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
         }
 
         if (permissionRequirement != null &&
-            sessionContext.Session != null &&
             !sessionContext.Session.HasPermission(tenantId.Value, permissionRequirement.Permission))
         {
             LogMessage.PermissionDenied(_logger, sessionContext.Session.IdentityName, $"{sessionContext.TenantId:D}", permissionRequirement.Permission);

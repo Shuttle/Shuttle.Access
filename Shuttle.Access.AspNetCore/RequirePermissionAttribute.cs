@@ -25,7 +25,7 @@ public class RequirePermissionAttribute : TypeFilterAttribute
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             var tenantId = context.HttpContext.FindTenantId();
-            var sessionId = context.HttpContext.FindSessionsId();
+            var sessionId = context.HttpContext.FindSessionId();
 
             if (tenantId == null || sessionId == null)
             {
@@ -33,7 +33,7 @@ public class RequirePermissionAttribute : TypeFilterAttribute
                 return;
             }
 
-            if (!(await _sessionService.FindAsync(new Session.Specification().AddId(sessionId.Value)))?.HasPermission(tenantId.Value, _permission) ?? false)
+            if (!((await _sessionService.FindAsync(new Session.Specification().AddId(sessionId.Value)))?.HasPermission(tenantId.Value, _permission) ?? false))
             {
                 SetUnauthorized(context);
             }
