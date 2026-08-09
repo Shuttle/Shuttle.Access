@@ -12,8 +12,8 @@ import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
 import { i18n } from "@/i18n";
 
 // Components
-import { VDateInput } from "vuetify/labs/VDateInput";
-import { VFileUpload } from "vuetify/labs/components";
+import { VDateInput } from "vuetify/components/VDateInput";
+import { VFileUpload } from "vuetify/components/VFileUpload";
 
 // Composables
 import { createVuetify, type ThemeDefinition } from "vuetify";
