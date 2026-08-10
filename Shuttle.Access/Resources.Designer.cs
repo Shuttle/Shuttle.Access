@@ -185,7 +185,16 @@ namespace Shuttle.Access {
                 return ResourceManager.GetString("InvalidCredentialsException", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find `IssuerOptions` matching Issuer &apos;{0}&apos; with audience(s) &apos;{1}&apos;..
+        /// </summary>
+        public static string IssuerNotFoundException {
+            get {
+                return ResourceManager.GetString("IssuerNotFoundException", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Password authentication is not allowed.  Please use a token..
         /// </summary>

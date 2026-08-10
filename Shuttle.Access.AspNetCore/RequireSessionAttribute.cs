@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
+/// <summary>
+///     The MVC controller equivalent of <c>RouteHandlerBuilder.RequireSession()</c>.  The session has already been
+///     established by <see cref="AccessAuthenticationHandler" />, so this only applies the requirement.
+/// </summary>
 public class RequireSessionAttribute : TypeFilterAttribute
 {
     public RequireSessionAttribute() : base(typeof(RequiresSession))
@@ -11,29 +15,15 @@ public class RequireSessionAttribute : TypeFilterAttribute
         Arguments = [];
     }
 
-    private class RequiresSession(ISessionService sessionService) : IAsyncAuthorizationFilter
+    private class RequiresSession(ISessionContext sessionContext) : IAuthorizationFilter
     {
-        private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
+        private readonly ISessionContext _sessionContext = Guard.AgainstNull(sessionContext);
 
-        private static void SetUnauthorized(AuthorizationFilterContext context)
+        public void OnAuthorization(AuthorizationFilterContext context)
         {
-            context.Result = new UnauthorizedResult();
-        }
-
-        public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
-        {
-            var tenantId = context.HttpContext.FindTenantId();
-            var sessionId = context.HttpContext.FindSessionId();
-
-            if (tenantId == null || sessionId == null)
+            if (!_sessionContext.IsAuthorized)
             {
-                SetUnauthorized(context);
-                return;
-            }
-
-            if (await _sessionService.FindAsync(new Query.Session.Specification().AddId(sessionId.Value)) == null)
-            {
-                SetUnauthorized(context);
+                Guard.AgainstNull(context).Result = new UnauthorizedResult();
             }
         }
     }

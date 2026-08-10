@@ -1,4 +1,4 @@
-﻿namespace Shuttle.Access.AspNetCore;
+namespace Shuttle.Access.WebApi;
 
 public class IssuerOptions
 {

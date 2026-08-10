@@ -70,20 +70,38 @@ namespace Shuttle.Access.AspNetCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not find `IssuerOptions` matching Issuer &apos;{0}&apos; with audience(s) &apos;{1}&apos;..
-        /// </summary>
-        public static string IssuerNotFoundException {
-            get {
-                return ResourceManager.GetString("IssuerNotFoundException", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ISessionContext implementation expected to be type SessionContext..
         /// </summary>
         public static string SessionContextException {
             get {
                 return ResourceManager.GetString("SessionContextException", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid GUID received for header &apos;Shuttle-Access-Tenant-Id&apos;..
+        /// </summary>
+        public static string InvalidTenantIdHeaderException {
+            get {
+                return ResourceManager.GetString("InvalidTenantIdHeaderException", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Option &apos;{0}&apos; may not be empty..
+        /// </summary>
+        public static string OptionMissingException {
+            get {
+                return ResourceManager.GetString("OptionMissingException", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Option &apos;{0}&apos; is not a valid URI..
+        /// </summary>
+        public static string OptionUriException {
+            get {
+                return ResourceManager.GetString("OptionUriException", resourceCulture);
             }
         }
     }

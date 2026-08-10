@@ -1,49 +1,24 @@
-﻿using System.Net.Http.Headers;
 using System.Reflection;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class AccessHttpMessageHandler : DelegatingHandler
+/// <summary>
+///     Applies this application's own credential to every outgoing request.  An <see cref="IAuthenticationInterceptor" />
+///     is always registered — the REST client exists so that an application can call the Shuttle.Access web API as
+///     itself, which is only meaningful when it has an identity.
+/// </summary>
+public class AccessHttpMessageHandler(IAuthenticationInterceptor authenticationInterceptor) : DelegatingHandler
 {
-    private readonly AccessClientOptions _accessClientOptions;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly string _userAgent;
+    private static readonly string UserAgent = $"Shuttle.Access{(Assembly.GetExecutingAssembly().GetName().Version is { } version ? $"/{version.Major}.{version.Minor}.{version.Build}" : string.Empty)}";
 
-    public AccessHttpMessageHandler(IOptions<AccessClientOptions> accessClientOptions, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
-    {
-        _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
-        _httpContextAccessor = Guard.AgainstNull(httpContextAccessor);
-        _serviceProvider = Guard.AgainstNull(serviceProvider);
-
-        var version = Assembly.GetExecutingAssembly().GetName().Version;
-
-        _userAgent = $"Shuttle.Access{(version != null ? $"/{version.Major}.{version.Minor}.{version.Build}" : string.Empty)}";
-    }
+    private readonly IAuthenticationInterceptor _authenticationInterceptor = Guard.AgainstNull(authenticationInterceptor);
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        Guard.AgainstNull(request);
+        Guard.AgainstNull(request).Headers.Add("User-Agent", UserAgent);
 
-        request.Headers.Add("User-Agent", _userAgent);
-
-        if (_accessClientOptions.ConfigureHttpRequestAsync != null)
-        {
-            await _accessClientOptions.ConfigureHttpRequestAsync.Invoke(request, _serviceProvider);
-        }
-        else
-        {
-            var httpRequest = _httpContextAccessor.HttpContext?.Request;
-
-            if ((httpRequest?.Headers.TryGetValue("Authorization", out var authorizationValues) ?? false) &&
-                AuthenticationHeaderValue.TryParse(authorizationValues.ToString(), out var authenticationHeaderValue))
-            {
-                request.Headers.Authorization = authenticationHeaderValue;
-            }
-        }
+        await _authenticationInterceptor.ConfigureAsync(request, cancellationToken);
 
         return await base.SendAsync(request, cancellationToken);
     }

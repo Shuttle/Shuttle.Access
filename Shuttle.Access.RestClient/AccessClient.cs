@@ -1,10 +1,13 @@
-﻿using Refit;
+using Refit;
 using Shuttle.Access.RestClient.v1;
 
 namespace Shuttle.Access.RestClient;
 
 public class AccessClient(HttpClient httpClient) : IAccessClient
 {
+    public const string HttpClientName = "Shuttle.Access.Client";
+    public const string TenantIdHeaderName = "Shuttle-Access-Tenant-Id";
+
     public IOAuthApi OAuth { get; } = RestService.For<IOAuthApi>(httpClient);
     public IIdentitiesApi Identities { get; } = RestService.For<IIdentitiesApi>(httpClient);
     public IPermissionsApi Permissions { get; } = RestService.For<IPermissionsApi>(httpClient);

@@ -1,6 +1,6 @@
-﻿using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.Tokens;
 
-namespace Shuttle.Access.AspNetCore;
+namespace Shuttle.Access.WebApi;
 
 public interface IJwtService
 {

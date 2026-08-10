@@ -1,12 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+using System.Security.Authentication;
 using Microsoft.Extensions.Options;
 using Shuttle.Contract;
-using System.Security.Authentication;
-using Shuttle.Access.AspNetCore;
 
 namespace Shuttle.Access.RestClient;
 
-public class BearerAuthenticationInterceptor(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptions<BearerAuthenticationInterceptorOptions> bearerAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider)
+public class BearerAuthenticationInterceptor(IOptions<BearerAuthenticationInterceptorOptions> bearerAuthenticationInterceptorOptions, IServiceProvider serviceProvider)
     : IAuthenticationInterceptor
 {
     private readonly BearerAuthenticationInterceptorOptions _bearerAuthenticationInterceptorOptions = Guard.AgainstNull(Guard.AgainstNull(bearerAuthenticationInterceptorOptions).Value);
@@ -15,24 +13,15 @@ public class BearerAuthenticationInterceptor(IOptions<AccessAuthorizationOptions
 
     public async Task ConfigureAsync(HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken = default)
     {
+        Guard.AgainstNull(httpRequestMessage);
+
         await _lock.WaitAsync(cancellationToken);
 
         try
         {
-            if (accessAuthorizationOptions.Value.PassThrough)
+            if (_bearerAuthenticationInterceptorOptions.TenantId.HasValue)
             {
-                throw new ApplicationException(string.Format(Resources.PassThroughNotSupportedOnInterceptor, nameof(BearerAuthenticationInterceptor)));
-            }
-
-            var httpRequest = httpContextAccessor.HttpContext?.Request;
-
-            if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Tenant-Id") ?? false)
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", httpRequest.Headers["Shuttle-Access-Tenant-Id"].First());
-            }
-            else if (_bearerAuthenticationInterceptorOptions.TenantId.HasValue)
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_bearerAuthenticationInterceptorOptions.TenantId.Value:D}");
+                httpRequestMessage.Headers.Add(AccessClient.TenantIdHeaderName, $"{_bearerAuthenticationInterceptorOptions.TenantId.Value:D}");
             }
 
             BearerAuthenticationContext? authenticationContext = null;

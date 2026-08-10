@@ -1,15 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
-using Shuttle.Access.AspNetCore;
-using Shuttle.Access.WebApi.Contracts.v1;
-using Shuttle.Contract;
 using System.Security.Authentication;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
+using Shuttle.Access.WebApi.Contracts.v1;
+using Shuttle.Contract;
 
 namespace Shuttle.Access.RestClient;
 
-public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> accessClientOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IOptions<PasswordAuthenticationInterceptorOptions> passwordAuthenticationInterceptorOptions, IHttpContextAccessor httpContextAccessor, HttpClient httpClient)
+public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> accessClientOptions, IOptions<PasswordAuthenticationInterceptorOptions> passwordAuthenticationInterceptorOptions, HttpClient httpClient)
     : IAuthenticationInterceptor
 {
     private readonly AccessClientOptions _accessClientOptions = Guard.AgainstNull(Guard.AgainstNull(accessClientOptions).Value);
@@ -23,24 +21,15 @@ public class PasswordAuthenticationInterceptor(IOptions<AccessClientOptions> acc
 
     public async Task ConfigureAsync(HttpRequestMessage httpRequestMessage, CancellationToken cancellationToken = default)
     {
+        Guard.AgainstNull(httpRequestMessage);
+
         await _lock.WaitAsync(cancellationToken);
 
         try
         {
-            if (accessAuthorizationOptions.Value.PassThrough)
+            if (_passwordAuthenticationInterceptorOptions.TenantId.HasValue)
             {
-                throw new ApplicationException(string.Format(Resources.PassThroughNotSupportedOnInterceptor, nameof(PasswordAuthenticationInterceptor)));
-            }
-
-            var httpRequest = httpContextAccessor.HttpContext?.Request;
-
-            if (httpRequest?.Headers.ContainsKey("Shuttle-Access-Tenant-Id") ?? false)
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", httpRequest.Headers["Shuttle-Access-Tenant-Id"].First());
-            }
-            else if (_passwordAuthenticationInterceptorOptions.TenantId.HasValue)
-            {
-                httpRequestMessage.Headers.Add("Shuttle-Access-Tenant-Id", $"{_passwordAuthenticationInterceptorOptions.TenantId.Value:D}");
+                httpRequestMessage.Headers.Add(AccessClient.TenantIdHeaderName, $"{_passwordAuthenticationInterceptorOptions.TenantId.Value:D}");
             }
 
             if (_tokenExpiryDate > DateTimeOffset.UtcNow.Add(_accessClientOptions.RenewToleranceTimeSpan))

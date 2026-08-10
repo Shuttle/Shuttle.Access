@@ -1,7 +1,7 @@
-﻿using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Shuttle.Contract;
 
-namespace Shuttle.Access.AspNetCore;
+namespace Shuttle.Access.WebApi;
 
 public class JwtIssuerOptionsAvailableEventArgs(JsonWebToken jsonWebToken, IssuerOptions issuerOptions)
 {
