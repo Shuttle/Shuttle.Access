@@ -271,7 +271,7 @@ public static class RoleEndpoints
 
     private static async Task<IResult> PostSearch(ISessionContext sessionContext, [FromServices] IRoleQuery roleQuery, [FromBody] Contracts.v1.Role.Specification specification)
     {
-        if (sessionContext.Session == null)
+        if (!sessionContext.IsAuthorized)
         {
             return Results.BadRequest();
         }

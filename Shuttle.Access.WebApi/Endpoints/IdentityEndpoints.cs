@@ -231,7 +231,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> PatchPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator)
     {
-        if (sessionContext.Session == null || (message.Id.HasValue && !(sessionContext.Session?.HasPermission(sessionContext.TenantId, AccessPermissions.Identities.Register) ?? false)))
+        if (!sessionContext.IsAuthorized || (message.Id.HasValue && !sessionContext.Session.HasPermission(sessionContext.TenantId, AccessPermissions.Identities.Register)))
         {
             return Results.Unauthorized();
         }

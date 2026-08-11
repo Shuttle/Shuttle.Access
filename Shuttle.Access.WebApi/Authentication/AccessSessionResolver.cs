@@ -1,9 +1,11 @@
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Query;
 using Shuttle.Contract;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.WebApi;
 
@@ -16,7 +18,7 @@ namespace Shuttle.Access.WebApi;
 ///     that call this web API use the default `DelegatedSessionResolver` instead, which asks this web API who the
 ///     caller is, so that security configuration is not duplicated across deployments.
 /// </remarks>
-public class AccessSessionResolver(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IJwtService jwtService, ILogger<AccessSessionResolver>? logger = null) : ISessionResolver
+public class AccessSessionResolver(IOptions<AccessOptions> accessOptions, ISessionCache sessionCache, ISessionQuery sessionQuery, IJwtService jwtService, IMediator mediator, ILogger<AccessSessionResolver>? logger = null) : ISessionResolver
 {
     public const string BearerScheme = "Bearer ";
     public const string SessionTokenScheme = "Shuttle.Access ";
@@ -25,6 +27,7 @@ public class AccessSessionResolver(IOptions<AccessOptions> accessOptions, ISessi
 
     private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly IJwtService _jwtService = Guard.AgainstNull(jwtService);
+    private readonly IMediator _mediator = Guard.AgainstNull(mediator);
     private readonly ILogger<AccessSessionResolver> _logger = logger ?? NullLogger<AccessSessionResolver>.Instance;
     private readonly ISessionCache _sessionCache = Guard.AgainstNull(sessionCache);
     private readonly ISessionQuery _sessionQuery = Guard.AgainstNull(sessionQuery);
@@ -89,10 +92,27 @@ public class AccessSessionResolver(IOptions<AccessOptions> accessOptions, ISessi
 
         var session = await FindAsync(new Session.Specification().WithIdentityName(identityName), cancellationToken);
 
-        // A validated identity without a session is still authenticated — it is how a session gets registered.
-        return session == null
-            ? SessionResolutionResult.Authenticated(identityName, tenantId)
-            : SessionResolutionResult.Authenticated(session, tenantId);
+        if (session != null)
+        {
+            return SessionResolutionResult.Authenticated(session, tenantId);
+        }
+
+        // The bearer token identifies who the caller is, so a session can — and should — be registered for them
+        // directly, rather than requiring a follow-up call to register one.
+        var sessionRequest = new SessionRequest(identityName).UseDirect();
+
+        await _mediator.SendAsync(sessionRequest, cancellationToken);
+
+        if (!sessionRequest.HasSession)
+        {
+            // The identity is valid but no session could be registered for it (e.g. it is not a known
+            // Shuttle.Access identity) — the caller is still authenticated, just without a session.
+            return SessionResolutionResult.Authenticated(identityName, tenantId);
+        }
+
+        _sessionCache.Add(sessionRequest.Session);
+
+        return SessionResolutionResult.Authenticated(sessionRequest.Session, tenantId);
     }
 
     private async Task<SessionResolutionResult> ResolveSessionTokenAsync(string value, Guid tenantId, CancellationToken cancellationToken)

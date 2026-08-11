@@ -52,7 +52,7 @@ public class AccessAuthenticationHandler(IOptions<AccessAuthorizationOptions> ac
         }
 
         _sessionContext.TenantId = result.TenantId;
-        _sessionContext.Session = result.Session;
+        _sessionContext.Session = result.Session ?? Query.Session.Empty;
 
         var claims = new List<Claim>
         {
@@ -86,7 +86,12 @@ public class AccessAuthenticationHandler(IOptions<AccessAuthorizationOptions> ac
         Response.StatusCode = StatusCodes.Status401Unauthorized;
         Response.Headers.WWWAuthenticate = $"Shuttle.Access realm=\"{_accessAuthorizationOptions.Realm}\", token=\"GUID\"; Bearer realm=\"{_accessAuthorizationOptions.Realm}\"";
 
-        var detail = authenticateResult.Failure?.Message ?? Access.Resources.InvalidAuthorizationHeader;
+        // A challenge can be raised by AccessAuthorizationMiddleware after authentication has already succeeded,
+        // when the authenticated identity has no active session. That is not an invalid-token condition, so it
+        // must not be reported as one.
+        var detail = authenticateResult.Succeeded
+            ? Access.Resources.NoActiveSession
+            : authenticateResult.Failure?.Message ?? Access.Resources.InvalidAuthorizationHeader;
 
         LogMessage.AuthenticationFailed(_logger, Scheme.Name, detail);
 

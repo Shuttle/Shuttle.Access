@@ -187,6 +187,15 @@ namespace Shuttle.Access {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The credential presented was authenticated, but the identity does not have an active session..
+        /// </summary>
+        public static string NoActiveSession {
+            get {
+                return ResourceManager.GetString("NoActiveSession", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Could not find `IssuerOptions` matching Issuer &apos;{0}&apos; with audience(s) &apos;{1}&apos;..
         /// </summary>
         public static string IssuerNotFoundException {

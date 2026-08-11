@@ -13,26 +13,21 @@ public static class SessionContextExtensions
             Guard.AgainstNull(sessionContext).AuthenticationInvariants();
 
             message.AuditTenantId = sessionContext.TenantId;
-            message.AuditIdentityName = sessionContext.Session!.IdentityName;
+            message.AuditIdentityName = sessionContext.Session.IdentityName;
 
             return message;
         }
 
         public ISessionContext AuthenticationInvariants()
         {
-            if (sessionContext.Session == null || string.IsNullOrWhiteSpace(sessionContext.Session.IdentityName))
-            {
-                throw new ApplicationException("There is no authenticated session.");
-            }
-
-            return sessionContext;
+            return !sessionContext.IsAuthorized ? throw new ApplicationException("There is no authenticated session.") : sessionContext;
         }
 
         public IAuditInformation GetAuditInformation()
         {
             Guard.AgainstNull(sessionContext).AuthenticationInvariants();
 
-            return new AuditInformation(sessionContext.TenantId, sessionContext.Session!.IdentityName);
+            return new AuditInformation(sessionContext.TenantId, sessionContext.Session.IdentityName);
         }
     }
 }
