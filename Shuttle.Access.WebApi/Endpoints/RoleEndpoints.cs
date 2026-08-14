@@ -22,18 +22,9 @@ public static class RoleEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Get(string value, [FromServices] IRoleQuery roleQuery)
+    private static async Task<IResult> Get(Guid id, [FromServices] IRoleQuery roleQuery)
     {
-        var specification = new Query.Role.Specification();
-
-        if (Guid.TryParse(value, out var id))
-        {
-            specification.AddId(id);
-        }
-        else
-        {
-            specification.AddName(value);
-        }
+        var specification = new Query.Role.Specification().AddId(id);
 
         var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
 
@@ -94,7 +85,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.View);
 
-        app.MapGet("/v{version:apiVersion}/roles/{value}", Get)
+        app.MapGet("/v{version:apiVersion}/roles/{id:Guid}", Get)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)

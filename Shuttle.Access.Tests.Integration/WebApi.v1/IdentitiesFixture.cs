@@ -98,7 +98,7 @@ public class IdentitiesFixture
     }
 
     [Test]
-    public async Task Should_be_able_to_get_identity_by_value_async()
+    public async Task Should_be_able_to_get_identity_by_id_async()
     {
         var identity = CreateIdentity();
 
@@ -110,7 +110,7 @@ public class IdentitiesFixture
                 identity
             }.AsEnumerable()));
 
-        var response = await factory.GetAccessClient().Identities.GetAsync("some-value");
+        var response = await factory.GetAccessClient().Identities.GetAsync(identity.Id);
 
         Assert.That(response, Is.Not.Null);
         Assert.That(response.IsSuccessStatusCode, Is.True);

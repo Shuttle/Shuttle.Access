@@ -27,23 +27,14 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Get(ISessionContext sessionContext, IIdentityQuery identityQuery, string value)
+    private static async Task<IResult> Get(ISessionContext sessionContext, IIdentityQuery identityQuery, Guid id)
     {
         if (!sessionContext.IsAuthorized)
         {
             return Results.Unauthorized();
         }
 
-        var specification = new Query.Identity.Specification().IncludeTenants().IncludeRoles().IncludePermissions();
-
-        if (Guid.TryParse(value, out var id))
-        {
-            specification.AddId(id);
-        }
-        else
-        {
-            specification.WithName(value);
-        }
+        var specification = new Query.Identity.Specification().IncludeTenants().IncludeRoles().IncludePermissions().AddId(id);
 
         var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
 
@@ -109,7 +100,7 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.View);
 
-        app.MapGet("/v{version:apiVersion}/identities/{value}", Get)
+        app.MapGet("/v{version:apiVersion}/identities/{id:Guid}", Get)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)

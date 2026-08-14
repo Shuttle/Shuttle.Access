@@ -16,18 +16,9 @@ public static class TenantEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Get(string value, ITenantQuery tenantQuery)
+    private static async Task<IResult> Get(Guid id, ITenantQuery tenantQuery)
     {
-        var specification = new Query.Tenant.Specification();
-
-        if (Guid.TryParse(value, out var id))
-        {
-            specification.AddId(id);
-        }
-        else
-        {
-            specification.AddName(value);
-        }
+        var specification = new Query.Tenant.Specification().AddId(id);
 
         var tenant = (await tenantQuery.SearchAsync(specification)).SingleOrDefault();
 
@@ -59,7 +50,7 @@ public static class TenantEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Tenants.View);
 
-        app.MapGet("/v{version:apiVersion}/tenants/{value}", Get)
+        app.MapGet("/v{version:apiVersion}/tenants/{id:Guid}", Get)
             .WithTags("Tenants")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)

@@ -14,4 +14,5 @@ public class AccessClient(HttpClient httpClient) : IAccessClient
     public IRolesApi Roles { get; } = RestService.For<IRolesApi>(httpClient);
     public IServerApi Server { get; } = RestService.For<IServerApi>(httpClient);
     public ISessionsApi Sessions { get; } = RestService.For<ISessionsApi>(httpClient);
+    public ITenantApi Tenants { get; } = RestService.For<ITenantApi>(httpClient);
 }
