@@ -1,17 +1,19 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Mediator;
-using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
 
 public static class TenantEndpoints
 {
-    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, [FromServices] IBus bus, CancellationToken cancellationToken)
+    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.RemoveTenant { Id = id }), cancellationToken);
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.RemoveTenant { Id = id }),
+            () => new RemoveTenant(id, sessionContext.TenantId, sessionContext.Session.IdentityName),
+            cancellationToken);
 
         return Results.Accepted();
     }
@@ -77,34 +79,49 @@ public static class TenantEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchStatus(Guid id, [FromBody] Contracts.v1.SetStatus message, ISessionContext sessionContext, IBus bus, CancellationToken cancellationToken)
+    private static async Task<IResult> PatchStatus(Guid id, [FromBody] Contracts.v1.SetStatus message, ISessionContext sessionContext, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetTenantStatus
-        {
-            Id = id,
-            Status = message.Status
-        }), cancellationToken);
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetTenantStatus
+            {
+                Id = id,
+                Status = message.Status
+            }),
+            () => new SetTenantStatus(id, (TenantStatus)message.Status, sessionContext.TenantId, sessionContext.Session.IdentityName),
+            cancellationToken);
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post([FromBody] Contracts.v1.RegisterTenant message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery, CancellationToken cancellationToken)
+    private static async Task<IResult> Post([FromBody] Contracts.v1.RegisterTenant message, ISessionContext sessionContext, IIdentityQuery identityQuery, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
         if (await identityQuery.CountAsync(new Query.Identity.Specification().WithName(message.AdministratorIdentityName), cancellationToken) == 0)
         {
             return Results.BadRequest($"Could not find an identity with name '{message.AdministratorIdentityName}'.");
         }
 
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterTenant
-        {
-            Id = message.Id ?? Guid.NewGuid(),
-            Name = message.Name,
-            Status = message.Status,
-            LogoUrl = message.LogoUrl,
-            LogoSvg = message.LogoSvg,
-            AdministratorIdentityName = message.AdministratorIdentityName,
-            AccessAdministratorRoleId = Guid.NewGuid()
-        }), cancellationToken);
+        var tenantId = message.Id ?? Guid.NewGuid();
+        var accessAdministratorRoleId = Guid.NewGuid();
+
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.RegisterTenant
+            {
+                Id = tenantId,
+                Name = message.Name,
+                Status = message.Status,
+                LogoUrl = message.LogoUrl,
+                LogoSvg = message.LogoSvg,
+                AdministratorIdentityName = message.AdministratorIdentityName,
+                AccessAdministratorRoleId = accessAdministratorRoleId
+            }),
+            () => new RegisterTenant(tenantId, message.Name, (TenantStatus)message.Status, sessionContext.TenantId, sessionContext.Session.IdentityName)
+            {
+                LogoUrl = message.LogoUrl,
+                LogoSvg = message.LogoSvg,
+                AdministratorIdentityName = message.AdministratorIdentityName,
+                AccessAdministratorRoleId = accessAdministratorRoleId
+            },
+            cancellationToken);
 
         return Results.Accepted();
     }

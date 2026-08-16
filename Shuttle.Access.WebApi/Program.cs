@@ -98,6 +98,7 @@ public class Program
         services
             .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
             .Configure<AccessAuthenticationOptions>(configuration.GetSection(AccessAuthenticationOptions.SectionName))
+            .AddScoped<MessageDispatcher>()
             .AddSingleton<IValidateOptions<AccessAuthenticationOptions>, AccessAuthenticationOptionsValidator>()
             .AddSingleton<IJwtService, JwtService>()
             .AddHttpClient()

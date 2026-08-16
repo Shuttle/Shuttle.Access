@@ -3,8 +3,8 @@ using System.Text.Json;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
-using Shuttle.Hopper;
 
 namespace Shuttle.Access.WebApi;
 
@@ -83,35 +83,41 @@ public static class PermissionEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchStatus(Guid id, Contracts.v1.SetStatus message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchStatus(Guid id, Contracts.v1.SetStatus message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetPermissionStatus
-        {
-            Id = id,
-            Status = message.Status
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetPermissionStatus
+            {
+                Id = id,
+                Status = message.Status
+            }),
+            () => new SetPermissionStatus(id, (PermissionStatus)message.Status, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchDescription(Guid id, [FromBody] Contracts.v1.SetDescription message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] Contracts.v1.SetDescription message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetPermissionDescription
-        {
-            Id = id,
-            Description = message.Description
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetPermissionDescription
+            {
+                Id = id,
+                Description = message.Description
+            }),
+            () => new SetPermissionDescription(id, message.Description, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, Contracts.v1.SetName message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchName(Guid id, Contracts.v1.SetName message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetPermissionName
-        {
-            Id = id,
-            Name = message.Name
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetPermissionName
+            {
+                Id = id,
+                Name = message.Name
+            }),
+            () => new SetPermissionName(id, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
@@ -135,7 +141,7 @@ public static class PermissionEndpoints
         return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(permissions)), "application/json", "permissions.json");
     }
 
-    private static async Task<IResult> PostUpload(List<Contracts.v1.RegisterPermission> registerPermissions, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PostUpload(List<Contracts.v1.RegisterPermission> registerPermissions, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
         if (!registerPermissions.Any())
         {
@@ -144,19 +150,23 @@ public static class PermissionEndpoints
 
         foreach (var registerPermission in registerPermissions)
         {
-            await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterPermission
-            {
-                Id = registerPermission.Id ?? Guid.NewGuid(),
-                Name = registerPermission.Name,
-                Description = registerPermission.Description,
-                Status = registerPermission.Status
-            }));
+            var id = registerPermission.Id ?? Guid.NewGuid();
+
+            await messageDispatcher.DispatchAsync(
+                () => sessionContext.Audit(new Messages.v1.RegisterPermission
+                {
+                    Id = id,
+                    Name = registerPermission.Name,
+                    Description = registerPermission.Description,
+                    Status = registerPermission.Status
+                }),
+                () => new RegisterPermission(id, registerPermission.Name, registerPermission.Description, (PermissionStatus)registerPermission.Status, sessionContext.TenantId, sessionContext.Session.IdentityName));
         }
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PostFile(ISessionContext sessionContext, IBus bus, HttpContext httpContext)
+    private static async Task<IResult> PostFile(ISessionContext sessionContext, HttpContext httpContext, MessageDispatcher messageDispatcher)
     {
         var form = httpContext.Request.Form;
 
@@ -174,27 +184,35 @@ public static class PermissionEndpoints
 
         foreach (var registerPermission in registerPermissions)
         {
-            await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterPermission
-            {
-                Id = registerPermission.Id ?? Guid.NewGuid(),
-                Name = registerPermission.Name,
-                Description = registerPermission.Description,
-                Status = registerPermission.Status
-            }));
+            var id = registerPermission.Id ?? Guid.NewGuid();
+
+            await messageDispatcher.DispatchAsync(
+                () => sessionContext.Audit(new Messages.v1.RegisterPermission
+                {
+                    Id = id,
+                    Name = registerPermission.Name,
+                    Description = registerPermission.Description,
+                    Status = registerPermission.Status
+                }),
+                () => new RegisterPermission(id, registerPermission.Name, registerPermission.Description, (PermissionStatus)registerPermission.Status, sessionContext.TenantId, sessionContext.Session.IdentityName));
         }
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(Contracts.v1.RegisterPermission message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> Post(Contracts.v1.RegisterPermission message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterPermission
-        {
-            Id = message.Id ?? Guid.NewGuid(),
-            Name = message.Name,
-            Description = message.Description,
-            Status = message.Status
-        }));
+        var id = message.Id ?? Guid.NewGuid();
+
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.RegisterPermission
+            {
+                Id = id,
+                Name = message.Name,
+                Description = message.Description,
+                Status = message.Status
+            }),
+            () => new RegisterPermission(id, message.Name, message.Description, (PermissionStatus)message.Status, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }

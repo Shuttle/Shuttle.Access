@@ -17,7 +17,7 @@ public class RegisterRoleParticipantFixture
 
         idKeyRepository.Setup(m => m.ContainsAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(await ValueTask.FromResult(false));
 
-        var participant = new RegisterRoleParticipant(eventStore, idKeyRepository.Object);
+        var participant = new RegisterRoleParticipant(eventStore, idKeyRepository.Object, new Mock<IPermissionQuery>().Object);
 
         var tenantId = Guid.NewGuid();
         var registerRole = new RegisterRole(Guid.NewGuid(), tenantId, "role-name", tenantId, "test");

@@ -98,6 +98,24 @@ public class IdentitiesFixture
     }
 
     [Test]
+    public async Task Should_be_able_to_delete_identity_directly_async()
+    {
+        var id = Guid.NewGuid();
+
+        var factory = new FixtureWebApplicationFactory(useMessaging: false);
+
+        factory.Mediator.Setup(m => m.SendAsync(It.Is<Application.RemoveIdentity>(message => message.Id.Equals(id)), It.IsAny<CancellationToken>())).Verifiable();
+
+        var response = await factory.GetAccessClient().Identities.DeleteAsync(id);
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+
+        factory.Mediator.VerifyAll();
+        factory.Bus.VerifyNoOtherCalls();
+    }
+
+    [Test]
     public async Task Should_be_able_to_get_identity_by_id_async()
     {
         var identity = CreateIdentity();

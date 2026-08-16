@@ -10,7 +10,7 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Integration;
 
-public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilder = null) : WebApplicationFactory<Program>
+public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilder = null, bool useMessaging = true) : WebApplicationFactory<Program>
 {
     public Mock<IIdentityQuery> IdentityQuery { get; } = new();
     public Mock<IMediator> Mediator { get; } = new();
@@ -52,6 +52,10 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
             {
                 options.ConfigureDatabase = false;
             });
+
+            // Most fixtures exercise the WebApi -> Hopper bus contract specifically, so messaging defaults on;
+            // pass useMessaging: false to instead exercise the direct-to-participant dispatch path.
+            services.PostConfigure<ApiOptions>(options => options.UseMessaging = useMessaging);
 
             services.AddSingleton(new Mock<ISubscriptionService>().Object);
             services.AddSingleton(OAuthGrantRepository.Object);
