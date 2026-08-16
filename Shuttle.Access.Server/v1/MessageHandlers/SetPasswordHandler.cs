@@ -1,22 +1,15 @@
-﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Contract;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Hopper;
-using Shuttle.Recall;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class SetPasswordHandler(IEventStore eventStore) : IMessageHandler<SetPassword>
+public class SetPasswordHandler(IMediator mediator) : IMessageHandler<SetPassword>
 {
     public async Task HandleAsync(SetPassword message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        ArgumentNullException.ThrowIfNull(message);
 
-        var identity = new Identity();
-        var stream = await eventStore.GetAsync(message.Id, cancellationToken);
-
-        stream.Apply(identity);
-        stream.Add(identity.SetPassword(message.PasswordHash));
-
-        await eventStore.SaveAsync(stream, cancellationToken);
+        await mediator.SendAsync(new Application.SetPassword(message.Id, message.PasswordHash), cancellationToken);
     }
 }

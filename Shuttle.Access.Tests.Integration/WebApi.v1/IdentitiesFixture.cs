@@ -55,7 +55,7 @@ public class IdentitiesFixture
         Assert.That(response.IsSuccessStatusCode, Is.True);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
-        factory.Bus.Verify(m => m.SendAsync(It.IsAny<ActivateIdentity>(), null), Times.Once);
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<Messages.v1.ActivateIdentity>(), null), Times.Once);
     }
 
     [Test]
@@ -87,7 +87,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Bus.Setup(m => m.SendAsync(It.Is<RemoveIdentity>(message => message.Id.Equals(id)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<Messages.v1.RemoveIdentity>(message => message.Id.Equals(id)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.DeleteAsync(id);
 
@@ -295,7 +295,7 @@ public class IdentitiesFixture
             }
         ]);
         
-        factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null, It.IsAny<CancellationToken>())).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<Messages.v1.SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null, It.IsAny<CancellationToken>())).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(identity.Id, roleId, new()
         {
@@ -316,7 +316,7 @@ public class IdentitiesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
-        factory.Bus.Setup(m => m.SendAsync(It.Is<SetIdentityTenantStatus>(message => message.TenantId.Equals(tenantId)), null)).Verifiable();
+        factory.Bus.Setup(m => m.SendAsync(It.Is<Messages.v1.SetIdentityTenantStatus>(message => message.TenantId.Equals(tenantId)), null)).Verifiable();
 
         var response = await factory.GetAccessClient().Identities.SetTenantAsync(Guid.NewGuid(), tenantId, new()
         {

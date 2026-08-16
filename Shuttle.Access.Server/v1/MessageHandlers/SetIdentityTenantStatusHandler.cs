@@ -1,34 +1,15 @@
-﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Contract;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Hopper;
-using Shuttle.Recall;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class SetIdentityTenantStatusHandler(IEventStore eventStore) : IMessageHandler<SetIdentityTenantStatus>
+public class SetIdentityTenantStatusHandler(IMediator mediator) : IMessageHandler<SetIdentityTenantStatus>
 {
     public async Task HandleAsync(SetIdentityTenantStatus message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        ArgumentNullException.ThrowIfNull(message);
 
-        var identity = new Identity();
-        var stream = await eventStore.GetAsync(message.IdentityId, cancellationToken);
-
-        stream.Apply(identity);
-
-        if (message.Active && !identity.IsInTenant(message.TenantId))
-        {
-            stream.Add(identity.AddTenant(message.TenantId));
-        }
-
-        if (!message.Active && identity.IsInTenant(message.TenantId))
-        {
-            stream.Add(identity.RemoveTenant(message.TenantId));
-        }
-
-        if (stream.ShouldSave())
-        {
-            await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
-        }
+        await mediator.SendAsync(new Application.SetIdentityTenantStatus(message.IdentityId, message.TenantId, message.Active, message.AuditTenantId, message.AuditIdentityName), cancellationToken);
     }
 }

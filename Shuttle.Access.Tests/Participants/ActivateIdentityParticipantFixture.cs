@@ -1,13 +1,12 @@
-﻿using Moq;
+using Moq;
 using NUnit.Framework;
+using Shuttle.Access.Application;
 using Shuttle.Access.Events.Identity.v1;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Server.v1.MessageHandlers;
 
-namespace Shuttle.Access.Tests.Handlers;
+namespace Shuttle.Access.Tests.Participants;
 
 [TestFixture]
-public class ActivateIdentityHandlerFixture
+public class ActivateIdentityParticipantFixture
 {
     [Test]
     public async Task Should_be_able_to_activate_identity_async()
@@ -20,11 +19,11 @@ public class ActivateIdentityHandlerFixture
         identityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), CancellationToken.None))
             .Returns(Task.FromResult(new List<Query.Identity> { identity }.AsEnumerable()));
 
-        var handler = new ActivateIdentityHandler(identityQuery.Object, eventStore);
+        var participant = new ActivateIdentityParticipant(identityQuery.Object, eventStore);
 
-        var requestResponseMessage = new ActivateIdentity { Id = identity.Id };
+        var message = new ActivateIdentity(identity.Id, string.Empty, Guid.NewGuid(), "system");
 
-        await handler.HandleAsync(requestResponseMessage, CancellationToken.None);
+        await participant.HandleAsync(message, CancellationToken.None);
 
         var @event = eventStore.FindEvent<Activated>(identity.Id);
 

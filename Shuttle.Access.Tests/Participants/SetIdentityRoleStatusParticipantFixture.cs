@@ -1,14 +1,14 @@
-﻿using Moq;
+using Moq;
 using NUnit.Framework;
-using Shuttle.Access.Messages.v1;
-using Shuttle.Access.Server.v1.MessageHandlers;
+using Shuttle.Access.Application;
+using Shuttle.Mediator;
 using Shuttle.Recall;
 using RoleAdded = Shuttle.Access.Events.Identity.v1.RoleAdded;
 
-namespace Shuttle.Access.Tests.Handlers;
+namespace Shuttle.Access.Tests.Participants;
 
 [TestFixture]
-public class SetIdentityRoleHandlerFixture
+public class SetIdentityRoleStatusParticipantFixture
 {
     [Test]
     public async Task Should_be_able_to_activate_role_async()
@@ -42,17 +42,11 @@ public class SetIdentityRoleHandlerFixture
 
         eventStream.Commit();
 
-        var handler = new SetIdentityRoleStatusHandler(eventStore, roleQuery.Object, new Mock<IIdentityQuery>().Object);
+        var participant = new SetIdentityRoleStatusParticipant(eventStore, roleQuery.Object, new Mock<IMediator>().Object);
 
-        var setIdentityRole = new SetIdentityRoleStatus
-        {
-            AuditTenantId = Guid.NewGuid(),
-            RoleId = roleId,
-            Active = true,
-            IdentityId = identityId
-        };
+        var setIdentityRole = new SetIdentityRoleStatus(identityId, roleId, true, Guid.NewGuid(), "system");
 
-        await handler.HandleAsync(setIdentityRole);
+        await participant.HandleAsync(setIdentityRole);
 
         Assert.That(eventStream.Count, Is.EqualTo(3));
         Assert.That(((RoleAdded)eventStream.GetEvents(EventStream.EventRegistrationType.All).Last().Event).RoleId, Is.EqualTo(setIdentityRole.RoleId));

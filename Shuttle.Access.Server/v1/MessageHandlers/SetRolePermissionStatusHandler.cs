@@ -1,31 +1,15 @@
-﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Contract;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Hopper;
-using Shuttle.Recall;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class SetRolePermissionStatusHandler(IEventStore eventStore) : IMessageHandler<SetRolePermissionStatus>
+public class SetRolePermissionStatusHandler(IMediator mediator) : IMessageHandler<SetRolePermissionStatus>
 {
     public async Task HandleAsync(SetRolePermissionStatus message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        ArgumentNullException.ThrowIfNull(message);
 
-        var role = new Role();
-        var stream = await eventStore.GetAsync(message.RoleId, cancellationToken: cancellationToken);
-
-        stream.Apply(role);
-
-        if (message.Active && !role.HasPermission(message.PermissionId))
-        {
-            stream.Add(role.AddPermission(message.PermissionId));
-        }
-
-        if (!message.Active && role.HasPermission(message.PermissionId))
-        {
-            stream.Add(role.RemovePermission(message.PermissionId));
-        }
-
-        await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
+        await mediator.SendAsync(new Application.SetRolePermissionStatus(message.RoleId, message.PermissionId, message.Active, message.AuditTenantId, message.AuditIdentityName), cancellationToken);
     }
 }

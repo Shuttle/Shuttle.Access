@@ -22,7 +22,7 @@ public static class IdentityEndpoints
 {
     private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new RemoveIdentity { Id = id }));
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.RemoveIdentity { Id = id }));
 
         return Results.Accepted();
     }
@@ -200,7 +200,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetDescription message, ISessionContext sessionContext, IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityDescription
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityDescription
         {
             Id = id,
             Description = message.Description
@@ -211,7 +211,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityName
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityName
         {
             Id = id,
             Name = message.Name
@@ -274,7 +274,7 @@ public static class IdentityEndpoints
             }
         }
 
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityRoleStatus
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityRoleStatus
         {
             IdentityId = id,
             RoleId = roleId,
@@ -286,7 +286,7 @@ public static class IdentityEndpoints
 
     private static async Task<IResult> PatchTenantStatus(Guid id, Guid tenantId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityTenantStatus
+        await bus.SendAsync(sessionContext.Audit(new Messages.v1.SetIdentityTenantStatus
         {
             IdentityId = id,
             TenantId = tenantId,
