@@ -65,8 +65,8 @@ public class Program
             .AddApiVersioning(options =>
             {
                 options.DefaultApiVersion = apiVersion1;
-                options.AssumeDefaultVersionWhenUnspecified = true;
                 options.ReportApiVersions = true;
+                options.ApiVersionReader = new UrlSegmentApiVersionReader();
             })
             .AddApiExplorer(options =>
             {

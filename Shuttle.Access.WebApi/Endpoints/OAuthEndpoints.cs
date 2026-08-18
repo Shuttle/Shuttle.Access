@@ -16,7 +16,7 @@ namespace Shuttle.Access.WebApi;
 
 public static class OAuthEndpoints
 {
-    private static async Task<IResult> GetAuthenticateProvider(IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string provider, string application, [FromQuery] string? redirectUri)
+    private static async Task<IResult> GetAuthenticateProvider(IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string provider, string? application, [FromQuery] string? redirectUri)
     {
         if (string.IsNullOrWhiteSpace(provider))
         {
