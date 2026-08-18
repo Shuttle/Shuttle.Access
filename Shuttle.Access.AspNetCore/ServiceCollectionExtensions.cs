@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -17,25 +17,33 @@ public static class ServiceCollectionExtensions
 
             var builder = new AccessAuthorizationBuilder(services);
 
-            services.AddOptions<AccessAuthorizationOptions>().Configure(options =>
-            {
-                configureOptions?.Invoke(options);
-            });
+            services.AddOptions<AccessAuthorizationOptions>()
+                .Configure(options =>
+                {
+                    configureOptions?.Invoke(options);
+                })
+                .ValidateOnStart();
+
+            services.AddSingleton<IValidateOptions<AccessAuthorizationOptions>, AccessAuthorizationOptionsValidator>();
 
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.TryAddSingleton<IJwtService, JwtService>();
+            services.AddTransient<ForwardedAuthorizationHttpMessageHandler>();
+
+            services.AddHttpClient(DelegatedSessionResolver.HttpClientName, (serviceProvider, client) =>
+                {
+                    client.BaseAddress = new(Guard.AgainstEmpty(serviceProvider.GetRequiredService<IOptions<AccessAuthorizationOptions>>().Value.BaseAddress, nameof(AccessAuthorizationOptions.BaseAddress)));
+                })
+                .AddHttpMessageHandler<ForwardedAuthorizationHttpMessageHandler>();
 
             services
-                .AddSingleton<IValidateOptions<AccessAuthorizationOptions>, AccessAuthorizationOptionsValidator>()
                 .AddScoped<AccessAuthorizationMiddleware>()
                 .AddScoped<ISessionContext, SessionContext>()
+                .AddScoped<ISessionResolver, DelegatedSessionResolver>()
                 .AddAuthentication(options =>
                 {
-                    options.DefaultScheme = "Routing";
+                    options.DefaultScheme = AccessAuthenticationHandler.AuthenticationScheme;
                 })
-                .AddScheme<AuthenticationSchemeOptions, RoutingAuthenticationHandler>(RoutingAuthenticationHandler.AuthenticationScheme, null)
-                .AddScheme<AuthenticationSchemeOptions, JwtBearerAuthenticationHandler>(JwtBearerAuthenticationHandler.AuthenticationScheme, null)
-                .AddScheme<AuthenticationSchemeOptions, SessionTokenAuthenticationHandler>(SessionTokenAuthenticationHandler.AuthenticationScheme, null);
+                .AddScheme<AuthenticationSchemeOptions, AccessAuthenticationHandler>(AccessAuthenticationHandler.AuthenticationScheme, null);
 
             return builder;
         }

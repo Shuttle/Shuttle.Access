@@ -1,6 +1,7 @@
 using System.Data.Common;
 using Asp.Versioning;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
 using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.Application;
@@ -96,9 +97,13 @@ public class Program
 
         services
             .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
+            .Configure<AccessAuthenticationOptions>(configuration.GetSection(AccessAuthenticationOptions.SectionName))
+            .AddScoped<MessageDispatcher>()
+            .AddSingleton<IValidateOptions<AccessAuthenticationOptions>, AccessAuthenticationOptionsValidator>()
+            .AddSingleton<IJwtService, JwtService>()
+            .AddHttpClient()
             .AddSingleton<IHashingService, HashingService>()
             .AddSingleton<IPasswordGenerator, DefaultPasswordGenerator>()
-            .AddScoped<ISessionService, SessionService>()
             .AddAccess(options =>
             {
                 configuration.GetSection(AccessOptions.SectionName).Bind(options);
@@ -150,9 +155,10 @@ public class Program
             .AddAccessAuthorization(options =>
             {
                 configuration.GetSection(AccessAuthorizationOptions.SectionName).Bind(options);
-
-                options.PassThrough = false;
             })
+            // Shuttle.Access is the authority, so it resolves the session from the credential directly rather than
+            // asking another deployment.  This is the only application that should do so.
+            .UseSessionResolver<AccessSessionResolver>()
             .Services
             .AddOAuth(builder =>
             {

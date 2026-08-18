@@ -9,7 +9,6 @@ using Shuttle.Access.Query;
 using Shuttle.Access.SqlServer;
 using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
-using Shuttle.Hopper;
 using Shuttle.Mediator;
 using ActivateIdentity = Shuttle.Access.WebApi.Contracts.v1.ActivateIdentity;
 using ChangePassword = Shuttle.Access.WebApi.Contracts.v1.ChangePassword;
@@ -20,30 +19,23 @@ namespace Shuttle.Access.WebApi;
 
 public static class IdentityEndpoints
 {
-    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new RemoveIdentity { Id = id }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.RemoveIdentity { Id = id }),
+            () => new Application.RemoveIdentity(id, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Get(ISessionContext sessionContext, IIdentityQuery identityQuery, string value)
+    private static async Task<IResult> Get(ISessionContext sessionContext, IIdentityQuery identityQuery, Guid id)
     {
         if (!sessionContext.IsAuthorized)
         {
             return Results.Unauthorized();
         }
 
-        var specification = new Query.Identity.Specification().IncludeTenants().IncludeRoles().IncludePermissions();
-
-        if (Guid.TryParse(value, out var id))
-        {
-            specification.AddId(id);
-        }
-        else
-        {
-            specification.WithName(value);
-        }
+        var specification = new Query.Identity.Specification().IncludeTenants().IncludeRoles().IncludePermissions().AddId(id);
 
         var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
 
@@ -109,7 +101,7 @@ public static class IdentityEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Identities.View);
 
-        app.MapGet("/v{version:apiVersion}/identities/{value}", Get)
+        app.MapGet("/v{version:apiVersion}/identities/{id:Guid}", Get)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -178,7 +170,7 @@ public static class IdentityEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IBus bus, IIdentityQuery identityQuery)
+    private static async Task<IResult> PatchActivate([FromBody] ActivateIdentity message, ISessionContext sessionContext, IIdentityQuery identityQuery, MessageDispatcher messageDispatcher)
     {
         var specification = new Query.Identity.Specification();
 
@@ -198,40 +190,46 @@ public static class IdentityEndpoints
             return Results.BadRequest();
         }
 
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.ActivateIdentity
-        {
-            Id = message.Id,
-            Name = message.Name
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.ActivateIdentity
+            {
+                Id = message.Id,
+                Name = message.Name
+            }),
+            () => new Application.ActivateIdentity(message.Id, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetDescription message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetDescription message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityDescription
-        {
-            Id = id,
-            Description = message.Description
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetIdentityDescription
+            {
+                Id = id,
+                Description = message.Description
+            }),
+            () => new Application.SetIdentityDescription(id, message.Description, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityName
-        {
-            Id = id,
-            Name = message.Name
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetIdentityName
+            {
+                Id = id,
+                Name = message.Name
+            }),
+            () => new Application.SetIdentityName(id, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
     private static async Task<IResult> PatchPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator)
     {
-        if (sessionContext.Session == null || (message.Id.HasValue && !(sessionContext.Session?.HasPermission(sessionContext.TenantId, AccessPermissions.Identities.Register) ?? false)))
+        if (!sessionContext.IsAuthorized || (message.Id.HasValue && !sessionContext.Session.HasPermission(sessionContext.TenantId, AccessPermissions.Identities.Register)))
         {
             return Results.Unauthorized();
         }
@@ -260,7 +258,7 @@ public static class IdentityEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus, IRoleQuery roleQuery, IIdentityQuery identityQuery, CancellationToken cancellationToken)
+    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IRoleQuery roleQuery, IIdentityQuery identityQuery, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
         var identity = (await identityQuery.FindAsync(new Query.Identity.Specification().AddId(id).IncludeTenants(), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(id);
 
@@ -283,29 +281,34 @@ public static class IdentityEndpoints
             }
         }
 
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityRoleStatus
-        {
-            IdentityId = id,
-            RoleId = roleId,
-            Active = message.Active
-        }), cancellationToken: cancellationToken);
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetIdentityRoleStatus
+            {
+                IdentityId = id,
+                RoleId = roleId,
+                Active = message.Active
+            }),
+            () => new Application.SetIdentityRoleStatus(id, roleId, message.Active, sessionContext.TenantId, sessionContext.Session.IdentityName),
+            cancellationToken);
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchTenantStatus(Guid id, Guid tenantId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IBus bus)
+    private static async Task<IResult> PatchTenantStatus(Guid id, Guid tenantId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetIdentityTenantStatus
-        {
-            IdentityId = id,
-            TenantId = tenantId,
-            Active = message.Active
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetIdentityTenantStatus
+            {
+                IdentityId = id,
+                TenantId = tenantId,
+                Active = message.Active
+            }),
+            () => new Application.SetIdentityTenantStatus(id, tenantId, message.Active, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, IBus bus, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, IHashingService hashingService, [FromBody] RegisterIdentity message, CancellationToken cancellationToken)
+    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, IHashingService hashingService, [FromBody] RegisterIdentity message, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
         Guard.AgainstNull(message);
 
@@ -371,25 +374,27 @@ public static class IdentityEndpoints
             }
         }
 
-        var registerIdentity = new Messages.v1.RegisterIdentity
-        {
-            Id = Guid.NewGuid(),
-            Name = message.Name,
-            Description = message.Description,
-            RegisteredBy = sessionContext.Session.IdentityName,
-            AuditTenantId = sessionContext.TenantId,
-            AuditIdentityName = sessionContext.Session.IdentityName,
-            Activated = true,
-            RoleIds = roleIds,
-            TenantIds = tenantIds
-        };
+        var identityId = Guid.NewGuid();
+        var passwordHash = string.IsNullOrWhiteSpace(message.Password) ? [] : hashingService.Sha256(message.Password);
 
-        if (!string.IsNullOrWhiteSpace(message.Password))
-        {
-            registerIdentity.PasswordHash = hashingService.Sha256(message.Password);
-        }
-
-        await bus.SendAsync(registerIdentity, cancellationToken);
+        await messageDispatcher.DispatchAsync(
+            () => new Messages.v1.RegisterIdentity
+            {
+                Id = identityId,
+                Name = message.Name,
+                Description = message.Description,
+                RegisteredBy = sessionContext.Session.IdentityName,
+                AuditTenantId = sessionContext.TenantId,
+                AuditIdentityName = sessionContext.Session.IdentityName,
+                Activated = true,
+                RoleIds = roleIds,
+                TenantIds = tenantIds,
+                PasswordHash = passwordHash
+            },
+            () => new Application.RegisterIdentity(identityId, message.Name, message.Description, string.Empty, passwordHash, sessionContext.Session.IdentityName, true, sessionContext.TenantId, sessionContext.Session.IdentityName)
+                .AddRoleIds(roleIds)
+                .AddTenantIds(tenantIds),
+            cancellationToken);
 
         return Results.Accepted();
     }

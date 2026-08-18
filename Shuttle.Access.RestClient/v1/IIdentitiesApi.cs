@@ -13,8 +13,8 @@ public interface IIdentitiesApi
     [Delete("/v1/identities/{id}")]
     Task<IApiResponse> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 
-    [Get("/v1/identities/{value}")]
-    Task<IApiResponse<WebApi.Contracts.v1.Identity>> GetAsync(string value, CancellationToken cancellationToken = default);
+    [Get("/v1/identities/{id}")]
+    Task<IApiResponse<WebApi.Contracts.v1.Identity>> GetAsync(Guid id, CancellationToken cancellationToken = default);
 
     [Get("/v1/identities/{id}/password/reset-token")]
     Task<IApiResponse<Guid>> GetPasswordResetTokenAsync(Guid id, CancellationToken cancellationToken = default);

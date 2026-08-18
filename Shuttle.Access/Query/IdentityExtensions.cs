@@ -1,6 +1,4 @@
-﻿using static Shuttle.Access.AccessPermissions;
-
-namespace Shuttle.Access.Query;
+﻿namespace Shuttle.Access.Query;
 
 public static class IdentityExtensions
 {
@@ -11,7 +9,7 @@ public static class IdentityExtensions
             ArgumentNullException.ThrowIfNull(identity);
             ArgumentException.ThrowIfNullOrWhiteSpace(requiredPermission);
 
-            return identity.Roles.Where(item => item.TenantId == tenantId).SelectMany(item => item.Permissions).Any(item => item.IsSatisfiedBy(Identities.Register));
+            return identity.Roles.Where(item => item.TenantId == tenantId).SelectMany(item => item.Permissions).Any(item => item.IsSatisfiedBy(requiredPermission));
         }
     }
 }

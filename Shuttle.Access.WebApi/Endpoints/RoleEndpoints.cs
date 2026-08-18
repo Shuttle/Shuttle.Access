@@ -15,25 +15,18 @@ namespace Shuttle.Access.WebApi;
 
 public static class RoleEndpoints
 {
-    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> Delete(Guid id, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new RemoveRole { Id = id }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new RemoveRole { Id = id }),
+            () => new Application.RemoveRole(id, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Get(string value, [FromServices] IRoleQuery roleQuery)
+    private static async Task<IResult> Get(Guid id, [FromServices] IRoleQuery roleQuery)
     {
-        var specification = new Query.Role.Specification();
-
-        if (Guid.TryParse(value, out var id))
-        {
-            specification.AddId(id);
-        }
-        else
-        {
-            specification.AddName(value);
-        }
+        var specification = new Query.Role.Specification().AddId(id);
 
         var role = (await roleQuery.SearchAsync(specification.IncludePermissions())).FirstOrDefault();
 
@@ -94,7 +87,7 @@ public static class RoleEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Roles.View);
 
-        app.MapGet("/v{version:apiVersion}/roles/{value}", Get)
+        app.MapGet("/v{version:apiVersion}/roles/{id:Guid}", Get)
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -132,30 +125,34 @@ public static class RoleEndpoints
         return app;
     }
 
-    private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> PatchName(Guid id, [FromBody] SetName message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetRoleName
-        {
-            Id = id,
-            Name = message.Name
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new SetRoleName
+            {
+                Id = id,
+                Name = message.Name
+            }),
+            () => new Application.SetRoleName(id, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchPermissionStatus(Guid id, Guid permissionId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> PatchPermissionStatus(Guid id, Guid permissionId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
-        await bus.SendAsync(sessionContext.Audit(new SetRolePermissionStatus
-        {
-            RoleId = id,
-            PermissionId = permissionId,
-            Active = message.Active
-        }));
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new SetRolePermissionStatus
+            {
+                RoleId = id,
+                PermissionId = permissionId,
+                Active = message.Active
+            }),
+            () => new Application.SetRolePermissionStatus(id, permissionId, message.Active, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, IBus bus)
+    private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
         if (!sessionContext.IsAuthorized)
         {
@@ -172,19 +169,33 @@ public static class RoleEndpoints
             return Results.Forbid();
         }
 
-        await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterRole
-        {
-            Id = message.Id ?? Guid.NewGuid(),
-            Name = message.Name,
-            TenantId = message.TenantId,
-            Permissions = message.Permissions.Select(item => new RegisterPermission
+        var roleId = message.Id ?? Guid.NewGuid();
+
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.RegisterRole
             {
-                Id = item.Id ?? Guid.NewGuid(),
-                Name = item.Name,
-                Description = item.Description,
-                Status = item.Status
-            }).ToList()
-        }));
+                Id = roleId,
+                Name = message.Name,
+                TenantId = message.TenantId,
+                Permissions = message.Permissions.Select(item => new RegisterPermission
+                {
+                    Id = item.Id ?? Guid.NewGuid(),
+                    Name = item.Name,
+                    Description = item.Description,
+                    Status = item.Status
+                }).ToList()
+            }),
+            () =>
+            {
+                var registerRoleParticipantMessage = new Application.RegisterRole(roleId, message.TenantId, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName);
+
+                foreach (var permission in message.Permissions)
+                {
+                    registerRoleParticipantMessage.AddPermissionName(permission.Name);
+                }
+
+                return registerRoleParticipantMessage;
+            });
 
         return Results.Accepted();
     }
@@ -214,7 +225,7 @@ public static class RoleEndpoints
         return Results.File(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(result)), "application/json", "roles.json");
     }
 
-    private static async Task<IResult> PostFile(ISessionContext sessionContext, IBus bus, HttpContext httpContext)
+    private static async Task<IResult> PostFile(ISessionContext sessionContext, HttpContext httpContext, MessageDispatcher messageDispatcher)
     {
         if (!sessionContext.IsAuthorized)
         {
@@ -237,19 +248,33 @@ public static class RoleEndpoints
 
         foreach (var message in messages)
         {
-            await bus.SendAsync(sessionContext.Audit(new Messages.v1.RegisterRole
-            {
-                Id = message.Id ?? Guid.NewGuid(),
-                Name = message.Name,
-                TenantId = sessionContext.TenantId,
-                Permissions = message.Permissions.Select(registerPermission => sessionContext.Audit(new RegisterPermission
+            var roleId = message.Id ?? Guid.NewGuid();
+
+            await messageDispatcher.DispatchAsync(
+                () => sessionContext.Audit(new Messages.v1.RegisterRole
                 {
-                    Id = registerPermission.Id ?? Guid.NewGuid(),
-                    Name = registerPermission.Name,
-                    Description = registerPermission.Description,
-                    Status = registerPermission.Status
-                })).ToList()
-            }));
+                    Id = roleId,
+                    Name = message.Name,
+                    TenantId = sessionContext.TenantId,
+                    Permissions = message.Permissions.Select(registerPermission => sessionContext.Audit(new RegisterPermission
+                    {
+                        Id = registerPermission.Id ?? Guid.NewGuid(),
+                        Name = registerPermission.Name,
+                        Description = registerPermission.Description,
+                        Status = registerPermission.Status
+                    })).ToList()
+                }),
+                () =>
+                {
+                    var registerRoleParticipantMessage = new Application.RegisterRole(roleId, sessionContext.TenantId, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName);
+
+                    foreach (var permission in message.Permissions)
+                    {
+                        registerRoleParticipantMessage.AddPermissionName(permission.Name);
+                    }
+
+                    return registerRoleParticipantMessage;
+                });
         }
 
         return Results.Accepted();
@@ -271,7 +296,7 @@ public static class RoleEndpoints
 
     private static async Task<IResult> PostSearch(ISessionContext sessionContext, [FromServices] IRoleQuery roleQuery, [FromBody] Contracts.v1.Role.Specification specification)
     {
-        if (sessionContext.Session == null)
+        if (!sessionContext.IsAuthorized)
         {
             return Results.BadRequest();
         }
@@ -291,7 +316,7 @@ public static class RoleEndpoints
         return Results.Ok((await roleQuery.SearchAsync(search)).Select(Map).ToList());
     }
 
-    private static async Task<IResult> PostUpload(List<RegisterRole> messages, ISessionContext sessionContext, [FromServices] IBus bus)
+    private static async Task<IResult> PostUpload(List<RegisterRole> messages, ISessionContext sessionContext, [FromServices] IBus bus, MessageDispatcher messageDispatcher)
     {
         if (!messages.Any())
         {
@@ -302,13 +327,17 @@ public static class RoleEndpoints
         {
             foreach (var registerPermission in message.Permissions)
             {
-                await bus.SendAsync(sessionContext.Audit(new RegisterPermission
-                {
-                    Id = registerPermission.Id ?? Guid.NewGuid(),
-                    Name = registerPermission.Name,
-                    Description = registerPermission.Description,
-                    Status = registerPermission.Status
-                }));
+                var id = registerPermission.Id ?? Guid.NewGuid();
+
+                await messageDispatcher.DispatchAsync(
+                    () => sessionContext.Audit(new RegisterPermission
+                    {
+                        Id = id,
+                        Name = registerPermission.Name,
+                        Description = registerPermission.Description,
+                        Status = registerPermission.Status
+                    }),
+                    () => new Application.RegisterPermission(id, registerPermission.Name, registerPermission.Description, (PermissionStatus)registerPermission.Status, sessionContext.TenantId, sessionContext.Session.IdentityName));
             }
 
             await bus.SendAsync(message);

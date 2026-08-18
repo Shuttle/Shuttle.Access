@@ -10,4 +10,5 @@ public interface IAccessClient
     IRolesApi Roles { get; }
     IServerApi Server { get; }
     ISessionsApi Sessions { get; }
+    ITenantApi Tenants { get; }
 }

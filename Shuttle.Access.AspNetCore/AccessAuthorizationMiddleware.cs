@@ -1,42 +1,24 @@
-﻿using System.Net;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
-using Shuttle.Access.Query;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
-public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, ISessionContext sessionContext, ISessionService sessionService, ILogger<AccessAuthorizationMiddleware>? logger = null) : IMiddleware
+/// <summary>
+///     Applies the <see cref="AccessSessionRequirement" /> / <see cref="AccessPermissionRequirement" /> endpoint
+///     metadata.  The session has already been established by <see cref="AccessAuthenticationHandler" /> and is read
+///     from the <see cref="ISessionContext" />.
+/// </summary>
+public class AccessAuthorizationMiddleware(ISessionContext sessionContext, ILogger<AccessAuthorizationMiddleware>? logger = null) : IMiddleware
 {
-    private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
     private readonly ILogger<AccessAuthorizationMiddleware> _logger = logger ?? NullLogger<AccessAuthorizationMiddleware>.Instance;
+    private readonly ISessionContext _sessionContext = Guard.AgainstNull(sessionContext);
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        if (context.Response.StatusCode == (int)HttpStatusCode.Unauthorized)
-        {
-            return;
-        }
-
-        var sessionId = context.FindSessionId();
-        var tenantId = context.FindTenantId();
-
-        if (tenantId != null && sessionId != null)
-        {
-            var specification = new Session.Specification().AddId(sessionId.Value);
-
-            sessionContext.TenantId = tenantId.Value;
-            sessionContext.Session = await Guard.AgainstNull(sessionService).FindAsync(specification);
-
-            if (sessionContext.Session == null)
-            {
-                LogMessage.SessionUnavailable(_logger, sessionId.Value);
-            }
-        }
-
-        var endpoint = context.GetEndpoint();
+        var endpoint = Guard.AgainstNull(context).GetEndpoint();
 
         var permissionRequirement = endpoint?.Metadata.GetMetadata<AccessPermissionRequirement>();
         var sessionRequirement = endpoint?.Metadata.GetMetadata<AccessSessionRequirement>();
@@ -48,18 +30,20 @@ public class AccessAuthorizationMiddleware(IOptions<AccessAuthorizationOptions> 
             return;
         }
 
-        if (tenantId == null || sessionId == null || sessionContext.Session == null)
+        if (!_sessionContext.IsAuthorized)
         {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            context.Response.Headers.Append("WWW-Authenticate", $"Shuttle.Access realm=\"{_accessAuthorizationOptions.Realm}\", token=\"GUID\"; Bearer realm=\"{_accessAuthorizationOptions.Realm}\"");
+            await context.ChallengeAsync();
+
             return;
         }
 
         if (permissionRequirement != null &&
-            !sessionContext.Session.HasPermission(tenantId.Value, permissionRequirement.Permission))
+            !_sessionContext.HasPermission(permissionRequirement.Permission))
         {
-            LogMessage.PermissionDenied(_logger, sessionContext.Session.IdentityName, $"{sessionContext.TenantId:D}", permissionRequirement.Permission);
-            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            LogMessage.PermissionDenied(_logger, _sessionContext.Session.IdentityName, $"{_sessionContext.TenantId:D}", permissionRequirement.Permission);
+
+            await context.ForbidAsync();
+
             return;
         }
 

@@ -1,31 +1,15 @@
-﻿using Shuttle.Access.Messages.v1;
-using Shuttle.Contract;
+using Shuttle.Access.Messages.v1;
 using Shuttle.Hopper;
-using Shuttle.Recall;
+using Shuttle.Mediator;
 
 namespace Shuttle.Access.Server.v1.MessageHandlers;
 
-public class SetPermissionDescriptionHandler(IEventStore eventStore) : IMessageHandler<SetPermissionDescription>
+public class SetPermissionDescriptionHandler(IMediator mediator) : IMessageHandler<SetPermissionDescription>
 {
     public async Task HandleAsync(SetPermissionDescription message, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrEmpty(Guard.AgainstNull(message).Description))
-        {
-            return;
-        }
+        ArgumentNullException.ThrowIfNull(message);
 
-        var permission = new Permission();
-        var stream = await eventStore.GetAsync(message.Id, cancellationToken);
-
-        stream.Apply(permission);
-
-        if (permission.Description.Equals(message.Description))
-        {
-            return;
-        }
-
-        stream.Add(permission.SetDescription(message.Description));
-
-        await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
+        await mediator.SendAsync(new Application.SetPermissionDescription(message.Id, message.Description, message.AuditTenantId, message.AuditIdentityName), cancellationToken);
     }
 }

@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Shuttle.Access.Query;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
+/// <summary>
+///     The MVC controller equivalent of <c>RouteHandlerBuilder.RequirePermission(string)</c>.  The session has already
+///     been established by <see cref="AccessAuthenticationHandler" />, so this only applies the requirement.
+/// </summary>
 public class RequirePermissionAttribute : TypeFilterAttribute
 {
     public RequirePermissionAttribute(string permission) : base(typeof(RequiresPermission))
@@ -12,30 +15,25 @@ public class RequirePermissionAttribute : TypeFilterAttribute
         Arguments = [permission];
     }
 
-    private class RequiresPermission(ISessionService sessionService, string permission) : IAsyncAuthorizationFilter
+    private class RequiresPermission(ISessionContext sessionContext, string permission) : IAuthorizationFilter
     {
         private readonly string _permission = Guard.AgainstEmpty(permission);
-        private readonly ISessionService _sessionService = Guard.AgainstNull(sessionService);
+        private readonly ISessionContext _sessionContext = Guard.AgainstNull(sessionContext);
 
-        private static void SetUnauthorized(AuthorizationFilterContext context)
+        public void OnAuthorization(AuthorizationFilterContext context)
         {
-            context.Result = new UnauthorizedResult();
-        }
+            Guard.AgainstNull(context);
 
-        public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
-        {
-            var tenantId = context.HttpContext.FindTenantId();
-            var sessionId = context.HttpContext.FindSessionId();
-
-            if (tenantId == null || sessionId == null)
+            if (!_sessionContext.IsAuthorized)
             {
-                SetUnauthorized(context);
+                context.Result = new UnauthorizedResult();
+
                 return;
             }
 
-            if (!((await _sessionService.FindAsync(new Session.Specification().AddId(sessionId.Value)))?.HasPermission(tenantId.Value, _permission) ?? false))
+            if (!_sessionContext.HasPermission(_permission))
             {
-                SetUnauthorized(context);
+                context.Result = new ForbidResult();
             }
         }
     }

@@ -1,19 +1,21 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Shuttle.Access.AspNetCore;
 
 public static class HttpRequestExtensions
 {
+    public const string TenantIdHeaderName = "Shuttle-Access-Tenant-Id";
+
     extension(HttpRequest httpRequest)
     {
         public Guid? GetTenantId(ILogger logger, Guid systemTenantId)
         {
-            var tenantIdValue = httpRequest.Headers["Shuttle-Access-Tenant-Id"].FirstOrDefault();
+            var tenantIdValue = httpRequest.Headers[TenantIdHeaderName].FirstOrDefault();
 
             if (!string.IsNullOrWhiteSpace(tenantIdValue))
             {
-                LogMessage.TenantIdHeader(logger, "Found 'Shuttle-Access-Tenant-Id' header.", tenantIdValue);
+                LogMessage.TenantIdHeader(logger, $"Found '{TenantIdHeaderName}' header.", tenantIdValue);
 
                 if (Guid.TryParse(tenantIdValue, out var id))
                 {
@@ -21,12 +23,12 @@ public static class HttpRequestExtensions
                     return id;
                 }
 
-                LogMessage.InvalidTenantIdHeader(logger, $"Invalid GUID '{tenantIdValue}' passed as header 'Shuttle-Access-Tenant-Id'.");
+                LogMessage.InvalidTenantIdHeader(logger, $"Invalid GUID '{tenantIdValue}' passed as header '{TenantIdHeaderName}'.");
 
                 return null;
             }
 
-            LogMessage.TenantId(logger, "No 'Shuttle-Access-Tenant-Id' header found.  Using system tenant id.", systemTenantId);
+            LogMessage.TenantId(logger, $"No '{TenantIdHeaderName}' header found.  Using system tenant id.", systemTenantId);
 
             return systemTenantId;
         }

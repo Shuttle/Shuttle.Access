@@ -4,6 +4,12 @@ namespace Shuttle.Access.Query;
 
 public class Session
 {
+    /// <summary>
+    ///     Represents the absence of a session (unauthenticated) — has no permissions or tokens — so that
+    ///     consumers holding a <see cref="Session" /> reference never have to null-check it themselves.
+    /// </summary>
+    public static readonly Session Empty = new();
+
     public DateTimeOffset DateRegistered { get; set; }
     public DateTimeOffset ExpiryDate { get; set; }
     public Guid Id { get; set; }

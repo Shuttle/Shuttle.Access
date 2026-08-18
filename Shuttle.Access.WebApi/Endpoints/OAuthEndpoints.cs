@@ -7,7 +7,6 @@ using Shuttle.Access.Application;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.WebApi.Contracts.v1;
 using Shuttle.Contract;
-using Shuttle.Hopper;
 using Shuttle.Mediator;
 using Shuttle.OAuth;
 using RegisterIdentity = Shuttle.Access.Messages.v1.RegisterIdentity;
@@ -114,7 +113,7 @@ public static class OAuthEndpoints
         return Results.Ok(result);
     }
 
-    private static async Task<IResult> GetSessionStateCode(IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IBus bus, IMediator mediator, string state, string code, CancellationToken cancellationToken)
+    private static async Task<IResult> GetSessionStateCode(IOptions<AccessOptions> accessOptions, IOptions<ApiOptions> apiOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, IMediator mediator, MessageDispatcher messageDispatcher, string state, string code, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(state) || !Guid.TryParse(state, out var grantId))
         {
@@ -150,15 +149,20 @@ public static class OAuthEndpoints
 
         if (requestRegistration)
         {
-            await bus.SendAsync(new RegisterIdentity
-            {
-                Id = Guid.NewGuid(),
-                Name = identityName,
-                RegisteredBy = grant.ProviderName,
-                AuditTenantId = accessOptions.Value.SystemTenantId,
-                AuditIdentityName = "system",
-                Activated = true
-            }, cancellationToken);
+            var identityId = Guid.NewGuid();
+
+            await messageDispatcher.DispatchAsync(
+                () => new RegisterIdentity
+                {
+                    Id = identityId,
+                    Name = identityName,
+                    RegisteredBy = grant.ProviderName,
+                    AuditTenantId = accessOptions.Value.SystemTenantId,
+                    AuditIdentityName = "system",
+                    Activated = true
+                },
+                () => new Application.RegisterIdentity(identityId, identityName, string.Empty, string.Empty, Array.Empty<byte>(), grant.ProviderName, true, accessOptions.Value.SystemTenantId, "system"),
+                cancellationToken);
         }
 
         return Results.Ok(sessionRequest.GetSessionResponse(requestRegistration));

@@ -10,6 +10,11 @@ public interface ISessionsApi
     [Delete("/v1/sessions/self")]
     Task<IApiResponse> DeleteSelfAsync(CancellationToken cancellationToken = default);
 
+    /// <summary>
+    ///     The session for this application's own identity — the call carries the credential supplied by the
+    ///     registered `IAuthenticationInterceptor`.  For the *caller's* session use <see cref="ISelfApi" />, which
+    ///     forwards the caller's own credential.
+    /// </summary>
     [Get("/v1/sessions/self")]
     Task<IApiResponse<WebApi.Contracts.v1.Session>> GetSelfAsync(CancellationToken cancellationToken = default);
 

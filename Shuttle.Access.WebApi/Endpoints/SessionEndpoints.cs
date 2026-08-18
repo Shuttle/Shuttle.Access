@@ -264,7 +264,7 @@ public static class SessionEndpoints
 
             if (string.IsNullOrWhiteSpace(identityName) || !identityName.Equals(message.IdentityName, StringComparison.InvariantCultureIgnoreCase))
             {
-                if (sessionContext.Session == null)
+                if (!sessionContext.IsAuthorized)
                 {
                     if (tenantId == null || string.IsNullOrWhiteSpace(identityName))
                     {
