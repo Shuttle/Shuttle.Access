@@ -91,7 +91,7 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
 
         foreach (var sessionPermission in session.Permissions)
         {
-            var sessionPermissionModel = model.Permissions.FirstOrDefault(e => e.PermissionId == sessionPermission.Id);
+            var sessionPermissionModel = model.Permissions.FirstOrDefault(e => e.PermissionId == sessionPermission.Id && e.TenantId == sessionPermission.TenantId);
 
             if (sessionPermissionModel != null)
             {
