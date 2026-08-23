@@ -77,6 +77,30 @@ public static class TenantEndpoints
             .MapToApiVersion(apiVersion1)
             .RequirePermission(AccessPermissions.Tenants.Manage);
 
+        app.MapPatch("/v{version:apiVersion}/tenants/{id:Guid}/name", PatchName)
+            .WithTags("Tenants")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Tenants.Manage);
+
+        app.MapPatch("/v{version:apiVersion}/tenants/{id:Guid}/logo-url", PatchLogoUrl)
+            .WithTags("Tenants")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Tenants.Manage);
+
+        app.MapPatch("/v{version:apiVersion}/tenants/{id:Guid}/logo-svg", PatchLogoSvg)
+            .WithTags("Tenants")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Tenants.Manage);
+
+        app.MapPatch("/v{version:apiVersion}/tenants/{id:Guid}/maximum-identities", PatchMaximumIdentities)
+            .WithTags("Tenants")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequirePermission(AccessPermissions.Tenants.Manage);
+
         return app;
     }
 
@@ -89,6 +113,62 @@ public static class TenantEndpoints
                 Status = message.Status
             }),
             () => new SetTenantStatus(id, (TenantStatus)message.Status, sessionContext.TenantId, sessionContext.Session.IdentityName),
+            cancellationToken);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchName(Guid id, [FromBody] Contracts.v1.SetName message, ISessionContext sessionContext, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
+    {
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetTenantName
+            {
+                Id = id,
+                Name = message.Name
+            }),
+            () => new SetTenantName(id, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName),
+            cancellationToken);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchLogoUrl(Guid id, [FromBody] Contracts.v1.SetLogoUrl message, ISessionContext sessionContext, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
+    {
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetTenantLogoUrl
+            {
+                Id = id,
+                LogoUrl = message.LogoUrl
+            }),
+            () => new SetTenantLogoUrl(id, message.LogoUrl, sessionContext.TenantId, sessionContext.Session.IdentityName),
+            cancellationToken);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchLogoSvg(Guid id, [FromBody] Contracts.v1.SetLogoSvg message, ISessionContext sessionContext, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
+    {
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetTenantLogoSvg
+            {
+                Id = id,
+                LogoSvg = message.LogoSvg
+            }),
+            () => new SetTenantLogoSvg(id, message.LogoSvg, sessionContext.TenantId, sessionContext.Session.IdentityName),
+            cancellationToken);
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PatchMaximumIdentities(Guid id, [FromBody] Contracts.v1.SetMaximumIdentities message, ISessionContext sessionContext, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
+    {
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.SetTenantMaximumIdentities
+            {
+                Id = id,
+                MaximumIdentities = message.MaximumIdentities
+            }),
+            () => new SetTenantMaximumIdentities(id, message.MaximumIdentities, sessionContext.TenantId, sessionContext.Session.IdentityName),
             cancellationToken);
 
         return Results.Accepted();

@@ -18,4 +18,16 @@ public interface ITenantApi
 
     [Patch("/v1/tenants/{id}/status")]
     Task<IApiResponse> SetStatusAsync(Guid id, WebApi.Contracts.v1.SetStatus message, CancellationToken cancellationToken = default);
+
+    [Patch("/v1/tenants/{id}/name")]
+    Task<IApiResponse> SetNameAsync(Guid id, WebApi.Contracts.v1.SetName message, CancellationToken cancellationToken = default);
+
+    [Patch("/v1/tenants/{id}/logo-url")]
+    Task<IApiResponse> SetLogoUrlAsync(Guid id, WebApi.Contracts.v1.SetLogoUrl message, CancellationToken cancellationToken = default);
+
+    [Patch("/v1/tenants/{id}/logo-svg")]
+    Task<IApiResponse> SetLogoSvgAsync(Guid id, WebApi.Contracts.v1.SetLogoSvg message, CancellationToken cancellationToken = default);
+
+    [Patch("/v1/tenants/{id}/maximum-identities")]
+    Task<IApiResponse> SetMaximumIdentitiesAsync(Guid id, WebApi.Contracts.v1.SetMaximumIdentities message, CancellationToken cancellationToken = default);
 }

@@ -8,10 +8,14 @@ using Shuttle.Hopper;
 using Shuttle.Recall;
 namespace Shuttle.Access.Server.v1.EventHandlers;
 
-public class TenantHandler(ILogger<TenantHandler> logger, AccessDbContext accessDbContext, IBus bus) : 
+public class TenantHandler(ILogger<TenantHandler> logger, AccessDbContext accessDbContext, IBus bus) :
     IEventHandler<Registered>,
     IEventHandler<Removed>,
-    IEventHandler<StatusSet>
+    IEventHandler<StatusSet>,
+    IEventHandler<NameSet>,
+    IEventHandler<LogoUrlSet>,
+    IEventHandler<LogoSvgSet>,
+    IEventHandler<MaximumIdentitiesSet>
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
     private readonly ILogger<TenantHandler> _logger = Guard.AgainstNull(logger);
@@ -69,6 +73,94 @@ public class TenantHandler(ILogger<TenantHandler> logger, AccessDbContext access
             Id = model.Id,
             Name = model.Name,
             Status = model.Status
+        }, cancellationToken: cancellationToken);
+    }
+
+    public async Task HandleAsync(IEventHandlerContext<NameSet> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        var model = await _accessDbContext.Tenants.FindAsync([context.PrimitiveEvent.Id], cancellationToken: cancellationToken);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        model.Name = context.Event.Name;
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        await _bus.PublishAsync(new TenantNameSet
+        {
+            Id = model.Id,
+            Name = model.Name
+        }, cancellationToken: cancellationToken);
+    }
+
+    public async Task HandleAsync(IEventHandlerContext<LogoUrlSet> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        var model = await _accessDbContext.Tenants.FindAsync([context.PrimitiveEvent.Id], cancellationToken: cancellationToken);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        model.LogoUrl = context.Event.LogoUrl;
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        await _bus.PublishAsync(new TenantLogoUrlSet
+        {
+            Id = model.Id,
+            LogoUrl = model.LogoUrl
+        }, cancellationToken: cancellationToken);
+    }
+
+    public async Task HandleAsync(IEventHandlerContext<LogoSvgSet> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        var model = await _accessDbContext.Tenants.FindAsync([context.PrimitiveEvent.Id], cancellationToken: cancellationToken);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        model.LogoSvg = context.Event.LogoSvg;
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        await _bus.PublishAsync(new TenantLogoSvgSet
+        {
+            Id = model.Id,
+            LogoSvg = model.LogoSvg
+        }, cancellationToken: cancellationToken);
+    }
+
+    public async Task HandleAsync(IEventHandlerContext<MaximumIdentitiesSet> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        var model = await _accessDbContext.Tenants.FindAsync([context.PrimitiveEvent.Id], cancellationToken: cancellationToken);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        model.MaximumIdentities = context.Event.MaximumIdentities;
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        await _bus.PublishAsync(new TenantMaximumIdentitiesSet
+        {
+            Id = model.Id,
+            MaximumIdentities = model.MaximumIdentities
         }, cancellationToken: cancellationToken);
     }
 

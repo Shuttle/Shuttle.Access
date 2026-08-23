@@ -43,6 +43,42 @@ public class Tenant
         return statusSet;
     }
 
+    private NameSet On(NameSet nameSet)
+    {
+        Guard.AgainstNull(nameSet);
+
+        Name = nameSet.Name;
+
+        return nameSet;
+    }
+
+    private LogoUrlSet On(LogoUrlSet logoUrlSet)
+    {
+        Guard.AgainstNull(logoUrlSet);
+
+        LogoUrl = logoUrlSet.LogoUrl;
+
+        return logoUrlSet;
+    }
+
+    private LogoSvgSet On(LogoSvgSet logoSvgSet)
+    {
+        Guard.AgainstNull(logoSvgSet);
+
+        LogoSvg = logoSvgSet.LogoSvg;
+
+        return logoSvgSet;
+    }
+
+    private MaximumIdentitiesSet On(MaximumIdentitiesSet maximumIdentitiesSet)
+    {
+        Guard.AgainstNull(maximumIdentitiesSet);
+
+        MaximumIdentities = maximumIdentitiesSet.MaximumIdentities;
+
+        return maximumIdentitiesSet;
+    }
+
     private Removed On(Removed removed)
     {
         Guard.AgainstNull(removed);
@@ -77,6 +113,58 @@ public class Tenant
         return On(new StatusSet
         {
             Status = status
+        });
+    }
+
+    public NameSet SetName(string name)
+    {
+        if (Name == name)
+        {
+            throw new InvalidOperationException(string.Format(Resources.ValueAlreadySetException, nameof(name), name));
+        }
+
+        return On(new NameSet
+        {
+            Name = Guard.AgainstEmpty(name)
+        });
+    }
+
+    public LogoUrlSet SetLogoUrl(string logoUrl)
+    {
+        if (LogoUrl == logoUrl)
+        {
+            throw new InvalidOperationException(string.Format(Resources.ValueAlreadySetException, nameof(logoUrl), logoUrl));
+        }
+
+        return On(new LogoUrlSet
+        {
+            LogoUrl = logoUrl
+        });
+    }
+
+    public LogoSvgSet SetLogoSvg(string logoSvg)
+    {
+        if (LogoSvg == logoSvg)
+        {
+            throw new InvalidOperationException(string.Format(Resources.ValueAlreadySetException, nameof(logoSvg), logoSvg));
+        }
+
+        return On(new LogoSvgSet
+        {
+            LogoSvg = logoSvg
+        });
+    }
+
+    public MaximumIdentitiesSet SetMaximumIdentities(int maximumIdentities)
+    {
+        if (MaximumIdentities == maximumIdentities)
+        {
+            throw new InvalidOperationException(string.Format(Resources.ValueAlreadySetException, nameof(maximumIdentities), maximumIdentities));
+        }
+
+        return On(new MaximumIdentitiesSet
+        {
+            MaximumIdentities = maximumIdentities
         });
     }
 }
