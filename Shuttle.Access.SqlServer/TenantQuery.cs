@@ -23,7 +23,8 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
                 Name = e.Name,
                 Status = (TenantStatus) e.Status,
                 LogoUrl = e.LogoUrl,
-                LogoSvg = e.LogoSvg
+                LogoSvg = e.LogoSvg,
+                MaximumIdentities = e.MaximumIdentities
             });
     }
 

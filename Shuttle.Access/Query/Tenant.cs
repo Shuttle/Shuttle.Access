@@ -7,6 +7,7 @@ public class Tenant
     public TenantStatus Status { get; set; }
     public string LogoSvg { get; set; } = string.Empty;
     public string LogoUrl { get; set; } = string.Empty;
+    public int MaximumIdentities { get; set; }
 
     public class Specification : Specification<Specification>
     {

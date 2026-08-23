@@ -23,4 +23,7 @@ public class Tenant
 
     [StringLength(2048)]
     public string LogoUrl { get; set; } = string.Empty;
+
+    [Required]
+    public int MaximumIdentities { get; set; }
 }

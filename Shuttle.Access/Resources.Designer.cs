@@ -313,6 +313,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tenant &apos;{0}&apos; has reached its maximum number of identities ({1})..
+        /// </summary>
+        public static string TenantMaximumIdentitiesExceededException {
+            get {
+                return ResourceManager.GetString("TenantMaximumIdentitiesExceededException", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Could not find an identity with name &apos;{0}&apos;..
         /// </summary>
         public static string UnknownIdentityException {

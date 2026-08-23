@@ -294,8 +294,23 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchTenantStatus(Guid id, Guid tenantId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
+    private static async Task<IResult> PatchTenantStatus(Guid id, Guid tenantId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, ITenantQuery tenantQuery, IIdentityQuery identityQuery, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
+        if (message.Active)
+        {
+            var identity = (await identityQuery.FindAsync(new Query.Identity.Specification().AddId(id).IncludeTenants(), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(id);
+
+            if (identity.Tenants.All(e => e.Id != tenantId))
+            {
+                var tenant = (await tenantQuery.FindAsync(new Query.Tenant.Specification().AddId(tenantId), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(tenantId);
+
+                if (tenant.MaximumIdentities > 0 && await identityQuery.CountAsync(new Query.Identity.Specification().WithTenantId(tenantId), cancellationToken) >= tenant.MaximumIdentities)
+                {
+                    return Results.BadRequest($"Tenant '{tenant.Name}' has reached its maximum number of identities ({tenant.MaximumIdentities}).");
+                }
+            }
+        }
+
         await messageDispatcher.DispatchAsync(
             () => sessionContext.Audit(new Messages.v1.SetIdentityTenantStatus
             {
@@ -303,7 +318,8 @@ public static class IdentityEndpoints
                 TenantId = tenantId,
                 Active = message.Active
             }),
-            () => new Application.SetIdentityTenantStatus(id, tenantId, message.Active, sessionContext.TenantId, sessionContext.Session.IdentityName));
+            () => new Application.SetIdentityTenantStatus(id, tenantId, message.Active, sessionContext.TenantId, sessionContext.Session.IdentityName),
+            cancellationToken);
 
         return Results.Accepted();
     }

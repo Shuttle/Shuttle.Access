@@ -14,6 +14,7 @@ public class RegisterTenantHandler(IMediator mediator) : IMessageHandler<Registe
         {
             LogoUrl = message.LogoUrl,
             LogoSvg = message.LogoSvg,
+            MaximumIdentities = message.MaximumIdentities,
             AdministratorIdentityName = message.AdministratorIdentityName,
             AccessAdministratorRoleId = message.AccessAdministratorRoleId
         };

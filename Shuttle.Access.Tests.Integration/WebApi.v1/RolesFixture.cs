@@ -19,14 +19,14 @@ public class RolesFixture
                 new()
                 {
                     Id = Guid.NewGuid(),
-                        Name = "system://permission-a",
-                        Status = PermissionStatus.Active
+                    Name = "system://permission-a",
+                    Status = PermissionStatus.Active
                 },
                 new()
                 {
                     Id = Guid.NewGuid(),
-                        Name = "system://permission-b",
-                        Status = PermissionStatus.Active
+                    Name = "system://permission-b",
+                    Status = PermissionStatus.Active
                 }
             ]
         };

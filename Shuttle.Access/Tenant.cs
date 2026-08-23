@@ -13,6 +13,7 @@ public class Tenant
 {
     public string LogoSvg { get; private set; } = string.Empty;
     public string LogoUrl { get; private set; } = string.Empty;
+    public int MaximumIdentities { get; private set; }
     public string Name { get; private set; } = string.Empty;
     public TenantStatus Status { get; private set; }
 
@@ -28,6 +29,7 @@ public class Tenant
         Name = registered.Name;
         LogoSvg = registered.LogoSvg;
         LogoUrl = registered.LogoUrl;
+        MaximumIdentities = registered.MaximumIdentities;
 
         return registered;
     }
@@ -48,14 +50,15 @@ public class Tenant
         return removed;
     }
 
-    public Registered Register(string name, int status, string logoSvg, string logoUrl)
+    public Registered Register(string name, int status, string logoSvg, string logoUrl, int maximumIdentities)
     {
         return On(new Registered
         {
             Name = Guard.AgainstEmpty(name),
             LogoSvg = logoSvg,
             LogoUrl = logoUrl,
-            Status = status
+            Status = status,
+            MaximumIdentities = maximumIdentities
         });
     }
 

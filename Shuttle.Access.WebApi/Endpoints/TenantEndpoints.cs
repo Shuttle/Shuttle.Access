@@ -38,7 +38,8 @@ public static class TenantEndpoints
             Status = (int)tenant.Status,
             StatusName = tenant.Status.ToString(),
             LogoSvg = tenant.LogoSvg,
-            LogoUrl = tenant.LogoUrl
+            LogoUrl = tenant.LogoUrl,
+            MaximumIdentities = tenant.MaximumIdentities
         };
     }
 
@@ -111,6 +112,7 @@ public static class TenantEndpoints
                 Status = message.Status,
                 LogoUrl = message.LogoUrl,
                 LogoSvg = message.LogoSvg,
+                MaximumIdentities = message.MaximumIdentities,
                 AdministratorIdentityName = message.AdministratorIdentityName,
                 AccessAdministratorRoleId = accessAdministratorRoleId
             }),
@@ -118,6 +120,7 @@ public static class TenantEndpoints
             {
                 LogoUrl = message.LogoUrl,
                 LogoSvg = message.LogoSvg,
+                MaximumIdentities = message.MaximumIdentities,
                 AdministratorIdentityName = message.AdministratorIdentityName,
                 AccessAdministratorRoleId = accessAdministratorRoleId
             },

@@ -6,4 +6,5 @@ public class Registered
     public string LogoSvg { get; set; } = string.Empty;
     public string LogoUrl { get; set; } = string.Empty;
     public int Status { get; set; }
+    public int MaximumIdentities { get; set; }
 }
