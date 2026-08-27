@@ -22,6 +22,7 @@
   </Folder>
   <Project Path="Shuttle.Access.Application/Shuttle.Access.Application.csproj" />
   <Project Path="Shuttle.Access.AspNetCore/Shuttle.Access.AspNetCore.csproj" />
+  <Project Path="Shuttle.Access.EventProcessing/Shuttle.Access.EventProcessing.csproj" />
   <Project Path="Shuttle.Access.Messages/Shuttle.Access.Messages.csproj" />
   <Project Path="Shuttle.Access.RestClient/Shuttle.Access.RestClient.csproj" />
   <Project Path="Shuttle.Access.Server/Shuttle.Access.Server.csproj" />

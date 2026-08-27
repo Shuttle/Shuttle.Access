@@ -7,31 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Shuttle.Contract" Version="21.0.1" />
-    <PackageReference Include="Shuttle.Extensions.Options" Version="21.0.1" />
+    <PackageReference Include="Shuttle.Hopper" Version="22.0.0" />
+    <PackageReference Include="Shuttle.Recall" Version="22.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
+    <ProjectReference Include="..\Shuttle.Access.SqlServer\Shuttle.Access.SqlServer.csproj" />
+    <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
-    <Description>Authorization middleware for web API endpoints using Shuttle.Access.</Description>
+    <Description>Shuttle.Recall projection event handlers for Shuttle.Access, shared by Shuttle.Access.Server and Shuttle.Access.WebApi.</Description>
     <Version>12.0.5</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
@@ -40,7 +28,7 @@
     <PackageIcon>logo.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/Shuttle/Shuttle.Access.git</RepositoryUrl>
-    <PackageTags>iam middleware authorization permissions</PackageTags>
+    <PackageTags>iam identity authorization authentication security permissions</PackageTags>
     <PackageLicenseExpression>BSD-3-Clause</PackageLicenseExpression>
   </PropertyGroup>
 
@@ -53,11 +41,6 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Shuttle.Access\Shuttle.Access.csproj" />
-    <ProjectReference Include="..\Shuttle.Access.WebApi.Contracts\Shuttle.Access.WebApi.Contracts.csproj" />
   </ItemGroup>
 
   <Target Name="CopyNuGetPackage" AfterTargets="Pack" Condition="'$(NUGET_PACKAGE_FOLDER)' != ''">

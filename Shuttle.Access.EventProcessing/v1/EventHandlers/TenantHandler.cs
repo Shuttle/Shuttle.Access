@@ -6,7 +6,7 @@ using Shuttle.Access.SqlServer;
 using Shuttle.Contract;
 using Shuttle.Hopper;
 using Shuttle.Recall;
-namespace Shuttle.Access.Server.v1.EventHandlers;
+namespace Shuttle.Access.EventProcessing.v1.EventHandlers;
 
 public class TenantHandler(ILogger<TenantHandler> logger, AccessDbContext accessDbContext, IBus bus) : 
     IEventHandler<Registered>,

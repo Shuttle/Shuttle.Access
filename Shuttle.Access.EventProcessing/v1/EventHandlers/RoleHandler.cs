@@ -8,7 +8,7 @@ using Shuttle.Contract;
 using Shuttle.Hopper;
 using Shuttle.Recall;
 
-namespace Shuttle.Access.Server.v1.EventHandlers;
+namespace Shuttle.Access.EventProcessing.v1.EventHandlers;
 
 public class RoleHandler(ILogger<RoleHandler> logger, IOptions<AccessOptions> accessOptions, AccessDbContext accessDbContext, IPermissionQuery permissionQuery, IBus bus) :
     IEventHandler<Registered>,

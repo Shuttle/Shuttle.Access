@@ -11,7 +11,7 @@ using NameSet = Shuttle.Access.Events.Permission.v1.NameSet;
 using Registered = Shuttle.Access.Events.Permission.v1.Registered;
 using Removed = Shuttle.Access.Events.Permission.v1.Removed;
 
-namespace Shuttle.Access.Server.v1.EventHandlers;
+namespace Shuttle.Access.EventProcessing.v1.EventHandlers;
 
 public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContext accessDbContext, IBus bus)
     :

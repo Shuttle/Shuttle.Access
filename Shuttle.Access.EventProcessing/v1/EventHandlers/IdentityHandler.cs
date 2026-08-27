@@ -9,7 +9,7 @@ using Shuttle.Recall;
 using RoleRemoved = Shuttle.Access.Events.Identity.v1.RoleRemoved;
 using TenantRemoved = Shuttle.Access.Events.Identity.v1.TenantRemoved;
 
-namespace Shuttle.Access.Server.v1.EventHandlers;
+namespace Shuttle.Access.EventProcessing.v1.EventHandlers;
 
 public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext accessDbContext, IRoleQuery roleQuery, ITenantQuery tenantQuery, ISessionQuery sessionQuery, IBus bus)
     :

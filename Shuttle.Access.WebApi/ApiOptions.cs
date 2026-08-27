@@ -6,5 +6,4 @@ public class ApiOptions
     public bool AllowPasswordAuthentication { get; set; } = true;
     public string ExtensionFolder { get; set; } = "./.extension";
     public bool OAuthRegisterUnknownIdentities { get; set; } = true;
-    public bool UseMessaging { get; set; } = false;
 }

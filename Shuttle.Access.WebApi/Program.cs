@@ -6,6 +6,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
+using Shuttle.Access.EventProcessing.v1.EventHandlers;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
 using Shuttle.Hopper;
@@ -139,16 +140,32 @@ public class Program
             .AddSubscription<IdentityRoleRemoved>()
             .AddSubscription<RolePermissionAdded>()
             .AddSubscription<RolePermissionRemoved>()
-            .AddSubscription<PermissionStatusSet>()
-            .Services
-            .AddRecall()
+            .AddSubscription<PermissionStatusSet>();
+
+        var immediateConsistencyEnabled = configuration.GetValue<bool>($"{RecallOptions.SectionName}:EventProcessing:ImmediateConsistency:Enabled");
+
+        var recallBuilder = services
+            .AddRecall(options =>
+            {
+                configuration.GetSection(RecallOptions.SectionName).Bind(options);
+            })
             .UseSqlServerEventStorage(options =>
             {
                 options.ConnectionString = accessConnectionString;
                 options.Schema = "access";
             })
             .UseSqlServerEventProcessing()
-            .Services
+            .AddProjection<IdentityHandler>(ProjectionNames.Identity)
+            .AddProjection<PermissionHandler>(ProjectionNames.Permission)
+            .AddProjection<RoleHandler>(ProjectionNames.Role)
+            .AddProjection<TenantHandler>(ProjectionNames.Tenant);
+
+        if (immediateConsistencyEnabled)
+        {
+            recallBuilder = recallBuilder.RegisterPrimitiveEventSequencing();
+        }
+
+        recallBuilder.Services
             .AddMediator()
             .AddParticipantsFrom(typeof(SessionRequest).Assembly)
             .Services

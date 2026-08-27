@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using Shuttle.Contract;
 using Shuttle.Mediator;
 using Shuttle.Recall;
@@ -5,7 +6,7 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class SetRoleNameParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<SetRoleName>
+public class SetRoleNameParticipant(IOptions<AccessOptions> accessOptions, IEventStore eventStore, IIdKeyRepository idKeyRepository) : IParticipant<SetRoleName>
 {
     public async Task HandleAsync(SetRoleName message, CancellationToken cancellationToken = default)
     {
@@ -24,8 +25,10 @@ public class SetRoleNameParticipant(IEventStore eventStore, IIdKeyRepository idK
             return;
         }
 
-        var key = Role.Key(role.Name, role.TenantId);
-        var rekey = Role.Key(message.Name, role.TenantId);
+        var tenantId = role.TenantId == Guid.Empty ? Guard.AgainstNull(accessOptions).Value.SystemTenantId : role.TenantId;
+
+        var key = Role.Key(role.Name, tenantId);
+        var rekey = Role.Key(message.Name, tenantId);
 
         if (await idKeyRepository.ContainsAsync(rekey, cancellationToken) || !await idKeyRepository.ContainsAsync(key, cancellationToken))
         {

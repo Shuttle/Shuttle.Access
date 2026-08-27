@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 using Shuttle.Access.AspNetCore;
@@ -6,6 +5,7 @@ using Shuttle.Access.WebApi;
 using Shuttle.Mediator;
 using Shuttle.Hopper;
 using Shuttle.OAuth;
+using Shuttle.Recall;
 using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Integration;
@@ -54,8 +54,9 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
             });
 
             // Most fixtures exercise the WebApi -> Hopper bus contract specifically, so messaging defaults on;
-            // pass useMessaging: false to instead exercise the direct-to-participant dispatch path.
-            services.PostConfigure<ApiOptions>(options => options.UseMessaging = useMessaging);
+            // pass useMessaging: false to instead exercise the direct-to-participant dispatch path (i.e. immediate
+            // consistency enabled, per MessageDispatcher).
+            services.PostConfigure<RecallOptions>(options => options.EventProcessing.ImmediateConsistency.Enabled = !useMessaging);
 
             services.AddSingleton(new Mock<ISubscriptionService>().Object);
             services.AddSingleton(OAuthGrantRepository.Object);

@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Shuttle.Access.Application;
-using Shuttle.Access.Server.v1.EventHandlers;
+using Shuttle.Access.EventProcessing.v1.EventHandlers;
 using Shuttle.Access.SqlServer;
 using Shuttle.Hopper;
 using Shuttle.Hopper.AzureStorageQueues;
