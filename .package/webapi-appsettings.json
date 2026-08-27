@@ -103,6 +103,13 @@
           ]
         }
       ]
+    },
+    "Recall": {
+      "EventProcessing": {
+        "ImmediateConsistency": {
+          "Enabled": true
+        }
+      }
     }
   }
 }

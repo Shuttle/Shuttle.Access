@@ -31,7 +31,7 @@
     "azure": "UseDevelopmentStorage=true;DevelopmentStorageProxyUri=http://azurite"
   },
   "Shuttle": {
-    "ServiceBus": {
+    "Hopper": {
       "Inbox": {
         "WorkTransportUri": "azuresq://azure/access-server-inbox-work",
         "DeferredTransportUri": "azuresq://azure/access-server-inbox-deferred",

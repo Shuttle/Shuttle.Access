@@ -73,6 +73,14 @@ public class Program
             {
                 options.GroupNameFormat = "'v'VVV";
                 options.SubstituteApiVersionInUrl = true;
+            })
+            .AddOpenApi(options =>
+            {
+                options.Document.AddSchemaTransformer((schema, _, _) =>
+                {
+                    schema.Title = schema.Title?.Replace("+", "_");
+                    return Task.CompletedTask;
+                });
             });
 
         services
@@ -86,15 +94,7 @@ public class Program
                         .AllowAnyHeader();
                 });
             })
-            .AddEndpointsApiExplorer()
-            .AddOpenApi(options =>
-            {
-                options.AddSchemaTransformer((schema, _, _) =>
-                {
-                    schema.Title = schema.Title?.Replace("+", "_");
-                    return Task.CompletedTask;
-                });
-            });
+            .AddEndpointsApiExplorer();
 
         services
             .Configure<ApiOptions>(configuration.GetSection(ApiOptions.SectionName))
@@ -193,7 +193,7 @@ public class Program
 
         app.UseCors();
 
-        app.MapOpenApi();
+        app.MapOpenApi().WithDocumentPerVersion();
         app.MapScalarApiReference(options =>
         {
             options
