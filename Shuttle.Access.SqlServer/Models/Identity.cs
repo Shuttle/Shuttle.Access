@@ -22,6 +22,7 @@ public class Identity
     [Key]
     public Guid Id { get; set; }
 
+    public ICollection<IdentityAttribute> IdentityAttributes { get; set; } = [];
     public ICollection<IdentityRole> IdentityRoles { get; set; } = [];
     public ICollection<IdentityTenant> IdentityTenants { get; set; } = [];
 

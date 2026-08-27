@@ -5,6 +5,7 @@ namespace Shuttle.Access;
 
 public class Identity
 {
+    private readonly Dictionary<Guid, List<string>> _attributes = new();
     private readonly List<Guid> _tenantIds = [];
     private readonly List<Guid> _roleIds = [];
     private byte[]? _passwordHash;
@@ -23,6 +24,30 @@ public class Identity
         {
             DateActivated = dateActivated
         });
+    }
+
+    public AttributeValueAdded AddAttributeValue(Guid attributeDefinitionId, string value)
+    {
+        return HasAttributeValue(attributeDefinitionId, value)
+            ? throw new ApplicationException(string.Format(Resources.DuplicateIdentityAttributeValueException, Name, value, attributeDefinitionId))
+            : On(new AttributeValueAdded { AttributeDefinitionId = attributeDefinitionId, Value = value });
+    }
+
+    public IEnumerable<string> GetAttributeValues(Guid attributeDefinitionId)
+    {
+        return _attributes.TryGetValue(attributeDefinitionId, out var values) ? values.AsReadOnly() : [];
+    }
+
+    public bool HasAttributeValue(Guid attributeDefinitionId, string value)
+    {
+        return _attributes.TryGetValue(attributeDefinitionId, out var values) && values.Contains(value);
+    }
+
+    public AttributeValueRemoved RemoveAttributeValue(Guid attributeDefinitionId, string value)
+    {
+        return !HasAttributeValue(attributeDefinitionId, value)
+            ? throw new InvalidOperationException(string.Format(Resources.IdentityAttributeNotFoundException, value, attributeDefinitionId, Name))
+            : On(new AttributeValueRemoved { AttributeDefinitionId = attributeDefinitionId, Value = value });
     }
 
     public RoleAdded AddRole(Guid roleId)
@@ -52,6 +77,38 @@ public class Identity
     public static string Key(string name)
     {
         return $"[identity]:name={name}";
+    }
+
+    private AttributeValueAdded On(AttributeValueAdded attributeValueAdded)
+    {
+        Guard.AgainstNull(attributeValueAdded);
+
+        if (!_attributes.TryGetValue(attributeValueAdded.AttributeDefinitionId, out var values))
+        {
+            values = [];
+            _attributes[attributeValueAdded.AttributeDefinitionId] = values;
+        }
+
+        values.Add(attributeValueAdded.Value);
+
+        return attributeValueAdded;
+    }
+
+    private AttributeValueRemoved On(AttributeValueRemoved attributeValueRemoved)
+    {
+        Guard.AgainstNull(attributeValueRemoved);
+
+        if (_attributes.TryGetValue(attributeValueRemoved.AttributeDefinitionId, out var values))
+        {
+            values.Remove(attributeValueRemoved.Value);
+
+            if (values.Count == 0)
+            {
+                _attributes.Remove(attributeValueRemoved.AttributeDefinitionId);
+            }
+        }
+
+        return attributeValueRemoved;
     }
 
     private PasswordResetTokenRegistered On(PasswordResetTokenRegistered passwordResetTokenRegistered)

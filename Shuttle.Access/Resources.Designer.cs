@@ -97,6 +97,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Identity &apos;{0}&apos; already has value &apos;{1}&apos; for attribute definition id &apos;{2}&apos;..
+        /// </summary>
+        public static string DuplicateIdentityAttributeValueException {
+            get {
+                return ResourceManager.GetString("DuplicateIdentityAttributeValueException", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Identity &apos;{0}&apos; is already in role with id &apos;{1}&apos;..
         /// </summary>
         public static string DuplicateIdentityRoleException {
@@ -150,6 +159,42 @@ namespace Shuttle.Access {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; has cardinality &apos;{1}&apos; and cannot be read as a single value..
+        /// </summary>
+        public static string AttributeCardinalityMismatchException {
+            get {
+                return ResourceManager.GetString("AttributeCardinalityMismatchException", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is of type &apos;{1}&apos; and cannot be read as &apos;{2}&apos;..
+        /// </summary>
+        public static string AttributeTypeMismatchException {
+            get {
+                return ResourceManager.GetString("AttributeTypeMismatchException", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Value &apos;{0}&apos; is not valid for attribute &apos;{1}&apos; of type &apos;{2}&apos;..
+        /// </summary>
+        public static string AttributeValueFormatException {
+            get {
+                return ResourceManager.GetString("AttributeValueFormatException", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Value &apos;{0}&apos; for attribute definition id &apos;{1}&apos; does not exist on identity &apos;{2}&apos;..
+        /// </summary>
+        public static string IdentityAttributeNotFoundException {
+            get {
+                return ResourceManager.GetString("IdentityAttributeNotFoundException", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Role id &apos;{0}&apos; does not exist on identity &apos;{1}&apos;..
         /// </summary>

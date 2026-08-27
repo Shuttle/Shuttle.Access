@@ -4,7 +4,9 @@ namespace Shuttle.Access.SqlServer;
 
 public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbContext(options)
 {
+    public DbSet<Models.AttributeDefinition> AttributeDefinitions { get; set; } = null!;
     public DbSet<Models.Identity> Identities { get; set; } = null!;
+    public DbSet<Models.IdentityAttribute> IdentityAttributes { get; set; } = null!;
     public DbSet<Models.IdentityTenant> IdentityTenants { get; set; } = null!;
     public DbSet<Models.IdentityRole> IdentityRoles { get; set; } = null!;
     public DbSet<Models.Permission> Permissions { get; set; } = null!;
@@ -18,12 +20,25 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Models.Identity>()
+            .HasMany(p => p.IdentityAttributes)
+            .WithOne(f => f.Identity);
+
+        modelBuilder.Entity<Models.Identity>()
             .HasMany(p => p.IdentityRoles)
             .WithOne(f => f.Identity);
 
         modelBuilder.Entity<Models.Identity>()
             .HasMany(p => p.IdentityTenants)
             .WithOne(f => f.Identity);
+
+        modelBuilder.Entity<Models.IdentityAttribute>()
+            .Property(p => p.Id).HasDefaultValueSql("NEWID()");
+
+        modelBuilder.Entity<Models.IdentityAttribute>()
+            .HasOne(f => f.AttributeDefinition)
+            .WithMany(a => a.IdentityAttributes)
+            .HasForeignKey(f => new { f.TenantId, f.AttributeDefinitionId })
+            .HasPrincipalKey(p => new { p.TenantId, p.Id });
 
         modelBuilder.Entity<Models.IdentityRole>()
             .HasOne(f => f.Role)

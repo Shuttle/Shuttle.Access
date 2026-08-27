@@ -25,6 +25,7 @@ public static class AccessBuilderExtensions
 
             services.TryAddSingleton<ISessionCache, SessionCache>();
 
+            services.AddScoped<IAttributeDefinitionQuery, AttributeDefinitionQuery>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IIdentityQuery, IdentityQuery>();
             services.AddScoped<IPermissionQuery, PermissionQuery>();

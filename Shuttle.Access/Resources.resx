@@ -130,6 +130,10 @@
   <data name="DeleteSessionException" xml:space="preserve">
     <value>Could not delete the session.</value>
   </data>
+  <data name="DuplicateIdentityAttributeValueException" xml:space="preserve">
+    <value>Identity '{0}' already has value '{1}' for attribute definition id '{2}'.</value>
+    <comment>0 = identity name; 1 = value; 2 = attribute definition id</comment>
+  </data>
   <data name="DuplicateIdentityRoleException" xml:space="preserve">
     <value>Identity '{0}' is already in role with id '{1}'.</value>
     <comment>0 = identity name; 1 = role id</comment>
@@ -187,6 +191,22 @@
   </data>
   <data name="RequiredOptionMissing" xml:space="preserve">
     <value>Required option '{0}' is missing.</value>
+  </data>
+  <data name="AttributeCardinalityMismatchException" xml:space="preserve">
+    <value>Attribute '{0}' has cardinality '{1}' and cannot be read as a single value.</value>
+    <comment>0 = attribute definition name, 1 = cardinality</comment>
+  </data>
+  <data name="AttributeTypeMismatchException" xml:space="preserve">
+    <value>Attribute '{0}' is of type '{1}' and cannot be read as '{2}'.</value>
+    <comment>0 = attribute definition name, 1 = actual type, 2 = requested type</comment>
+  </data>
+  <data name="AttributeValueFormatException" xml:space="preserve">
+    <value>Value '{0}' is not valid for attribute '{1}' of type '{2}'.</value>
+    <comment>0 = value, 1 = attribute definition name, 2 = type</comment>
+  </data>
+  <data name="IdentityAttributeNotFoundException" xml:space="preserve">
+    <value>Value '{0}' for attribute definition id '{1}' does not exist on identity '{2}'.</value>
+    <comment>0 = value, 1 = attribute definition id, 2 = identity name</comment>
   </data>
   <data name="IdentityRoleNotFoundException" xml:space="preserve">
     <value>Role id '{0}' does not exist on identity '{1}'.</value>
