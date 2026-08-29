@@ -21,9 +21,7 @@ public class TenantQuery(AccessDbContext accessDbContext) : ITenantQuery
             {
                 Id = e.Id,
                 Name = e.Name,
-                Status = (TenantStatus) e.Status,
-                LogoUrl = e.LogoUrl,
-                LogoSvg = e.LogoSvg
+                Status = (TenantStatus) e.Status
             });
     }
 

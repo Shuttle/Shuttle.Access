@@ -12,8 +12,6 @@ public class RegisterTenantHandler(IMediator mediator) : IMessageHandler<Registe
 
         var registerTenant = new Application.RegisterTenant(message.Id, message.Name, (TenantStatus)message.Status, message.AuditTenantId, message.AuditIdentityName)
         {
-            LogoUrl = message.LogoUrl,
-            LogoSvg = message.LogoSvg,
             AdministratorIdentityName = message.AdministratorIdentityName,
             AccessAdministratorRoleId = message.AccessAdministratorRoleId
         };

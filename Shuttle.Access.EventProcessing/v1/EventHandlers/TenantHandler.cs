@@ -32,9 +32,7 @@ public class TenantHandler(ILogger<TenantHandler> logger, AccessDbContext access
         {
             Id = context.PrimitiveEvent.Id,
             Name = context.Event.Name,
-            Status = context.Event.Status,
-            LogoSvg = context.Event.LogoSvg,
-            LogoUrl = context.Event.LogoUrl
+            Status = context.Event.Status
         });
 
         await _accessDbContext.SaveChangesAsync(cancellationToken);

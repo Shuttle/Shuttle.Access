@@ -35,7 +35,7 @@ public class RegisterTenantParticipant(IEventStore eventStore, IIdKeyRepository 
 
         if (string.IsNullOrWhiteSpace(aggregate.Name))
         {
-            stream.Add(aggregate.Register(message.Name, (int)message.Status, message.LogoSvg, message.LogoUrl));
+            stream.Add(aggregate.Register(message.Name, (int)message.Status));
 
             await eventStore.SaveAsync(stream, builder => builder.Audit(message), cancellationToken);
         }

@@ -83,9 +83,7 @@ public class SessionRequestParticipant(IOptions<AccessOptions> accessOptions, IA
             {
                 Id = item.Id,
                 Name = item.Name,
-                Status = item.Status,
-                LogoSvg = item.LogoSvg,
-                LogoUrl = item.LogoUrl
+                Status = item.Status
             })
             .ToList();
 

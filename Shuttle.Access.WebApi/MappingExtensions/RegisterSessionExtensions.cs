@@ -31,9 +31,7 @@ public static class RegisterSessionExtensions
                     Id = item.Id,
                     Name = item.Name,
                     Status = (int)item.Status,
-                    StatusName = item.Status.ToString(),
-                    LogoUrl = item.LogoUrl,
-                    LogoSvg = item.LogoSvg
+                    StatusName = item.Status.ToString()
                 }).ToList()
             };
         }

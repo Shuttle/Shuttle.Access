@@ -71,9 +71,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
                 {
                     Id = item.TenantId,
                     Name = item.Tenant.Name,
-                    Status = (TenantStatus)item.Tenant.Status,
-                    LogoSvg = item.Tenant.LogoSvg,
-                    LogoUrl = item.Tenant.LogoUrl
+                    Status = (TenantStatus)item.Tenant.Status
                 }).ToList(),
                 Roles = e.IdentityRoles.Select(item => new Query.Role
                 {

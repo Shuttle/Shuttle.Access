@@ -36,9 +36,7 @@ public static class TenantEndpoints
             Id = tenant.Id,
             Name = tenant.Name,
             Status = (int)tenant.Status,
-            StatusName = tenant.Status.ToString(),
-            LogoSvg = tenant.LogoSvg,
-            LogoUrl = tenant.LogoUrl
+            StatusName = tenant.Status.ToString()
         };
     }
 
@@ -109,15 +107,11 @@ public static class TenantEndpoints
                 Id = tenantId,
                 Name = message.Name,
                 Status = message.Status,
-                LogoUrl = message.LogoUrl,
-                LogoSvg = message.LogoSvg,
                 AdministratorIdentityName = message.AdministratorIdentityName,
                 AccessAdministratorRoleId = accessAdministratorRoleId
             }),
             () => new RegisterTenant(tenantId, message.Name, (TenantStatus)message.Status, sessionContext.TenantId, sessionContext.Session.IdentityName)
             {
-                LogoUrl = message.LogoUrl,
-                LogoSvg = message.LogoSvg,
                 AdministratorIdentityName = message.AdministratorIdentityName,
                 AccessAdministratorRoleId = accessAdministratorRoleId
             },
