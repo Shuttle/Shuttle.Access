@@ -1,5 +1,4 @@
-﻿using System.Text;
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -16,7 +15,7 @@ namespace Shuttle.Access.WebApi;
 
 public static class OAuthEndpoints
 {
-    private static async Task<IResult> GetAuthenticateProvider(IOptions<AccessOptions> accessOptions, IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, string provider, string? application, [FromQuery] string? redirectUri)
+    private static async Task<IResult> GetAuthenticateProvider(IOAuthService oauthService, string provider, string? application, [FromQuery] string redirectUri)
     {
         if (string.IsNullOrWhiteSpace(provider))
         {
@@ -25,35 +24,9 @@ public static class OAuthEndpoints
 
         var data = new Dictionary<string, string> { { "Application", string.IsNullOrWhiteSpace(application) ? "Access" : application } };
 
-        var hasRedirectUri = !string.IsNullOrWhiteSpace(redirectUri);
+        var authorizationUrl = await oauthService.AuthenticateAsync(provider, redirectUri, data);
 
-        if (hasRedirectUri)
-        {
-            data.Add("RedirectUri", redirectUri!);
-        }
-
-        var grant = await oauthService.RegisterAsync(provider, data);
-
-        var oauthOptionsValue = Guard.AgainstNull(Guard.AgainstNull(oauthOptions).Value);
-        var oauthProviderOptions = oauthOptionsValue.GetProviderOptions(provider);
-
-        var authorizationUrl = new StringBuilder(oauthProviderOptions.Authorize.Url);
-
-        authorizationUrl.Append($"?response_type=code&client_id={oauthProviderOptions.ClientId}");
-        authorizationUrl.Append($"&scope={oauthProviderOptions.Scope}");
-        authorizationUrl.Append($"&redirect_uri={(hasRedirectUri ? redirectUri : oauthProviderOptions.RedirectUri)}");
-
-        if (!string.IsNullOrWhiteSpace(oauthProviderOptions.Authorize.CodeChallengeMethod))
-        {
-            if (string.IsNullOrWhiteSpace(grant.CodeChallenge))
-            {
-                return Results.BadRequest($"No 'CodeChallenge' has been generated for code challenge method '{oauthProviderOptions.Authorize.CodeChallengeMethod}'.");
-            }
-
-            authorizationUrl.Append($"&code_challenge_method={oauthProviderOptions.Authorize.CodeChallengeMethod}&code_challenge={grant.CodeChallenge}");
-        }
-
-        return Results.Ok(new { AuthorizationUrl = authorizationUrl + $"&state={grant.Id}" });
+        return Results.Ok(new { AuthorizationUrl = authorizationUrl });
     }
 
     private static async Task<IResult> GetIdentityStateCode(IOptions<OAuthOptions> oauthOptions, IOAuthService oauthService, IOAuthGrantRepository oauthGrantRepository, string state, string code, CancellationToken cancellationToken)
