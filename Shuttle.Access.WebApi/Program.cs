@@ -163,6 +163,10 @@ public class Program
         if (immediateConsistencyEnabled)
         {
             recallBuilder = recallBuilder.RegisterPrimitiveEventSequencing();
+
+            // Registered here, after `.UseSqlServerEventStorage()`/`.UseSqlServerEventProcessing()`, so that it
+            // starts after their hosted services have created the event store/projection schema.
+            recallBuilder.Services.AddHostedService<ConfigureApplicationHostedService>();
         }
 
         recallBuilder.Services
