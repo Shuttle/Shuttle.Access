@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Shuttle.Contract" Version="21.0.1" />
-    <PackageReference Include="Shuttle.Hopper" Version="22.0.1" />
+    <PackageReference Include="Shuttle.Hopper" Version="22.0.3" />
     <PackageReference Include="Shuttle.Recall" Version="23.0.1" />
   </ItemGroup>
 
