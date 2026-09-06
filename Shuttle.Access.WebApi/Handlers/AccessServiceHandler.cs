@@ -4,8 +4,7 @@ using Shuttle.Access.Messages.v1;
 using Shuttle.Contract;
 using Shuttle.Mediator;
 using Shuttle.Hopper;
-using Shuttle.Recall.SqlServer.EventProcessing;
-using Shuttle.Recall.SqlServer.Storage;
+using Shuttle.Recall;
 
 namespace Shuttle.Access.WebApi.Handlers;
 

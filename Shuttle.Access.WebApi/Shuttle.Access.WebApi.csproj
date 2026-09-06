@@ -21,7 +21,7 @@
     <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="22.0.1" />
     <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="22.0.1" />
     <PackageReference Include="Shuttle.OAuth" Version="22.0.0" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="22.0.1" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="23.0.1" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.1" />

@@ -148,6 +148,11 @@ public class Program
             .AddRecall(options =>
             {
                 configuration.GetSection(RecallOptions.SectionName).Bind(options);
+
+                if (immediateConsistencyEnabled)
+                {
+                    options.EventProcessing.AutoStart = false;
+                }
             })
             .UseSqlServerEventStorage(options =>
             {

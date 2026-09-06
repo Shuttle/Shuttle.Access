@@ -11,9 +11,9 @@
     <PackageReference Include="Shuttle.Contract" Version="21.0.1" />
     <PackageReference Include="Shuttle.Mediator" Version="21.0.2" />
     <PackageReference Include="Shuttle.Hopper" Version="22.0.1" />
-    <PackageReference Include="Shuttle.Recall" Version="22.0.1" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="22.0.1" />
-    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="22.0.1" />
+    <PackageReference Include="Shuttle.Recall" Version="23.0.1" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="23.0.1" />
+    <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="23.0.1" />
   </ItemGroup>
 
   <ItemGroup>

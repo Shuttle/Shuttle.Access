@@ -49,6 +49,15 @@
           "00:00:30"
         ]
       }
+    },
+    "Recall": {
+      "EventStore": {
+        "PrimitiveEventSequencerIdleDurations": [ "00:00:01", "00:00:02", "00:00:05", "00:00:10", "00:00:30" ]
+      },
+      "EventProcessing": {
+        "ProjectionProcessorIdleDurations": [ "00:00:01", "00:00:02", "00:00:05", "00:00:10", "00:00:30" ],
+        "ProjectionThreadCount": 1
+      }
     }
   }
 }
