@@ -2,17 +2,19 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Shuttle.Contract;
 
 namespace Shuttle.Access.AspNetCore;
 
 /// <summary>
-///     Applies the <see cref="AccessSessionRequirement" /> / <see cref="AccessPermissionRequirement" /> endpoint
-///     metadata.  The session has already been established by <see cref="AccessAuthenticationHandler" /> and is read
-///     from the <see cref="ISessionContext" />.
+///     Applies the <see cref="AccessSessionRequirement" /> / <see cref="AccessPermissionRequirement" /> /
+///     <see cref="AccessSystemTenantRequirement" /> endpoint metadata.  The session has already been established by
+///     <see cref="AccessAuthenticationHandler" /> and is read from the <see cref="ISessionContext" />.
 /// </summary>
-public class AccessAuthorizationMiddleware(ISessionContext sessionContext, ILogger<AccessAuthorizationMiddleware>? logger = null) : IMiddleware
+public class AccessAuthorizationMiddleware(ISessionContext sessionContext, IOptions<AccessOptions> accessOptions, ILogger<AccessAuthorizationMiddleware>? logger = null) : IMiddleware
 {
+    private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
     private readonly ILogger<AccessAuthorizationMiddleware> _logger = logger ?? NullLogger<AccessAuthorizationMiddleware>.Instance;
     private readonly ISessionContext _sessionContext = Guard.AgainstNull(sessionContext);
 
@@ -22,8 +24,9 @@ public class AccessAuthorizationMiddleware(ISessionContext sessionContext, ILogg
 
         var permissionRequirement = endpoint?.Metadata.GetMetadata<AccessPermissionRequirement>();
         var sessionRequirement = endpoint?.Metadata.GetMetadata<AccessSessionRequirement>();
+        var systemTenantRequirement = endpoint?.Metadata.GetMetadata<AccessSystemTenantRequirement>();
 
-        if (permissionRequirement == null && sessionRequirement == null)
+        if (permissionRequirement == null && sessionRequirement == null && systemTenantRequirement == null)
         {
             await next(context);
 
@@ -41,6 +44,16 @@ public class AccessAuthorizationMiddleware(ISessionContext sessionContext, ILogg
             !_sessionContext.HasPermission(permissionRequirement.Permission))
         {
             LogMessage.PermissionDenied(_logger, _sessionContext.Session.IdentityName, $"{_sessionContext.TenantId:D}", permissionRequirement.Permission);
+
+            await context.ForbidAsync();
+
+            return;
+        }
+
+        if (systemTenantRequirement != null &&
+            !_sessionContext.TenantId.Equals(_accessOptions.SystemTenantId))
+        {
+            LogMessage.SystemTenantRequired(_logger, _sessionContext.Session.IdentityName, $"{_sessionContext.TenantId:D}");
 
             await context.ForbidAsync();
 

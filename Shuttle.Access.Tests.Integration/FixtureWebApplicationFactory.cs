@@ -10,7 +10,7 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Tests.Integration;
 
-public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilder = null, bool useMessaging = true) : WebApplicationFactory<Program>
+public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilder = null, bool useMessaging = true, Guid? tenantId = null) : WebApplicationFactory<Program>
 {
     public Mock<IIdentityQuery> IdentityQuery { get; } = new();
     public Mock<IMediator> Mediator { get; } = new();
@@ -36,12 +36,13 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
         webHostBuilder?.Invoke(builder);
 
         var accessOptions = new AccessOptions();
+        var resolvedTenantId = tenantId ?? accessOptions.SystemTenantId;
 
         var session = new Query.Session
         {
             IdentityId = Guid.NewGuid(),
             IdentityName = "identity-name",
-            Permissions = [new() { Id = Guid.NewGuid(), Name = "*", TenantId = accessOptions.SystemTenantId }],
+            Permissions = [new() { Id = Guid.NewGuid(), Name = "*", TenantId = resolvedTenantId }],
             DateRegistered = DateTimeOffset.UtcNow,
             ExpiryDate = DateTimeOffset.UtcNow.Add(TimeSpan.FromHours(1)),
         };
@@ -70,7 +71,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
             // Credential validation is covered by `AccessSessionResolverFixture`.  These fixtures exercise the
             // endpoints, so the resolver is stubbed — but it still honours the presence of an `Authorization` header
             // so that removing it genuinely yields no session.
-            services.AddScoped<ISessionResolver>(_ => new FixtureSessionResolver(session, accessOptions.SystemTenantId));
+            services.AddScoped<ISessionResolver>(_ => new FixtureSessionResolver(session, resolvedTenantId));
         });
     }
 

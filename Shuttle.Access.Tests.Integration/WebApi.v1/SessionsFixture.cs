@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using System.Net;
+using Moq;
 using NUnit.Framework;
 using Shuttle.Access.Application;
 using Shuttle.Access.Query;
@@ -7,6 +8,20 @@ namespace Shuttle.Access.Tests.Integration.WebApi.v1;
 
 public class SessionsFixture
 {
+    [Test]
+    public async Task Should_not_be_able_to_delete_all_sessions_outside_the_system_tenant_async()
+    {
+        var factory = new FixtureWebApplicationFactory(tenantId: Guid.NewGuid());
+
+        var response = await factory.GetAccessClient().Sessions.DeleteAsync();
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.False);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        factory.Bus.Verify(m => m.PublishAsync(It.IsAny<object>(), null, It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     [Test]
     public async Task Should_be_able_to_get_a_session_using_the_token_async()
     {

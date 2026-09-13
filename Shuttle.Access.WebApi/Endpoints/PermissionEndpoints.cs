@@ -42,19 +42,22 @@ public static class PermissionEndpoints
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Permissions.Register);
+            .RequirePermission(AccessPermissions.Permissions.Register)
+            .RequireSystemTenant();
 
         app.MapPost("/v{version:apiVersion}/permissions/file", PostFile)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Permissions.Register);
+            .RequirePermission(AccessPermissions.Permissions.Register)
+            .RequireSystemTenant();
 
         app.MapPost("/v{version:apiVersion}/permissions/upload", PostUpload)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Permissions.Register);
+            .RequirePermission(AccessPermissions.Permissions.Register)
+            .RequireSystemTenant();
 
         app.MapPost("/v{version:apiVersion}/permissions/download", PostDownload)
             .WithTags("Permissions")
@@ -66,19 +69,22 @@ public static class PermissionEndpoints
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Permissions.Register);
+            .RequirePermission(AccessPermissions.Permissions.Register)
+            .RequireSystemTenant();
 
         app.MapPatch("/v{version:apiVersion}/permissions/{id:Guid}/description", PatchDescription)
-            .WithTags("Identities")
+            .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Roles.Register);
+            .RequirePermission(AccessPermissions.Permissions.Register)
+            .RequireSystemTenant();
 
         app.MapPatch("/v{version:apiVersion}/permissions/{id:Guid}/status", PatchStatus)
             .WithTags("Permissions")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Permissions.Manage);
+            .RequirePermission(AccessPermissions.Permissions.Manage)
+            .RequireSystemTenant();
 
         return app;
     }

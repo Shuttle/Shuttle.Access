@@ -115,7 +115,7 @@ header.
 
 ## Applying requirements
 
-Minimal API endpoints use `RequirePermission` or `RequireSession`:
+Minimal API endpoints use `RequirePermission`, `RequireSession` or `RequireSystemTenant`:
 
 ```c#
 app.MapGet("/v1/customers", () =>
@@ -129,6 +129,12 @@ app.MapGet("/v1/customers/{id:guid}", (Guid id) =>
         // No specific permission, but an active session has to exist.
     })
     .RequireSession();
+
+app.MapPost("/v1/customers/", () =>
+    {
+        // Only callable while the caller's active tenant is the configured system tenant.
+    })
+    .RequireSystemTenant();
 ```
 
 MVC controllers use the equivalent attributes:
@@ -145,10 +151,19 @@ public IEnumerable<Customer> Get()
 public Customer Get(Guid id)
 {
 }
+
+[HttpPost]
+[RequireSystemTenant]
+public void Post(Customer customer)
+{
+}
 ```
 
-A request with no session yields `401 Unauthorized`; a session without the required permission yields
-`403 Forbidden`.
+A request with no session yields `401 Unauthorized`; a session without the required permission, or one whose active
+tenant is not the system tenant, yields `403 Forbidden`. `RequireSystemTenant` is intended for entities that are not
+owned by any one tenant — such as Shuttle.Access's own identities and tenants — where an operation should only be
+performed by a caller currently working in the system tenant, regardless of which permissions they hold in another
+tenant.
 
 To check a permission on the *caller* in code, inject `ISessionContext` — it is populated during authentication and
 carries the resolved session and tenant:

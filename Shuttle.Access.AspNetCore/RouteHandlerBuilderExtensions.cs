@@ -16,5 +16,10 @@ public static class RouteHandlerBuilderExtensions
         {
             return Guard.AgainstNull(builder).WithMetadata(new AccessSessionRequirement());
         }
+
+        public RouteHandlerBuilder RequireSystemTenant()
+        {
+            return Guard.AgainstNull(builder).WithMetadata(new AccessSystemTenantRequirement());
+        }
     }
 }

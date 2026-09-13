@@ -10,6 +10,12 @@ public interface IPermissionsApi
     [Post("/v1/permissions/search")]
     Task<IApiResponse<List<WebApi.Contracts.v1.Permission>>> SearchAsync(WebApi.Contracts.v1.Permission.Specification specification, CancellationToken cancellationToken = default);
 
+    [Patch("/v1/permissions/{id}/description")]
+    Task<IApiResponse> SetDescriptionAsync(Guid id, WebApi.Contracts.v1.SetDescription message, CancellationToken cancellationToken = default);
+
+    [Patch("/v1/permissions/{id}/name")]
+    Task<IApiResponse> SetNameAsync(Guid id, WebApi.Contracts.v1.SetName message, CancellationToken cancellationToken = default);
+
     [Patch("/v1/permissions/{id}/status")]
     Task<IApiResponse> SetStatusAsync(Guid id, WebApi.Contracts.v1.SetStatus message, CancellationToken cancellationToken = default);
 }

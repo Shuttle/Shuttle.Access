@@ -216,12 +216,14 @@ public static class SessionEndpoints
         app.MapDelete("/v{version:apiVersion}/sessions", DeleteAll)
             .WithTags("Sessions")
             .RequirePermission(AccessPermissions.Sessions.Manage)
+            .RequireSystemTenant()
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 
         app.MapDelete("/v{version:apiVersion}/sessions/{sessionId:Guid}", Delete)
             .WithTags("Sessions")
             .RequirePermission(AccessPermissions.Sessions.Manage)
+            .RequireSystemTenant()
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1);
 

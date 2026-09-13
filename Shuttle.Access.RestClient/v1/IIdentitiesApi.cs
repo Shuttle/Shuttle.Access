@@ -25,6 +25,12 @@ public interface IIdentitiesApi
     [Patch("/v1/identities/password/reset")]
     Task<IApiResponse> ResetPasswordAsync(WebApi.Contracts.v1.ResetPassword message, CancellationToken cancellationToken = default);
 
+    [Patch("/v1/identities/{id}/description")]
+    Task<IApiResponse> SetDescriptionAsync(Guid id, WebApi.Contracts.v1.SetDescription message, CancellationToken cancellationToken = default);
+
+    [Patch("/v1/identities/{id}/name")]
+    Task<IApiResponse> SetNameAsync(Guid id, WebApi.Contracts.v1.SetName message, CancellationToken cancellationToken = default);
+
     [Patch("/v1/identities/{id}/roles/{roleId}/status")]
     Task<IApiResponse> SetRoleStatusAsync(Guid id, Guid roleId, WebApi.Contracts.v1.SetActiveStatus message, CancellationToken cancellationToken = default);
 

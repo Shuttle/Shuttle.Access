@@ -87,13 +87,15 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Roles.Register);
+            .RequirePermission(AccessPermissions.Identities.Register)
+            .RequireSystemTenant();
 
         app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/description", PatchDescription)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Roles.Register);
+            .RequirePermission(AccessPermissions.Identities.Register)
+            .RequireSystemTenant();
 
         app.MapPost("/v{version:apiVersion}/identities/search", PostSearch)
             .WithTags("Identities")
@@ -111,7 +113,8 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Remove);
+            .RequirePermission(AccessPermissions.Identities.Remove)
+            .RequireSystemTenant();
 
         app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/roles/{roleId:Guid}/status", PatchRoleStatus)
             .WithTags("Identities")
@@ -129,13 +132,15 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register);
+            .RequirePermission(AccessPermissions.Identities.Register)
+            .RequireSystemTenant();
 
         app.MapPost("/v{version:apiVersion}/identities/{id:Guid}/tenants/availability", PostTenantAvailability)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register);
+            .RequirePermission(AccessPermissions.Identities.Register)
+            .RequireSystemTenant();
 
         app.MapPatch("/v{version:apiVersion}/identities/password", PatchPassword)
             .WithTags("Identities")
@@ -153,7 +158,8 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register);
+            .RequirePermission(AccessPermissions.Identities.Register)
+            .RequireSystemTenant();
 
         app.MapGet("/v{version:apiVersion}/identities/{id:Guid}/password/reset-token", GetPasswordResetToken)
             .WithTags("Identities")
@@ -165,7 +171,8 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register);
+            .RequirePermission(AccessPermissions.Identities.Register)
+            .RequireSystemTenant();
 
         return app;
     }
@@ -227,11 +234,18 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IMediator mediator)
+    private static async Task<IResult> PatchPassword([FromBody] ChangePassword message, ISessionContext sessionContext, IOptions<AccessOptions> accessOptions, IMediator mediator)
     {
         if (!sessionContext.IsAuthorized || (message.Id.HasValue && !sessionContext.Session.HasPermission(sessionContext.TenantId, AccessPermissions.Identities.Register)))
         {
             return Results.Unauthorized();
+        }
+
+        // Changing another identity's password is an identity-management action, restricted to the system tenant;
+        // changing one's own password (no Id, just the caller's session) is unaffected.
+        if (message.Id.HasValue && !sessionContext.TenantId.Equals(accessOptions.Value.SystemTenantId))
+        {
+            return Results.Forbid();
         }
 
         if (!message.Id.HasValue && !message.Token.HasValue)
@@ -308,7 +322,7 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(IOptions<AccessOptions> accessOptions, ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IIdentityQuery identityQuery, IHashingService hashingService, [FromBody] RegisterIdentity message, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
+    private static async Task<IResult> Post(ISessionContext sessionContext, ITenantQuery tenantQuery, IRoleQuery roleQuery, IHashingService hashingService, [FromBody] RegisterIdentity message, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
         Guard.AgainstNull(message);
 
@@ -322,54 +336,28 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
+        // The endpoint already requires the caller to be operating in the system tenant with the
+        // Identities.Register permission, so registration is not further constrained per target role/tenant.
         var roleIds = new List<Guid>();
         var tenantIds = new List<Guid>();
 
-        if (message.RoleIds.Count > 0 || message.TenantIds.Count > 0)
+        if (message.RoleIds.Count > 0)
         {
-            var identity = (await identityQuery.SearchAsync(new Query.Identity.Specification().AddId(sessionContext.Session.IdentityId).IncludePermissions(), cancellationToken)).FirstOrDefault();
+            var roles = (await roleQuery.SearchAsync(new Query.Role.Specification().AddIds(message.RoleIds), cancellationToken)).ToList();
 
-            if (identity == null)
+            roleIds.AddRange(roles.Select(item => item.Id));
+            tenantIds.AddRange(roles.Select(item => item.TenantId).Distinct());
+        }
+
+        if (message.TenantIds.Count > 0)
+        {
+            var tenants = (await tenantQuery.SearchAsync(new Query.Tenant.Specification().AddIds(message.TenantIds), cancellationToken)).ToList();
+
+            foreach (var tenantId in tenants.Select(item => item.Id).Distinct())
             {
-                return Results.Unauthorized();
-            }
-
-            if (message.RoleIds.Count > 0)
-            {
-                var roles = (await roleQuery.SearchAsync(new Query.Role.Specification().AddIds(message.RoleIds), cancellationToken)).ToList();
-
-                roleIds.AddRange(roles.Select(item => item.Id));
-                tenantIds.AddRange(roles.Select(item => item.TenantId).Distinct());
-            }
-
-            List<Query.Tenant> tenants = [];
-
-            if (message.TenantIds.Count > 0)
-            {
-                tenants = (await tenantQuery.SearchAsync(new Query.Tenant.Specification().AddIds(message.TenantIds), cancellationToken)).ToList();
-
-                foreach (var tenantId in tenants.Select(item => item.Id).Distinct())
+                if (!tenantIds.Contains(tenantId))
                 {
-                    if (!tenantIds.Contains(tenantId))
-                    {
-                        tenantIds.Add(tenantId);
-                    }
-                }
-            }
-
-            var hasSystemAccess = identity.HasPermission(accessOptions.Value.SystemTenantId, AccessPermissions.Identities.Register);
-
-            if (!hasSystemAccess)
-            {
-                foreach (var tenantId in tenantIds)
-                {
-                    if (!identity.HasPermission(tenantId, AccessPermissions.Identities.Register))
-                    {
-                        return Results.Problem(
-                            title: "Forbidden",
-                            detail: $"You do not have permission to register identities in tenant '{tenants.FirstOrDefault(item => item.Id == tenantId)?.Name ?? "(unknown)"}'.",
-                            statusCode: StatusCodes.Status403Forbidden);
-                    }
+                    tenantIds.Add(tenantId);
                 }
             }
         }

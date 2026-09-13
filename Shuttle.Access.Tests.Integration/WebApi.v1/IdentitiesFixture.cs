@@ -503,6 +503,176 @@ public class IdentitiesFixture
     }
 
     [Test]
+    public async Task Should_not_be_able_to_register_identity_outside_the_system_tenant_async()
+    {
+        var factory = new FixtureWebApplicationFactory(tenantId: Guid.NewGuid());
+
+        var response = await factory.GetAccessClient().Identities.RegisterAsync(new()
+        {
+            Name = "identity"
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.False);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<Messages.v1.RegisterIdentity>(), null, It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Test]
+    public async Task Should_not_be_able_to_delete_identity_outside_the_system_tenant_async()
+    {
+        var factory = new FixtureWebApplicationFactory(tenantId: Guid.NewGuid());
+
+        var response = await factory.GetAccessClient().Identities.DeleteAsync(Guid.NewGuid());
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.False);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_set_identity_name_async()
+    {
+        var id = Guid.NewGuid();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.Bus.Setup(m => m.SendAsync(It.Is<Messages.v1.SetIdentityName>(message => message.Id.Equals(id) && message.Name.Equals("new-name")), null)).Verifiable();
+
+        var response = await factory.GetAccessClient().Identities.SetNameAsync(id, new()
+        {
+            Name = "new-name"
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+        factory.Bus.VerifyAll();
+    }
+
+    [Test]
+    public async Task Should_not_be_able_to_set_identity_name_outside_the_system_tenant_async()
+    {
+        var factory = new FixtureWebApplicationFactory(tenantId: Guid.NewGuid());
+
+        var response = await factory.GetAccessClient().Identities.SetNameAsync(Guid.NewGuid(), new()
+        {
+            Name = "new-name"
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.False);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_set_identity_description_async()
+    {
+        var id = Guid.NewGuid();
+
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.Bus.Setup(m => m.SendAsync(It.Is<Messages.v1.SetIdentityDescription>(message => message.Id.Equals(id) && message.Description.Equals("new-description")), null)).Verifiable();
+
+        var response = await factory.GetAccessClient().Identities.SetDescriptionAsync(id, new()
+        {
+            Description = "new-description"
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+        factory.Bus.VerifyAll();
+    }
+
+    [Test]
+    public async Task Should_not_be_able_to_set_identity_description_outside_the_system_tenant_async()
+    {
+        var factory = new FixtureWebApplicationFactory(tenantId: Guid.NewGuid());
+
+        var response = await factory.GetAccessClient().Identities.SetDescriptionAsync(Guid.NewGuid(), new()
+        {
+            Description = "new-description"
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.False);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+    }
+
+    [Test]
+    public async Task Should_not_be_able_to_set_identity_tenant_status_outside_the_system_tenant_async()
+    {
+        var factory = new FixtureWebApplicationFactory(tenantId: Guid.NewGuid());
+
+        var response = await factory.GetAccessClient().Identities.SetTenantAsync(Guid.NewGuid(), Guid.NewGuid(), new()
+        {
+            Active = true
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.False);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_set_identity_role_status_outside_the_system_tenant_async()
+    {
+        var tenantId = Guid.NewGuid();
+        var roleId = Guid.NewGuid();
+
+        var identity = CreateIdentity();
+
+        identity.Tenants =
+        [
+            new()
+            {
+                Id = tenantId
+            }
+        ];
+
+        var factory = new FixtureWebApplicationFactory(tenantId: tenantId);
+
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+            new List<Query.Identity>
+            {
+                identity
+            }.AsEnumerable()));
+
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync([
+            new()
+            {
+                Id = roleId,
+                TenantId = tenantId
+            }
+        ]);
+
+        factory.Bus.Setup(m => m.SendAsync(It.Is<Messages.v1.SetIdentityRoleStatus>(message => message.RoleId.Equals(roleId)), null, It.IsAny<CancellationToken>())).Verifiable();
+
+        var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(identity.Id, roleId, new()
+        {
+            Active = true
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.True);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+        factory.Bus.VerifyAll();
+    }
+
+    [Test]
     public async Task Should_not_be_able_to_deactivate_last_administrator_async()
     {
         var tenantId = Guid.NewGuid();

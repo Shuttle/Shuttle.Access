@@ -60,19 +60,22 @@ public static class TenantEndpoints
             .WithTags("Roles")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Tenants.Manage);
+            .RequirePermission(AccessPermissions.Tenants.Manage)
+            .RequireSystemTenant();
 
         app.MapPost("/v{version:apiVersion}/tenants/", Post)
             .WithTags("Tenants")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Tenants.Register);
+            .RequirePermission(AccessPermissions.Tenants.Register)
+            .RequireSystemTenant();
 
         app.MapPatch("/v{version:apiVersion}/tenants/{id:Guid}/status", PatchStatus)
             .WithTags("Tenants")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Tenants.Manage);
+            .RequirePermission(AccessPermissions.Tenants.Manage)
+            .RequireSystemTenant();
 
         return app;
     }
