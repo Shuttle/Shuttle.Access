@@ -17,9 +17,9 @@ public static class RouteHandlerBuilderExtensions
             return Guard.AgainstNull(builder).WithMetadata(new AccessSessionRequirement());
         }
 
-        public RouteHandlerBuilder RequireSystemTenant()
+        public RouteHandlerBuilder RequireSystemPermission(string permission)
         {
-            return Guard.AgainstNull(builder).WithMetadata(new AccessSystemTenantRequirement());
+            return Guard.AgainstNull(builder).WithMetadata(new AccessSystemPermissionRequirement(Guard.AgainstEmpty(permission)));
         }
     }
 }

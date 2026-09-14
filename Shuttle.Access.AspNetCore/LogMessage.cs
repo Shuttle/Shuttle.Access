@@ -10,8 +10,8 @@ public static class LogMessage
     private static readonly Action<ILogger, string, string, string, Exception?> PermissionDeniedDelegate =
         LoggerMessage.Define<string, string, string>(LogLevel.Trace, new(1004, nameof(PermissionDenied)), "Identity '{IdentityName}' in tenant '{TenantId}' does not have access to permission '{Permission}'.");
 
-    private static readonly Action<ILogger, string, string, Exception?> SystemTenantRequiredDelegate =
-        LoggerMessage.Define<string, string>(LogLevel.Trace, new(1014, nameof(SystemTenantRequired)), "Identity '{IdentityName}' is not in the system tenant; requesting tenant was '{TenantId}'.");
+    private static readonly Action<ILogger, string, string, Exception?> SystemPermissionDeniedDelegate =
+        LoggerMessage.Define<string, string>(LogLevel.Trace, new(1014, nameof(SystemPermissionDenied)), "Identity '{IdentityName}' does not have access to permission '{Permission}' in the system tenant.");
 
     private static readonly Action<ILogger, string, string, Exception?> TenantIdHeaderDelegate =
         LoggerMessage.Define<string, string>(LogLevel.Trace, new(1005, nameof(TenantIdHeader)), "{Message}  Tenant id header = '{TenantIdHeader}'.");
@@ -34,8 +34,8 @@ public static class LogMessage
     public static void PermissionDenied(ILogger logger, string identityName, string tenantId, string permission) =>
         PermissionDeniedDelegate(logger, identityName, tenantId, permission, null);
 
-    public static void SystemTenantRequired(ILogger logger, string identityName, string tenantId) =>
-        SystemTenantRequiredDelegate(logger, identityName, tenantId, null);
+    public static void SystemPermissionDenied(ILogger logger, string identityName, string permission) =>
+        SystemPermissionDeniedDelegate(logger, identityName, permission, null);
 
     public static void TenantIdHeader(ILogger logger, string message, string tenantIdHeader) =>
         TenantIdHeaderDelegate(logger, message, tenantIdHeader, null);

@@ -87,15 +87,13 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register)
-            .RequireSystemTenant();
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
 
         app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/description", PatchDescription)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register)
-            .RequireSystemTenant();
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
 
         app.MapPost("/v{version:apiVersion}/identities/search", PostSearch)
             .WithTags("Identities")
@@ -113,8 +111,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Remove)
-            .RequireSystemTenant();
+            .RequireSystemPermission(AccessPermissions.Identities.Remove);
 
         app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/roles/{roleId:Guid}/status", PatchRoleStatus)
             .WithTags("Identities")
@@ -132,15 +129,13 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register)
-            .RequireSystemTenant();
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
 
         app.MapPost("/v{version:apiVersion}/identities/{id:Guid}/tenants/availability", PostTenantAvailability)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register)
-            .RequireSystemTenant();
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
 
         app.MapPatch("/v{version:apiVersion}/identities/password", PatchPassword)
             .WithTags("Identities")
@@ -158,8 +153,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register)
-            .RequireSystemTenant();
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
 
         app.MapGet("/v{version:apiVersion}/identities/{id:Guid}/password/reset-token", GetPasswordResetToken)
             .WithTags("Identities")
@@ -171,8 +165,7 @@ public static class IdentityEndpoints
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
-            .RequirePermission(AccessPermissions.Identities.Register)
-            .RequireSystemTenant();
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
 
         return app;
     }
