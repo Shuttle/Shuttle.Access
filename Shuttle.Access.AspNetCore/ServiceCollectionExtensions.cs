@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
             services.AddSingleton<IValidateOptions<AccessAuthorizationOptions>, AccessAuthorizationOptionsValidator>();
 
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.TryAddSingleton<IDelegatedSessionCache, DelegatedSessionCache>();
             services.AddTransient<ForwardedAuthorizationHttpMessageHandler>();
 
             services.AddHttpClient(DelegatedSessionResolver.HttpClientName, (serviceProvider, client) =>

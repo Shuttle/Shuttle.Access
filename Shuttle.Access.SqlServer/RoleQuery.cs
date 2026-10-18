@@ -69,6 +69,11 @@ public class RoleQuery(AccessDbContext accessDbContext) : IRoleQuery
             queryable = queryable.Where(e => e.TenantId == specification.TenantId.Value);
         }
 
+        if (specification.TenantIds.Any())
+        {
+            queryable = queryable.Where(e => specification.TenantIds.Contains(e.TenantId));
+        }
+
         if (!string.IsNullOrEmpty(specification.NameMatch))
         {
             queryable = queryable.Where(e => EF.Functions.Like(e.Name, $"%{specification.NameMatch}%"));
