@@ -12,9 +12,13 @@ namespace Shuttle.Access.AspNetCore;
 ///     `GET /v1/sessions/self`.  The credential is never inspected here — Shuttle.Access is the only validator.
 /// </summary>
 /// <remarks>
-///     This is the resolver used by every application other than the Shuttle.Access web API itself.
+///     This is the resolver used by every application other than the Shuttle.Access web API itself. The resolved
+///     session is cached locally (see <see cref="IDelegatedSessionCache" />) so that an identical credential does
+///     not require a fresh round trip on every request; call
+///     <see cref="HopperBuilderExtensions.AddAccessSessionCacheInvalidation" /> to have that cache evicted as soon
+///     as Shuttle.Access publishes that a session has changed.
 /// </remarks>
-public class DelegatedSessionResolver(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IHttpClientFactory httpClientFactory, ILogger<DelegatedSessionResolver>? logger = null) : ISessionResolver
+public class DelegatedSessionResolver(IOptions<AccessOptions> accessOptions, IOptions<AccessAuthorizationOptions> accessAuthorizationOptions, IDelegatedSessionCache delegatedSessionCache, IHttpClientFactory httpClientFactory, ILogger<DelegatedSessionResolver>? logger = null) : ISessionResolver
 {
     public const string HttpClientName = "Shuttle.Access.Session";
 
@@ -22,12 +26,15 @@ public class DelegatedSessionResolver(IOptions<AccessOptions> accessOptions, IOp
 
     private readonly AccessAuthorizationOptions _accessAuthorizationOptions = Guard.AgainstNull(Guard.AgainstNull(accessAuthorizationOptions).Value);
     private readonly AccessOptions _accessOptions = Guard.AgainstNull(Guard.AgainstNull(accessOptions).Value);
+    private readonly IDelegatedSessionCache _delegatedSessionCache = Guard.AgainstNull(delegatedSessionCache);
     private readonly IHttpClientFactory _httpClientFactory = Guard.AgainstNull(httpClientFactory);
     private readonly ILogger<DelegatedSessionResolver> _logger = logger ?? NullLogger<DelegatedSessionResolver>.Instance;
 
     public async Task<SessionResolutionResult> ResolveAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(Guard.AgainstNull(httpContext).Request.Headers.Authorization.FirstOrDefault()))
+        var header = Guard.AgainstNull(httpContext).Request.Headers.Authorization.FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(header))
         {
             return SessionResolutionResult.None;
         }
@@ -39,27 +46,32 @@ public class DelegatedSessionResolver(IOptions<AccessOptions> accessOptions, IOp
             return SessionResolutionResult.Failure(Resources.InvalidTenantIdHeaderException);
         }
 
-        var response = await _httpClientFactory.CreateClient(HttpClientName).GetAsync(SelfPath, cancellationToken);
+        var session = _delegatedSessionCache.Find(header);
 
-        if (!response.IsSuccessStatusCode)
+        if (session == null)
         {
-            LogMessage.InvalidAuthorizationHeader(_logger, $"The Shuttle.Access web API returned '{(int)response.StatusCode}' for '{SelfPath}'.");
+            var response = await _httpClientFactory.CreateClient(HttpClientName).GetAsync(SelfPath, cancellationToken);
 
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Caller", "(caller)"), cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                LogMessage.InvalidAuthorizationHeader(_logger, $"The Shuttle.Access web API returned '{(int)response.StatusCode}' for '{SelfPath}'.");
 
-            return SessionResolutionResult.Failure(Access.Resources.InvalidAuthorizationHeader);
+                await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Caller", "(caller)"), cancellationToken);
+
+                return SessionResolutionResult.Failure(Access.Resources.InvalidAuthorizationHeader);
+            }
+
+            var content = await response.Content.ReadFromJsonAsync<WebApi.Contracts.v1.Session>(cancellationToken);
+
+            if (content == null)
+            {
+                await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Caller", "(caller)"), cancellationToken);
+
+                return SessionResolutionResult.Failure(Access.Resources.InvalidAuthorizationHeader);
+            }
+
+            session = _delegatedSessionCache.Add(header, SessionMapper.Map(content));
         }
-
-        var content = await response.Content.ReadFromJsonAsync<WebApi.Contracts.v1.Session>(cancellationToken);
-
-        if (content == null)
-        {
-            await _accessAuthorizationOptions.SessionUnavailable.InvokeAsync(new("Caller", "(caller)"), cancellationToken);
-
-            return SessionResolutionResult.Failure(Access.Resources.InvalidAuthorizationHeader);
-        }
-
-        var session = SessionMapper.Map(content);
 
         await _accessAuthorizationOptions.SessionAvailable.InvokeAsync(new(session), cancellationToken);
 

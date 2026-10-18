@@ -107,7 +107,18 @@ public static class SessionEndpoints
             return Results.BadRequest();
         }
 
-        var session = await sessionQuery.FindAsync(new Session.Specification().WithIdentityName(identityName), cancellationToken: cancellationToken);
+        var specification = new Session.Specification().WithIdentityName(identityName);
+        var session = sessionCache.Find(specification);
+
+        if (session == null)
+        {
+            session = await sessionQuery.FindAsync(specification, cancellationToken: cancellationToken);
+
+            if (session != null)
+            {
+                sessionCache.Add(session);
+            }
+        }
 
         if (session != null)
         {
@@ -146,7 +157,14 @@ public static class SessionEndpoints
             return Results.Forbid();
         }
 
-        return !sessionRequest.HasSession ? Results.NotFound() : Results.Ok(sessionRequest.Session.Map());
+        if (!sessionRequest.HasSession)
+        {
+            return Results.NotFound();
+        }
+
+        sessionCache.Add(sessionRequest.Session);
+
+        return Results.Ok(sessionRequest.Session.Map());
     }
 
     private static Session.Specification GetSpecification(Contracts.v1.Session.Specification model, IHashingService hashingService)

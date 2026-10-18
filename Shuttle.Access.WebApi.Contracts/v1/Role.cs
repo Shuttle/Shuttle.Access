@@ -20,5 +20,6 @@ public class Role
     {
         public string NameMatch { get; set; } = string.Empty;
         public bool ShouldIncludePermissions { get; set; }
+        public List<Guid> TenantIds { get; set; } = [];
     }
 }

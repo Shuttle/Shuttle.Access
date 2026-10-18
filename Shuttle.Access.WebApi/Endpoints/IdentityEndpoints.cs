@@ -265,7 +265,7 @@ public static class IdentityEndpoints
         return Results.Ok();
     }
 
-    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IMediator mediator, IRoleQuery roleQuery, IIdentityQuery identityQuery, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
+    private static async Task<IResult> PatchRoleStatus(Guid id, Guid roleId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, IOptions<AccessOptions> accessOptions, IMediator mediator, IRoleQuery roleQuery, IIdentityQuery identityQuery, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
         var identity = (await identityQuery.FindAsync(new Query.Identity.Specification().AddId(id).IncludeTenants(), cancellationToken: cancellationToken)).GuardAgainstRecordNotFound(id);
 
@@ -274,6 +274,13 @@ public static class IdentityEndpoints
         if (identity.Tenants.All(e => e.Id != role.TenantId))
         {
             return Results.BadRequest($"Identity '{identity.Name}' is not in tenant with id '{role.TenantId}'.");
+        }
+
+        // Applying a role that belongs to a tenant other than the one the caller is currently operating in is a
+        // cross-tenant action restricted to callers operating in the system tenant.
+        if (!role.TenantId.Equals(sessionContext.TenantId) && !sessionContext.TenantId.Equals(accessOptions.Value.SystemTenantId))
+        {
+            return Results.Forbid();
         }
 
         if (!message.Active)

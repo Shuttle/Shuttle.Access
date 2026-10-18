@@ -673,6 +673,55 @@ public class IdentitiesFixture
     }
 
     [Test]
+    public async Task Should_not_be_able_to_set_identity_role_status_for_a_different_tenant_outside_the_system_tenant_async()
+    {
+        var operatingTenantId = Guid.NewGuid();
+        var roleTenantId = Guid.NewGuid();
+        var roleId = Guid.NewGuid();
+
+        var identity = CreateIdentity();
+
+        identity.Tenants =
+        [
+            new()
+            {
+                Id = operatingTenantId
+            },
+            new()
+            {
+                Id = roleTenantId
+            }
+        ];
+
+        var factory = new FixtureWebApplicationFactory(tenantId: operatingTenantId);
+
+        factory.IdentityQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Identity.Specification>(), It.IsAny<CancellationToken>())).Returns(Task.FromResult(
+            new List<Query.Identity>
+            {
+                identity
+            }.AsEnumerable()));
+
+        factory.RoleQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Role.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync([
+            new()
+            {
+                Id = roleId,
+                TenantId = roleTenantId
+            }
+        ]);
+
+        var response = await factory.GetAccessClient().Identities.SetRoleStatusAsync(identity.Id, roleId, new()
+        {
+            Active = true
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.IsSuccessStatusCode, Is.False);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<object>(), null), Times.Never);
+    }
+
+    [Test]
     public async Task Should_not_be_able_to_deactivate_last_administrator_async()
     {
         var tenantId = Guid.NewGuid();

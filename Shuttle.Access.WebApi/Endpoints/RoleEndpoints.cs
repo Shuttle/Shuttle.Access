@@ -3,6 +3,7 @@ using System.Text.Json;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.Query;
@@ -294,14 +295,25 @@ public static class RoleEndpoints
         return Results.Ok(result);
     }
 
-    private static async Task<IResult> PostSearch(ISessionContext sessionContext, [FromServices] IRoleQuery roleQuery, [FromBody] Contracts.v1.Role.Specification specification)
+    private static async Task<IResult> PostSearch(ISessionContext sessionContext, [FromServices] IOptions<AccessOptions> accessOptions, [FromServices] IRoleQuery roleQuery, [FromBody] Contracts.v1.Role.Specification specification)
     {
         if (!sessionContext.IsAuthorized)
         {
             return Results.BadRequest();
         }
 
-        var search = new Query.Role.Specification().WithTenantId(sessionContext.TenantId);
+        var search = new Query.Role.Specification();
+
+        // Searching across tenants is a cross-tenant action restricted to callers operating in the system tenant;
+        // otherwise the search stays scoped to the caller's current operating tenant.
+        if (specification.TenantIds.Count > 0 && sessionContext.TenantId.Equals(accessOptions.Value.SystemTenantId))
+        {
+            search.AddTenantIds(specification.TenantIds);
+        }
+        else
+        {
+            search.WithTenantId(sessionContext.TenantId);
+        }
 
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {

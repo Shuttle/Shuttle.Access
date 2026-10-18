@@ -24,14 +24,36 @@ public class Role
         public Guid? TenantId { get; private set; }
         private readonly List<string> _names = [];
         private readonly List<Guid> _permissionIds = [];
+        private readonly List<Guid> _tenantIds = [];
         public string NameMatch { get; private set; } = string.Empty;
         public IEnumerable<string> Names => _names.AsReadOnly();
         public IEnumerable<Guid> PermissionIds => _permissionIds.AsReadOnly();
+        public IEnumerable<Guid> TenantIds => _tenantIds.AsReadOnly();
         public bool PermissionsIncluded { get; private set; }
 
         public Specification WithTenantId(Guid tenantId)
         {
             TenantId = Guard.AgainstEmpty(tenantId);
+            return this;
+        }
+
+        public Specification AddTenantId(Guid tenantId)
+        {
+            if (!_tenantIds.Contains(tenantId))
+            {
+                _tenantIds.Add(tenantId);
+            }
+
+            return this;
+        }
+
+        public Specification AddTenantIds(IEnumerable<Guid> tenantIds)
+        {
+            foreach (var tenantId in tenantIds)
+            {
+                AddTenantId(tenantId);
+            }
+
             return this;
         }
 
