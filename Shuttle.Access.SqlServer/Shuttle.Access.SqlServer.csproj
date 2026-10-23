@@ -24,6 +24,7 @@
     <PackageReference Include="Shuttle.Recall" Version="23.0.1" />
     <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="23.0.1" />
     <PackageReference Include="Shuttle.Recall.SqlServer.Storage" Version="23.0.1" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
   </ItemGroup>
 
   <ItemGroup>

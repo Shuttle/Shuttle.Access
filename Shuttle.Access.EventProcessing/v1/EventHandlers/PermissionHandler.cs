@@ -30,7 +30,7 @@ public class PermissionHandler(ILogger<PermissionHandler> logger, AccessDbContex
     {
         Guard.AgainstNull(accessDbContext);
 
-        await SetStatusAsync(context.PrimitiveEvent.Id, (int)PermissionStatus.Deactivated, cancellationToken);
+        await SetStatusAsync(context.PrimitiveEvent.Id, (int)PermissionStatus.Active, cancellationToken);
 
         _logger.LogDebug("[Activated] : id = '{PrimitiveEventId}'", context.PrimitiveEvent.Id);
     }
