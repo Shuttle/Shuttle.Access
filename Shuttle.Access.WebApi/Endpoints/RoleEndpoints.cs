@@ -240,7 +240,10 @@ public static class RoleEndpoints
             return Results.BadRequest();
         }
 
-        var messages = JsonSerializer.Deserialize<List<RegisterRole>>(form.Files[0].OpenReadStream());
+        var messages = JsonSerializer.Deserialize<List<RegisterRole>>(form.Files[0].OpenReadStream(), new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
 
         if (messages == null || !messages.Any())
         {

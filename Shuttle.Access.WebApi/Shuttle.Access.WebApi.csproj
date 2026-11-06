@@ -18,8 +18,7 @@
     <PackageReference Include="Microsoft.OpenApi" Version="2.12.2" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.17.1" />
     <PackageReference Include="Shuttle.Mediator" Version="21.0.2" />
-    <PackageReference Include="Shuttle.Hopper.AzureStorageQueues" Version="22.0.3" />
-    <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="22.0.3" />
+    <PackageReference Include="Shuttle.Hopper.SqlServer.Subscription" Version="22.1.1" />
     <PackageReference Include="Shuttle.OAuth" Version="22.0.0" />
     <PackageReference Include="Shuttle.Recall.SqlServer.EventProcessing" Version="23.0.1" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
@@ -34,6 +33,7 @@
     <ProjectReference Include="..\Shuttle.Access.Application\Shuttle.Access.Application.csproj" />
     <ProjectReference Include="..\Shuttle.Access.AspNetCore\Shuttle.Access.AspNetCore.csproj" />
     <ProjectReference Include="..\Shuttle.Access.EventProcessing\Shuttle.Access.EventProcessing.csproj" />
+    <ProjectReference Include="..\Shuttle.Access.Hosting\Shuttle.Access.Hosting.csproj" />
     <ProjectReference Include="..\Shuttle.Access.Messages\Shuttle.Access.Messages.csproj" />
     <ProjectReference Include="..\Shuttle.Access.SqlServer\Shuttle.Access.SqlServer.csproj" />
     <ProjectReference Include="..\Shuttle.Access.WebApi.Contracts\Shuttle.Access.WebApi.Contracts.csproj" />

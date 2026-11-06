@@ -13,7 +13,7 @@
   <ItemGroup>
     <PackageReference Include="Shuttle.Contract" Version="21.0.1" />
     <PackageReference Include="Shuttle.Extensions.Options" Version="21.0.1" />
-    <PackageReference Include="Shuttle.Hopper" Version="22.0.3" />
+    <PackageReference Include="Shuttle.Hopper" Version="22.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,7 +33,7 @@
 
   <PropertyGroup>
     <Description>Authorization middleware for web API endpoints using Shuttle.Access.</Description>
-    <Version>12.1.5</Version>
+    <Version>12.1.6</Version>
     <Authors>Eben Roux</Authors>
     <Company>Shuttle</Company>
     <Copyright>Copyright (c) 2025, Eben Roux</Copyright>

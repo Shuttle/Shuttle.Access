@@ -255,6 +255,45 @@ configuration are covered on the
 else. Connection strings (`ConnectionStrings:Access`, `ConnectionStrings:azure`), `Shuttle:Hopper` (queue transports
 and message routes), and `Shuttle:OAuth` follow standard `Shuttle.Hopper`/`Shuttle.OAuth` configuration.
 
+### Transports
+
+`Shuttle.Access.Server` and `Shuttle.Access.WebApi` register a Hopper transport for each transport configuration
+section that is present. The transport used for a queue is selected by the scheme of its URI, and the URI host
+selects the named transport (the child key of the section):
+
+| Transport | Section | URI |
+| --- | --- | --- |
+| Azure Storage Queues | `Shuttle:AzureStorageQueues:{name}` | `azuresq://{name}/{queue}` |
+| RabbitMQ | `Shuttle:RabbitMQ:{name}` | `rabbitmq://{name}/{queue}` |
+
+At least one transport section is required. For Azure Storage Queues, when neither `StorageAccount` nor
+`ConnectionString` is set, the connection string named `{name}` is used.
+
+Example using RabbitMQ instead of the default Azure Storage Queues:
+
+```json
+{
+  "Shuttle": {
+    "RabbitMQ": {
+      "local": {
+        "Host": "localhost",
+        "Username": "shuttle",
+        "Password": "shuttle!"
+      }
+    },
+    "Hopper": {
+      "Inbox": {
+        "WorkTransportUri": "rabbitmq://local/access-server-inbox-work",
+        "DeferredTransportUri": "rabbitmq://local/access-server-inbox-deferred",
+        "ErrorTransportUri": "rabbitmq://local/access-error"
+      }
+    }
+  }
+}
+```
+
+The web API's `MessageRoutes` URI must point at the same transport as the server's work queue.
+
 ### `Shuttle:Access` — shared (`Shuttle.Access`)
 
 | Property | Default | Description |

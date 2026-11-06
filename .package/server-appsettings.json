@@ -32,6 +32,12 @@
   },
   "Shuttle": {
     "Hopper": {
+      "AzureStorageQueues": {
+        "azure": {}
+      },
+      "RabbitMQ": {
+        ".": {}
+      },
       "Inbox": {
         "WorkTransportUri": "azuresq://azure/access-server-inbox-work",
         "DeferredTransportUri": "azuresq://azure/access-server-inbox-deferred",

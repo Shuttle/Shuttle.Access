@@ -7,10 +7,10 @@ using Serilog;
 using Shuttle.Access.Application;
 using Shuttle.Access.AspNetCore;
 using Shuttle.Access.EventProcessing.v1.EventHandlers;
+using Shuttle.Access.Hosting;
 using Shuttle.Access.Messages.v1;
 using Shuttle.Access.SqlServer;
 using Shuttle.Hopper;
-using Shuttle.Hopper.AzureStorageQueues;
 using Shuttle.Hopper.SqlServer.Subscription;
 using Shuttle.Mediator;
 using Shuttle.OAuth;
@@ -118,18 +118,7 @@ public class Program
             {
                 configuration.GetSection(HopperOptions.SectionName).Bind(options);
             })
-            .UseAzureStorageQueues(builder =>
-            {
-                builder.Configure("azure", options =>
-                {
-                    configuration.GetSection($"{AzureStorageQueueOptions.SectionName}:Access").Bind(options);
-
-                    if (string.IsNullOrWhiteSpace(options.StorageAccount))
-                    {
-                        options.ConnectionString = configuration.GetConnectionString("azure") ?? string.Empty;
-                    }
-                });
-            })
+            .UseConfiguredTransports(configuration)
             .AddMessageHandlersFrom(typeof(Program).Assembly)
             .UseSqlServerSubscription(sqlServerSubscriptionOptions =>
             {

@@ -175,7 +175,10 @@ public static class PermissionEndpoints
             return Results.BadRequest();
         }
 
-        var registerPermissions = JsonSerializer.Deserialize<List<Contracts.v1.RegisterPermission>>(form.Files[0].OpenReadStream());
+        var registerPermissions = JsonSerializer.Deserialize<List<Contracts.v1.RegisterPermission>>(form.Files[0].OpenReadStream(), new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
 
         if (registerPermissions == null || !registerPermissions.Any())
         {

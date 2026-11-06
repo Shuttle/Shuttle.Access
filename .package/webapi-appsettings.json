@@ -73,6 +73,12 @@
       }
     },
     "Hopper": {
+      "AzureStorageQueues": {
+        "azure": {}
+      },
+      "RabbitMQ": {
+        ".": {}
+      },
       "Inbox": {
         "WorkTransportUri": "azuresq://azure/access-webapi-inbox-work",
         "DeferredTransportUri": "azuresq://azure/access-webapi-inbox-deferred",
