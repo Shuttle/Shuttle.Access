@@ -112,6 +112,9 @@ public class RolesFixture
 
         var factory = new FixtureWebApplicationFactory();
 
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Permission.Specification>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new Query.Permission { Id = permissionId }]);
+
         factory.Bus.Setup(m =>
                 m.SendAsync(It.Is<SetRolePermissionStatus>(message => message.PermissionId.Equals(permissionId)), null))
             .Verifiable();
@@ -126,6 +129,25 @@ public class RolesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
         factory.Bus.VerifyAll();
+    }
+
+    [Test]
+    public async Task Should_not_be_able_to_add_unknown_permission_to_role_async()
+    {
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.PermissionQuery.Setup(m => m.SearchAsync(It.IsAny<Query.Permission.Specification>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        var response = await factory.GetAccessClient().Roles.SetPermissionStatusAsync(Guid.NewGuid(), Guid.NewGuid(), new()
+        {
+            Active = true
+        });
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<SetRolePermissionStatus>(), null), Times.Never);
     }
 
     [Test]
@@ -189,5 +211,56 @@ public class RolesFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
 
         factory.Bus.Verify(m => m.SendAsync(It.IsAny<RegisterRole>(), null), Times.Once);
+    }
+
+    [Test]
+    public async Task Should_be_able_to_register_role_for_another_tenant_from_the_system_tenant_async()
+    {
+        var tenantId = Guid.NewGuid();
+        var factory = new FixtureWebApplicationFactory();
+
+        var response = await factory.GetAccessClient().Roles.RegisterAsync(new()
+        {
+            TenantId = tenantId,
+            Name = "role"
+        });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Accepted));
+
+        factory.Bus.Verify(m => m.SendAsync(It.Is<RegisterRole>(message => message.TenantId.Equals(tenantId)), null), Times.Once);
+    }
+
+    [Test]
+    public async Task Should_not_be_able_to_register_role_for_another_tenant_from_a_non_system_tenant_async()
+    {
+        var factory = new FixtureWebApplicationFactory(tenantId: Guid.NewGuid());
+
+        var response = await factory.GetAccessClient().Roles.RegisterAsync(new()
+        {
+            TenantId = Guid.NewGuid(),
+            Name = "role"
+        });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<RegisterRole>(), null), Times.Never);
+    }
+
+    [Test]
+    public async Task Should_not_be_able_to_register_role_for_unknown_tenant_async()
+    {
+        var factory = new FixtureWebApplicationFactory();
+
+        factory.TenantQuery.Setup(m => m.CountAsync(It.IsAny<Query.Tenant.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync(0);
+
+        var response = await factory.GetAccessClient().Roles.RegisterAsync(new()
+        {
+            TenantId = Guid.NewGuid(),
+            Name = "role"
+        });
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        factory.Bus.Verify(m => m.SendAsync(It.IsAny<RegisterRole>(), null), Times.Never);
     }
 }

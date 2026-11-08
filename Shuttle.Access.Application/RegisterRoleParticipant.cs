@@ -4,7 +4,7 @@ using Shuttle.Recall.SqlServer.Storage;
 
 namespace Shuttle.Access.Application;
 
-public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IPermissionQuery permissionQuery) : IParticipant<RegisterRole>
+public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository idKeyRepository, IPermissionQuery permissionQuery, ITenantQuery tenantQuery) : IParticipant<RegisterRole>
 {
     private static readonly TimeSpan PermissionResolutionTimeout = TimeSpan.FromSeconds(25);
 
@@ -13,8 +13,25 @@ public class RegisterRoleParticipant(IEventStore eventStore, IIdKeyRepository id
         ArgumentNullException.ThrowIfNull(message);
         ArgumentNullException.ThrowIfNull(eventStore);
         ArgumentNullException.ThrowIfNull(idKeyRepository);
+        ArgumentNullException.ThrowIfNull(tenantQuery);
+
+        // a role of an unknown tenant would be stored as an event that the role projection can never project (the role
+        // references its tenant), which would stall the projection of every subsequent role event
+        if (await tenantQuery.CountAsync(new Query.Tenant.Specification().AddId(message.TenantId), cancellationToken) == 0)
+        {
+            throw new ApplicationException($"Could not find a tenant with id '{message.TenantId}' for role '{message.Name}'.");
+        }
 
         var permissionIds = new List<Guid>(message.PermissionIds);
+
+        // as with the tenant, a permission that has not been projected would leave the role projection deferring indefinitely
+        foreach (var permissionId in permissionIds)
+        {
+            if (!await permissionQuery.ContainsAsync(new Query.Permission.Specification().AddId(permissionId), cancellationToken))
+            {
+                throw new ApplicationException($"Could not find a permission with id '{permissionId}' for role '{message.Name}'.");
+            }
+        }
 
         foreach (var permissionName in message.PermissionNames)
         {

@@ -13,6 +13,8 @@ using Shuttle.Access.SqlServer;
 using Shuttle.Hopper;
 using Shuttle.Hopper.SqlServer.Subscription;
 using Shuttle.Mediator;
+using Shuttle.Pipelines;
+using Shuttle.Reflection;
 using Shuttle.OAuth;
 using Shuttle.Recall;
 using Shuttle.Recall.SqlServer.EventProcessing;
@@ -114,6 +116,23 @@ public class Program
                 options.ConnectionString = accessConnectionString;
             })
             .Services
+            // as in `Shuttle.Access.Server`: a failing pipeline (e.g. a projection failing on an event while the event
+            // processor runs here) is otherwise only visible as the projection's `FailureCount`/`DeferredUntil`
+            .AddPipelines(options =>
+            {
+                options.PipelineFailed += (eventArgs, _) =>
+                {
+                    Log.Error(eventArgs.Pipeline.Exception?.AllMessages() ?? string.Empty);
+                    return Task.CompletedTask;
+                };
+
+                options.PipelineRecursiveException += (eventArgs, _) =>
+                {
+                    Log.Error(eventArgs.Pipeline.Exception?.AllMessages() ?? string.Empty);
+                    return Task.CompletedTask;
+                };
+            })
+            .Services
             .AddHopper(options =>
             {
                 configuration.GetSection(HopperOptions.SectionName).Bind(options);
@@ -138,7 +157,8 @@ public class Program
             {
                 configuration.GetSection(RecallOptions.SectionName).Bind(options);
 
-                if (immediateConsistencyEnabled)
+                if (immediateConsistencyEnabled && 
+                    !configuration.GetSection($"{RecallOptions.SectionName}:EventProcessing:AutoStart").Exists())
                 {
                     options.EventProcessing.AutoStart = false;
                 }

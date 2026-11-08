@@ -139,8 +139,15 @@ public static class RoleEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> PatchPermissionStatus(Guid id, Guid permissionId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
+    private static async Task<IResult> PatchPermissionStatus(Guid id, Guid permissionId, [FromBody] SetActiveStatus message, ISessionContext sessionContext, [FromServices] IPermissionQuery permissionQuery, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
+        // A permission may only be added to a role once it has been registered (and projected); otherwise the event
+        // would be accepted but the role projection would defer it indefinitely, stalling every subsequent role event.
+        if (message.Active && !await permissionQuery.ContainsAsync(new Query.Permission.Specification().AddId(permissionId), cancellationToken))
+        {
+            return Results.BadRequest($"Could not find a permission with id '{permissionId}'.");
+        }
+
         await messageDispatcher.DispatchAsync(
             () => sessionContext.Audit(new SetRolePermissionStatus
             {
@@ -153,7 +160,7 @@ public static class RoleEndpoints
         return Results.Accepted();
     }
 
-    private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
+    private static async Task<IResult> Post(RegisterRole message, ISessionContext sessionContext, [FromServices] IOptions<AccessOptions> accessOptions, [FromServices] ITenantQuery tenantQuery, MessageDispatcher messageDispatcher, CancellationToken cancellationToken)
     {
         if (!sessionContext.IsAuthorized)
         {
@@ -165,9 +172,22 @@ public static class RoleEndpoints
             message.TenantId = sessionContext.TenantId;
         }
 
-        if (!sessionContext.Session.HasPermission(message.TenantId, AccessPermissions.Tenants.Manage))
+        // Registering a role for a tenant other than the one the caller is currently operating in is a cross-tenant
+        // action restricted to callers operating in the system tenant that may manage tenants there.
+        var systemTenantId = accessOptions.Value.SystemTenantId;
+        var canManageTenant = sessionContext.Session.HasPermission(message.TenantId, AccessPermissions.Tenants.Manage) ||
+                              (sessionContext.TenantId.Equals(systemTenantId) && sessionContext.Session.HasPermission(systemTenantId, AccessPermissions.Tenants.Manage));
+
+        if (!canManageTenant)
         {
             return Results.Forbid();
+        }
+
+        // A role may only be registered for a tenant that has been registered (and projected); otherwise the
+        // registration would be accepted but its event could never be projected, stalling the role projection.
+        if (await tenantQuery.CountAsync(new Query.Tenant.Specification().AddId(message.TenantId), cancellationToken) == 0)
+        {
+            return Results.BadRequest($"Could not find a tenant with id '{message.TenantId}'.");
         }
 
         var roleId = message.Id ?? Guid.NewGuid();

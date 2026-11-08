@@ -16,6 +16,8 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
         IMessageHandler<RolePermissionRemoved>,
         IMessageHandler<PermissionStatusSet>
 {
+    private static readonly TimeSpan DeferDuration = TimeSpan.FromMilliseconds(200);
+
     private readonly IProjectionQuery _projectionQuery = Guard.AgainstNull(projectionQuery);
     private readonly IBus _bus = Guard.AgainstNull(bus);
     private readonly IMediator _mediator = Guard.AgainstNull(mediator);
@@ -24,59 +26,50 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
 
     public async Task HandleAsync(IdentityRoleAdded message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-
-        if (await ShouldDeferAsync(cancellationToken))
-        {
-            await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
-
-            return;
-        }
-
-        await RefreshAsync(new Query.Session.Specification().WithIdentityId(message.IdentityId), cancellationToken);
+        await RefreshAsync(Guard.AgainstNull(message), new Query.Session.Specification().WithIdentityId(message.IdentityId), cancellationToken);
     }
 
-    private async Task<bool> ShouldDeferAsync(CancellationToken cancellationToken)
+    public async Task HandleAsync(IdentityRoleRemoved message, CancellationToken cancellationToken = default)
     {
-        using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
-        {
-            var sequenceNumber = await _primitiveEventQuery.GetMaximumSequenceNumberAsync(new(), cancellationToken);
-
-            return sequenceNumber == null || await _projectionQuery.HasPendingProjectionsAsync(sequenceNumber.Value, cancellationToken);
-        }
+        // by identity: once the role has been removed the identity's sessions can no longer be found by the role
+        await RefreshAsync(Guard.AgainstNull(message), new Query.Session.Specification().WithIdentityId(message.IdentityId), cancellationToken);
     }
 
     public async Task HandleAsync(PermissionStatusSet message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
-
-        if (await ShouldDeferAsync(cancellationToken))
-        {
-            await _bus.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
-
-            return;
-        }
-
-        await RefreshAsync(new Query.Session.Specification().AddPermissions([message.Name]), cancellationToken);
+        await RefreshAsync(Guard.AgainstNull(message), new Query.Session.Specification().AddPermissions([message.Name]), cancellationToken);
     }
 
     public async Task HandleAsync(RolePermissionAdded message, CancellationToken cancellationToken = default)
     {
-        Guard.AgainstNull(message);
+        await RefreshAsync(Guard.AgainstNull(message), new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
+    }
+
+    public async Task HandleAsync(RolePermissionRemoved message, CancellationToken cancellationToken = default)
+    {
+        await RefreshAsync(Guard.AgainstNull(message), new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
+    }
+
+    private async Task RefreshAsync<T>(T message, Query.Session.Specification sessionSpecification, CancellationToken cancellationToken) where T : class
+    {
+        var sessions = (await _sessionQuery.SearchAsync(sessionSpecification, cancellationToken)).ToList();
+
+        // Nothing to refresh, which is always the case while projections are being rebuilt (sessions are cleared), so
+        // there is no reason to wait for the projections to catch up; deferring would only re-check them every few
+        // seconds for every such message.
+        if (sessions.Count == 0)
+        {
+            return;
+        }
 
         if (await ShouldDeferAsync(cancellationToken))
         {
-            await _bus.SendAsync(message, c => c.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
+            await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.UtcNow.Add(DeferDuration)).ToSelf(), cancellationToken);
 
             return;
         }
 
-        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
-    }
-
-    private async Task RefreshAsync(Query.Session.Specification sessionSpecification, CancellationToken cancellationToken)
-    {
-        foreach (var session in await _sessionQuery.SearchAsync(sessionSpecification, cancellationToken))
+        foreach (var session in sessions)
         {
             await _mediator.SendAsync(new RefreshSession(session.Id), cancellationToken);
 
@@ -89,31 +82,13 @@ public class AccessServiceHandler(IBus bus, IPrimitiveEventQuery primitiveEventQ
         }
     }
 
-    public async Task HandleAsync(IdentityRoleRemoved message, CancellationToken cancellationToken = default)
+    private async Task<bool> ShouldDeferAsync(CancellationToken cancellationToken)
     {
-        Guard.AgainstNull(message);
-
-        if (await ShouldDeferAsync(cancellationToken))
+        using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
         {
-            await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
+            var sequenceNumber = await _primitiveEventQuery.GetMaximumSequenceNumberAsync(new(), cancellationToken);
 
-            return;
+            return sequenceNumber == null || await _projectionQuery.HasPendingProjectionsAsync(sequenceNumber.Value, cancellationToken);
         }
-
-        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
-    }
-
-    public async Task HandleAsync(RolePermissionRemoved message, CancellationToken cancellationToken = default)
-    {
-        Guard.AgainstNull(message);
-
-        if (await ShouldDeferAsync(cancellationToken))
-        {
-            await _bus.SendAsync(message, builder => builder.DeferUntil(DateTime.UtcNow.AddSeconds(5)).ToSelf(), cancellationToken);
-
-            return;
-        }
-
-        await RefreshAsync(new Query.Session.Specification().WithRoleId(message.RoleId), cancellationToken);
     }
 }

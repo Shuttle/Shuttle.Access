@@ -20,6 +20,18 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
     public Mock<IBus> Bus { get; } = new();
     public Mock<ISessionQuery> SessionQuery { get; } = new();
 
+    // every tenant is known unless a fixture sets up otherwise
+    public Mock<ITenantQuery> TenantQuery { get; } = CreateTenantQuery();
+
+    private static Mock<ITenantQuery> CreateTenantQuery()
+    {
+        var tenantQuery = new Mock<ITenantQuery>();
+
+        tenantQuery.Setup(m => m.CountAsync(It.IsAny<Query.Tenant.Specification>(), It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        return tenantQuery;
+    }
+
     protected override void ConfigureClient(HttpClient client)
     {
         client.DefaultRequestHeaders.Authorization = new("Shuttle.Access", $"token={Guid.NewGuid():D}");
@@ -66,6 +78,7 @@ public class FixtureWebApplicationFactory(Action<IWebHostBuilder>? webHostBuilde
             services.AddSingleton(PermissionQuery.Object);
             services.AddSingleton(RoleQuery.Object);
             services.AddSingleton(SessionQuery.Object);
+            services.AddSingleton(TenantQuery.Object);
             services.AddSingleton(Bus.Object);
 
             // Credential validation is covered by `AccessSessionResolverFixture`.  These fixtures exercise the
