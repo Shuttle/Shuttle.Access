@@ -2,6 +2,7 @@
 
 public class Identity
 {
+    public List<string> AlternateNames { get; set; } = [];
     public DateTimeOffset? DateActivated { get; set; }
     public DateTimeOffset DateRegistered { get; set; }
     public string Description { get; set; } = string.Empty;
@@ -32,6 +33,7 @@ public class Identity
         public List<Guid> Ids { get; set; } = [];
         public string Name { get; set; } = string.Empty;
         public string NameMatch { get; set; } = string.Empty;
+        public bool ShouldIncludeAlternateNames { get; set; }
         public bool ShouldIncludePermissions { get; set; }
         public bool ShouldIncludeRoles { get; set; }
         public bool ShouldIncludeTenants { get; set; }

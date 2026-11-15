@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Shuttle.Contract;
 using Session = Shuttle.Access.Query.Session;
 
@@ -31,6 +32,7 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
                 IdentityId = e.IdentityId,
                 IdentityName = e.Identity.Name,
                 IdentityDescription = e.Identity.Description,
+                SignInName = e.SignInName,
                 Permissions = e.Permissions.Select(item => new Query.Session.SessionPermission
                 {
                     Id = item.PermissionId,
@@ -60,74 +62,101 @@ public class SessionQuery(AccessDbContext accessDbContext, IHashingService hashi
 
     public async Task SaveAsync(Session session, CancellationToken cancellationToken = default)
     {
-        var model = await _accessDbContext.Sessions
-            .Include(item => item.Permissions)
-            .Include(item => item.Tokens)
-            .SingleOrDefaultAsync(item => item.Id == session.Id, cancellationToken);
-
-        if (model == null)
+        for (var attempt = 0; attempt < 2; attempt++)
         {
-            model = new()
+            var model = await _accessDbContext.Sessions
+                .Include(item => item.Permissions)
+                .Include(item => item.Tokens)
+                .SingleOrDefaultAsync(item => item.IdentityId == session.IdentityId, cancellationToken);
+
+            var isNew = model == null;
+
+            if (isNew)
             {
-                Id = session.Id,
-                IdentityId = session.IdentityId,
-                DateRegistered = session.DateRegistered,
-                ExpiryDate = session.ExpiryDate
-            };
-
-            _accessDbContext.Sessions.Add(model);
-        }
-        else
-        {
-            _accessDbContext.SessionPermissions
-                .RemoveRange(model.Permissions.Where(item => 
-                    !session.Permissions.Any(p => p.Id == item.PermissionId && p.TenantId == item.TenantId)).ToList());
-
-            _accessDbContext.SessionTokens
-                .RemoveRange(model.Tokens.Where(item => !session.Tokens.Any(t => t.Id == item.Id)).ToList());
-        }
-
-        model.ExpiryDate = session.ExpiryDate;
-
-        foreach (var sessionPermission in session.Permissions)
-        {
-            var sessionPermissionModel = model.Permissions.FirstOrDefault(e => e.PermissionId == sessionPermission.Id && e.TenantId == sessionPermission.TenantId);
-
-            if (sessionPermissionModel != null)
-            {
-                continue;
-            }
-
-            _accessDbContext.SessionPermissions.Add(new()
-            {
-                SessionId = session.Id,
-                PermissionId = sessionPermission.Id,
-                TenantId = sessionPermission.TenantId
-            });
-        }
-
-        foreach (var sessionToken in session.Tokens)
-        {
-            var sessionTokenModel = model.Tokens.FirstOrDefault(e => e.Id == sessionToken.Id);
-
-            if (sessionTokenModel == null)
-            {
-                sessionTokenModel = new()
+                model = new()
                 {
-                    Id = sessionToken.Id
+                    Id = session.Id,
+                    IdentityId = session.IdentityId,
+                    DateRegistered = session.DateRegistered,
+                    ExpiryDate = session.ExpiryDate,
+                    SignInName = session.SignInName
                 };
 
-                _accessDbContext.SessionTokens.Add(sessionTokenModel);
+                _accessDbContext.Sessions.Add(model);
+            }
+            else
+            {
+                _accessDbContext.SessionPermissions
+                    .RemoveRange(model!.Permissions.Where(item =>
+                        !session.Permissions.Any(p => p.Id == item.PermissionId && p.TenantId == item.TenantId)).ToList());
+
+                _accessDbContext.SessionTokens
+                    .RemoveRange(model.Tokens.Where(item => !session.Tokens.Any(t => t.Id == item.Id)).ToList());
             }
 
-            sessionTokenModel.SessionId = session.Id;
-            sessionTokenModel.TokenHash = sessionToken.TokenHash;
-            sessionTokenModel.DateRegistered = sessionToken.DateRegistered;
-            sessionTokenModel.ExpiryDate = sessionToken.ExpiryDate;
-            sessionTokenModel.Application = sessionToken.Application;
-        }
+            model!.ExpiryDate = session.ExpiryDate;
+            model.SignInName = session.SignInName;
 
-        await _accessDbContext.SaveChangesAsync(cancellationToken);
+            foreach (var sessionPermission in session.Permissions)
+            {
+                var sessionPermissionModel = model.Permissions.FirstOrDefault(e => e.PermissionId == sessionPermission.Id && e.TenantId == sessionPermission.TenantId);
+
+                if (sessionPermissionModel != null)
+                {
+                    continue;
+                }
+
+                _accessDbContext.SessionPermissions.Add(new()
+                {
+                    SessionId = model.Id,
+                    PermissionId = sessionPermission.Id,
+                    TenantId = sessionPermission.TenantId
+                });
+            }
+
+            foreach (var sessionToken in session.Tokens)
+            {
+                var sessionTokenModel = model.Tokens.FirstOrDefault(e => e.Id == sessionToken.Id);
+
+                if (sessionTokenModel == null)
+                {
+                    sessionTokenModel = new()
+                    {
+                        Id = sessionToken.Id
+                    };
+
+                    _accessDbContext.SessionTokens.Add(sessionTokenModel);
+                }
+
+                sessionTokenModel.SessionId = model.Id;
+                sessionTokenModel.TokenHash = sessionToken.TokenHash;
+                sessionTokenModel.DateRegistered = sessionToken.DateRegistered;
+                sessionTokenModel.ExpiryDate = sessionToken.ExpiryDate;
+                sessionTokenModel.Application = sessionToken.Application;
+            }
+
+            try
+            {
+                await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+                session.Id = model.Id;
+
+                return;
+            }
+            catch (DbUpdateException ex) when (isNew && attempt == 0 && IsDuplicateSessionIdentityId(ex))
+            {
+                foreach (var entry in _accessDbContext.ChangeTracker.Entries().ToList())
+                {
+                    entry.State = EntityState.Detached;
+                }
+            }
+        }
+    }
+
+    private static bool IsDuplicateSessionIdentityId(DbUpdateException ex)
+    {
+        return ex.InnerException is SqlException { Number: 2601 or 2627 } sqlException &&
+               sqlException.Message.Contains("UX_Session_IdentityId", StringComparison.OrdinalIgnoreCase);
     }
     
     private IQueryable<Models.Session> GetQueryable(Session.Specification specification)

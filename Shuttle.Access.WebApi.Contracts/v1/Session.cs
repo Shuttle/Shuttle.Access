@@ -8,6 +8,7 @@ public class Session
     public string IdentityDescription { get; set; } = string.Empty;
     public Guid IdentityId { get; set; }
     public string IdentityName { get; set; } = string.Empty;
+    public string SignInName { get; set; } = string.Empty;
     public List<SessionPermission> Permissions { get; set; } = [];
     public List<SessionToken> Tokens { get; set; } = [];
 

@@ -35,7 +35,7 @@ public static class IdentityEndpoints
             return Results.Unauthorized();
         }
 
-        var specification = new Query.Identity.Specification().IncludeTenants().IncludeRoles().IncludePermissions().AddId(id);
+        var specification = new Query.Identity.Specification().IncludeAlternateNames().IncludeTenants().IncludeRoles().IncludePermissions().AddId(id);
 
         var identity = (await identityQuery.SearchAsync(specification)).SingleOrDefault();
 
@@ -59,6 +59,7 @@ public static class IdentityEndpoints
         {
             Id = identity.Id,
             Name = identity.Name,
+            AlternateNames = identity.AlternateNames.OrderBy(item => item).ToList(),
             Description = identity.Description,
             DateRegistered = identity.DateRegistered,
             DateActivated = identity.DateActivated,
@@ -84,6 +85,24 @@ public static class IdentityEndpoints
         var apiVersion1 = new ApiVersion(1, 0);
 
         app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/name", PatchName)
+            .WithTags("Identities")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
+
+        app.MapPost("/v{version:apiVersion}/identities/{id:Guid}/alternate-names", PostAlternateName)
+            .WithTags("Identities")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
+
+        app.MapDelete("/v{version:apiVersion}/identities/{id:Guid}/alternate-names/{name}", DeleteAlternateName)
+            .WithTags("Identities")
+            .WithApiVersionSet(versionSet)
+            .MapToApiVersion(apiVersion1)
+            .RequireSystemPermission(AccessPermissions.Identities.Register);
+
+        app.MapPatch("/v{version:apiVersion}/identities/{id:Guid}/alternate-names/promotion", PatchAlternateNamePromotion)
             .WithTags("Identities")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(apiVersion1)
@@ -201,6 +220,20 @@ public static class IdentityEndpoints
         return Results.Accepted();
     }
 
+    private static async Task<IResult> PatchAlternateNamePromotion(Guid id, [FromBody] PromoteAlternateName message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
+    {
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.PromoteIdentityAlternateName
+            {
+                Id = id,
+                Name = message.Name,
+                Mode = message.Mode
+            }),
+            () => new Application.PromoteIdentityAlternateName(id, message.Name, (IdentityAlternateNamePromotionMode)message.Mode, sessionContext.TenantId, sessionContext.Session.IdentityName));
+
+        return Results.Accepted();
+    }
+
     private static async Task<IResult> PatchDescription(Guid id, [FromBody] SetDescription message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
     {
         await messageDispatcher.DispatchAsync(
@@ -223,6 +256,32 @@ public static class IdentityEndpoints
                 Name = message.Name
             }),
             () => new Application.SetIdentityName(id, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName));
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> DeleteAlternateName(Guid id, string name, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
+    {
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.RemoveIdentityAlternateName
+            {
+                Id = id,
+                Name = name
+            }),
+            () => new Application.RemoveIdentityAlternateName(id, name, sessionContext.TenantId, sessionContext.Session.IdentityName));
+
+        return Results.Accepted();
+    }
+
+    private static async Task<IResult> PostAlternateName(Guid id, [FromBody] AddAlternateName message, ISessionContext sessionContext, MessageDispatcher messageDispatcher)
+    {
+        await messageDispatcher.DispatchAsync(
+            () => sessionContext.Audit(new Messages.v1.AddIdentityAlternateName
+            {
+                Id = id,
+                Name = message.Name
+            }),
+            () => new Application.AddIdentityAlternateName(id, message.Name, sessionContext.TenantId, sessionContext.Session.IdentityName));
 
         return Results.Accepted();
     }
@@ -411,6 +470,11 @@ public static class IdentityEndpoints
         if (!string.IsNullOrWhiteSpace(specification.NameMatch))
         {
             search.WithNameMatch(specification.NameMatch);
+        }
+
+        if (specification.ShouldIncludeAlternateNames)
+        {
+            search.IncludeAlternateNames();
         }
 
         if (specification.ShouldIncludePermissions)

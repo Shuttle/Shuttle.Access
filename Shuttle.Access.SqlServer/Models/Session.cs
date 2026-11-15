@@ -22,6 +22,10 @@ public class Session
     [Required]
     public Guid IdentityId { get; set; }
 
+    [Required]
+    [StringLength(320)]
+    public string SignInName { get; set; } = string.Empty;
+
     public ICollection<SessionPermission> Permissions { get; set; } = [];
     public ICollection<SessionToken> Tokens { get; set; } = [];
 }

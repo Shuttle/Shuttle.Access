@@ -21,7 +21,9 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
         IEventHandler<Removed>,
         IEventHandler<Activated>,
         IEventHandler<NameSet>,
-        IEventHandler<DescriptionSet>
+        IEventHandler<DescriptionSet>,
+        IEventHandler<AlternateNameAdded>,
+        IEventHandler<AlternateNameRemoved>
 {
     private readonly AccessDbContext _accessDbContext = Guard.AgainstNull(accessDbContext);
     private readonly IBus _bus = Guard.AgainstNull(bus);
@@ -48,6 +50,51 @@ public class IdentityHandler(ILogger<IdentityHandler> logger, AccessDbContext ac
             Id = model.Id,
             Name = model.Name,
             DateActivated = context.Event.DateActivated
+        }, cancellationToken: cancellationToken);
+    }
+
+    public async Task HandleAsync(IEventHandlerContext<AlternateNameAdded> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        _accessDbContext.IdentityAlternateNames.Add(new()
+        {
+            IdentityId = context.PrimitiveEvent.Id,
+            Name = context.Event.Name
+        });
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogDebug("[AlternateNameAdded] : id = '{PrimitiveEventId}' / name = '{Name}'", context.PrimitiveEvent.Id, context.Event.Name);
+
+        await _bus.PublishAsync(new IdentityAlternateNameAdded
+        {
+            Id = context.PrimitiveEvent.Id,
+            Name = context.Event.Name
+        }, cancellationToken: cancellationToken);
+    }
+
+    public async Task HandleAsync(IEventHandlerContext<AlternateNameRemoved> context, CancellationToken cancellationToken = default)
+    {
+        Guard.AgainstNull(context);
+
+        var model = await _accessDbContext.IdentityAlternateNames.FirstOrDefaultAsync(item => item.IdentityId == context.PrimitiveEvent.Id && item.Name == context.Event.Name, cancellationToken);
+
+        if (model == null)
+        {
+            return;
+        }
+
+        _accessDbContext.IdentityAlternateNames.Remove(model);
+
+        await _accessDbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogDebug("[AlternateNameRemoved] : id = '{PrimitiveEventId}' / name = '{Name}'", context.PrimitiveEvent.Id, context.Event.Name);
+
+        await _bus.PublishAsync(new IdentityAlternateNameRemoved
+        {
+            Id = context.PrimitiveEvent.Id,
+            Name = context.Event.Name
         }, cancellationToken: cancellationToken);
     }
 

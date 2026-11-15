@@ -107,6 +107,7 @@ public class SessionRequestParticipant(IOptions<AccessOptions> accessOptions, IA
                   };
 
         session.IdentityDescription = identity.Description;
+        session.SignInName = message.IdentityName;
 
         var sessionToken = session.FindSessionToken(message.Application);
 

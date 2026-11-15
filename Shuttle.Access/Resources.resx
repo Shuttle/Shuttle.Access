@@ -130,6 +130,10 @@
   <data name="DeleteSessionException" xml:space="preserve">
     <value>Could not delete the session.</value>
   </data>
+  <data name="DuplicateIdentityAlternateNameException" xml:space="preserve">
+    <value>Identity '{0}' is already known by alternate name '{1}'.</value>
+    <comment>0 = identity name; 1 = alternate name</comment>
+  </data>
   <data name="DuplicateIdentityRoleException" xml:space="preserve">
     <value>Identity '{0}' is already in role with id '{1}'.</value>
     <comment>0 = identity name; 1 = role id</comment>
@@ -187,6 +191,14 @@
   </data>
   <data name="RequiredOptionMissing" xml:space="preserve">
     <value>Required option '{0}' is missing.</value>
+  </data>
+  <data name="IdentityAlternateNameInUseException" xml:space="preserve">
+    <value>The alternate name '{0}' is already in use by another identity.</value>
+    <comment>0 = alternate name</comment>
+  </data>
+  <data name="IdentityAlternateNameNotFoundException" xml:space="preserve">
+    <value>Alternate name '{0}' does not exist on identity '{1}'.</value>
+    <comment>0 = alternate name, 1 = identity name</comment>
   </data>
   <data name="IdentityRoleNotFoundException" xml:space="preserve">
     <value>Role id '{0}' does not exist on identity '{1}'.</value>

@@ -20,7 +20,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
 
     public async ValueTask<Guid> IdAsync(string identityName, CancellationToken cancellationToken = default)
     {
-        return (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Name == identityName, cancellationToken)).GuardAgainstRecordNotFound(identityName).Id;
+        return (await _accessDbContext.Identities.FirstOrDefaultAsync(item => item.Name == identityName || item.IdentityAlternateNames.Any(alternateName => alternateName.Name == identityName), cancellationToken)).GuardAgainstRecordNotFound(identityName).Id;
     }
 
     public async Task<IEnumerable<Session.SessionPermission>> PermissionsAsync(Guid id, CancellationToken cancellationToken = default)
@@ -67,6 +67,7 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
                 DateActivated = e.DateActivated,
                 GeneratedPassword = e.GeneratedPassword,
                 RegisteredBy = e.RegisteredBy,
+                AlternateNames = e.IdentityAlternateNames.Select(item => item.Name).ToList(),
                 Tenants = e.IdentityTenants.Select(item => new Query.Tenant
                 {
                     Id = item.TenantId,
@@ -97,6 +98,10 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
         var queryable = _accessDbContext.Identities
             .AsNoTracking();
 
+        queryable = specification.ShouldIncludeAlternateNames
+            ? queryable.Include(item => item.IdentityAlternateNames)
+            : queryable;
+
         queryable = specification.ShouldIncludeTenants
             ? queryable.Include(item => item.IdentityTenants).ThenInclude(item => item.Tenant)
             : queryable;
@@ -113,12 +118,12 @@ public class IdentityQuery(AccessDbContext accessDbContext) : IIdentityQuery
 
         if (!string.IsNullOrEmpty(specification.NameMatch))
         {
-            queryable = queryable.Where(e => e.Name.Contains(specification.NameMatch));
+            queryable = queryable.Where(e => e.Name.Contains(specification.NameMatch) || e.IdentityAlternateNames.Any(alternateName => alternateName.Name.Contains(specification.NameMatch)));
         }
 
         if (!string.IsNullOrEmpty(specification.Name))
         {
-            queryable = queryable.Where(e => e.Name == specification.Name);
+            queryable = queryable.Where(e => e.Name == specification.Name || e.IdentityAlternateNames.Any(alternateName => alternateName.Name == specification.Name));
         }
 
         if (specification.TenantId != null)

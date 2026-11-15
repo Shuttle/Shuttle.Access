@@ -4,6 +4,7 @@ namespace Shuttle.Access.Query;
 
 public class Identity
 {
+    public List<string> AlternateNames { get; set; } = [];
     public DateTimeOffset? DateActivated { get; set; }
     public DateTimeOffset DateRegistered { get; set; }
     public string Description { get; set; } = string.Empty;
@@ -22,10 +23,18 @@ public class Identity
         public Guid? PermissionId { get; private set; }
         public Guid? RoleId { get; private set; }
         public string RoleName { get; private set; } = string.Empty;
+        public bool ShouldIncludeAlternateNames { get; private set; }
         public bool ShouldIncludeRoles { get; private set; }
         public Guid? TenantId { get; private set; }
         public bool ShouldIncludePermissions { get; private set; }
         public bool ShouldIncludeTenants { get; private set; }
+
+        public Specification IncludeAlternateNames()
+        {
+            ShouldIncludeAlternateNames = true;
+
+            return this;
+        }
 
         public Specification IncludeRoles()
         {

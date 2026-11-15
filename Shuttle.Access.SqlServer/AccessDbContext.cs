@@ -5,6 +5,7 @@ namespace Shuttle.Access.SqlServer;
 public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbContext(options)
 {
     public DbSet<Models.Identity> Identities { get; set; } = null!;
+    public DbSet<Models.IdentityAlternateName> IdentityAlternateNames { get; set; } = null!;
     public DbSet<Models.IdentityTenant> IdentityTenants { get; set; } = null!;
     public DbSet<Models.IdentityRole> IdentityRoles { get; set; } = null!;
     public DbSet<Models.Permission> Permissions { get; set; } = null!;
@@ -17,6 +18,10 @@ public class AccessDbContext(DbContextOptions<AccessDbContext> options) : DbCont
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Models.Identity>()
+            .HasMany(p => p.IdentityAlternateNames)
+            .WithOne(f => f.Identity);
+
         modelBuilder.Entity<Models.Identity>()
             .HasMany(p => p.IdentityRoles)
             .WithOne(f => f.Identity);
