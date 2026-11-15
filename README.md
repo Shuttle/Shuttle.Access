@@ -212,6 +212,35 @@ Permissions are assigned to roles, and roles to identities, per tenant:
          └─ Owner
 ```
 
+## Identities
+
+An identity has one primary `Name` plus any number of alternate names. Alternate names let an identity keep its
+history and permissions while being known by more than one value — a sign-in name changed at an OAuth provider, or a
+legacy name retained after a rename.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /v1/identities/{id}/alternate-names` | Adds an alternate name |
+| `DELETE /v1/identities/{id}/alternate-names/{name}` | Removes an alternate name |
+| `PATCH /v1/identities/{id}/alternate-names/promotion` | Promotes an alternate name to be the primary name |
+
+All three are authorized against `AccessPermissions.Identities.Register`, the same permission required to register an
+identity.
+
+Signing in, and any identity search by `Name` or `NameMatch`, matches the primary name *or* any alternate name — once
+added, an alternate name can be used to sign in immediately.
+
+`PATCH .../alternate-names/promotion` takes a `Mode`:
+
+| Mode | Effect |
+| --- | --- |
+| `1` — `Replace` | The alternate becomes the primary name; the previous primary name is discarded and can no longer be used to sign in. |
+| `2` — `Swap` | The alternate becomes the primary name; the previous primary name becomes an alternate. |
+
+A session records both names separately: `IdentityName` is always the identity's *current* primary name, while
+`SignInName` is whatever name was actually presented when the session was registered — which may be an alternate
+name, and may since have diverged from `IdentityName` if the identity was renamed or promoted.
+
 ## Consistency
 
 Shuttle.Access is event-sourced (`Shuttle.Recall`): every mutation is appended to an event store, and the `Identity`,
