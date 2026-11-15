@@ -37,6 +37,7 @@ public class RegisterSessionParticipantFixture
 
         Assert.That(async () => await participant.HandleAsync(message, It.IsAny<CancellationToken>()), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
+        Assert.That(message.Session!.SignInName, Is.EqualTo(IdentityName));
     }
 
     [Test]
@@ -105,6 +106,7 @@ public class RegisterSessionParticipantFixture
 
         Assert.That(async () => await participant.HandleAsync(message, It.IsAny<CancellationToken>()), Throws.Nothing);
         Assert.That(message.HasSession, Is.True);
+        Assert.That(message.Session!.SignInName, Is.EqualTo(IdentityName));
     }
 
     [Test]
@@ -136,6 +138,7 @@ public class RegisterSessionParticipantFixture
         var sessionQuery = MockSessionSearchAsync(out var session);
 
         session.Tokens = [new(){ TokenHash = tokenHash, ExpiryDate = DateTimeOffset.UtcNow.AddMinutes(5)}];
+        session.SignInName = "an-alternate-name";
 
         var participant = new SessionRequestParticipant(Options.Create(new AccessOptions()), new Mock<IAuthenticationService>().Object, new HashingService(), sessionQuery.Object, identityQuery.Object);
 
@@ -145,5 +148,6 @@ public class RegisterSessionParticipantFixture
         sessionQuery.Verify(m => m.SaveAsync(It.IsAny<Query.Session>(), It.IsAny<CancellationToken>()), Times.Once);
 
         Assert.That(message.Session!.Tokens.First().TokenHash, Is.EqualTo(tokenHash));
+        Assert.That(message.Session!.SignInName, Is.EqualTo("an-alternate-name"));
     }
 }

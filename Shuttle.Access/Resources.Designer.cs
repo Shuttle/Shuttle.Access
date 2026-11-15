@@ -97,6 +97,15 @@ namespace Shuttle.Access {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Identity &apos;{0}&apos; is already known by alternate name &apos;{1}&apos;..
+        /// </summary>
+        public static string DuplicateIdentityAlternateNameException {
+            get {
+                return ResourceManager.GetString("DuplicateIdentityAlternateNameException", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Identity &apos;{0}&apos; is already in role with id &apos;{1}&apos;..
         /// </summary>
         public static string DuplicateIdentityRoleException {
@@ -150,6 +159,24 @@ namespace Shuttle.Access {
             }
         }
         
+        /// <summary>
+        ///   Looks up a localized string similar to The alternate name &apos;{0}&apos; is already in use by another identity..
+        /// </summary>
+        public static string IdentityAlternateNameInUseException {
+            get {
+                return ResourceManager.GetString("IdentityAlternateNameInUseException", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Alternate name &apos;{0}&apos; does not exist on identity &apos;{1}&apos;..
+        /// </summary>
+        public static string IdentityAlternateNameNotFoundException {
+            get {
+                return ResourceManager.GetString("IdentityAlternateNameNotFoundException", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Role id &apos;{0}&apos; does not exist on identity &apos;{1}&apos;..
         /// </summary>

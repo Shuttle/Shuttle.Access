@@ -11,6 +11,7 @@ internal static class SessionMapper
             Id = session.Id,
             IdentityId = session.IdentityId,
             IdentityName = session.IdentityName,
+            SignInName = session.SignInName,
             IdentityDescription = session.IdentityDescription,
             DateRegistered = session.DateRegistered,
             ExpiryDate = session.ExpiryDate,

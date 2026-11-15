@@ -17,7 +17,7 @@ namespace Shuttle.Access.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -59,6 +59,23 @@ namespace Shuttle.Access.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Identity", "access");
+                });
+
+            modelBuilder.Entity("Shuttle.Access.SqlServer.Models.IdentityAlternateName", b =>
+                {
+                    b.Property<Guid>("IdentityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
+                    b.HasKey("IdentityId", "Name");
+
+                    b.HasIndex(new[] { "Name" }, "UX_IdentityAlternateName_Name")
+                        .IsUnique();
+
+                    b.ToTable("IdentityAlternateName", "access");
                 });
 
             modelBuilder.Entity("Shuttle.Access.SqlServer.Models.IdentityRole", b =>
@@ -181,6 +198,11 @@ namespace Shuttle.Access.Data.Migrations
                     b.Property<Guid>("IdentityId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("SignInName")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("nvarchar(320)");
+
                     b.HasKey("Id");
 
                     b.HasIndex(new[] { "IdentityId" }, "UX_Session_IdentityId")
@@ -260,6 +282,17 @@ namespace Shuttle.Access.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Tenant", "access");
+                });
+
+            modelBuilder.Entity("Shuttle.Access.SqlServer.Models.IdentityAlternateName", b =>
+                {
+                    b.HasOne("Shuttle.Access.SqlServer.Models.Identity", "Identity")
+                        .WithMany("IdentityAlternateNames")
+                        .HasForeignKey("IdentityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Identity");
                 });
 
             modelBuilder.Entity("Shuttle.Access.SqlServer.Models.IdentityRole", b =>
@@ -374,6 +407,8 @@ namespace Shuttle.Access.Data.Migrations
 
             modelBuilder.Entity("Shuttle.Access.SqlServer.Models.Identity", b =>
                 {
+                    b.Navigation("IdentityAlternateNames");
+
                     b.Navigation("IdentityRoles");
 
                     b.Navigation("IdentityTenants");

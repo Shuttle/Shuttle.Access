@@ -3,12 +3,20 @@ using Shuttle.Contract;
 
 namespace Shuttle.Access;
 
+public enum IdentityAlternateNamePromotionMode
+{
+    Replace = 1,
+    Swap = 2
+}
+
 public class Identity
 {
     private readonly List<Guid> _tenantIds = [];
     private readonly List<Guid> _roleIds = [];
+    private readonly List<string> _alternateNames = [];
     private byte[]? _passwordHash;
     public bool Activated => DateActivated.HasValue;
+    public IReadOnlyList<string> AlternateNames => _alternateNames.AsReadOnly();
     public DateTimeOffset? DateActivated { get; private set; }
     public string Description { get; private set; } = string.Empty;
     public bool HasPasswordResetToken => PasswordResetToken.HasValue;
@@ -23,6 +31,27 @@ public class Identity
         {
             DateActivated = dateActivated
         });
+    }
+
+    public AlternateNameAdded AddAlternateName(string name)
+    {
+        Guard.AgainstEmpty(name);
+
+        return IsKnownAs(name)
+            ? throw new ApplicationException(string.Format(Resources.DuplicateIdentityAlternateNameException, Name, name))
+            : On(new AlternateNameAdded { Name = name });
+    }
+
+    public bool IsKnownAs(string name)
+    {
+        return Name.Equals(name) || _alternateNames.Contains(name);
+    }
+
+    public AlternateNameRemoved RemoveAlternateName(string name)
+    {
+        return !_alternateNames.Contains(name)
+            ? throw new InvalidOperationException(string.Format(Resources.IdentityAlternateNameNotFoundException, name, Name))
+            : On(new AlternateNameRemoved { Name = name });
     }
 
     public RoleAdded AddRole(Guid roleId)
@@ -111,6 +140,24 @@ public class Identity
         Description = descriptionSet.Description;
 
         return descriptionSet;
+    }
+
+    private AlternateNameAdded On(AlternateNameAdded alternateNameAdded)
+    {
+        Guard.AgainstNull(alternateNameAdded);
+
+        _alternateNames.Add(alternateNameAdded.Name);
+
+        return alternateNameAdded;
+    }
+
+    private AlternateNameRemoved On(AlternateNameRemoved alternateNameRemoved)
+    {
+        Guard.AgainstNull(alternateNameRemoved);
+
+        _alternateNames.Remove(alternateNameRemoved.Name);
+
+        return alternateNameRemoved;
     }
 
     private RoleAdded On(RoleAdded roleAdded)

@@ -7,6 +7,15 @@ public interface IIdentitiesApi
     [Patch("/v1/identities/activate")]
     Task<IApiResponse> ActivateAsync(WebApi.Contracts.v1.ActivateIdentity message, CancellationToken cancellationToken = default);
 
+    [Post("/v1/identities/{id}/alternate-names")]
+    Task<IApiResponse> AddAlternateNameAsync(Guid id, WebApi.Contracts.v1.AddAlternateName message, CancellationToken cancellationToken = default);
+
+    [Delete("/v1/identities/{id}/alternate-names/{name}")]
+    Task<IApiResponse> RemoveAlternateNameAsync(Guid id, string name, CancellationToken cancellationToken = default);
+
+    [Patch("/v1/identities/{id}/alternate-names/promotion")]
+    Task<IApiResponse> PromoteAlternateNameAsync(Guid id, WebApi.Contracts.v1.PromoteAlternateName message, CancellationToken cancellationToken = default);
+
     [Patch("/v1/identities/password")]
     Task<IApiResponse> ChangePasswordAsync(WebApi.Contracts.v1.ChangePassword message, CancellationToken cancellationToken = default);
 
